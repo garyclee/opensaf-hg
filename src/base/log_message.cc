@@ -24,6 +24,6 @@
 
 namespace base {
 
-const struct timespec LogMessage::kNullTime{0, -1};
+const struct timespec LogMessage::kNullTime { 0, -1 };
 
 }  // namespace base

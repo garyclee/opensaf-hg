@@ -150,10 +150,10 @@
  ***************************************************************************/
 
 typedef struct hm_hdl {
-  uint32_t seq_id:4;              /* Sequence ID that must match  'cell' value */
-  uint32_t idx1:8;                /* Navigational marker for first array */
-  uint32_t idx2:8;                /* Navigational marker for second array */
-  uint32_t idx3:12;               /* Navigational marker for third array */
+  uint32_t seq_id : 4; /* Sequence ID that must match  'cell' value */
+  uint32_t idx1 : 8;   /* Navigational marker for first array */
+  uint32_t idx2 : 8;   /* Navigational marker for second array */
+  uint32_t idx3 : 12;  /* Navigational marker for third array */
 
 } HM_HDL;
 
@@ -162,12 +162,12 @@ typedef struct hm_hdl {
  ***************************************************************************/
 
 typedef struct hm_cell {
-  NCSCONTEXT data;        /* This is the stored data thing */
+  NCSCONTEXT data; /* This is the stored data thing */
 
-  uint32_t seq_id:4;              /* sequence ID must match for valid key find */
-  uint32_t svc_id:12;     /* Service ID of owning subsystem */
-  uint32_t busy:1;                /* sub-type of datat stored in context */
-  uint32_t use_ct:11;     /* Use Count; Multiple readers, once created */
+  uint32_t seq_id : 4;  /* sequence ID must match for valid key find */
+  uint32_t svc_id : 12; /* Service ID of owning subsystem */
+  uint32_t busy : 1;    /* sub-type of datat stored in context */
+  uint32_t use_ct : 11; /* Use Count; Multiple readers, once created */
 
 } HM_CELL;
 
@@ -176,8 +176,8 @@ typedef struct hm_cell {
  ***************************************************************************/
 
 typedef struct hm_free {
-  struct hm_free *next;   /* linked list of free/available cells */
-  HM_HDL hdl;             /* The place where this memory lives */
+  struct hm_free *next; /* linked list of free/available cells */
+  HM_HDL hdl;           /* The place where this memory lives */
 
 } HM_FREE;
 
@@ -185,10 +185,10 @@ typedef struct hm_free {
  * CELLs are allocated in hunks
  ***************************************************************************/
 
-#define HM_CELL_CNT  4096
+#define HM_CELL_CNT 4096
 
 typedef struct hm_cells {
-  HM_CELL cell[HM_CELL_CNT];      /* twelve bits of counter */
+  HM_CELL cell[HM_CELL_CNT]; /* twelve bits of counter */
 
 } HM_CELLS;
 
@@ -196,11 +196,11 @@ typedef struct hm_cells {
  * Handle Manager has BANKS of CELLs that emerge dyanamically
  ***************************************************************************/
 
-#define HM_BANK_CNT  256        /* FF  */
+#define HM_BANK_CNT 256 /* FF  */
 
 typedef struct hm_unit {
-  uint8_t curr;           /* next idx to fill in */
-  HM_CELLS *cells[HM_BANK_CNT];   /* when the cell-bank itself */
+  uint8_t curr;                 /* next idx to fill in */
+  HM_CELLS *cells[HM_BANK_CNT]; /* when the cell-bank itself */
 
 } HM_UNIT;
 
@@ -218,11 +218,11 @@ typedef struct hm_unit {
 
 ***************************************************************************/
 
-#define HM_POOL_CNT  9
+#define HM_POOL_CNT 9
 
 typedef struct hm_pool {
-  int32_t min;            /* min name-sapce unit inclusive */
-  int32_t max;            /* max name-space unit inclusive */
+  int32_t min; /* min name-sapce unit inclusive */
+  int32_t max; /* max name-space unit inclusive */
 
 } HM_POOL;
 
@@ -231,11 +231,11 @@ typedef struct hm_pool {
  ***************************************************************************/
 
 typedef struct hm_pmgr {
-  HM_FREE *free_pool;     /* the free ones go here */
-  uint32_t in_q;          /* current handles in this queue */
-  uint32_t in_use;                /* current handles in world from this pool */
-  uint32_t curr;          /* current unit-id we are working on */
-  uint32_t max;           /* max unit-id that this pool owns */
+  HM_FREE *free_pool; /* the free ones go here */
+  uint32_t in_q;      /* current handles in this queue */
+  uint32_t in_use;    /* current handles in world from this pool */
+  uint32_t curr;      /* current unit-id we are working on */
+  uint32_t max;       /* max unit-id that this pool owns */
 
 } HM_PMGR;
 
@@ -243,14 +243,14 @@ typedef struct hm_pmgr {
  * Handle Manager Core data structure manages the works...
  ***************************************************************************/
 
-#define HM_UNIT_CNT  256        /* FF  */
+#define HM_UNIT_CNT 256 /* FF  */
 
 typedef struct hm_core {
-  NCS_LOCK lock[HM_POOL_CNT];     /* Lock for each pool */
-  HM_UNIT *unit[HM_UNIT_CNT];     /* Name space units */
-  HM_PMGR pool[HM_POOL_CNT];      /* pools of name space units */
+  NCS_LOCK lock[HM_POOL_CNT]; /* Lock for each pool */
+  HM_UNIT *unit[HM_UNIT_CNT]; /* Name space units */
+  HM_PMGR pool[HM_POOL_CNT];  /* pools of name space units */
 
-  uint32_t woulda_crashed;        /* # times destroy thread blocked */
+  uint32_t woulda_crashed; /* # times destroy thread blocked */
 
 } HM_CORE;
 
@@ -260,7 +260,7 @@ typedef struct hm_core {
 
 ***************************************************************************/
 
-#define HM_STATS   1            /* enable/disable Handle Manager Stats counts */
+#define HM_STATS 1 /* enable/disable Handle Manager Stats counts */
 
 /***************************************************************************
  * Handle Manager Statistic counters
@@ -268,18 +268,19 @@ typedef struct hm_core {
 
 #if HM_STATS == 1
 
-#define m_HM_STAT_CRASH(n)      n++
-#define m_HM_STAT_ADD_TO_Q(n)   n++
-#define m_HM_STAT_RMV_FR_Q(n)   n--
+#define m_HM_STAT_CRASH(n) n++
+#define m_HM_STAT_ADD_TO_Q(n) n++
+#define m_HM_STAT_RMV_FR_Q(n) n--
 #define m_HM_STAT_ADD_IN_USE(n) n++
-#define m_HM_STAT_RMV_IN_USE(r,n) if(r) n--
+#define m_HM_STAT_RMV_IN_USE(r, n) \
+  if (r) n--
 #else
 
 #define m_HM_STAT_CRASH(n)
 #define m_HM_STAT_ADD_TO_Q(n)
 #define m_HM_STAT_RMV_FR_Q(n)
 #define m_HM_STAT_ADD_IN_USE(n)
-#define m_HM_STAT_RMV_IN_USE(r,n)
+#define m_HM_STAT_RMV_IN_USE(r, n)
 #endif
 
 /***************************************************************************

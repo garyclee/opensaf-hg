@@ -56,22 +56,38 @@ void logerr(const char *format, ...)
 
 void usage(const char *prog)
 {
-	fprintf(stderr, "\nusage: %s --start | --stop [OPTIONS] [DN]\n\n", prog);
-	fprintf(stderr, "Start/stop AMF passive monitoring of an AMF component.\n\n");
+	fprintf(stderr, "\nusage: %s --start | --stop [OPTIONS] [DN]\n\n",
+		prog);
+	fprintf(stderr,
+		"Start/stop AMF passive monitoring of an AMF component.\n\n");
 	fprintf(stderr, "-a, --start          Start passive monitoring\n");
 	fprintf(stderr, "-f, --file=FILE      Path to pidfile\n");
 	fprintf(stderr, "-o, --stop           Stop passive monitoring\n");
 	fprintf(stderr, "-p, --pid=PID        PID\n");
 	fprintf(stderr, "-r, --recrec=RECREC  Recommended recovery\n\n");
 	fprintf(stderr, "Valid recommended recovery names: \n");
-	fprintf(stderr, "   norec (default), comprestart, compfailover, nodeswitchover\n");
-	fprintf(stderr, "   nodefailover, nodefailfast, clusterreset, apprestart, containerrestart\n\n");
-	fprintf(stderr, "If no DN is specified, the environment variable SA_AMF_COMPONENT_NAME is used.\n");
-	fprintf(stderr, "If no pidfile or PID is specified, the pidfile name is /var/run/<basename>.pid\n");
+	fprintf(
+	    stderr,
+	    "   norec (default), comprestart, compfailover, nodeswitchover\n");
+	fprintf(
+	    stderr,
+	    "   nodefailover, nodefailfast, clusterreset, apprestart, containerrestart\n\n");
+	fprintf(
+	    stderr,
+	    "If no DN is specified, the environment variable SA_AMF_COMPONENT_NAME is used.\n");
+	fprintf(
+	    stderr,
+	    "If no pidfile or PID is specified, the pidfile name is /var/run/<basename>.pid\n");
 	fprintf(stderr, "basename is the RDN attribute value of the DN.\n");
-	fprintf(stderr, "for example DN \"safComp=snmpd,safSu=1,safSg=2N,safApp=net-snmp\" gives basename snmpd\n");
-	fprintf(stderr, "The command will wait forever for the pidfile to appear in the file system.\n");
-	fprintf(stderr, "AMF timeouts (e.g. saAmfCtDefClcCliTimeout) solves the \"forever\" problem.\n\n");
+	fprintf(
+	    stderr,
+	    "for example DN \"safComp=snmpd,safSu=1,safSg=2N,safApp=net-snmp\" gives basename snmpd\n");
+	fprintf(
+	    stderr,
+	    "The command will wait forever for the pidfile to appear in the file system.\n");
+	fprintf(
+	    stderr,
+	    "AMF timeouts (e.g. saAmfCtDefClcCliTimeout) solves the \"forever\" problem.\n\n");
 }
 
 SaAmfRecommendedRecoveryT recrec2value(const char *recrec)
@@ -94,8 +110,7 @@ SaAmfRecommendedRecoveryT recrec2value(const char *recrec)
 		return SA_AMF_APPLICATION_RESTART;
 	else if (!strcmp(recrec, "containerrestart"))
 		return SA_AMF_CONTAINER_RESTART;
-	else
-	{
+	else {
 		logerr("unknown recommended recovery: %s\n", recrec);
 		exit(EXIT_FAILURE);
 	}
@@ -116,7 +131,8 @@ retry:
 			goto retry;
 		}
 
-		logerr("could not open file %s - %s\n", pidfile, strerror(errno));
+		logerr("could not open file %s - %s\n", pidfile,
+		       strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
@@ -135,7 +151,9 @@ retry:
 
 int main(int argc, char **argv)
 {
-	SaVersionT ver = {.releaseCode = 'B', ver.majorVersion = 0x04, ver.minorVersion = 0x01};
+	SaVersionT ver = {.releaseCode = 'B',
+			  ver.majorVersion = 0x04,
+			  ver.minorVersion = 0x01};
 	SaAisErrorT rc;
 	SaAmfHandleT amf_hdl;
 	SaNameT compName;
@@ -143,26 +161,26 @@ int main(int argc, char **argv)
 	SaUint64T processId = 0;
 	bool start = false;
 	bool stop = false;
-	struct option long_options[] = {
-		{"help", no_argument, 0, 'h'},
-		{"file", required_argument, 0, 'f'},
-		{"pid", required_argument, 0, 'p'},
-		{"recrec", required_argument, 0, 'r'},
-		{"start", no_argument, 0, 'a'},
-		{"stop", no_argument, 0, 'o'},
-		{0, 0, 0, 0}
-	};
+	struct option long_options[] = {{"help", no_argument, 0, 'h'},
+					{"file", required_argument, 0, 'f'},
+					{"pid", required_argument, 0, 'p'},
+					{"recrec", required_argument, 0, 'r'},
+					{"start", no_argument, 0, 'a'},
+					{"stop", no_argument, 0, 'o'},
+					{0, 0, 0, 0}};
 	SaAmfPmErrorsT pmErr = SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT;
-        SaInt32T descendentsTreeDepth = 0;
+	SaInt32T descendentsTreeDepth = 0;
 	char *pidfile = NULL;
 	char *dn;
 	SaAmfRecommendedRecoveryT recrec = SA_AMF_NO_RECOMMENDATION;
 	char name[2048];
 	int length;
 	while (1) {
-		int c = getopt_long(argc, argv, "af:p:hor:", long_options, NULL);
+		int c =
+		    getopt_long(argc, argv, "af:p:hor:", long_options, NULL);
 
-		if (c == -1)	/* have all command-line options have been parsed? */
+		if (c ==
+		    -1) /* have all command-line options have been parsed? */
 			break;
 
 		switch (c) {
@@ -186,7 +204,8 @@ int main(int argc, char **argv)
 			recrec = recrec2value(optarg);
 			break;
 		default:
-			logerr("Try '%s --help' for more information\n", argv[0]);
+			logerr("Try '%s --help' for more information\n",
+			       argv[0]);
 			exit(EXIT_FAILURE);
 			break;
 		}
@@ -194,13 +213,14 @@ int main(int argc, char **argv)
 
 	/* DN specified as argument has precendence of env var */
 	if ((argc - optind) == 1) {
-		length = snprintf((char*)name, sizeof(name), "%s", argv[optind]);
-		if (length >=  sizeof(name)) {
+		length =
+		    snprintf((char *)name, sizeof(name), "%s", argv[optind]);
+		if (length >= sizeof(name)) {
 			logerr("too long DN\n");
 			exit(EXIT_FAILURE);
 		}
 	} else if ((dn = getenv("SA_AMF_COMPONENT_NAME")) != NULL) {
-		length = snprintf((char*) name, sizeof(name), "%s", dn);
+		length = snprintf((char *)name, sizeof(name), "%s", dn);
 
 		/* If AMF component use syslog for errors. */
 		usesyslog = true;
@@ -232,14 +252,14 @@ int main(int argc, char **argv)
 		char *start, *stop, *p;
 		int i;
 		int pidfilelen;
-	
-		start = strchr((char*)name, '=');
+
+		start = strchr((char *)name, '=');
 		if (start == NULL) {
 			logerr("invalid component DN\n");
 			exit(EXIT_FAILURE);
 		}
 
-		stop = strchr((char*)name, ',');
+		stop = strchr((char *)name, ',');
 		if (stop == NULL) {
 			logerr("invalid component DN\n");
 			exit(EXIT_FAILURE);
@@ -264,18 +284,19 @@ int main(int argc, char **argv)
 		logerr("saAmfInitialize FAILED %u\n", rc);
 		exit(EXIT_FAILURE);
 	}
-	
+
 	// Assign the component name
 	saAisNameLend((char *)name, &compName);
 	if (start) {
-		rc = saAmfPmStart_3(amf_hdl, &compName, processId, descendentsTreeDepth,
-							pmErr, recrec);
+		rc = saAmfPmStart_3(amf_hdl, &compName, processId,
+				    descendentsTreeDepth, pmErr, recrec);
 		if (SA_AIS_OK != rc) {
 			logerr("saAmfPmStart FAILED %u\n", rc);
 			exit(EXIT_FAILURE);
 		}
 	} else {
-		rc = saAmfPmStop(amf_hdl, &compName, SA_AMF_PM_PROC, processId, pmErr);
+		rc = saAmfPmStop(amf_hdl, &compName, SA_AMF_PM_PROC, processId,
+				 pmErr);
 		if ((SA_AIS_OK != rc) && (SA_AIS_ERR_NOT_EXIST != rc)) {
 			logerr("saAmfPmStop FAILED %u\n", rc);
 			exit(EXIT_FAILURE);
@@ -286,8 +307,7 @@ int main(int argc, char **argv)
 		free(pidfile);
 	}
 
-	(void) saAmfFinalize(amf_hdl);
+	(void)saAmfFinalize(amf_hdl);
 
 	return 0;
 }
-

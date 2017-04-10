@@ -71,8 +71,7 @@ static jfieldID FID_selectionObject = NULL;
 jboolean JNU_Handle_initIDs_OK(JNIEnv *jniEnv);
 static jboolean JNU_Handle_initIDs_FromClass_OK(JNIEnv *jniEnv,
 						jclass classHandle);
-static jint JNU_invokeSelect(JNIEnv *jniEnv,
-			     jobjectArray libraryHandleArray,
+static jint JNU_invokeSelect(JNIEnv *jniEnv, jobjectArray libraryHandleArray,
 			     struct timespec *lxTimeout_Ptr);
 
 /**************************************************************************
@@ -106,17 +105,16 @@ jboolean JNU_Handle_initIDs_OK(JNIEnv *jniEnv)
 	  (*jniEnv)->FindClass( jniEnv,
 	  "org/opensaf/ais/HandleImpl" )
 	  ); */
-	ClassHandle = JNU_GetGlobalClassRef(jniEnv,
-					    "org/opensaf/ais/HandleImpl");
+	ClassHandle =
+	    JNU_GetGlobalClassRef(jniEnv, "org/opensaf/ais/HandleImpl");
 	if (ClassHandle == NULL) {
 
 		_TRACE2("NATIVE ERROR: ClassHandle is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 	// get IDs
 	return JNU_Handle_initIDs_FromClass_OK(jniEnv, ClassHandle);
-
 }
 
 /**************************************************************************
@@ -137,18 +135,17 @@ static jboolean JNU_Handle_initIDs_FromClass_OK(JNIEnv *jniEnv,
 	_TRACE2("NATIVE: Executing JNU_Handle_initIDs_FromClass_OK(...)\n");
 
 	// get field IDs
-	FID_selectionObject = (*jniEnv)->GetFieldID(jniEnv,
-						    classHandle,
-						    "selectionObject", "J");
+	FID_selectionObject =
+	    (*jniEnv)->GetFieldID(jniEnv, classHandle, "selectionObject", "J");
 	if (FID_selectionObject == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_selectionObject is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 
-	_TRACE2
-		("NATIVE: JNU_Handle_initIDs_FromClass_OK(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: JNU_Handle_initIDs_FromClass_OK(...) returning normally\n");
 
 	return JNI_TRUE;
 }
@@ -160,10 +157,8 @@ static jboolean JNU_Handle_initIDs_FromClass_OK(JNIEnv *jniEnv,
  *  Method:    checkSelectionObject
  *  Signature: (J)Z
  *************************************************************************/
-JNIEXPORT jboolean JNICALL
-Java_org_opensaf_ais_HandleImpl_checkSelectionObject(JNIEnv *jniEnv,
-						     jobject thisLibraryHandle,
-						     jlong timeout)
+JNIEXPORT jboolean JNICALL Java_org_opensaf_ais_HandleImpl_checkSelectionObject(
+    JNIEnv *jniEnv, jobject thisLibraryHandle, jlong timeout)
 {
 
 	// VARIABLES
@@ -177,12 +172,11 @@ Java_org_opensaf_ais_HandleImpl_checkSelectionObject(JNIEnv *jniEnv,
 	// BODY
 	assert(thisLibraryHandle != NULL);
 	// TODO assert for timeout
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_HandleImpl_checkSelectionObject(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_HandleImpl_checkSelectionObject(...)\n");
 	// get selection object
-	_saSelectionObject = (SaSelectionObjectT)(*jniEnv)->GetLongField(jniEnv,
-									 thisLibraryHandle,
-									 FID_selectionObject);
+	_saSelectionObject = (SaSelectionObjectT)(*jniEnv)->GetLongField(
+	    jniEnv, thisLibraryHandle, FID_selectionObject);
 
 	// call osaf_ppoll()
 	_readFDs.fd = _saSelectionObject;
@@ -199,14 +193,14 @@ Java_org_opensaf_ais_HandleImpl_checkSelectionObject(JNIEnv *jniEnv,
 
 	if (_pollStatus == 1) {
 
-		_TRACE2
-			("NATIVE: Java_org_opensaf_ais_HandleImpl_checkSelectionObject() returning true\n");
+		_TRACE2(
+		    "NATIVE: Java_org_opensaf_ais_HandleImpl_checkSelectionObject() returning true\n");
 
 		return JNI_TRUE;
 	} else {
 
-		_TRACE2
-			("NATIVE: Java_org_opensaf_ais_HandleImpl_checkSelectionObject() returning false\n");
+		_TRACE2(
+		    "NATIVE: Java_org_opensaf_ais_HandleImpl_checkSelectionObject() returning false\n");
 
 		return JNI_FALSE;
 	}
@@ -219,21 +213,18 @@ Java_org_opensaf_ais_HandleImpl_checkSelectionObject(JNIEnv *jniEnv,
  *  Method:    s_invokeSelect
  *  Signature: ([J)I
  *************************************************************************/
-JNIEXPORT void JNICALL
-Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3J(JNIEnv *jniEnv,
-						     jclass
-						     thisClassLibraryHandle,
-						     jlongArray
-						     selectionObjectArray)
+JNIEXPORT void JNICALL Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3J(
+    JNIEnv *jniEnv, jclass thisClassLibraryHandle,
+    jlongArray selectionObjectArray)
 {
 
 	// BODY
 
 	assert(thisClassLibraryHandle != NULL);
-	//assert( thisClassLibraryHandle == ClassHandle );
+	// assert( thisClassLibraryHandle == ClassHandle );
 	assert(selectionObjectArray != NULL);
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3J(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3J(...)\n");
 
 	// invoke select
 	JNU_invokeSelect(jniEnv, selectionObjectArray, NULL);
@@ -246,13 +237,9 @@ Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3J(JNIEnv *jniEnv,
  *  Method:    s_invokeSelect
  *  Signature: ([JJ)I
  *************************************************************************/
-JNIEXPORT jint JNICALL
-Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3JJ(JNIEnv *jniEnv,
-						      jclass
-						      thisClassLibraryHandle,
-						      jlongArray
-						      selectionObjectArray,
-						      jlong timeout)
+JNIEXPORT jint JNICALL Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3JJ(
+    JNIEnv *jniEnv, jclass thisClassLibraryHandle,
+    jlongArray selectionObjectArray, jlong timeout)
 {
 
 	// VARIABLES
@@ -263,17 +250,16 @@ Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3JJ(JNIEnv *jniEnv,
 	// BODY
 
 	assert(thisClassLibraryHandle != NULL);
-	//assert( thisClassLibraryHandle == ClassHandle );
+	// assert( thisClassLibraryHandle == ClassHandle );
 	assert(selectionObjectArray != NULL);
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3JJ(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3JJ(...)\n");
 
 	// convert timeout
 	osaf_nanos_to_timespec(timeout >= 0 ? timeout : 0, &_lxTimeout);
 
 	// invoke select
 	return JNU_invokeSelect(jniEnv, selectionObjectArray, &_lxTimeout);
-
 }
 
 /**************************************************************************
@@ -285,8 +271,7 @@ Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3JJ(JNIEnv *jniEnv,
  *   returns:
  * NOTE:
  *************************************************************************/
-static jint JNU_invokeSelect(JNIEnv *jniEnv,
-			     jlongArray selectionObjectArray,
+static jint JNU_invokeSelect(JNIEnv *jniEnv, jlongArray selectionObjectArray,
 			     struct timespec *lxTimeoutPtr)
 {
 	// VARIABLES
@@ -310,30 +295,29 @@ static jint JNU_invokeSelect(JNIEnv *jniEnv,
 	// check the number of selection objects
 	if (_len > J_AIS_LIBHANDLE_SELECT_MAX) {
 
-		_TRACE2
-			("NATIVE ERROR: Too many selection objects. Recompile native library "
-			 " with -DJ_AIS_LIBHANDLE_SELECT_MAX bigger than %d\n",
-			 J_AIS_LIBHANDLE_SELECT_MAX);
+		_TRACE2(
+		    "NATIVE ERROR: Too many selection objects. Recompile native library "
+		    " with -DJ_AIS_LIBHANDLE_SELECT_MAX bigger than %d\n",
+		    J_AIS_LIBHANDLE_SELECT_MAX);
 
-		JNU_throwNewByName(jniEnv,
-				   "org/saforum/ais/AisLibraryException",
-				   "Too many selection objects. Recompile native library "
-				   " with higher -DJ_AIS_LIBHANDLE_SELECT_MAX.");
-		return 0;	// OutOfMemoryError thrown already...
+		JNU_throwNewByName(
+		    jniEnv, "org/saforum/ais/AisLibraryException",
+		    "Too many selection objects. Recompile native library "
+		    " with higher -DJ_AIS_LIBHANDLE_SELECT_MAX.");
+		return 0; // OutOfMemoryError thrown already...
 	}
-	(*jniEnv)->GetLongArrayRegion(jniEnv,
-				      selectionObjectArray,
-				      (jsize)0,
+	(*jniEnv)->GetLongArrayRegion(jniEnv, selectionObjectArray, (jsize)0,
 				      _len, (jlong *)_saSelectionObjectArray);
 	// call osaf_ppoll()
 	_readFDs = malloc(_len * sizeof(struct pollfd));
 	if (_readFDs == NULL) {
-		_TRACE2
-			("NATIVE ERROR : unable to allocate memory for osaf_ppoll()\n");
+		_TRACE2(
+		    "NATIVE ERROR : unable to allocate memory for osaf_ppoll()\n");
 		JNU_throwNewByName(jniEnv,
 				   "org/saforum/ais/AisNoMemoryException",
 				   AIS_ERR_NO_MEMORY_MSG);
-		return JNI_FALSE;	// EXIT POINT!!! return value is in fact ignored
+		return JNI_FALSE; // EXIT POINT!!! return value is in fact
+				  // ignored
 	}
 
 	for (_idx = 0; _idx < _len; _idx++) {
@@ -360,7 +344,7 @@ static jint JNU_invokeSelect(JNIEnv *jniEnv,
 		_TRACE2("NATIVE: JNU_invokeSelect() returning 0\n");
 
 		free(_readFDs);
-		return 0;	// EXIT POINT!!!
+		return 0; // EXIT POINT!!!
 	}
 	// mark unselected selection objects
 	for (_idx = 0; _idx < _len; _idx++) {
@@ -370,15 +354,12 @@ static jint JNU_invokeSelect(JNIEnv *jniEnv,
 
 		_TRACE2("NATIVE: %u. selection object is: %lu\n", _idx,
 			(unsigned long)_saSelectionObjectArray[_idx]);
-
 	}
-	(*jniEnv)->SetLongArrayRegion(jniEnv,
-				      selectionObjectArray,
-				      (jsize)0,
+	(*jniEnv)->SetLongArrayRegion(jniEnv, selectionObjectArray, (jsize)0,
 				      _len, (jlong *)_saSelectionObjectArray);
 
 	_TRACE2("NATIVE: JNU_invokeSelect() returning %u\n", _pollStatus);
 
 	free(_readFDs);
-	return _pollStatus;	// EXIT POINT!!!
+	return _pollStatus; // EXIT POINT!!!
 }

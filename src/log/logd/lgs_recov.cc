@@ -29,7 +29,7 @@
 
 static char **rtobj_list = NULL;
 static bool rtobj_list_init_f = false;
-static uint32_t rtobj_cnt = 0; /* Number of object names in list */
+static uint32_t rtobj_cnt = 0;       /* Number of object names in list */
 static SaUint32T rtobj_list_len = 0; /* Also the length of the list */
 
 /**
@@ -42,8 +42,7 @@ static SaUint32T rtobj_list_len = 0; /* Also the length of the list */
 static bool log_rtobj_list_init() {
   TRACE_ENTER();
 
-  if (rtobj_list_init_f == true)
-    goto done; /* Already initiated */
+  if (rtobj_list_init_f == true) goto done; /* Already initiated */
 
   rtobj_list_len = *static_cast<const SaUint32T *>(
       lgs_cfg_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS));
@@ -67,14 +66,12 @@ done:
 void log_rtobj_list_free() {
   TRACE_ENTER();
 
-  if (rtobj_list == NULL)
-    return; /* No list to free */
+  if (rtobj_list == NULL) return; /* No list to free */
 
   /* Free positions in the list if needed */
   uint32_t pos;
   for (pos = 0; pos < rtobj_list_len; pos++) {
-    if (rtobj_list[pos] != NULL)
-      free(rtobj_list[pos]);
+    if (rtobj_list[pos] != NULL) free(rtobj_list[pos]);
   }
 
   free(rtobj_list);
@@ -106,8 +103,7 @@ int log_rtobj_list_add(const std::string &dn_str) {
 
   if (rtobj_cnt >= rtobj_list_len) {
     /* Should be impossible */
-    LOG_WA("%s\trtobj_cnt >= maxApplicationStreams!",
-           __FUNCTION__);
+    LOG_WA("%s\trtobj_cnt >= maxApplicationStreams!", __FUNCTION__);
     rc = -1;
     goto done;
   }
@@ -116,14 +112,14 @@ int log_rtobj_list_add(const std::string &dn_str) {
   len = dn_str.size() + 1; /* Including '\0' */
   if (len > kOsafMaxDnLength) {
     /* Should never happen */
-    LOG_WA("%s\tToo long dn string!",__FUNCTION__);
+    LOG_WA("%s\tToo long dn string!", __FUNCTION__);
     rc = -1;
     goto done;
   }
 
   str_ptr = static_cast<char *>(calloc(1, len));
   if (str_ptr == NULL) {
-    LOG_WA("%s\tcalloc Fail",__FUNCTION__);
+    LOG_WA("%s\tcalloc Fail", __FUNCTION__);
     rc = -1;
     goto done;
   }
@@ -144,9 +140,7 @@ done:
  *
  * @return Number of names
  */
-int log_rtobj_list_no() {
-  return rtobj_cnt;
-}
+int log_rtobj_list_no() { return rtobj_cnt; }
 
 /**
  * Find pos of the given given name in list
@@ -166,11 +160,10 @@ int log_rtobj_list_find(const std::string &dn_str) {
   }
 
   for (i = 0; i < rtobj_list_len; i++) {
-    if (rtobj_list[i] == NULL)
-      continue;
+    if (rtobj_list[i] == NULL) continue;
     if (strcmp(rtobj_list[i], dn_str.c_str()) == 0) {
       /* Found! */
-      pos = (int) i;
+      pos = (int)i;
       break;
     }
   }
@@ -210,8 +203,7 @@ int log_rtobj_list_getnamepos() {
  *         NULL is returned.
  */
 char *log_rtobj_list_getname(int pos) {
-  if (pos >= static_cast<int>(rtobj_list_len))
-    return NULL;
+  if (pos >= static_cast<int>(rtobj_list_len)) return NULL;
 
   return rtobj_list[pos];
 }
@@ -236,8 +228,7 @@ void log_rtobj_list_erase_one_pos(int pos) {
   free(rtobj_list[pos]);
   rtobj_list[pos] = NULL;
 
-  if (rtobj_cnt > 0)
-    rtobj_cnt--;
+  if (rtobj_cnt > 0) rtobj_cnt--;
 
   TRACE_LEAVE();
 }
@@ -271,7 +262,7 @@ void log_rtobj_list_erase_one_pos(int pos) {
  *
  * @return -1 on error
  */
-//static int lgs_get_file_params_h(gfp_in_t *par_in, gfp_out_t *par_out)
+// static int lgs_get_file_params_h(gfp_in_t *par_in, gfp_out_t *par_out)
 static int lgs_get_file_params_h(gfp_in_t *par_in, gfp_out_t *par_out) {
   lgsf_retcode_t api_rc;
   lgsf_apipar_t apipar;
@@ -288,8 +279,7 @@ static int lgs_get_file_params_h(gfp_in_t *par_in, gfp_out_t *par_out) {
 
   api_rc = log_file_api(&apipar);
   if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s", __FUNCTION__,
-          lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
   } else {
     rc = apipar.hdl_ret_code_out;
@@ -311,9 +301,8 @@ static int lgs_get_file_params_h(gfp_in_t *par_in, gfp_out_t *par_out) {
  *                         stream
  * @return -1 on error
  */
-int lgs_restore_one_app_stream(
-    const std::string &stream_name, uint32_t client_id,
-    log_stream_t **o_stream) {
+int lgs_restore_one_app_stream(const std::string &stream_name,
+                               uint32_t client_id, log_stream_t **o_stream) {
   int int_rc = 0;
   int rc_out = 0;
   SaImmHandleT immOmHandle;
@@ -336,7 +325,8 @@ int lgs_restore_one_app_stream(
   // Make it safe for free
   par_out.curFileName = NULL;
 
-  TRACE_ENTER2("object_name \"%s\", client_id=%d", stream_name.c_str(), client_id);
+  TRACE_ENTER2("object_name \"%s\", client_id=%d", stream_name.c_str(),
+               client_id);
 
   memset(&open_stream_param, 0, sizeof(open_stream_param));
 
@@ -356,7 +346,8 @@ int lgs_restore_one_app_stream(
   /* Check if in found objects list */
   list_pos = log_rtobj_list_find(stream_name);
   if (list_pos == -1) {
-    TRACE("%s: No stream \"%s\" found to restore", __FUNCTION__, stream_name.c_str());
+    TRACE("%s: No stream \"%s\" found to restore", __FUNCTION__,
+          stream_name.c_str());
     rc_out = -1;
     goto done;
   }
@@ -440,8 +431,7 @@ int lgs_restore_one_app_stream(
         goto done_free_attr;
       }
       open_stream_param.haProperty = *(static_cast<SaBoolT *>(value));
-      TRACE("\t saLogStreamHaProperty=%d",
-            open_stream_param.haProperty);
+      TRACE("\t saLogStreamHaProperty=%d", open_stream_param.haProperty);
 
     } else if (!strcmp(name, "saLogStreamLogFullAction")) {
       if (value == NULL) {
@@ -449,7 +439,8 @@ int lgs_restore_one_app_stream(
         rc_out = -1;
         goto done_free_attr;
       }
-      open_stream_param.logFileFullAction = *(static_cast<SaLogFileFullActionT *>(value));
+      open_stream_param.logFileFullAction =
+          *(static_cast<SaLogFileFullActionT *>(value));
       TRACE("\t saLogStreamLogFullAction=%d",
             open_stream_param.logFileFullAction);
 
@@ -475,26 +466,21 @@ int lgs_restore_one_app_stream(
       }
       str_val = *(static_cast<char **>(value));
       open_stream_param.logFileFmt = NULL;
-      open_stream_param.logFileFmt = static_cast<char *>(
-          calloc(1, strlen(str_val) + 1));
+      open_stream_param.logFileFmt =
+          static_cast<char *>(calloc(1, strlen(str_val) + 1));
       if (open_stream_param.logFileFmt == NULL) {
-        TRACE("%s [%d] calloc Fail",
-              __FUNCTION__, __LINE__);
+        TRACE("%s [%d] calloc Fail", __FUNCTION__, __LINE__);
         rc_out = -1;
         goto done_free_attr;
       }
-      n = snprintf(open_stream_param.logFileFmt,
-                   PATH_MAX, "%s", str_val);
-      open_stream_param.logFileFmtLength =
-          strlen(open_stream_param.logFileFmt);
+      n = snprintf(open_stream_param.logFileFmt, PATH_MAX, "%s", str_val);
+      open_stream_param.logFileFmtLength = strlen(open_stream_param.logFileFmt);
       if (n >= PATH_MAX) {
-        TRACE("Format string \"%s\" too long",
-              str_val);
+        TRACE("Format string \"%s\" too long", str_val);
         rc_out = -1;
         goto done_free_attr;
       }
-      TRACE("\t saLogStreamLogFileFormat \"%s\"",
-            open_stream_param.logFileFmt);
+      TRACE("\t saLogStreamLogFileFormat \"%s\"", open_stream_param.logFileFmt);
 
     } else if (!strcmp(name, "saLogStreamCreationTimestamp")) {
       if (value == NULL) {
@@ -503,8 +489,7 @@ int lgs_restore_one_app_stream(
         goto done_free_attr;
       }
       restored_creationTimeStamp = *(static_cast<SaTimeT *>(value));
-      TRACE("\t saLogStreamCreationTimestamp=%lld",
-            restored_creationTimeStamp);
+      TRACE("\t saLogStreamCreationTimestamp=%lld", restored_creationTimeStamp);
 
     } else if (!strcmp(name, "saLogStreamSeverityFilter")) {
       if (value == NULL) {
@@ -513,8 +498,7 @@ int lgs_restore_one_app_stream(
         goto done_free_attr;
       }
       restored_severityFilter = *(static_cast<SaUint32T *>(value));
-      TRACE("\t saLogStreamSeverityFilter=%d",
-            restored_severityFilter);
+      TRACE("\t saLogStreamSeverityFilter=%d", restored_severityFilter);
     }
   }
 
@@ -540,20 +524,14 @@ int lgs_restore_one_app_stream(
 
   /* Get twelveHourModeFlag from the logFileFmt */
   lgs_is_valid_format_expression(open_stream_param.logFileFmt,
-                                 STREAM_TYPE_APPLICATION,
-                                 &twelveHourModeFlag);
+                                 STREAM_TYPE_APPLICATION, &twelveHourModeFlag);
   rc_out = lgs_populate_log_stream(
-      open_stream_param.logFileName,
-      open_stream_param.logFilePathName,
-      open_stream_param.maxLogFileSize,
-      open_stream_param.maxLogRecordSize,
-      open_stream_param.logFileFullAction,
-      open_stream_param.maxFilesRotated,
-      open_stream_param.logFileFmt,
-      STREAM_TYPE_APPLICATION,
-      twelveHourModeFlag,
+      open_stream_param.logFileName, open_stream_param.logFilePathName,
+      open_stream_param.maxLogFileSize, open_stream_param.maxLogRecordSize,
+      open_stream_param.logFileFullAction, open_stream_param.maxFilesRotated,
+      open_stream_param.logFileFmt, STREAM_TYPE_APPLICATION, twelveHourModeFlag,
       0,
-      log_stream); // output
+      log_stream);  // output
   if (rc_out == -1) {
     TRACE("%s: lgs_populate_log_stream failed", __FUNCTION__);
     log_stream_delete(&log_stream);
@@ -590,8 +568,8 @@ int lgs_restore_one_app_stream(
 
   /* Get recovery data from the log file and update the stream
    */
-  fullPathName = static_cast<const char *>(
-      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  fullPathName =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
   fullPathName = fullPathName + "/" + open_stream_param.logFilePathName;
 
   par_in.file_name = open_stream_param.logFileName;
@@ -613,7 +591,8 @@ int lgs_restore_one_app_stream(
    */
   if (par_out.curFileName == NULL) {
     /* There is no current log file. Create a file name */
-    log_stream->logFileCurrent = log_stream->fileName + "_" + lgs_get_time(NULL);
+    log_stream->logFileCurrent =
+        log_stream->fileName + "_" + lgs_get_time(NULL);
     TRACE("\t A new file name for current log file is created");
   } else {
     log_stream->logFileCurrent = par_out.curFileName;
@@ -685,8 +664,8 @@ int log_stream_open_file_restore(log_stream_t *stream) {
   par_in.file_name = const_cast<char *>(stream->fileName.c_str());
   par_in.file_path = const_cast<char *>(pathName.c_str());
 
-  TRACE("pathName = %s, fileName = %s, name_length = %zu",
-        pathName.c_str(), stream->fileName.c_str(), name_length);
+  TRACE("pathName = %s, fileName = %s, name_length = %zu", pathName.c_str(),
+        stream->fileName.c_str(), name_length);
 
   // Initialize the output
   par_out.curFileSize = 0;
@@ -731,7 +710,8 @@ int log_stream_open_file_restore(log_stream_t *stream) {
   stream->logRecordId = par_out.logRecordId;
 
   TRACE("Out: curFileSize = %u, logRecordId = %u, logFileCurrent = %s",
-        stream->curFileSize, stream->logRecordId, stream->logFileCurrent.c_str());
+        stream->curFileSize, stream->logRecordId,
+        stream->logFileCurrent.c_str());
 
   if (stream->numOpeners != 0) {
     TRACE("%s: numOpeners = %u Fail", __FUNCTION__, stream->numOpeners);
@@ -740,12 +720,12 @@ int log_stream_open_file_restore(log_stream_t *stream) {
   }
 
   int errno_save;
-  log_root_path = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  log_root_path =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
   *stream->p_fd = -1;
 
-  if ((*stream->p_fd = log_file_open(log_root_path, stream,
-                                     stream->logFileCurrent,
-                                     &errno_save)) == -1) {
+  if ((*stream->p_fd = log_file_open(
+           log_root_path, stream, stream->logFileCurrent, &errno_save)) == -1) {
     TRACE("%s - Could not open '%s' - %s", __FUNCTION__,
           stream->logFileCurrent.c_str(), strerror(errno_save));
   }
@@ -754,13 +734,11 @@ int log_stream_open_file_restore(log_stream_t *stream) {
 
 done:
   // This memory is allocated in lgs_get_file_params_hdl()
-  if (par_out.curFileName != NULL)
-    free(par_out.curFileName);
+  if (par_out.curFileName != NULL) free(par_out.curFileName);
 
   TRACE_LEAVE2("rc_out = %d", rc_out);
   return rc_out;
 }
-
 
 /**
  *
@@ -844,9 +822,7 @@ int log_close_rtstream_files(const std::string &stream_name) {
     }
   }
 
-
-  rootPath = static_cast<const char *>(
-      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  rootPath = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
   pathName = rootPath + "/" + pathName_bk;
 
   par_in.file_name = const_cast<char *>(fileName.c_str());
@@ -873,8 +849,8 @@ int log_close_rtstream_files(const std::string &stream_name) {
            par_out.curFileName, stream_name.c_str());
   }
 
-  int_rc = lgs_file_rename_h(rootPath, pathName_bk, fileName,
-                             current_time, LGS_LOG_FILE_CONFIG_EXT, emptyStr);
+  int_rc = lgs_file_rename_h(rootPath, pathName_bk, fileName, current_time,
+                             LGS_LOG_FILE_CONFIG_EXT, emptyStr);
 
   if (int_rc == -1) {
     LOG_WA("Failed to rename configuration file (%s) for stream (%s)",

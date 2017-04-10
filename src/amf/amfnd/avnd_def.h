@@ -23,13 +23,13 @@
   DESCRIPTION:
 
   This file contains macros for memory operations.
-  
+
 ******************************************************************************
 */
 
 #ifndef AMF_AMFND_AVND_DEF_H_
 #define AMF_AMFND_AVND_DEF_H_
 
-#define SYSF_AVND_AVND_API_RESP_TIME  1000
+#define SYSF_AVND_AVND_API_RESP_TIME 1000
 
 #endif  // AMF_AMFND_AVND_DEF_H_

@@ -21,86 +21,105 @@
 #include "clms_mbcsv.h"
 #include "clms_evt.h"
 
-static uint32_t ckpt_proc_cluster_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uint32_t ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uint32_t ckpt_proc_finalize_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uint32_t ckpt_proc_track_changes_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uint32_t ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uint32_t ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uint32_t ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uint32_t ckpt_proc_agent_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
-static uint32_t ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uint32_t ckpt_proc_cluster_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uint32_t ckpt_proc_reg_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uint32_t ckpt_proc_finalize_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uint32_t ckpt_proc_track_changes_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uint32_t ckpt_proc_node_csync_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uint32_t ckpt_proc_node_config_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uint32_t ckpt_proc_node_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uint32_t ckpt_proc_node_del_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uint32_t ckpt_proc_agent_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uint32_t ckpt_proc_node_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
 /* Common Callback interface to mbcsv */
 static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
 static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, bool data_req);
+static uint32_t ckpt_enc_cold_sync_data(CLMS_CB *clms_cb,
+					NCS_MBCSV_CB_ARG *cbk_arg,
+					bool data_req);
 uint32_t clms_cold_sync(NCS_UBAID *uba);
 uint32_t encode_client_rec(NCS_UBAID *uba);
 uint32_t encode_node_rec(NCS_UBAID *uba);
 uint32_t encode_cluster_rec(NCS_UBAID *uba);
 uint32_t cluster_rec_(NCS_UBAID *uba);
-static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_encode_async_update(CLMS_CB *clms_cb,
+					 NCS_MBCSV_CB_ARG *cbk_arg);
 static void enc_ckpt_header(uint8_t *pdata, CLMSV_CKPT_HEADER header);
-uint32_t enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param);
-uint32_t enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param);
-uint32_t enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-uint32_t enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param);
-uint32_t enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-uint32_t enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param);
-uint32_t enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param);
-uint32_t enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param);
-uint32_t enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param);
-uint32_t enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param);
+uint32_t enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba,
+				   CLMSV_CKPT_CLUSTER_INFO *param);
+uint32_t enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba,
+				     CLMSV_CKPT_NODE_DOWN_INFO *param);
+uint32_t enc_mbcsv_client_rec_msg(NCS_UBAID *uba,
+				  CLMSV_CKPT_CLIENT_INFO *param);
+uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param);
+uint32_t enc_mbcsv_finalize_msg(NCS_UBAID *uba,
+				CLMSV_CKPT_FINALIZE_INFO *param);
+uint32_t enc_mbcsv_track_changes_msg(NCS_UBAID *uba,
+				     CLMSV_CKPT_CLIENT_INFO *param);
+uint32_t enc_mbcsv_node_rec_msg(NCS_UBAID *uba,
+				CLMSV_CKPT_NODE_RUNTIME_INFO *param);
+uint32_t enc_mbcsv_node_config_msg(NCS_UBAID *uba,
+				   CLMSV_CKPT_NODE_CONFIG_REC *param);
+uint32_t enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param);
+uint32_t enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param);
+uint32_t enc_mbcsv_agent_down_msg(NCS_UBAID *uba,
+				  CLMSV_CKPT_AGENT_DOWN_REC *param);
 static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uint32_t ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg);
-static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg);
-uint32_t decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param);
-uint32_t decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-static uint32_t decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param);
-static uint32_t decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param);
-static uint32_t decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-static uint32_t decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param);
-static uint32_t decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
-static uint32_t decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param);
-uint32_t decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param);
-uint32_t decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param);
-uint32_t decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param);
-static uint32_t decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param);
+static uint32_t ckpt_decode_cold_sync(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_decode_async_update(CLMS_CB *cb,
+					 NCS_MBCSV_CB_ARG *cbk_arg);
+uint32_t decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO *param);
+uint32_t decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param);
+static uint32_t decode_agent_down_msg(NCS_UBAID *uba,
+				      CLMSV_CKPT_AGENT_DOWN_REC *param);
+static uint32_t decode_node_down_msg(NCS_UBAID *uba,
+				     CLMSV_CKPT_NODE_DOWN_INFO *param);
+static uint32_t decode_client_msg(NCS_UBAID *uba,
+				  CLMSV_CKPT_CLIENT_INFO *param);
+static uint32_t decode_finalize_msg(NCS_UBAID *uba,
+				    CLMSV_CKPT_FINALIZE_INFO *param);
+static uint32_t decode_track_changes_msg(NCS_UBAID *uba,
+					 CLMSV_CKPT_CLIENT_INFO *param);
+static uint32_t decode_node_rec_msg(NCS_UBAID *uba,
+				    CLMSV_CKPT_NODE_RUNTIME_INFO *param);
+uint32_t decode_node_config_msg(NCS_UBAID *uba,
+				CLMSV_CKPT_NODE_CONFIG_REC *param);
+uint32_t decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param);
+uint32_t decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param);
+static uint32_t decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER *param);
 static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 static uint32_t ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 
 static CLMS_CKPT_HDLR ckpt_data_handler[CLMS_CKPT_MSG_MAX] = {
-	ckpt_proc_cluster_rec,	/*CLMS_CKPT_CLUSTER_REC */
-	ckpt_proc_reg_rec,	/* CLMS_CKPT_CLIENT_INFO_REC */
-	ckpt_proc_finalize_rec,	/*CLMS_CKPT_FINALIZE_REC */
-	ckpt_proc_track_changes_rec,	/*CLMS_CKPT_TRACK_CHANGES_REC */
-	ckpt_proc_node_csync_rec,	/*CLMS_CKPT_NODE_REC */
-	ckpt_proc_node_config_rec,	/*CLMS_CKPT_NODE_CONFIG_REC */
-	ckpt_proc_node_rec,	/*CLMS_CKPT_NODE_RUNTIME_REC */
-	ckpt_proc_node_del_rec,	/* CLMS_CKPT_NODE_DEL_REC */
-	ckpt_proc_agent_down_rec,	/*CLMS_CKPT_AGENT_DOWN_REC */
-	ckpt_proc_node_down_rec	/*CLMS_CKPT_NODE_DOWN_REC */
+    ckpt_proc_cluster_rec,       /*CLMS_CKPT_CLUSTER_REC */
+    ckpt_proc_reg_rec,		 /* CLMS_CKPT_CLIENT_INFO_REC */
+    ckpt_proc_finalize_rec,      /*CLMS_CKPT_FINALIZE_REC */
+    ckpt_proc_track_changes_rec, /*CLMS_CKPT_TRACK_CHANGES_REC */
+    ckpt_proc_node_csync_rec,    /*CLMS_CKPT_NODE_REC */
+    ckpt_proc_node_config_rec,   /*CLMS_CKPT_NODE_CONFIG_REC */
+    ckpt_proc_node_rec,		 /*CLMS_CKPT_NODE_RUNTIME_REC */
+    ckpt_proc_node_del_rec,      /* CLMS_CKPT_NODE_DEL_REC */
+    ckpt_proc_agent_down_rec,    /*CLMS_CKPT_AGENT_DOWN_REC */
+    ckpt_proc_node_down_rec      /*CLMS_CKPT_NODE_DOWN_REC */
 };
 
 /****************************************************************************
  * Name          : ckpt_proc_reg_rec
  *
- * Description   : This function updates the standby client info based on the 
+ * Description   : This function updates the standby client info based on the
  *                 info received from the ACTIVE clms peer.
  *
  * Arguments     : cb - pointer to CLMS  ControlBlock.
- *                 data - pointer to  CLMS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  CLMS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_proc_cluster_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_cluster_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	CLMSV_CKPT_CLUSTER_INFO *param = &data->param.cluster_rec;
 
@@ -115,19 +134,19 @@ static uint32_t ckpt_proc_cluster_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 /****************************************************************************
  * Name          : ckpt_proc_reg_rec
  *
- * Description   : This function updates the standby client info based on the 
+ * Description   : This function updates the standby client info based on the
  *                 info received from the ACTIVE clms peer.
  *
  * Arguments     : cb - pointer to CLMS  ControlBlock.
- *                 data - pointer to  CLMS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  CLMS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_reg_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	CLMSV_CKPT_CLIENT_INFO *param = &data->param.client_rec;
 	CLMS_CLIENT_INFO *client = NULL;
@@ -137,7 +156,8 @@ static uint32_t ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 	client = clms_client_get_by_id(param->client_id);
 	if (client == NULL) {
 		/* Client does not exist, create new one */
-		if ((client = clms_client_new(param->mds_dest, param->client_id)) == NULL) {
+		if ((client = clms_client_new(param->mds_dest,
+					      param->client_id)) == NULL) {
 			LOG_ER("new client addtion failed on standby");
 			osafassert(0);
 		}
@@ -149,7 +169,8 @@ static uint32_t ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 			osafassert(0);
 		}
 
-		if ((clms_cb->ha_state == SA_AMF_HA_STANDBY) || (clms_cb->ha_state == SA_AMF_HA_QUIESCED)) {
+		if ((clms_cb->ha_state == SA_AMF_HA_STANDBY) ||
+		    (clms_cb->ha_state == SA_AMF_HA_QUIESCED)) {
 			clms_cb->last_client_id = param->client_id;
 		}
 	}
@@ -161,19 +182,19 @@ static uint32_t ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 /****************************************************************************
  * Name          : ckpt_proc_finalize_rec
  *
- * Description   : This function updates the standby client info based on the 
+ * Description   : This function updates the standby client info based on the
  *                 info received from the ACTIVE clms peer.
  *
  * Arguments     : cb - pointer to CLMS  ControlBlock.
- *                 data - pointer to  CLMS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  CLMS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_proc_finalize_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_finalize_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	CLMSV_CKPT_FINALIZE_INFO *param = &data->param.finalize_rec;
 	uint32_t rc;
@@ -204,19 +225,19 @@ static uint32_t ckpt_proc_finalize_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 /****************************************************************************
  * Name          : ckpt_proc_track_start_rec
  *
- * Description   : This function updates the standby client info based on the 
+ * Description   : This function updates the standby client info based on the
  *                 info received from the ACTIVE clms peer.
  *
  * Arguments     : cb - pointer to CLMS  ControlBlock.
- *                 data - pointer to  CLMS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  CLMS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_proc_track_changes_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_track_changes_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	CLMSV_CKPT_CLIENT_INFO *param = &data->param.client_rec;
 	CLMS_CLIENT_INFO *client;
@@ -243,19 +264,19 @@ static uint32_t ckpt_proc_track_changes_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 /****************************************************************************
  * Name          : ckpt_proc_node_csync_rec
  *
- * Description   : This function updates the standby client info based on the 
+ * Description   : This function updates the standby client info based on the
  *                 info received from the ACTIVE clms peer.
  *
  * Arguments     : cb - pointer to CLMS  ControlBlock.
- *                 data - pointer to  CLMS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  CLMS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_node_csync_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	CLMSV_CKPT_NODE *param = &data->param.node_csync_rec;
 	CLMS_CLUSTER_NODE *node = NULL, *tmp_node = NULL;
@@ -269,25 +290,27 @@ static uint32_t ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 		if (node->node_id != 0) {
 			tmp_node = clms_node_get_by_id(node->node_id);
 			if (tmp_node == NULL)
-				if (NCSCC_RC_SUCCESS != (rc = clms_node_add(node, 0))) {
+				if (NCSCC_RC_SUCCESS !=
+				    (rc = clms_node_add(node, 0))) {
 					LOG_ER("Patricia add failed");
 				}
 		}
 	} else {
 		node = (CLMS_CLUSTER_NODE *)malloc(sizeof(CLMS_CLUSTER_NODE));
-		if (node == NULL){
+		if (node == NULL) {
 			LOG_ER("Malloc failed for cluster node");
 			osafassert(0);
 		}
-		memset(node,0,sizeof(CLMS_CLUSTER_NODE));
-		prepare_cluster_node(node, param);      
+		memset(node, 0, sizeof(CLMS_CLUSTER_NODE));
+		prepare_cluster_node(node, param);
 		/*Init patricia trackresp for each node */
-		clms_trackresp_patricia_init(node);	
+		clms_trackresp_patricia_init(node);
 		clms_node_add_to_model(node);
 		if (node->node_id != 0) {
 			tmp_node = clms_node_get_by_id(node->node_id);
 			if (tmp_node == NULL)
-				if (NCSCC_RC_SUCCESS != (rc = clms_node_add(node, 0))) {
+				if (NCSCC_RC_SUCCESS !=
+				    (rc = clms_node_add(node, 0))) {
 					LOG_ER("Patricia add failed");
 				}
 		}
@@ -299,19 +322,19 @@ static uint32_t ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 /****************************************************************************
  * Name          : ckpt_proc_node_del_rec
  *
- * Description   : This function updates the standby client info based on the 
+ * Description   : This function updates the standby client info based on the
  *                 info received from the ACTIVE clms peer.
  *
  * Arguments     : cb - pointer to CLMS  ControlBlock.
- *                 data - pointer to  CLMS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  CLMS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_node_del_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	CLMSV_CKPT_NODE_DEL_REC *param = &data->param.node_del_rec;
 	CLMS_CLUSTER_NODE *node = NULL;
@@ -329,8 +352,9 @@ static uint32_t ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 #ifdef ENABLE_AIS_PLM
 	/*Delete it from the plm entity group */
 	entityNames = &node->ee_name;
-	if(clms_cb->reg_with_plm == SA_TRUE) {
-		rc = saPlmEntityGroupRemove(clms_cb->ent_group_hdl, entityNames,1);
+	if (clms_cb->reg_with_plm == SA_TRUE) {
+		rc = saPlmEntityGroupRemove(clms_cb->ent_group_hdl, entityNames,
+					    1);
 		if (rc != SA_AIS_OK) {
 			LOG_ER("saPlmEntityGroupAdd FAILED rc = %d", rc);
 			return rc;
@@ -343,7 +367,7 @@ static uint32_t ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uint32_t ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_node_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 
 	SaClmNodeIdT node_id = data->param.node_down_rec.node_id;
@@ -372,19 +396,19 @@ static uint32_t ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 /****************************************************************************
  * Name          : ckpt_proc_agent_down_rec
  *
- * Description   : This function updates the standby client info based on the 
+ * Description   : This function updates the standby client info based on the
  *                 info received from the ACTIVE clms peer.
  *
  * Arguments     : cb - pointer to CLMS  ControlBlock.
- *                 data - pointer to  CLMS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  CLMS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_proc_agent_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_agent_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	CLMSV_CKPT_AGENT_DOWN_REC *param = &data->param.agent_rec;
 
@@ -399,19 +423,19 @@ static uint32_t ckpt_proc_agent_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 /****************************************************************************
  * Name          : ckpt_proc_node_config_rec
  *
- * Description   : This function updates the standby client info based on the 
+ * Description   : This function updates the standby client info based on the
  *                 info received from the ACTIVE clms peer.
  *
  * Arguments     : cb - pointer to CLMS  ControlBlock.
- *                 data - pointer to  CLMS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  CLMS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_node_config_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	CLMSV_CKPT_NODE_CONFIG_REC *param = &data->param.node_config_rec;
 	CLMS_CLUSTER_NODE *node = NULL;
@@ -424,12 +448,15 @@ static uint32_t ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 	}
 
 	node->node_name.length = param->node_name.length;
-	(void)memcpy(node->node_name.value, param->node_name.value, param->node_name.length);
+	(void)memcpy(node->node_name.value, param->node_name.value,
+		     param->node_name.length);
 	node->ee_name.length = param->ee_name.length;
-	(void)memcpy(node->ee_name.value, param->ee_name.value, param->ee_name.length);
+	(void)memcpy(node->ee_name.value, param->ee_name.value,
+		     param->ee_name.length);
 	node->node_addr.family = param->node_addr.family;
 	node->node_addr.length = param->node_addr.length;
-	(void)memcpy(node->node_addr.value, param->node_addr.value, param->node_addr.length);
+	(void)memcpy(node->node_addr.value, param->node_addr.value,
+		     param->node_addr.length);
 	node->disable_reboot = param->disable_reboot;
 	node->lck_cbk_timeout = param->lck_cbk_timeout;
 	node->admin_state = param->admin_state;
@@ -441,19 +468,19 @@ static uint32_t ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 /****************************************************************************
  * Name          : ckpt_proc_node_rec
  *
- * Description   : This function updates the standby client info based on the 
+ * Description   : This function updates the standby client info based on the
  *                 info received from the ACTIVE clms peer.
  *
  * Arguments     : cb - pointer to CLMS  ControlBlock.
- *                 data - pointer to  CLMS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  CLMS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t ckpt_proc_node_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	CLMSV_CKPT_NODE_RUNTIME_INFO *param = &data->param.node_rec;
 	CLMS_CLUSTER_NODE *node = NULL;
@@ -470,7 +497,8 @@ static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 
 	node->node_id = param->node_id;
 	node->node_name.length = param->node_name.length;
-	(void)memcpy(node->node_name.value, param->node_name.value, node->node_name.length);
+	(void)memcpy(node->node_name.value, param->node_name.value,
+		     node->node_name.length);
 	node->member = param->member;
 	node->boot_time = param->boot_time;
 	node->init_view = param->init_view;
@@ -483,8 +511,8 @@ static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 	node->ee_red_state = param->ee_red_state;
 #endif
 
-	if (node->node_id != 0){
-		if (NULL ==  clms_node_get_by_id(node->node_id)) {
+	if (node->node_id != 0) {
+		if (NULL == clms_node_get_by_id(node->node_id)) {
 
 			if (clms_node_add(node, 0) != NCSCC_RC_SUCCESS) {
 				LOG_ER("Patricia tree add failed");
@@ -493,15 +521,18 @@ static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 	}
 
 	/* Update the node with ipaddress information */
-	if ((ip = (IPLIST *)ncs_patricia_tree_get(&clms_cb->iplist, (uint8_t *)&node->node_id)) == NULL) {
+	if ((ip = (IPLIST *)ncs_patricia_tree_get(
+		 &clms_cb->iplist, (uint8_t *)&node->node_id)) == NULL) {
 		LOG_NO("IP information not found for: %u", node->node_id);
 	} else {
 		if (ip->addr.length) {
 			node->node_addr.family = ip->addr.family;
 			node->node_addr.length = ip->addr.length;
-			memcpy(node->node_addr.value, ip->addr.value, ip->addr.length);
+			memcpy(node->node_addr.value, ip->addr.value,
+			       ip->addr.length);
 		} else {
-			node->node_addr.family = 1; /* For backward compatibility */
+			node->node_addr.family =
+			    1; /* For backward compatibility */
 			node->node_addr.length = 0;
 		}
 	}
@@ -514,18 +545,18 @@ static uint32_t ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
  * Name          : process_ckpt_data
  *
  * Description   : This function updates the ntfs internal databases
- *                 based on the data type. 
+ *                 based on the data type.
  *
- * Arguments     : cb - pointer to CLMS ControlBlock. 
- *                 data - pointer to  CLMS_CHECKPOINT_DATA. 
- * 
+ * Arguments     : cb - pointer to CLMS ControlBlock.
+ *                 data - pointer to  CLMS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t process_ckpt_data(CLMS_CB * cb, CLMS_CKPT_REC * data)
+static uint32_t process_ckpt_data(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	if ((!cb) || (data == NULL)) {
@@ -535,34 +566,35 @@ static uint32_t process_ckpt_data(CLMS_CB * cb, CLMS_CKPT_REC * data)
 
 	TRACE_ENTER2("data->header.type %d", data->header.type);
 
-	if ((cb->ha_state == SA_AMF_HA_STANDBY) || (cb->ha_state == SA_AMF_HA_QUIESCED)) {
+	if ((cb->ha_state == SA_AMF_HA_STANDBY) ||
+	    (cb->ha_state == SA_AMF_HA_QUIESCED)) {
 		if (data->header.type >= CLMS_CKPT_MSG_MAX) {
 			TRACE("FAILED: data->header.type >= CLMS_CKPT_MSG_MAX");
 			return NCSCC_RC_FAILURE;
 		}
 		/* Update the internal database */
-		rc = ckpt_data_handler[data->header.type] (cb, data);
+		rc = ckpt_data_handler[data->header.type](cb, data);
 		return rc;
 	} else {
 		return (rc = NCSCC_RC_FAILURE);
 	}
 
 	TRACE_LEAVE();
-}	/*End process_ckpt_data() */
+} /*End process_ckpt_data() */
 
 /****************************************************************************
- * Name          : clms_mbcsv_init 
+ * Name          : clms_mbcsv_init
  *
  * Description   : This function initializes the mbcsv interface and
  *                 obtains a selection object from mbcsv.
- *                 
+ *
  * Arguments     : CLMS_CB * - A pointer to the clms control block.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t clms_mbcsv_init(CLMS_CB * cb, SaAmfHAStateT ha_state)
+uint32_t clms_mbcsv_init(CLMS_CB *cb, SaAmfHAStateT ha_state)
 {
 	uint32_t rc;
 	NCS_MBCSV_ARG arg;
@@ -620,17 +652,17 @@ uint32_t clms_mbcsv_init(CLMS_CB * cb, SaAmfHAStateT ha_state)
 
 	rc = clms_mbcsv_change_HA_state(cb, ha_state);
 
-	/* Set MBCSV role here itself */
- done:
+/* Set MBCSV role here itself */
+done:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
- * Name          : clms_mbcsv_change_HA_state 
+ * Name          : clms_mbcsv_change_HA_state
  *
- * Description   : This function inform mbcsv of our HA state. 
- *                 All checkpointing operations are triggered based on the 
+ * Description   : This function inform mbcsv of our HA state.
+ *                 All checkpointing operations are triggered based on the
  *                 state.
  *
  * Arguments     : NTFS_CB * - A pointer to the ntfs control block.
@@ -641,7 +673,7 @@ uint32_t clms_mbcsv_init(CLMS_CB * cb, SaAmfHAStateT ha_state)
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
 
-uint32_t clms_mbcsv_change_HA_state(CLMS_CB * cb, SaAmfHAStateT ha_state)
+uint32_t clms_mbcsv_change_HA_state(CLMS_CB *cb, SaAmfHAStateT ha_state)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 	uint32_t rc = SA_AIS_OK;
@@ -666,9 +698,9 @@ uint32_t clms_mbcsv_change_HA_state(CLMS_CB * cb, SaAmfHAStateT ha_state)
 /****************************************************************************
  * Name          : clms_mbcsv_dispatch
  *
- * Description   : dispatch all mbcsv events 
+ * Description   : dispatch all mbcsv events
  *
- * Arguments     : NCS_MBCSV_HDL - Handle provided by MBCSV during op_init. 
+ * Arguments     : NCS_MBCSV_HDL - Handle provided by MBCSV during op_init.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -690,8 +722,8 @@ uint32_t clms_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 /****************************************************************************
  * Name          : mbcsv_callback
  *
- * Description   : This callback is the single entry point for mbcsv to 
- *                 notify clms of all checkpointing operations. 
+ * Description   : This callback is the single entry point for mbcsv to
+ *                 notify clms of all checkpointing operations.
  *
  * Arguments     : NCS_MBCSV_CB_ARG - Callback Info pertaining to the mbcsv
  *                 event from ACTIVE/STANDBY CLMS peer.
@@ -762,7 +794,7 @@ static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  *                 action - type of async update to indiciate whether
  *                 this update is for addition, deletion or modification of
  *                 the record being sent.
- *      
+ *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : MBCSV, inturn calls our encode callback for this async
@@ -770,7 +802,8 @@ static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  *                 retrieve the record for encoding the same.
  *****************************************************************************/
 
-uint32_t clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uint32_t action)
+uint32_t clms_send_async_update(CLMS_CB *cb, CLMS_CKPT_REC *ckpt_rec,
+				uint32_t action)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_MBCSV_ARG mbcsv_arg;
@@ -780,11 +813,13 @@ uint32_t clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uint32_t
 	mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.send_ckpt.i_action = action;
-	mbcsv_arg.info.send_ckpt.i_ckpt_hdl = (NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
-	mbcsv_arg.info.send_ckpt.i_reo_hdl = NCS_PTR_TO_UNS64_CAST(ckpt_rec);	/*Will be used in encode callback */
+	mbcsv_arg.info.send_ckpt.i_ckpt_hdl =
+	    (NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
+	mbcsv_arg.info.send_ckpt.i_reo_hdl = NCS_PTR_TO_UNS64_CAST(
+	    ckpt_rec); /*Will be used in encode callback */
 
-	/* Just store the address of the data to be send as an 
-	 * async update record in reo_hdl. The same shall then be 
+	/* Just store the address of the data to be send as an
+	 * async update record in reo_hdl. The same shall then be
 	 *dereferenced during encode callback */
 
 	mbcsv_arg.info.send_ckpt.i_reo_type = ckpt_rec->header.type;
@@ -798,7 +833,7 @@ uint32_t clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uint32_t
 	}
 	TRACE_LEAVE();
 	return rc;
-}	/*End send_async_update() */
+} /*End send_async_update() */
 
 /****************************************************************************
  * Name          : ckpt_encode_cbk_handler
@@ -821,17 +856,20 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	TRACE_ENTER();
 	osafassert(cbk_arg != NULL);
 
-	mbcsv_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.encode.i_peer_version,
-					    CLMS_MBCSV_VERSION, CLMS_MBCSV_VERSION_MIN);
+	mbcsv_version =
+	    m_NCS_MBCSV_FMT_GET(cbk_arg->info.encode.i_peer_version,
+				CLMS_MBCSV_VERSION, CLMS_MBCSV_VERSION_MIN);
 	if (0 == mbcsv_version) {
 		TRACE("Wrong mbcsv_version!!!\n");
 		return NCSCC_RC_FAILURE;
 	}
-	TRACE("cbk_arg->info.encode.io_msg_type type %d", cbk_arg->info.encode.io_msg_type);
+	TRACE("cbk_arg->info.encode.io_msg_type type %d",
+	      cbk_arg->info.encode.io_msg_type);
 	switch (cbk_arg->info.encode.io_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
 		/* Encode async update */
-		if ((rc = ckpt_encode_async_update(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+		if ((rc = ckpt_encode_async_update(clms_cb, cbk_arg)) !=
+		    NCSCC_RC_SUCCESS)
 			LOG_ER("  ckpt_encode_async_update FAILED");
 		break;
 
@@ -859,18 +897,19 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	case NCS_MBCSV_MSG_DATA_RESP:
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
-		if ((rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, true)) != NCSCC_RC_SUCCESS)
+		if ((rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, true)) !=
+		    NCSCC_RC_SUCCESS)
 			LOG_ER("  ckpt_enc_cold_sync_data FAILED");
 		break;
 	default:
 		rc = NCSCC_RC_FAILURE;
 		TRACE("  default FAILED");
 		break;
-	}			/*End switch(io_msg_type) */
+	} /*End switch(io_msg_type) */
 
 	TRACE_LEAVE();
 	return rc;
-}	/*End ckpt_encode_cbk_handler() */
+} /*End ckpt_encode_cbk_handler() */
 
 /****************************************************************************
  * Name          : ckpt_enc_cold_sync_data
@@ -880,12 +919,12 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  *                 2. node db
  *                 3. client db
 		   4. async update counter
-	
+
  *                 in that order.
  *                 Each records contain a header specifying the record type
  *                 and number of such records.
  *
- * Arguments     : clms_cb - pointer to the ntfs control block. 
+ * Arguments     : clms_cb - pointer to the ntfs control block.
  *                 cbk_arg - Pointer to NCS_MBCSV_CB_ARG with encode info.
  *                 data_req - Flag to specify if its for cold sync or data
  *                 request for warm sync.
@@ -894,7 +933,9 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, bool data_req)
+static uint32_t ckpt_enc_cold_sync_data(CLMS_CB *clms_cb,
+					NCS_MBCSV_CB_ARG *cbk_arg,
+					bool data_req)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
@@ -913,7 +954,8 @@ static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk
 
 	/* This will have the count of async updates that have been sent,
 	   this will be 0 initially */
-	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
+	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba,
+					      sizeof(uint32_t));
 	if (async_upd_cnt == NULL) {
 		LOG_ER("ncs_enc_reserve_space FAILED");
 		return NCSCC_RC_FAILURE;
@@ -923,12 +965,14 @@ static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk
 
 	/* Set response mbcsv msg type to complete */
 	if (data_req == true)
-		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
+		cbk_arg->info.encode.io_msg_type =
+		    NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
 	else
-		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
+		cbk_arg->info.encode.io_msg_type =
+		    NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
 	TRACE_2("COLD SYNC ENCODE END........");
 	return rc;
-}	/*End  ckpt_enc_cold_sync_data() */
+} /*End  ckpt_enc_cold_sync_data() */
 
 uint32_t clms_cold_sync(NCS_UBAID *uba)
 {
@@ -974,7 +1018,7 @@ uint32_t encode_client_rec(NCS_UBAID *uba)
 	client = malloc(sizeof(CLMSV_CKPT_CLIENT_INFO));
 	if (client == NULL) {
 		TRACE("Malloc Failed");
-		return 0;	/*dude can you return NCSCC_RC_FAILURE */
+		return 0; /*dude can you return NCSCC_RC_FAILURE */
 	}
 	memset(client, 0, sizeof(CLMSV_CKPT_CLIENT_INFO));
 
@@ -1000,7 +1044,8 @@ uint32_t encode_client_rec(NCS_UBAID *uba)
 		++count;
 	}
 
-	ckpt_hdr.type = CLMS_CKPT_CLIENT_INFO_REC;	/*dude you need one more of this */
+	ckpt_hdr.type =
+	    CLMS_CKPT_CLIENT_INFO_REC; /*dude you need one more of this */
 	ckpt_hdr.num_ckpt_records = count;
 	ckpt_hdr.data_len = 0;
 	enc_ckpt_header(pheader, ckpt_hdr);
@@ -1021,7 +1066,7 @@ uint32_t encode_node_rec(NCS_UBAID *uba)
 	node = malloc(sizeof(CLMSV_CKPT_NODE));
 	if (node == NULL) {
 		TRACE("Malloc Failed");
-		return 0;	/*dude can you return NCSCC_RC_FAILURE */
+		return 0; /*dude can you return NCSCC_RC_FAILURE */
 	}
 	memset(node, 0, sizeof(CLMSV_CKPT_NODE));
 	/*Reserve space for "Checkpoint Header" */
@@ -1033,7 +1078,8 @@ uint32_t encode_node_rec(NCS_UBAID *uba)
 	}
 	ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
 
-	cluster_node = (CLMS_CLUSTER_NODE *) clms_node_getnext_by_id(0);;
+	cluster_node = (CLMS_CLUSTER_NODE *)clms_node_getnext_by_id(0);
+	;
 	while (cluster_node != NULL) {
 		prepare_ckpt_node(node, cluster_node);
 		if (enc_mbcsv_node_msg(uba, node) == 0) {
@@ -1042,7 +1088,8 @@ uint32_t encode_node_rec(NCS_UBAID *uba)
 			return 0;
 		}
 		++count;
-		cluster_node = (CLMS_CLUSTER_NODE *) clms_node_getnext_by_id(node->node_id);
+		cluster_node =
+		    (CLMS_CLUSTER_NODE *)clms_node_getnext_by_id(node->node_id);
 	}
 
 	ckpt_hdr.type = CLMS_CKPT_NODE_REC;
@@ -1055,16 +1102,19 @@ uint32_t encode_node_rec(NCS_UBAID *uba)
 	return NCSCC_RC_SUCCESS;
 }
 
-void prepare_ckpt_node(CLMSV_CKPT_NODE * node, CLMS_CLUSTER_NODE * cluster_node)
+void prepare_ckpt_node(CLMSV_CKPT_NODE *node, CLMS_CLUSTER_NODE *cluster_node)
 {
 	node->node_id = cluster_node->node_id;
 	node->node_addr.family = cluster_node->node_addr.family;
 	node->node_addr.length = cluster_node->node_addr.length;
-	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value, cluster_node->node_addr.length);
+	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value,
+		     cluster_node->node_addr.length);
 	node->node_name.length = cluster_node->node_name.length;
-	(void)memcpy(node->node_name.value, cluster_node->node_name.value, cluster_node->node_name.length);
+	(void)memcpy(node->node_name.value, cluster_node->node_name.value,
+		     cluster_node->node_name.length);
 	node->ee_name.length = cluster_node->ee_name.length;
-	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value, cluster_node->ee_name.length);
+	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value,
+		     cluster_node->ee_name.length);
 	node->member = cluster_node->member;
 	node->boot_time = cluster_node->boot_time;
 	node->init_view = cluster_node->init_view;
@@ -1083,17 +1133,21 @@ void prepare_ckpt_node(CLMSV_CKPT_NODE * node, CLMS_CLUSTER_NODE * cluster_node)
 }
 
 /*Dude - can be improved let see how*/
-void prepare_cluster_node(CLMS_CLUSTER_NODE * node, CLMSV_CKPT_NODE * cluster_node)
+void prepare_cluster_node(CLMS_CLUSTER_NODE *node,
+			  CLMSV_CKPT_NODE *cluster_node)
 {
 	TRACE_ENTER();
 	node->node_id = cluster_node->node_id;
 	node->node_addr.family = cluster_node->node_addr.family;
 	node->node_addr.length = cluster_node->node_addr.length;
-	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value, cluster_node->node_addr.length);
+	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value,
+		     cluster_node->node_addr.length);
 	node->node_name.length = cluster_node->node_name.length;
-	(void)memcpy(node->node_name.value, cluster_node->node_name.value, cluster_node->node_name.length);
+	(void)memcpy(node->node_name.value, cluster_node->node_name.value,
+		     cluster_node->node_name.length);
 	node->ee_name.length = cluster_node->ee_name.length;
-	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value, cluster_node->ee_name.length);
+	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value,
+		     cluster_node->ee_name.length);
 	node->member = cluster_node->member;
 	node->boot_time = cluster_node->boot_time;
 	node->init_view = cluster_node->init_view;
@@ -1112,16 +1166,20 @@ void prepare_cluster_node(CLMS_CLUSTER_NODE * node, CLMSV_CKPT_NODE * cluster_no
 	TRACE_LEAVE();
 }
 
-void prepare_ckpt_to_ckpt_node(CLMSV_CKPT_NODE * node, CLMSV_CKPT_NODE * cluster_node)
+void prepare_ckpt_to_ckpt_node(CLMSV_CKPT_NODE *node,
+			       CLMSV_CKPT_NODE *cluster_node)
 {
 	node->node_id = cluster_node->node_id;
 	node->node_addr.family = cluster_node->node_addr.family;
 	node->node_addr.length = cluster_node->node_addr.length;
-	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value, cluster_node->node_addr.length);
+	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value,
+		     cluster_node->node_addr.length);
 	node->node_name.length = cluster_node->node_name.length;
-	(void)memcpy(node->node_name.value, cluster_node->node_name.value, cluster_node->node_name.length);
+	(void)memcpy(node->node_name.value, cluster_node->node_name.value,
+		     cluster_node->node_name.length);
 	node->ee_name.length = cluster_node->ee_name.length;
-	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value, cluster_node->ee_name.length);
+	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value,
+		     cluster_node->ee_name.length);
 	node->member = cluster_node->member;
 	node->boot_time = cluster_node->boot_time;
 	node->init_view = cluster_node->init_view;
@@ -1139,29 +1197,37 @@ void prepare_ckpt_to_ckpt_node(CLMSV_CKPT_NODE * node, CLMSV_CKPT_NODE * cluster
 	node->plm_invid = cluster_node->plm_invid;
 }
 
-void prepare_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node, CLMS_CLUSTER_NODE * cluster_node)
+void prepare_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC *node,
+			      CLMS_CLUSTER_NODE *cluster_node)
 {
 	node->node_name.length = cluster_node->node_name.length;
-	(void)memcpy(node->node_name.value, cluster_node->node_name.value, cluster_node->node_name.length);
+	(void)memcpy(node->node_name.value, cluster_node->node_name.value,
+		     cluster_node->node_name.length);
 	node->ee_name.length = cluster_node->ee_name.length;
-	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value, cluster_node->ee_name.length);
+	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value,
+		     cluster_node->ee_name.length);
 	node->node_addr.family = cluster_node->node_addr.family;
 	node->node_addr.length = cluster_node->node_addr.length;
-	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value, cluster_node->node_addr.length);
+	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value,
+		     cluster_node->node_addr.length);
 	node->disable_reboot = cluster_node->disable_reboot;
 	node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
 	node->admin_state = cluster_node->admin_state;
 }
 
-void prepare_ckpt_to_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node, CLMSV_CKPT_NODE_CONFIG_REC * cluster_node)
+void prepare_ckpt_to_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC *node,
+				      CLMSV_CKPT_NODE_CONFIG_REC *cluster_node)
 {
 	node->node_name.length = cluster_node->node_name.length;
-	(void)memcpy(node->node_name.value, cluster_node->node_name.value, cluster_node->node_name.length);
+	(void)memcpy(node->node_name.value, cluster_node->node_name.value,
+		     cluster_node->node_name.length);
 	node->ee_name.length = cluster_node->ee_name.length;
-	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value, cluster_node->ee_name.length);
+	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value,
+		     cluster_node->ee_name.length);
 	node->node_addr.family = cluster_node->node_addr.family;
 	node->node_addr.length = cluster_node->node_addr.length;
-	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value, cluster_node->node_addr.length);
+	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value,
+		     cluster_node->node_addr.length);
 	node->disable_reboot = cluster_node->disable_reboot;
 	node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
 	node->admin_state = cluster_node->admin_state;
@@ -1202,7 +1268,6 @@ uint32_t cluster_rec_(NCS_UBAID *uba)
 	if (enc_mbcsv_cluster_rec_msg(uba, &cluster_rec) == 0)
 		return 0;
 	return 1;
-
 }
 
 /****************************************************************************
@@ -1211,7 +1276,7 @@ uint32_t cluster_rec_(NCS_UBAID *uba)
  * Description   : This function encodes data to be sent as an async update.
  *                 The caller of this function would set the address of the
  *                 record to be encoded in the reo_hdl field(while invoking
- *                 SEND_CKPT option of ncs_mbcsv_svc. 
+ *                 SEND_CKPT option of ncs_mbcsv_svc.
  *
  * Arguments     : cb - pointer to the CLMS control block.
  *                 cbk_arg - Pointer to NCS MBCSV callback argument struct.
@@ -1221,7 +1286,8 @@ uint32_t cluster_rec_(NCS_UBAID *uba)
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_encode_async_update(CLMS_CB *clms_cb,
+					 NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	CLMS_CKPT_REC *data = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS, num_bytes;
@@ -1240,7 +1306,7 @@ static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cb
 
 	TRACE_ENTER();
 	/* Set reo_hdl from callback arg to ckpt_rec */
-	data = (CLMS_CKPT_REC *) (long)cbk_arg->info.encode.io_reo_hdl;
+	data = (CLMS_CKPT_REC *)(long)cbk_arg->info.encode.io_reo_hdl;
 	if (data == NULL) {
 		TRACE("   data == NULL, FAILED");
 		TRACE_LEAVE();
@@ -1284,7 +1350,8 @@ static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cb
 		ckpt_hdr.data_len = 0;
 		enc_ckpt_header(pheader, ckpt_hdr);
 
-		ckpt_finalize_rec.client_id = data->param.finalize_rec.client_id;
+		ckpt_finalize_rec.client_id =
+		    data->param.finalize_rec.client_id;
 		num_bytes = enc_mbcsv_finalize_msg(uba, &ckpt_finalize_rec);
 		if (num_bytes == 0) {
 			return NCSCC_RC_FAILURE;
@@ -1300,7 +1367,8 @@ static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cb
 		enc_ckpt_header(pheader, ckpt_hdr);
 
 		ckpt_client_rec.client_id = data->param.client_rec.client_id;
-		ckpt_client_rec.track_flags = data->param.client_rec.track_flags;
+		ckpt_client_rec.track_flags =
+		    data->param.client_rec.track_flags;
 		num_bytes = enc_mbcsv_track_changes_msg(uba, &ckpt_client_rec);
 		if (num_bytes == 0) {
 			return NCSCC_RC_FAILURE;
@@ -1316,11 +1384,14 @@ static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cb
 		enc_ckpt_header(pheader, ckpt_hdr);
 
 		ckpt_node_rec.node_id = data->param.node_rec.node_id;
-		ckpt_node_rec.node_name.length = data->param.node_rec.node_name.length;
-		(void)memcpy(ckpt_node_rec.node_name.value, data->param.node_rec.node_name.value,
+		ckpt_node_rec.node_name.length =
+		    data->param.node_rec.node_name.length;
+		(void)memcpy(ckpt_node_rec.node_name.value,
+			     data->param.node_rec.node_name.value,
 			     data->param.node_rec.node_name.length);
 		ckpt_node_rec.member = data->param.node_rec.member;
-		ckpt_node_rec.boot_time = data->param.node_rec.boot_time;	/*may be not needed */
+		ckpt_node_rec.boot_time =
+		    data->param.node_rec.boot_time; /*may be not needed */
 		ckpt_node_rec.init_view = data->param.node_rec.init_view;
 		ckpt_node_rec.admin_state = data->param.node_rec.admin_state;
 		ckpt_node_rec.admin_op = data->param.node_rec.admin_op;
@@ -1344,7 +1415,8 @@ static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cb
 		ckpt_hdr.data_len = 0;
 		enc_ckpt_header(pheader, ckpt_hdr);
 
-		prepare_ckpt_to_ckpt_node(&ckpt_node_csync_rec, &data->param.node_csync_rec);
+		prepare_ckpt_to_ckpt_node(&ckpt_node_csync_rec,
+					  &data->param.node_csync_rec);
 		num_bytes = enc_mbcsv_node_msg(uba, &ckpt_node_csync_rec);
 		if (num_bytes == 0) {
 			return NCSCC_RC_FAILURE;
@@ -1359,8 +1431,10 @@ static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cb
 		ckpt_hdr.data_len = 0;
 		enc_ckpt_header(pheader, ckpt_hdr);
 
-		prepare_ckpt_to_ckpt_config_node(&ckpt_node_config_rec, &data->param.node_config_rec);
-		num_bytes = enc_mbcsv_node_config_msg(uba, &ckpt_node_config_rec);
+		prepare_ckpt_to_ckpt_config_node(&ckpt_node_config_rec,
+						 &data->param.node_config_rec);
+		num_bytes =
+		    enc_mbcsv_node_config_msg(uba, &ckpt_node_config_rec);
 		if (num_bytes == 0) {
 			return NCSCC_RC_FAILURE;
 		}
@@ -1374,8 +1448,10 @@ static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cb
 		ckpt_hdr.data_len = 0;
 		enc_ckpt_header(pheader, ckpt_hdr);
 
-		ckpt_node_del_rec.node_name.length = data->param.node_del_rec.node_name.length;
-		(void)memcpy(ckpt_node_del_rec.node_name.value, data->param.node_del_rec.node_name.value,
+		ckpt_node_del_rec.node_name.length =
+		    data->param.node_del_rec.node_name.length;
+		(void)memcpy(ckpt_node_del_rec.node_name.value,
+			     data->param.node_del_rec.node_name.value,
 			     data->param.node_del_rec.node_name.length);
 
 		num_bytes = enc_mbcsv_node_del_msg(uba, &ckpt_node_del_rec);
@@ -1406,7 +1482,8 @@ static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cb
 
 		ckpt_cluster_rec.num_nodes = data->param.cluster_rec.num_nodes;
 		ckpt_cluster_rec.init_time = data->param.cluster_rec.init_time;
-		ckpt_cluster_rec.cluster_view_num = data->param.cluster_rec.cluster_view_num;
+		ckpt_cluster_rec.cluster_view_num =
+		    data->param.cluster_rec.cluster_view_num;
 
 		num_bytes = enc_mbcsv_cluster_rec_msg(uba, &ckpt_cluster_rec);
 		if (num_bytes == 0) {
@@ -1422,7 +1499,8 @@ static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cb
 
 		ckpt_node_down_rec.node_id = data->param.node_down_rec.node_id;
 
-		num_bytes = enc_mbcsv_node_down_rec_msg(uba, &ckpt_node_down_rec);
+		num_bytes =
+		    enc_mbcsv_node_down_rec_msg(uba, &ckpt_node_down_rec);
 		if (num_bytes == 0) {
 			return NCSCC_RC_FAILURE;
 		}
@@ -1442,10 +1520,10 @@ static uint32_t ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cb
  * Name          : clms_enc_ckpt_header
  *
  * Description   : This function encodes the checkpoint message header
- *                 using leap provided apis. 
+ *                 using leap provided apis.
  *
- * Arguments     : pdata - pointer to the buffer to encode this struct in. 
- *                 NTFS_CKPT_HEADER - ntfsv checkpoint message header. 
+ * Arguments     : pdata - pointer to the buffer to encode this struct in.
+ *                 NTFS_CKPT_HEADER - ntfsv checkpoint message header.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1459,7 +1537,8 @@ static void enc_ckpt_header(uint8_t *pdata, CLMSV_CKPT_HEADER header)
 	ncs_encode_32bit(&pdata, header.data_len);
 }
 
-uint32_t enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
+uint32_t enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba,
+				   CLMSV_CKPT_CLUSTER_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -1482,7 +1561,8 @@ uint32_t enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * par
 	return total_bytes;
 }
 
-uint32_t enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param)
+uint32_t enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba,
+				     CLMSV_CKPT_NODE_DOWN_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -1503,7 +1583,7 @@ uint32_t enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO *
 	return total_bytes;
 }
 
-uint32_t enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+uint32_t enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -1515,7 +1595,7 @@ uint32_t enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param
 
 	TRACE_ENTER();
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 13);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -1533,7 +1613,8 @@ uint32_t enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param
 	return total_bytes;
 }
 
-uint32_t enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param)
+uint32_t enc_mbcsv_agent_down_msg(NCS_UBAID *uba,
+				  CLMSV_CKPT_AGENT_DOWN_REC *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -1561,7 +1642,7 @@ uint32_t enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * pa
 	return total_bytes;
 }
 
-uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -1573,7 +1654,7 @@ uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 	mds_dest1 = (param->mds_dest & 0x00000000ffffffff);
 	mds_dest2 = (param->mds_dest >> 32);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 12);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -1590,14 +1671,14 @@ uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 	return total_bytes;
 }
 
-uint32_t enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param)
+uint32_t enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -1611,14 +1692,15 @@ uint32_t enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param
 	return total_bytes;
 }
 
-uint32_t enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+uint32_t enc_mbcsv_track_changes_msg(NCS_UBAID *uba,
+				     CLMSV_CKPT_CLIENT_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 5);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -1633,14 +1715,15 @@ uint32_t enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * pa
 	return total_bytes;
 }
 
-uint32_t enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param)
+uint32_t enc_mbcsv_node_rec_msg(NCS_UBAID *uba,
+				CLMSV_CKPT_NODE_RUNTIME_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -1730,7 +1813,8 @@ uint32_t enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * p
 	return total_bytes;
 }
 
-uint32_t enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param)
+uint32_t enc_mbcsv_node_config_msg(NCS_UBAID *uba,
+				   CLMSV_CKPT_NODE_CONFIG_REC *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -1742,7 +1826,7 @@ uint32_t enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * 
 
 	TRACE_ENTER();
 
-    /** encode the contents **/
+	/** encode the contents **/
 	total_bytes += clmsv_encodeSaNameT(uba, &param->node_name);
 	total_bytes += clmsv_encodeSaNameT(uba, &param->ee_name);
 	total_bytes += encodeNodeAddressT(uba, &param->node_addr);
@@ -1780,7 +1864,7 @@ uint32_t enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * 
 	return total_bytes;
 }
 
-uint32_t enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
+uint32_t enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -1792,7 +1876,7 @@ uint32_t enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
 
 	TRACE_ENTER();
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -1931,13 +2015,13 @@ uint32_t enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
 	return total_bytes;
 }
 
-uint32_t enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
+uint32_t enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param)
 {
 	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
-    /** encode the contents **/
+	/** encode the contents **/
 	total_bytes += clmsv_encodeSaNameT(uba, &param->node_name);
 
 	TRACE_LEAVE();
@@ -1948,8 +2032,8 @@ uint32_t enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
  * Name          : ckpt_decode_cbk_handler
  *
  * Description   : This function is the single entry point to all decode
- *                 requests from mbcsv. 
- *                 Invokes the corresponding decode routine based on the 
+ *                 requests from mbcsv.
+ *                 Invokes the corresponding decode routine based on the
  *                 MBCSv decode request type.
  *
  * Arguments     : arg - Pointer to NCS_MBCSV_CB_ARG with decode info
@@ -1965,14 +2049,16 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	TRACE_ENTER();
 
-	msg_fmt_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
-					      CLMS_MBCSV_VERSION, CLMS_MBCSV_VERSION_MIN);
+	msg_fmt_version =
+	    m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
+				CLMS_MBCSV_VERSION, CLMS_MBCSV_VERSION_MIN);
 	if (0 == msg_fmt_version) {
 		TRACE("wrong msg_fmt_version!!!\n");
 		return NCSCC_RC_FAILURE;
 	}
 
-	TRACE_2("decode msg type: %u", (unsigned int)cbk_arg->info.decode.i_msg_type);
+	TRACE_2("decode msg type: %u",
+		(unsigned int)cbk_arg->info.decode.i_msg_type);
 
 	switch (cbk_arg->info.decode.i_msg_type) {
 	case NCS_MBCSV_MSG_COLD_SYNC_REQ:
@@ -1982,8 +2068,11 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
 		TRACE_2(" COLD SYNC RESP DECODE called");
-		if (clms_cb->ckpt_state != COLD_SYNC_COMPLETE) {	/*this check is needed to handle repeated requests */
-			if ((rc = ckpt_decode_cold_sync(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS) {
+		if (clms_cb->ckpt_state !=
+		    COLD_SYNC_COMPLETE) { /*this check is needed to handle
+					     repeated requests */
+			if ((rc = ckpt_decode_cold_sync(clms_cb, cbk_arg)) !=
+			    NCSCC_RC_SUCCESS) {
 				TRACE(" COLD SYNC RESPONSE DECODE ....");
 			} else {
 				TRACE(" COLD SYNC RESPONSE DECODE SUCCESS....");
@@ -1994,7 +2083,8 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
 		TRACE_2(" ASYNC UPDATE DECODE called");
-		if ((rc = ckpt_decode_async_update(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+		if ((rc = ckpt_decode_async_update(clms_cb, cbk_arg)) !=
+		    NCSCC_RC_SUCCESS)
 			TRACE("  ckpt_decode_async_update FAILED %u", rc);
 		break;
 
@@ -2007,7 +2097,8 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	case NCS_MBCSV_MSG_DATA_RESP:
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
 		TRACE_2("DATA RESP COMPLETE DECODE called");
-		if ((rc = ckpt_decode_cold_sync(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+		if ((rc = ckpt_decode_cold_sync(clms_cb, cbk_arg)) !=
+		    NCSCC_RC_SUCCESS)
 			LOG_ER("ckpt_decode_cold_sync  FAILED");
 		break;
 
@@ -2017,18 +2108,18 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 		TRACE("  INCORRECT DECODE called, FAILED");
 		m_LEAP_DBG_SINK_VOID;
 		break;
-	}			/*End switch(io_msg_type) */
+	} /*End switch(io_msg_type) */
 
 	TRACE_LEAVE();
 	return rc;
 
-}	/*End ckpt_decode_cbk_handler() */
+} /*End ckpt_decode_cbk_handler() */
 
 /****************************************************************************
- * Name          : ckpt_decode_cold_sync 
+ * Name          : ckpt_decode_cold_sync
  *
- * Description   : This function decodes cold sync update data, based on the 
- *                 record type contained in the header. 
+ * Description   : This function decodes cold sync update data, based on the
+ *                 record type contained in the header.
  *
  * Arguments     : arg - Pointer to NCS_MBCSV_CB_ARG with decode info
  *                 cb - pointer to clms cb.
@@ -2041,11 +2132,11 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  *                 3. client rec
  *                 For each record type,
  *                     a) decode header.
- *                     b) decode individual records for 
- *                        header->num_records times, 
+ *                     b) decode individual records for
+ *                        header->num_records times,
  *****************************************************************************/
 
-static uint32_t ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_cold_sync(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	CLMS_CKPT_REC msg;
@@ -2053,7 +2144,7 @@ static uint32_t ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	uint32_t num_rec = 0;
 	TRACE_ENTER();
 
-	/* 
+	/*
 	   -------------------------------------------------------------
 	   | Header|Cluster rec|Header|node rec..n|Header|client rec..n|
 	   -------------------------------------------------------------
@@ -2075,7 +2166,8 @@ static uint32_t ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		goto done;
 	}
 
-	if (decode_cluster_msg(&cbk_arg->info.decode.i_uba, &data->param.cluster_rec) == 0) {
+	if (decode_cluster_msg(&cbk_arg->info.decode.i_uba,
+			       &data->param.cluster_rec) == 0) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -2101,7 +2193,8 @@ static uint32_t ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	num_rec = data->header.num_ckpt_records;
 	TRACE("num_rec %d", num_rec);
 	while (num_rec) {
-		if (decode_node_msg(&cbk_arg->info.decode.i_uba, &data->param.node_csync_rec) == 0) {
+		if (decode_node_msg(&cbk_arg->info.decode.i_uba,
+				    &data->param.node_csync_rec) == 0) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -2129,7 +2222,8 @@ static uint32_t ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 
 	num_rec = data->header.num_ckpt_records;
 	while (num_rec) {
-		if (decode_client_rec_msg(&cbk_arg->info.decode.i_uba, &data->param.client_rec) == 0) {
+		if (decode_client_rec_msg(&cbk_arg->info.decode.i_uba,
+					  &data->param.client_rec) == 0) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -2144,20 +2238,20 @@ static uint32_t ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		--num_rec;
 	}
 
- done:
+done:
 	if (rc != NCSCC_RC_SUCCESS) {
 		/* Do not allow standby to get out of sync */
-		/*clms_exit("Cold sync failed", SA_AMF_COMPONENT_RESTART); */	/*dude chk it out */
+		/*clms_exit("Cold sync failed", SA_AMF_COMPONENT_RESTART); */ /*dude chk it out */
 	}
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
- * Name          : ckpt_decode_async_update 
+ * Name          : ckpt_decode_async_update
  *
- * Description   : This function decodes async update data, based on the 
- *                 record type contained in the header. 
+ * Description   : This function decodes async update data, based on the
+ *                 record type contained in the header.
  *
  * Arguments     : arg - Pointer to NCS_MBCSV_CB_ARG with decode info
  *                 cb - pointer to clms cb.
@@ -2167,7 +2261,7 @@ static uint32_t ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_async_update(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS, num_bytes = 0;
 	CLMS_CKPT_REC *ckpt_msg = NULL;
@@ -2203,7 +2297,8 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 	case CLMS_CKPT_CLIENT_INFO_REC:
 		TRACE("INITIALIZE REC: UPDATE");
 		ckpt_client_rec = &ckpt_msg->param.client_rec;
-		num_bytes = decode_client_msg(&cbk_arg->info.decode.i_uba, ckpt_client_rec);
+		num_bytes = decode_client_msg(&cbk_arg->info.decode.i_uba,
+					      ckpt_client_rec);
 		if (num_bytes == 0) {
 			TRACE("decode_client_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -2213,7 +2308,8 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 	case CLMS_CKPT_FINALIZE_REC:
 		TRACE_2("CLMS_CKPT_FINALIZE_REC REC: UPDATE");
 		ckpt_finalize_rec = &ckpt_msg->param.finalize_rec;
-		num_bytes = decode_finalize_msg(&cbk_arg->info.decode.i_uba, ckpt_finalize_rec);
+		num_bytes = decode_finalize_msg(&cbk_arg->info.decode.i_uba,
+						ckpt_finalize_rec);
 		if (num_bytes == 0) {
 			TRACE("decode_finalize_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -2223,7 +2319,8 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 	case CLMS_CKPT_TRACK_CHANGES_REC:
 		TRACE_2("CLMS_CKPT_TRACK_START REC: UPDATE");
 		ckpt_client_rec = &ckpt_msg->param.client_rec;
-		num_bytes = decode_track_changes_msg(&cbk_arg->info.decode.i_uba, ckpt_client_rec);
+		num_bytes = decode_track_changes_msg(
+		    &cbk_arg->info.decode.i_uba, ckpt_client_rec);
 		if (num_bytes == 0) {
 			TRACE("decode_track_start_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -2233,7 +2330,8 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 	case CLMS_CKPT_NODE_RUNTIME_REC:
 		TRACE_2("CLMS_CKPT_NODE_RUNTIME_REC : UPDATE");
 		ckpt_node_rec = &ckpt_msg->param.node_rec;
-		num_bytes = decode_node_rec_msg(&cbk_arg->info.decode.i_uba, ckpt_node_rec);
+		num_bytes = decode_node_rec_msg(&cbk_arg->info.decode.i_uba,
+						ckpt_node_rec);
 		if (num_bytes == 0) {
 			TRACE("decode_track_stop_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -2243,7 +2341,8 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 	case CLMS_CKPT_NODE_REC:
 		TRACE_2("CLMS_CKPT_NODE_REC : UPDATE");
 		ckpt_csync_node_rec = &ckpt_msg->param.node_csync_rec;
-		num_bytes = decode_node_msg(&cbk_arg->info.decode.i_uba, ckpt_csync_node_rec);
+		num_bytes = decode_node_msg(&cbk_arg->info.decode.i_uba,
+					    ckpt_csync_node_rec);
 		if (num_bytes == 0) {
 			TRACE("decode_node_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -2253,7 +2352,8 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 	case CLMS_CKPT_NODE_CONFIG_REC:
 		TRACE_2("CLMS_CKPT_NODE_CONFIG_REC : UPDATE");
 		ckpt_node_config_rec = &ckpt_msg->param.node_config_rec;
-		num_bytes = decode_node_config_msg(&cbk_arg->info.decode.i_uba, ckpt_node_config_rec);
+		num_bytes = decode_node_config_msg(&cbk_arg->info.decode.i_uba,
+						   ckpt_node_config_rec);
 		if (num_bytes == 0) {
 			TRACE("decode_node_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -2263,7 +2363,8 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 	case CLMS_CKPT_NODE_DEL_REC:
 		TRACE_2("CLMS_CKPT_NODE_CONFIG_REC : UPDATE");
 		ckpt_node_del_rec = &ckpt_msg->param.node_del_rec;
-		num_bytes = decode_node_del_msg(&cbk_arg->info.decode.i_uba, ckpt_node_del_rec);
+		num_bytes = decode_node_del_msg(&cbk_arg->info.decode.i_uba,
+						ckpt_node_del_rec);
 		if (num_bytes == 0) {
 			TRACE("decode_node_del_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -2273,7 +2374,8 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 	case CLMS_CKPT_AGENT_DOWN_REC:
 		TRACE_2("CLMS_CKPT_AGENT_DOWN_REC : UPDATE");
 		ckpt_agent_down = &ckpt_msg->param.agent_rec;
-		num_bytes = decode_agent_down_msg(&cbk_arg->info.decode.i_uba, ckpt_agent_down);
+		num_bytes = decode_agent_down_msg(&cbk_arg->info.decode.i_uba,
+						  ckpt_agent_down);
 		if (num_bytes == 0) {
 			TRACE("decode_agent_down_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -2283,7 +2385,8 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 	case CLMS_CKPT_CLUSTER_REC:
 		TRACE_2("CLMS_CKPT_CLUSTER_REC :UPDATE");
 		ckpt_cluster_rec = &ckpt_msg->param.cluster_rec;
-		num_bytes = decode_cluster_msg(&cbk_arg->info.decode.i_uba, ckpt_cluster_rec);
+		num_bytes = decode_cluster_msg(&cbk_arg->info.decode.i_uba,
+					       ckpt_cluster_rec);
 		if (num_bytes == 0) {
 			TRACE("decode_agent_down_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -2293,7 +2396,8 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 	case CLMS_CKPT_NODE_DOWN_REC:
 		TRACE_2("CLMS_CKPT_NODE_DOWN_REC: UPDATE:");
 		ckpt_node_down_rec = &ckpt_msg->param.node_down_rec;
-		num_bytes = decode_node_down_msg(&cbk_arg->info.decode.i_uba, ckpt_node_down_rec);
+		num_bytes = decode_node_down_msg(&cbk_arg->info.decode.i_uba,
+						 ckpt_node_down_rec);
 		if (num_bytes == 0) {
 			TRACE("decode_node_down_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -2305,20 +2409,21 @@ static uint32_t ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg
 		TRACE("   FAILED");
 		goto done;
 		break;
-	}			/*end of switch */
+	} /*end of switch */
 
 	rc = process_ckpt_data(cb, ckpt_msg);
 	/* Update the Async Update Count at standby */
 	cb->async_upd_cnt++;
 
- done:
+done:
 	free(ckpt_msg);
 	TRACE_LEAVE();
 	return rc;
 	/* if failure, should an indication be sent to active ? */
 }
 
-static uint32_t decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param)
+static uint32_t decode_node_down_msg(NCS_UBAID *uba,
+				     CLMSV_CKPT_NODE_DOWN_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2332,7 +2437,7 @@ static uint32_t decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO *
 	return total_bytes;
 }
 
-uint32_t decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
+uint32_t decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2348,7 +2453,7 @@ uint32_t decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
 	return total_bytes;
 }
 
-uint32_t decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+uint32_t decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2369,7 +2474,8 @@ uint32_t decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 	return total_bytes;
 }
 
-static uint32_t decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param)
+static uint32_t decode_agent_down_msg(NCS_UBAID *uba,
+				      CLMSV_CKPT_AGENT_DOWN_REC *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2394,10 +2500,9 @@ static uint32_t decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC 
 
 	TRACE_LEAVE();
 	return total_bytes;
-
 }
 
-static uint32_t decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+static uint32_t decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2420,7 +2525,8 @@ static uint32_t decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param
 	return total_bytes;
 }
 
-static uint32_t decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param)
+static uint32_t decode_finalize_msg(NCS_UBAID *uba,
+				    CLMSV_CKPT_FINALIZE_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2434,7 +2540,8 @@ static uint32_t decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * p
 	return total_bytes;
 }
 
-static uint32_t decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+static uint32_t decode_track_changes_msg(NCS_UBAID *uba,
+					 CLMSV_CKPT_CLIENT_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2449,7 +2556,8 @@ static uint32_t decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO 
 	return total_bytes;
 }
 
-static uint32_t decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param)
+static uint32_t decode_node_rec_msg(NCS_UBAID *uba,
+				    CLMSV_CKPT_NODE_RUNTIME_INFO *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2508,7 +2616,8 @@ static uint32_t decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO
 	return total_bytes;
 }
 
-uint32_t decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param)
+uint32_t decode_node_config_msg(NCS_UBAID *uba,
+				CLMSV_CKPT_NODE_CONFIG_REC *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2543,7 +2652,7 @@ uint32_t decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * par
 	return total_bytes;
 }
 
-uint32_t decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
+uint32_t decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param)
 {
 	uint32_t total_bytes = 0;
 
@@ -2553,7 +2662,7 @@ uint32_t decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
 	return total_bytes;
 }
 
-uint32_t decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
+uint32_t decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2645,7 +2754,7 @@ uint32_t decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
 	return total_bytes;
 }
 
-static uint32_t decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param)
+static uint32_t decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER *param)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -2663,10 +2772,10 @@ static uint32_t decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param)
 }
 
 /****************************************************************************
- * Name          : ckpt_peer_info_cbk_handler 
+ * Name          : ckpt_peer_info_cbk_handler
  *
  * Description   : This callback is invoked by mbcsv when a peer info message
- *                 is received from CLMS STANDBY. 
+ *                 is received from CLMS STANDBY.
  *
  * Arguments     : NCS_MBCSV_ARG containing info pertaining to the STANDBY.
  *
@@ -2687,10 +2796,10 @@ static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 }
 
 /****************************************************************************
- * Name          : ckpt_notify_cbk_handler 
+ * Name          : ckpt_notify_cbk_handler
  *
  * Description   : This callback is invoked by mbcsv when a notify message
- *                 is received from CLMS STANDBY. 
+ *                 is received from CLMS STANDBY.
  *
  * Arguments     : NCS_MBCSV_ARG - contains notification info from STANDBY.
  *
@@ -2705,9 +2814,10 @@ static uint32_t ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 }
 
 /****************************************************************************
- * Name          : ckpt_err_ind_cbk_handler 
+ * Name          : ckpt_err_ind_cbk_handler
  *
- * Description   : This callback is invoked by mbcsv for Peer error indication info
+ * Description   : This callback is invoked by mbcsv for Peer error indication
+ *info
  *
  * Arguments     : NCS_MBCSV_ARG - contains notification info from STANDBY.
  *

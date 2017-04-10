@@ -55,12 +55,12 @@ class PlmsScaleThread : public std::thread {
   NodeList nodeList;
 
   std::condition_variable nodeListCv;
-  std::mutex              nodeListMutex;
+  std::mutex nodeListMutex;
 
-  static void _main(PlmsScaleThread *self) { self->main(); }
+  static void _main(PlmsScaleThread* self) { self->main(); }
 
   void main(void);
-  void executeScaleScript(int argc, char **argv);
+  void executeScaleScript(int argc, char** argv);
 };
 
 #endif  // PLM_COMMON_PLMS_SCALE_H_

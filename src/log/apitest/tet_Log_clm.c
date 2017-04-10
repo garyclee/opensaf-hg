@@ -11,7 +11,7 @@
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
- * Author(s): Oracle 
+ * Author(s): Oracle
  *
  */
 
@@ -37,7 +37,8 @@ static int lockNode(void)
 {
 	int rc;
 	char command[256];
-	sprintf(command, "amf-adm lock safNode=%s,safCluster=myClmCluster", hostname());
+	sprintf(command, "amf-adm lock safNode=%s,safCluster=myClmCluster",
+		hostname());
 	rc = system(command);
 	return WEXITSTATUS(rc);
 }
@@ -50,7 +51,8 @@ static int unlockNode(void)
 {
 	int rc;
 	char command[256];
-	sprintf(command, "amf-adm unlock safNode=%s,safCluster=myClmCluster", hostname());
+	sprintf(command, "amf-adm unlock safNode=%s,safCluster=myClmCluster",
+		hostname());
 	rc = system(command);
 	return WEXITSTATUS(rc);
 }
@@ -69,7 +71,7 @@ void saLogInitializ_14_01(void)
 void saLogInitializ_14_02(void)
 {
 	cond_check();
-	SaVersionT logPreviousVersion = { 'A', 0x02, 0x01 };
+	SaVersionT logPreviousVersion = {'A', 0x02, 0x01};
 	lockNode();
 	printf_s(" to saLogInitialize(). ");
 	rc = saLogInitialize(&logHandle, &logCallbacks, &logPreviousVersion);
@@ -92,7 +94,7 @@ void saLogInitializ_14_03(void)
 void saLogInitializ_14_04(void)
 {
 	cond_check();
-	SaVersionT logPreviousVersion = { 'A', 0x02, 0x01 };
+	SaVersionT logPreviousVersion = {'A', 0x02, 0x01};
 	lockNode();
 	unlockNode();
 	printf_s(" to saLogInitialize(). ");
@@ -133,13 +135,12 @@ void saLogStreamOpen_14_06(void)
 	logStreamClose();
 	logFinalize();
 	test_validate(rc, SA_AIS_ERR_UNAVAILABLE);
-
 }
 
 void saLogStreamOpen_14_07(void)
 {
 	cond_check();
-	SaVersionT logPreviousVersion = { 'A', 0x02, 0x01 };
+	SaVersionT logPreviousVersion = {'A', 0x02, 0x01};
 	rc = saLogInitialize(&logHandle, &logCallbacks, &logPreviousVersion);
 	if (rc != SA_AIS_OK) {
 		test_validate(rc, SA_AIS_OK);
@@ -153,15 +154,15 @@ void saLogStreamOpen_14_07(void)
 	unlockNode();
 	test_validate(rc, SA_AIS_OK);
 }
-        
+
 void saLogStreamOpen_14_08(void)
-{       
+{
 	cond_check();
-	SaVersionT logPreviousVersion = { 'A', 0x02, 0x01 };
+	SaVersionT logPreviousVersion = {'A', 0x02, 0x01};
 	rc = saLogInitialize(&logHandle, &logCallbacks, &logPreviousVersion);
 	if (rc != SA_AIS_OK) {
 		test_validate(rc, SA_AIS_OK);
-	        return;
+		return;
 	}
 	lockNode();
 	unlockNode();
@@ -172,16 +173,24 @@ void saLogStreamOpen_14_08(void)
 	test_validate(rc, SA_AIS_OK);
 }
 
-void add_suite_14(void) 
+void add_suite_14(void)
 {
 	test_suite_add(14, "Log Service CLM Operations");
-	test_case_add(14, saLogInitializ_14_01, "saLogInitializ() on Node Lock");
-	test_case_add(14, saLogInitializ_14_02, "saLogInitializ(previous versions) on Node Lock");
-	test_case_add(14, saLogInitializ_14_03, "saLogInitializ() on Node Lock & Un-Lock");
-	test_case_add(14, saLogInitializ_14_04, "saLogInitializ(previous versions) on Lock & Un-Lock");
-	test_case_add(14, saLogStreamOpen_14_05, "saLogStreamOpen_2() on Node Lock");
-	test_case_add(14, saLogStreamOpen_14_06, "saLogStreamOpen_2() On Node Lock & Un-Lock");
-	test_case_add(14, saLogStreamOpen_14_07, "saLogStreamOpen_2(previous versions) on Node Lock");
-	test_case_add(14, saLogStreamOpen_14_08, "saLogStreamOpen_2(previous versions) On Node Lock & Un-Lock");
+	test_case_add(14, saLogInitializ_14_01,
+		      "saLogInitializ() on Node Lock");
+	test_case_add(14, saLogInitializ_14_02,
+		      "saLogInitializ(previous versions) on Node Lock");
+	test_case_add(14, saLogInitializ_14_03,
+		      "saLogInitializ() on Node Lock & Un-Lock");
+	test_case_add(14, saLogInitializ_14_04,
+		      "saLogInitializ(previous versions) on Lock & Un-Lock");
+	test_case_add(14, saLogStreamOpen_14_05,
+		      "saLogStreamOpen_2() on Node Lock");
+	test_case_add(14, saLogStreamOpen_14_06,
+		      "saLogStreamOpen_2() On Node Lock & Un-Lock");
+	test_case_add(14, saLogStreamOpen_14_07,
+		      "saLogStreamOpen_2(previous versions) on Node Lock");
+	test_case_add(
+	    14, saLogStreamOpen_14_08,
+	    "saLogStreamOpen_2(previous versions) On Node Lock & Un-Lock");
 }
-

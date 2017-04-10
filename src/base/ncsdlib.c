@@ -18,10 +18,10 @@
 /*****************************************************************************
   FILE NAME: NCSDLIB.C
 
-  DESCRIPTION: This module contains the doubly Link list library. Using this 
+  DESCRIPTION: This module contains the doubly Link list library. Using this
   library, we can perform Queue/Stack/Ordered List operations.
 
-  FUNCTIONS INCLUDED in this module:  
+  FUNCTIONS INCLUDED in this module:
 
   ncs_db_link_list_remove ......... Remove the list from DB.
   ncs_db_link_list_delink ......... Delink the node from DB.
@@ -37,18 +37,18 @@
   ncs_db_link_list_enqeue ......... Enqueue the data.
   ncs_db_link_list_push ........... Push the data.
   ncs_db_link_list_dequeue ........ Dequeue the data.
-  ncs_db_link_list_pop ............ POP the data.  
+  ncs_db_link_list_pop ............ POP the data.
 
 ******************************************************************************/
 #include "base/ncsdlib.h"
 
-static uint32_t
-db_link_list_insert_node(NCS_DB_LINK_LIST *list_ptr,
-			 NCS_DB_LINK_LIST_NODE *add_node, NCS_DB_LINK_LIST_NODE *found_node);
+static uint32_t db_link_list_insert_node(NCS_DB_LINK_LIST *list_ptr,
+					 NCS_DB_LINK_LIST_NODE *add_node,
+					 NCS_DB_LINK_LIST_NODE *found_node);
 /****************************************************************************
  * Name          : ncs_db_link_list_remove
  *
- * Description   : This function removes the node from the list. It dosen't 
+ * Description   : This function removes the node from the list. It dosen't
  *                 free the node.
  *
  * Arguments     : list_ptr  - Doubly Linked List pointer.
@@ -58,7 +58,8 @@ db_link_list_insert_node(NCS_DB_LINK_LIST *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr, uint8_t *key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr,
+					       uint8_t *key)
 {
 	NCS_DB_LINK_LIST_NODE *del_node;
 
@@ -78,18 +79,19 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr, uint8
 /****************************************************************************
  * Name          : ncs_db_link_list_delink
  *
- * Description   : This function delinks the node from the list. It dosen't 
+ * Description   : This function delinks the node from the list. It dosen't
  *                 free the node.
  *
  * Arguments     : list_ptr  - Doubly Linked List pointer.
- *                 del_node  - Node pointer which needs to be delinked from 
-                               the list.
+ *                 del_node  - Node pointer which needs to be delinked from
+			       the list.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t ncs_db_link_list_delink(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *del_node)
+uint32_t ncs_db_link_list_delink(NCS_DB_LINK_LIST *list_ptr,
+				 NCS_DB_LINK_LIST_NODE *del_node)
 {
 	if (del_node == NULL) {
 		return NCSCC_RC_FAILURE;
@@ -124,8 +126,8 @@ uint32_t ncs_db_link_list_delink(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NO
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
- * Notes         : This API will fail, if you fail to register the free 
- *                 callback function. If you just want to remove the node 
+ * Notes         : This API will fail, if you fail to register the free
+ *                 callback function. If you just want to remove the node
  *                 from the list then call the API "ncs_db_link_list_remove()".
  *****************************************************************************/
 uint32_t ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uint8_t *key)
@@ -157,7 +159,8 @@ uint32_t ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uint8_t *key)
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr, uint8_t *key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr,
+					     uint8_t *key)
 {
 	NCS_DB_LINK_LIST_NODE *start_ptr = list_ptr->start_ptr;
 
@@ -185,7 +188,8 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr, uint8_t
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t db_link_list_add_ascend(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
+static uint32_t db_link_list_add_ascend(NCS_DB_LINK_LIST *list_ptr,
+					NCS_DB_LINK_LIST_NODE *node_ptr)
 {
 	NCS_DB_LINK_LIST_NODE *start_ptr = list_ptr->start_ptr;
 
@@ -198,7 +202,9 @@ static uint32_t db_link_list_add_ascend(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_
 		list_ptr->start_ptr = node_ptr;
 		list_ptr->end_ptr = node_ptr;
 	} else {
-		while (start_ptr && (list_ptr->cmp_cookie((uint8_t *)start_ptr->key, (uint8_t *)node_ptr->key) == 2)) {
+		while (start_ptr &&
+		       (list_ptr->cmp_cookie((uint8_t *)start_ptr->key,
+					     (uint8_t *)node_ptr->key) == 2)) {
 			start_ptr = start_ptr->next;
 		}
 
@@ -221,8 +227,9 @@ static uint32_t db_link_list_add_ascend(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t
-db_link_list_insert_node(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *add_node, NCS_DB_LINK_LIST_NODE *found_node)
+static uint32_t db_link_list_insert_node(NCS_DB_LINK_LIST *list_ptr,
+					 NCS_DB_LINK_LIST_NODE *add_node,
+					 NCS_DB_LINK_LIST_NODE *found_node)
 {
 	if (found_node == NULL) {
 		add_node->prev = list_ptr->end_ptr;
@@ -235,7 +242,8 @@ db_link_list_insert_node(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *add_
 			/* First node has been altered */
 			list_ptr->start_ptr = add_node;
 		} else {
-			/* This is the intermediate node, where previous pointer is not NULL */
+			/* This is the intermediate node, where previous pointer
+			 * is not NULL */
 			found_node->prev->next = add_node;
 			add_node->prev = found_node->prev;
 		}
@@ -257,7 +265,8 @@ db_link_list_insert_node(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *add_
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t db_link_list_add_descend(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
+static uint32_t db_link_list_add_descend(NCS_DB_LINK_LIST *list_ptr,
+					 NCS_DB_LINK_LIST_NODE *node_ptr)
 {
 	NCS_DB_LINK_LIST_NODE *start_ptr = list_ptr->start_ptr;
 
@@ -270,7 +279,9 @@ static uint32_t db_link_list_add_descend(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK
 		list_ptr->start_ptr = node_ptr;
 		list_ptr->end_ptr = node_ptr;
 	} else {
-		while (start_ptr && (list_ptr->cmp_cookie((uint8_t *)start_ptr->key, node_ptr->key) == 1)) {
+		while (start_ptr &&
+		       (list_ptr->cmp_cookie((uint8_t *)start_ptr->key,
+					     node_ptr->key) == 1)) {
 			start_ptr = start_ptr->next;
 		}
 
@@ -292,7 +303,8 @@ static uint32_t db_link_list_add_descend(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t db_link_list_add_first(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
+static uint32_t db_link_list_add_first(NCS_DB_LINK_LIST *list_ptr,
+				       NCS_DB_LINK_LIST_NODE *node_ptr)
 {
 	if (list_ptr->start_ptr == NULL) {
 		list_ptr->start_ptr = node_ptr;
@@ -309,7 +321,7 @@ static uint32_t db_link_list_add_first(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_L
 /****************************************************************************
  * Name          : ncs_db_link_list_add
  *
- * Description   : This function adds the node in the list according to the 
+ * Description   : This function adds the node in the list according to the
  *                 order which user specified during registeration.
  *
  * Arguments     : list_ptr  - Doubly Linked List pointer.
@@ -319,7 +331,8 @@ static uint32_t db_link_list_add_first(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_L
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t ncs_db_link_list_add(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
+uint32_t ncs_db_link_list_add(NCS_DB_LINK_LIST *list_ptr,
+			      NCS_DB_LINK_LIST_NODE *node_ptr)
 {
 	uint32_t res;
 
@@ -355,7 +368,8 @@ uint32_t ncs_db_link_list_add(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE 
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr, uint8_t *prev_key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr,
+						  uint8_t *prev_key)
 {
 	NCS_DB_LINK_LIST_NODE *node_ptr;
 
@@ -377,7 +391,8 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr, ui
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr, uint8_t *pres_key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr,
+						  uint8_t *pres_key)
 {
 	NCS_DB_LINK_LIST_NODE *node_ptr;
 
@@ -399,7 +414,8 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr, ui
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t ncs_db_link_list_enqeue(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
+uint32_t ncs_db_link_list_enqeue(NCS_DB_LINK_LIST *list_ptr,
+				 NCS_DB_LINK_LIST_NODE *node_ptr)
 {
 	uint32_t res;
 
@@ -420,7 +436,8 @@ uint32_t ncs_db_link_list_enqeue(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NO
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t ncs_db_link_list_push(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
+uint32_t ncs_db_link_list_push(NCS_DB_LINK_LIST *list_ptr,
+			       NCS_DB_LINK_LIST_NODE *node_ptr)
 {
 	uint32_t res;
 
@@ -434,7 +451,7 @@ uint32_t ncs_db_link_list_push(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE
  *
  * Description   : This function dequeues the node from the list.
  *
- * Arguments     : list_ptr  - Doubly Linked List pointer. 
+ * Arguments     : list_ptr  - Doubly Linked List pointer.
  *
  * Return Values : NULL on failure/NCS_DB_LINK_LIST_NODE
  *
@@ -445,7 +462,8 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_dequeue(NCS_DB_LINK_LIST *list_ptr)
 	NCS_DB_LINK_LIST_NODE *node_ptr = NULL;
 
 	if (list_ptr->end_ptr != NULL) {
-		node_ptr = ncs_db_link_list_remove(list_ptr, list_ptr->end_ptr->key);
+		node_ptr =
+		    ncs_db_link_list_remove(list_ptr, list_ptr->end_ptr->key);
 	}
 	return (node_ptr);
 }
@@ -455,7 +473,7 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_dequeue(NCS_DB_LINK_LIST *list_ptr)
  *
  * Description   : This function POP the node from the list.
  *
- * Arguments     : list_ptr  - Doubly Linked List pointer. 
+ * Arguments     : list_ptr  - Doubly Linked List pointer.
  *
  * Return Values : NULL on failure/NCS_DB_LINK_LIST_NODE
  *
@@ -466,7 +484,8 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_pop(NCS_DB_LINK_LIST *list_ptr)
 	NCS_DB_LINK_LIST_NODE *node_ptr = NULL;
 
 	if (list_ptr->start_ptr != NULL) {
-		node_ptr = ncs_db_link_list_remove(list_ptr, list_ptr->start_ptr->key);
+		node_ptr =
+		    ncs_db_link_list_remove(list_ptr, list_ptr->start_ptr->key);
 	}
 	return (node_ptr);
 }

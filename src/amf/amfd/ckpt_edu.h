@@ -23,7 +23,7 @@
   DESCRIPTION:
 
   This module is the include file for Availability Directors checkpointing.
-  
+
 ******************************************************************************
 */
 
@@ -36,11 +36,13 @@
 /* Function Definations of avd_ckpt_edu.c */
 uint32_t avd_compile_ckpt_edp(AVD_CL_CB *cb);
 
-uint32_t avsv_edp_ckpt_msg_node(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					     NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_ckpt_msg_node(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                                uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                                EDP_OP_TYPE op, EDU_ERR *o_err);
 uint32_t avsv_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						NCSCONTEXT ptr, uint32_t *ptr_data_len,
-						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+                                          NCSCONTEXT ptr,
+                                          uint32_t *ptr_data_len,
+                                          EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+                                          EDU_ERR *o_err);
 
 #endif  // AMF_AMFD_CKPT_EDU_H_

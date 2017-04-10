@@ -41,16 +41,15 @@
 #include "base/saf_error.h"
 #include "base/osaf_extended_name.h"
 
-static SaVersionT immVersion = { 'A', 2, 17 };
+static SaVersionT immVersion = {'A', 2, 17};
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 /* signal handler for SIGALRM */
 void sigalarmh(int sig)
 {
-        fprintf(stderr, "error - immfind command timed out (alarm)\n");
-        exit(EXIT_FAILURE);
+	fprintf(stderr, "error - immfind command timed out (alarm)\n");
+	exit(EXIT_FAILURE);
 }
-
 
 static void usage(const char *progname)
 {
@@ -61,8 +60,10 @@ static void usage(const char *progname)
 	printf("\t%s [path ...] [options]\n", progname);
 
 	printf("\nDESCRIPTION\n");
-	printf("\t%s is an IMM OM client used to find IMM objects.\n", progname);
-	printf("\tAll objects or objects of a certain class can be searched for.\n");
+	printf("\t%s is an IMM OM client used to find IMM objects.\n",
+	       progname);
+	printf(
+	    "\tAll objects or objects of a certain class can be searched for.\n");
 
 	printf("\nOPTIONS\n");
 	printf("\t-c, --class=NAME\n");
@@ -80,9 +81,11 @@ static void usage(const char *progname)
 	printf("\timmfind safApp=myApp\n");
 	printf("\t\tsearch for all objects rooted under safApp=myApp\n");
 	printf("\timmfind safApp=myApp -s sublevel\n");
-	printf("\t\tsearch for all objects rooted under safApp=myApp scope sublevel\n");
+	printf(
+	    "\t\tsearch for all objects rooted under safApp=myApp scope sublevel\n");
 	printf("\timmfind safApp=myApp --scope subtree\n");
-	printf("\t\tsearch for all objects rooted under safApp=myApp scope subtree\n");
+	printf(
+	    "\t\tsearch for all objects rooted under safApp=myApp scope subtree\n");
 	printf("\timmfind -c SaAmfApplication\n");
 	printf("\t\tsearch for all objects of class SaAmfApplication\n");
 }
@@ -90,13 +93,11 @@ static void usage(const char *progname)
 int main(int argc, char *argv[])
 {
 	int c;
-	struct option long_options[] = {
-		{"class", required_argument, 0, 'c'},
-		{"scope", required_argument, 0, 's'},
-		{"timeout", required_argument, 0, 't'},
-		{"help", no_argument, 0, 'h'},
-		{0, 0, 0, 0}
-	};
+	struct option long_options[] = {{"class", required_argument, 0, 'c'},
+					{"scope", required_argument, 0, 's'},
+					{"timeout", required_argument, 0, 't'},
+					{"help", no_argument, 0, 'h'},
+					{0, 0, 0, 0}};
 	SaAisErrorT error;
 	SaImmHandleT immHandle;
 	SaImmSearchHandleT searchHandle;
@@ -105,20 +106,22 @@ int main(int argc, char *argv[])
 	SaImmAttrValuesT_2 **attributes;
 	SaNameT rootName;
 	osaf_extended_name_clear(&rootName);
-	SaImmScopeT scope = SA_IMM_SUBTREE;	/* default search scope */
-	const char* className = "";
+	SaImmScopeT scope = SA_IMM_SUBTREE; /* default search scope */
+	const char *className = "";
 	unsigned long timeoutVal = 60;
 
 	/* Support for long DN */
 	setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1);
 	/* osaf_extended_name_init() is added to prevent future safe use of
-	 * osaf_extended_name_* before saImmOmInitialize and saImmOiInitialize */
+	 * osaf_extended_name_* before saImmOmInitialize and saImmOiInitialize
+	 */
 	osaf_extended_name_init();
 
 	while (1) {
 		c = getopt_long(argc, argv, "c:s:t:h", long_options, NULL);
 
-		if (c == -1)	/* have all command-line options have been parsed? */
+		if (c ==
+		    -1) /* have all command-line options have been parsed? */
 			break;
 
 		switch (c) {
@@ -131,20 +134,23 @@ int main(int argc, char *argv[])
 			else if (strcmp(optarg, "subtree") == 0)
 				scope = SA_IMM_SUBTREE;
 			else {
-				fprintf(stderr, "error - illegal scope: %s\n", optarg);
+				fprintf(stderr, "error - illegal scope: %s\n",
+					optarg);
 				exit(EXIT_FAILURE);
 			}
 			break;
 		case 't':
-                        timeoutVal = strtol(optarg, (char **)NULL, 10);
-                        break;
+			timeoutVal = strtol(optarg, (char **)NULL, 10);
+			break;
 
 		case 'h':
 			usage(basename(argv[0]));
 			exit(EXIT_SUCCESS);
 			break;
 		default:
-			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
+			fprintf(stderr,
+				"Try '%s --help' for more information\n",
+				argv[0]);
 			exit(EXIT_FAILURE);
 			break;
 		}
@@ -158,15 +164,17 @@ int main(int argc, char *argv[])
 	signal(SIGALRM, sigalarmh);
 	alarm(timeoutVal);
 
-        immutilWrapperProfile.errorsAreFatal = 0;
-        immutilWrapperProfile.nTries = timeoutVal;
-        immutilWrapperProfile.retryInterval = 1000;
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = timeoutVal;
+	immutilWrapperProfile.retryInterval = 1000;
 
-	if (optind < argc) osaf_extended_name_lend(argv[optind], &rootName);
+	if (optind < argc)
+		osaf_extended_name_lend(argv[optind], &rootName);
 
 	error = immutil_saImmOmInitialize(&immHandle, NULL, &immVersion);
 	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmInitialize FAILED: %s\n", saf_error(error));
+		fprintf(stderr, "error - saImmOmInitialize FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
@@ -179,18 +187,24 @@ int main(int argc, char *argv[])
 		searchParam.searchOneAttr.attrValue = NULL;
 	}
 
-	error = immutil_saImmOmSearchInitialize_2(immHandle, &rootName, scope,
-					  SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &searchParam, NULL,
-					  &searchHandle);
+	error = immutil_saImmOmSearchInitialize_2(
+	    immHandle, &rootName, scope,
+	    SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &searchParam,
+	    NULL, &searchHandle);
 	if (SA_AIS_OK != error) {
-		fprintf(stderr, "error - saImmOmSearchInitialize_2 FAILED: %s\n", saf_error(error));
+		fprintf(stderr,
+			"error - saImmOmSearchInitialize_2 FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
 	do {
-		error = immutil_saImmOmSearchNext_2(searchHandle, &objectName, &attributes);
+		error = immutil_saImmOmSearchNext_2(searchHandle, &objectName,
+						    &attributes);
 		if (error != SA_AIS_OK && error != SA_AIS_ERR_NOT_EXIST) {
-			fprintf(stderr, "error - saImmOmSearchNext_2 FAILED: %s\n", saf_error(error));
+			fprintf(stderr,
+				"error - saImmOmSearchNext_2 FAILED: %s\n",
+				saf_error(error));
 			exit(EXIT_FAILURE);
 		}
 		if (error == SA_AIS_OK)
@@ -199,16 +213,17 @@ int main(int argc, char *argv[])
 
 	error = immutil_saImmOmSearchFinalize(searchHandle);
 	if (SA_AIS_OK != error) {
-		fprintf(stderr, "error - saImmOmSearchFinalize FAILED: %s\n", saf_error(error));
+		fprintf(stderr, "error - saImmOmSearchFinalize FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
 	error = immutil_saImmOmFinalize(immHandle);
 	if (SA_AIS_OK != error) {
-		fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n", saf_error(error));
+		fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
 	exit(EXIT_SUCCESS);
 }
-

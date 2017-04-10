@@ -9,22 +9,22 @@
  * The complete license can be accessed from the following location:
  * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
- * licensing terms.  
- * 
+ * licensing terms.
+ *
  * Author(s): Emerson Network Power
  *
  */
 
 /*****************************************************************************
 ..............................................................................
-  
-    
+
+
 ..............................................................................
-      
+
 DESCRIPTION:
-        
+
 This contains the EDS_CB functions.
-          
+
 ******************************************************************************
 */
 #include "eds.h"
@@ -32,26 +32,17 @@ This contains the EDS_CB functions.
 #include "signal.h"
 #include "base/logtrace.h"
 
-enum {
-	FD_TERM = 0,
-	FD_AMF,
-	FD_MBCSV,
-	FD_MBX,
-	FD_CLM,
-	FD_IMM,
-	NUM_FD
-};
+enum { FD_TERM = 0, FD_AMF, FD_MBCSV, FD_MBX, FD_CLM, FD_IMM, NUM_FD };
 
 static struct pollfd fds[6];
 static nfds_t nfds = 6;
 
-
 /****************************************************************************
  * Name          : eds_cb_init
  *
- * Description   : This function initializes the EDS_CB including the 
+ * Description   : This function initializes the EDS_CB including the
  *                 Patricia trees.
- *                 
+ *
  *
  * Arguments     : eds_cb * - Pointer to the EDS_CB.
  *
@@ -86,21 +77,25 @@ uint32_t eds_cb_init(EDS_CB *eds_cb)
 	m_GET_MY_VERSION(eds_cb->eds_version);
 
 	/* Initialize patricia tree for reg list */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eda_reg_list, &reg_param)) {
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&eds_cb->eda_reg_list, &reg_param)) {
 		LOG_ER("Patricia Init for Reg List failed");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Initialize patricia tree for channel name list */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eds_cname_list, &cname_param)) {
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&eds_cb->eds_cname_list, &cname_param)) {
 		LOG_ER("Patricia Init for Channel Name List failed");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Initialize patricia tree for cluster nodes list */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eds_cluster_nodes_list, &nodelist_param)) {
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&eds_cb->eds_cluster_nodes_list,
+				   &nodelist_param)) {
 		LOG_ER("Patricia Init for Cluster Nodes List failed");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
@@ -113,9 +108,9 @@ uint32_t eds_cb_init(EDS_CB *eds_cb)
 /****************************************************************************
  * Name          : eds_cb_destroy
  *
- * Description   : This function destroys the EDS_CB including the 
+ * Description   : This function destroys the EDS_CB including the
  *                 Patricia trees.
- *                 
+ *
  *
  * Arguments     : eds_cb * - Pointer to the EDS_CB.
  *
@@ -136,11 +131,11 @@ void eds_cb_destroy(EDS_CB *eds_cb)
 /****************************************************************************
  * Name          : eds_process_mbx
  *
- * Description   : This is the function which process the IPC mail box of 
- *                 EDS 
+ * Description   : This is the function which process the IPC mail box of
+ *                 EDS
  *
- * Arguments     : mbx  - This is the mail box pointer on which EDS is 
- *                        going to block.  
+ * Arguments     : mbx  - This is the mail box pointer on which EDS is
+ *                        going to block.
  *
  * Return Values : None.
  *
@@ -152,7 +147,8 @@ static void eds_process_mbx(SYSF_MBX *mbx)
 
 	evt = (EDSV_EDS_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt);
 	if (evt != NULL) {
-		if ((evt->evt_type >= EDSV_EDS_EVT_BASE) && (evt->evt_type < EDSV_EDS_EVT_MAX)) {
+		if ((evt->evt_type >= EDSV_EDS_EVT_BASE) &&
+		    (evt->evt_type < EDSV_EDS_EVT_MAX)) {
 			/* This event belongs to EDS main event dispatcher */
 			eds_process_evt(evt);
 		} else {
@@ -167,14 +163,14 @@ static void eds_process_mbx(SYSF_MBX *mbx)
 /****************************************************************************
  * Name          : eds_main_process
  *
- * Description   : This is the function which is given as a input to the 
+ * Description   : This is the function which is given as a input to the
  *                 EDS task.
  *                 This function will be select of both the FD's (AMF FD and
  *                 Mail Box FD), depending on which FD has been selected, it
  *                 will call the corresponding routines.
  *
- * Arguments     : mbx  - This is the mail box pointer on which EDS is 
- *                        going to block.  
+ * Arguments     : mbx  - This is the mail box pointer on which EDS is
+ *                        going to block.
  *
  * Return Values : None.
  *
@@ -189,7 +185,8 @@ void eds_main_process(SYSF_MBX *mbx)
 	int term_fd;
 	TRACE_ENTER();
 
-	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS,
+						       gl_eds_hdl))) {
 		LOG_ER("Global take handle failed");
 		return;
 	}
@@ -225,14 +222,15 @@ void eds_main_process(SYSF_MBX *mbx)
 		fds[FD_MBCSV].fd = eds_cb->mbcsv_sel_obj;
 		fds[FD_MBCSV].events = POLLIN;
 
-		if ((eds_cb->immOiHandle != 0) && (eds_cb->is_impl_set == true)){
+		if ((eds_cb->immOiHandle != 0) &&
+		    (eds_cb->is_impl_set == true)) {
 			fds[FD_IMM].fd = eds_cb->imm_sel_obj;
 			fds[FD_IMM].events = POLLIN;
 			nfds = NUM_FD;
 		} else {
 			nfds = NUM_FD - 1;
 		}
-		
+
 		int ret = poll(fds, nfds, -1);
 
 		if (ret == -1) {
@@ -253,14 +251,16 @@ void eds_main_process(SYSF_MBX *mbx)
 			/* dispatch all the AMF pending callbacks */
 			error = saAmfDispatch(eds_cb->amf_hdl, SA_DISPATCH_ALL);
 			if (error != SA_AIS_OK)
-				LOG_ER("AMF Dispatch failed with rc = %d",error);
+				LOG_ER("AMF Dispatch failed with rc = %d",
+				       error);
 		}
 
 		/* process all mbcsv messages */
 		if (fds[FD_MBCSV].revents & POLLIN) {
 			error = eds_mbcsv_dispatch(eds_cb->mbcsv_hdl);
 			if (NCSCC_RC_SUCCESS != error)
-				LOG_ER("MBCSv Dispatch failed with rc = %d",error);
+				LOG_ER("MBCSv Dispatch failed with rc = %d",
+				       error);
 		}
 
 		/* Process the EDS Mail box, if eds is ACTIVE. */
@@ -274,23 +274,25 @@ void eds_main_process(SYSF_MBX *mbx)
 			/* dispatch all the AMF pending callbacks */
 			error = saClmDispatch(eds_cb->clm_hdl, SA_DISPATCH_ALL);
 			if (error != SA_AIS_OK)
-				LOG_ER("CLM Dispatch failed with rc = %d",error);
+				LOG_ER("CLM Dispatch failed with rc = %d",
+				       error);
 		}
 
 		/* process the IMM messages */
 		if (eds_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
 
 			/* dispatch the IMM event */
-			error = saImmOiDispatch(eds_cb->immOiHandle, SA_DISPATCH_ONE);
+			error = saImmOiDispatch(eds_cb->immOiHandle,
+						SA_DISPATCH_ONE);
 
 			/*
-			 ** BAD_HANDLE is interpreted as an IMM service restart. Try 
-			 ** reinitialize the IMM OI API in a background thread and let 
-			 ** this thread do business as usual especially handling write 
-			 ** requests.
+			 ** BAD_HANDLE is interpreted as an IMM service restart.
+			 *Try * reinitialize the IMM OI API in a background
+			 *thread and let * this thread do business as usual
+			 *especially handling write * requests.
 			 **
-			 ** All other errors are treated as non-recoverable (fatal) and will
-			 ** cause an exit of the process.
+			 ** All other errors are treated as non-recoverable
+			 *(fatal) and will * cause an exit of the process.
 			 */
 
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
@@ -302,15 +304,15 @@ void eds_main_process(SYSF_MBX *mbx)
 				eds_cb->imm_sel_obj = -1;
 				eds_cb->is_impl_set = false;
 				eds_imm_reinit_bg(eds_cb);
-				
+
 			} else if (error != SA_AIS_OK) {
-				LOG_ER("saImmOiDispatch FAILED with rc = %d", error);
+				LOG_ER("saImmOiDispatch FAILED with rc = %d",
+				       error);
 				break;
 			}
-
 		}
 	}
 
 	TRACE_LEAVE();
 	return;
-}	/* End eds_main_process() */
+} /* End eds_main_process() */

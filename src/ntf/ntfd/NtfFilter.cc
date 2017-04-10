@@ -17,10 +17,10 @@
 
 /**
  *   This file contains the implementaion of base class NtfFilter and the
- *   derived classes NtfAlarmFilter, NtfSecurityAlarmFilter, NtfStateChangeFilter,
- *   NtfAttributeChangeFilter and NtfObjectCreateDeleteFilter. The method checkFilter
- *   is implemented in each class, checkFilter returns true if the filter matches the
- *   notification.
+ *   derived classes NtfAlarmFilter, NtfSecurityAlarmFilter,
+ * NtfStateChangeFilter, NtfAttributeChangeFilter and
+ * NtfObjectCreateDeleteFilter. The method checkFilter is implemented in each
+ * class, checkFilter returns true if the filter matches the notification.
  */
 
 #include "ntf/ntfd/NtfFilter.h"
@@ -36,7 +36,6 @@
  *          change etc.).
  */
 NtfFilter::NtfFilter(SaNtfNotificationTypeT filterType) {
-
   filterType_ = filterType;
   TRACE_2("Filter %#x created", filterType_);
 }
@@ -44,19 +43,16 @@ NtfFilter::NtfFilter(SaNtfNotificationTypeT filterType) {
 /**
  * This is the destructor.
  */
-NtfFilter::~NtfFilter() {
-  TRACE_2("Filter %#x destroyed", filterType_);
-}
+NtfFilter::~NtfFilter() { TRACE_2("Filter %#x destroyed", filterType_); }
 
-SaNtfNotificationTypeT NtfFilter::type() {
-  return filterType_;
-}
+SaNtfNotificationTypeT NtfFilter::type() { return filterType_; }
 
-bool NtfFilter::checkEventType(SaNtfNotificationFilterHeaderT *fh, const SaNtfNotificationHeaderT *h) {
+bool NtfFilter::checkEventType(SaNtfNotificationFilterHeaderT *fh,
+                               const SaNtfNotificationHeaderT *h) {
   TRACE_8("num EventTypes: %hd", fh->numEventTypes);
   if (fh->numEventTypes) {
     for (int i = 0; i < fh->numEventTypes; i++) {
-      if(*h->eventType == fh->eventTypes[i]) {
+      if (*h->eventType == fh->eventTypes[i]) {
         TRACE_2("EventTypes matches");
         return true;
       }
@@ -67,13 +63,17 @@ bool NtfFilter::checkEventType(SaNtfNotificationFilterHeaderT *fh, const SaNtfNo
   return false;
 }
 
-bool NtfFilter::checkNtfClassId(SaNtfNotificationFilterHeaderT *fh, const SaNtfNotificationHeaderT *h) {
+bool NtfFilter::checkNtfClassId(SaNtfNotificationFilterHeaderT *fh,
+                                const SaNtfNotificationHeaderT *h) {
   TRACE_8("numNotificationClassIds: %hd", fh->numNotificationClassIds);
   if (fh->numNotificationClassIds) {
     for (int i = 0; i < fh->numNotificationClassIds; i++)
-      if(h->notificationClassId->vendorId == fh->notificationClassIds[i].vendorId &&
-         h->notificationClassId->minorId == fh->notificationClassIds[i].minorId &&
-         h->notificationClassId->majorId == fh->notificationClassIds[i].majorId){
+      if (h->notificationClassId->vendorId ==
+              fh->notificationClassIds[i].vendorId &&
+          h->notificationClassId->minorId ==
+              fh->notificationClassIds[i].minorId &&
+          h->notificationClassId->majorId ==
+              fh->notificationClassIds[i].majorId) {
         TRACE_2("notificationClassId matches");
         return true;
       }
@@ -83,11 +83,13 @@ bool NtfFilter::checkNtfClassId(SaNtfNotificationFilterHeaderT *fh, const SaNtfN
   return false;
 }
 
-bool NtfFilter::checkSourceIndicator(SaUint16T numSi,   SaNtfSourceIndicatorT *sis, SaNtfSourceIndicatorT *s) {
+bool NtfFilter::checkSourceIndicator(SaUint16T numSi,
+                                     SaNtfSourceIndicatorT *sis,
+                                     SaNtfSourceIndicatorT *s) {
   TRACE_8("numSi: %hd", numSi);
   if (numSi) {
     for (int i = 0; i < numSi; i++) {
-      if(*s == sis[i]) {
+      if (*s == sis[i]) {
         TRACE_2("Sourceind matches");
         return true;
       }
@@ -120,9 +122,8 @@ bool NtfFilter::cmpSaNameT(SaNameT *n, SaNameT *n2) {
   length2 = strlen(str2);
 
   if (length != length2) {
-    if (length < length2)
-      rc = strstr(str2, str) != NULL;
-  } else if(memcmp(str, str2, length) == 0)
+    if (length < length2) rc = strstr(str2, str) != NULL;
+  } else if (memcmp(str, str2, length) == 0)
     rc = true;
 
   return rc;
@@ -143,10 +144,10 @@ bool NtfFilter::cmpSaNameT(SaNameT *n, SaNameT *n2) {
  *    true if the two saNtfValue's has the same value type and
  *    are equal.
  */
-bool NtfFilter::cmpSaNtfValueT(SaNtfValueTypeT t, SaNtfValueT *v, SaNtfValueTypeT t2, SaNtfValueT *v2) {
-  if (t != t2)
-    return false;
-  switch(t) {
+bool NtfFilter::cmpSaNtfValueT(SaNtfValueTypeT t, SaNtfValueT *v,
+                               SaNtfValueTypeT t2, SaNtfValueT *v2) {
+  if (t != t2) return false;
+  switch (t) {
     case SA_NTF_VALUE_UINT8:
       return (v->uint8Val == v2->uint8Val);
     case SA_NTF_VALUE_INT8:
@@ -168,7 +169,8 @@ bool NtfFilter::cmpSaNtfValueT(SaNtfValueTypeT t, SaNtfValueT *v, SaNtfValueType
     case SA_NTF_VALUE_DOUBLE:
       return (v->doubleVal == v2->doubleVal);
 
-      /* TODO: Not supported yet due to no allocation function for filter handle */
+    /* TODO: Not supported yet due to no allocation function for filter handle
+     */
     case SA_NTF_VALUE_LDAP_NAME:
     case SA_NTF_VALUE_STRING:
     case SA_NTF_VALUE_IPADDRESS:
@@ -182,12 +184,12 @@ bool NtfFilter::cmpSaNtfValueT(SaNtfValueTypeT t, SaNtfValueT *v, SaNtfValueType
   }
 }
 
-bool NtfFilter::checkNotificationObject(SaNtfNotificationFilterHeaderT *fh, const SaNtfNotificationHeaderT *h) {
-
+bool NtfFilter::checkNotificationObject(SaNtfNotificationFilterHeaderT *fh,
+                                        const SaNtfNotificationHeaderT *h) {
   TRACE_8("num notificationObjects: %hd", fh->numNotificationObjects);
   if (fh->numNotificationObjects) {
     for (int i = 0; i < fh->numNotificationObjects; i++) {
-      if(cmpSaNameT(&fh->notificationObjects[i], h->notificationObject)){
+      if (cmpSaNameT(&fh->notificationObjects[i], h->notificationObject)) {
         TRACE_2("notificationObject matches");
         return true;
       }
@@ -198,11 +200,12 @@ bool NtfFilter::checkNotificationObject(SaNtfNotificationFilterHeaderT *fh, cons
   return false;
 }
 
-bool NtfFilter::checkNotifyingObject(SaNtfNotificationFilterHeaderT *fh, const SaNtfNotificationHeaderT *h) {
+bool NtfFilter::checkNotifyingObject(SaNtfNotificationFilterHeaderT *fh,
+                                     const SaNtfNotificationHeaderT *h) {
   TRACE_8("num NotifyingObjects: %hd", fh->numNotifyingObjects);
   if (fh->numNotifyingObjects) {
     for (int i = 0; i < fh->numNotifyingObjects; i++) {
-      if(cmpSaNameT(&fh->notifyingObjects[i], h->notifyingObject)){
+      if (cmpSaNameT(&fh->notifyingObjects[i], h->notifyingObject)) {
         TRACE_2("NotifyingObject matches");
         return true;
       }
@@ -213,12 +216,12 @@ bool NtfFilter::checkNotifyingObject(SaNtfNotificationFilterHeaderT *fh, const S
   return false;
 }
 
-bool NtfFilter::checkHeader(SaNtfNotificationFilterHeaderT *fh, NtfSmartPtr& notif) {
+bool NtfFilter::checkHeader(SaNtfNotificationFilterHeaderT *fh,
+                            NtfSmartPtr &notif) {
   const SaNtfNotificationHeaderT *h = notif->header();
-  if (notif->getNotificationType() != this->type())
-    return false;
+  if (notif->getNotificationType() != this->type()) return false;
   bool rv = checkNtfClassId(fh, h) && checkEventType(fh, h) &&
-      checkNotificationObject(fh, h) && checkNotifyingObject(fh, h);
+            checkNotificationObject(fh, h) && checkNotifyingObject(fh, h);
   if (rv)
     TRACE_2("hdfilter matches");
   else
@@ -226,7 +229,8 @@ bool NtfFilter::checkHeader(SaNtfNotificationFilterHeaderT *fh, NtfSmartPtr& not
   return rv;
 }
 
-NtfAlarmFilter::NtfAlarmFilter(SaNtfAlarmNotificationFilterT *f):NtfFilter(SA_NTF_TYPE_ALARM), filter_(f) {
+NtfAlarmFilter::NtfAlarmFilter(SaNtfAlarmNotificationFilterT *f)
+    : NtfFilter(SA_NTF_TYPE_ALARM), filter_(f) {
   TRACE_8("Alarm filter created");
 }
 
@@ -240,7 +244,7 @@ bool NtfAlarmFilter::checkTrend(SaNtfAlarmNotificationT *a) {
   TRACE_8("num Trends: %hd", filter_->numTrends);
   if (filter_->numTrends) {
     for (int i = 0; i < filter_->numTrends; i++) {
-      if(*a->trend == filter_->trends[i]) {
+      if (*a->trend == filter_->trends[i]) {
         TRACE_2("trends matches");
         return true;
       }
@@ -255,7 +259,7 @@ bool NtfAlarmFilter::checkPerceivedSeverity(SaNtfAlarmNotificationT *a) {
   TRACE_8("num Perceivedseverities: %hd", filter_->numPerceivedSeverities);
   if (filter_->numPerceivedSeverities) {
     for (int i = 0; i < filter_->numPerceivedSeverities; i++) {
-      if(*a->perceivedSeverity == filter_->perceivedSeverities[i]) {
+      if (*a->perceivedSeverity == filter_->perceivedSeverities[i]) {
         TRACE_2("perceivedseverities matches");
         return true;
       }
@@ -270,7 +274,7 @@ bool NtfAlarmFilter::checkprobableCause(SaNtfAlarmNotificationT *a) {
   TRACE_8("num ProbableCauses: %hd", filter_->numProbableCauses);
   if (filter_->numProbableCauses) {
     for (int i = 0; i < filter_->numProbableCauses; i++) {
-      if(*a->probableCause == filter_->probableCauses[i]) {
+      if (*a->probableCause == filter_->probableCauses[i]) {
         TRACE_2("probableCauses matches");
         return true;
       }
@@ -289,7 +293,7 @@ bool NtfAlarmFilter::checkprobableCause(SaNtfAlarmNotificationT *a) {
  * @return bool
  *    true if the filter matches the notification
  */
-bool NtfAlarmFilter::checkFilter(NtfSmartPtr& notif) {
+bool NtfAlarmFilter::checkFilter(NtfSmartPtr &notif) {
   bool rv = false;
   TRACE_ENTER();
   rv = this->checkHeader(&filter_->notificationFilterHeader, notif);
@@ -301,7 +305,9 @@ bool NtfAlarmFilter::checkFilter(NtfSmartPtr& notif) {
   return rv;
 }
 
-NtfSecurityAlarmFilter::NtfSecurityAlarmFilter(SaNtfSecurityAlarmNotificationFilterT *f):NtfFilter(SA_NTF_TYPE_SECURITY_ALARM), filter_(f) {
+NtfSecurityAlarmFilter::NtfSecurityAlarmFilter(
+    SaNtfSecurityAlarmNotificationFilterT *f)
+    : NtfFilter(SA_NTF_TYPE_SECURITY_ALARM), filter_(f) {
   TRACE_8("NtfSecurityAlarmFilter created");
 }
 
@@ -319,23 +325,27 @@ NtfSecurityAlarmFilter::~NtfSecurityAlarmFilter() {
  * @return bool
  *    true if the filter matches the notification
  */
-bool NtfSecurityAlarmFilter::checkFilter(NtfSmartPtr& notif) {
+bool NtfSecurityAlarmFilter::checkFilter(NtfSmartPtr &notif) {
   bool rv = false;
   TRACE_ENTER();
   rv = this->checkHeader(&filter_->notificationFilterHeader, notif);
   if (rv) {
-    SaNtfSecurityAlarmNotificationT *s = &(notif->getNotInfo()->notification.securityAlarm);
-    rv = checkProbableCause(s) && checkSeverity(s) && checkSecurityAlarmDetector(s) && checkServiceUser(s) && checkServiceProvider(s);
+    SaNtfSecurityAlarmNotificationT *s =
+        &(notif->getNotInfo()->notification.securityAlarm);
+    rv = checkProbableCause(s) && checkSeverity(s) &&
+         checkSecurityAlarmDetector(s) && checkServiceUser(s) &&
+         checkServiceProvider(s);
   }
   TRACE_LEAVE();
   return rv;
 }
 
-bool NtfSecurityAlarmFilter::checkProbableCause(SaNtfSecurityAlarmNotificationT *s) {
+bool NtfSecurityAlarmFilter::checkProbableCause(
+    SaNtfSecurityAlarmNotificationT *s) {
   TRACE_8("num ProbableCauses: %hd", filter_->numProbableCauses);
   if (filter_->numProbableCauses) {
     for (int i = 0; i < filter_->numProbableCauses; i++) {
-      if(*s->probableCause == filter_->probableCauses[i]) {
+      if (*s->probableCause == filter_->probableCauses[i]) {
         TRACE_2("probableCauses matches");
         return true;
       }
@@ -350,7 +360,7 @@ bool NtfSecurityAlarmFilter::checkSeverity(SaNtfSecurityAlarmNotificationT *s) {
   TRACE_8("severities: %hd", filter_->numSeverities);
   if (filter_->numSeverities) {
     for (int i = 0; i < filter_->numSeverities; i++) {
-      if(*s->severity == filter_->severities[i]) {
+      if (*s->severity == filter_->severities[i]) {
         TRACE_2("Severity matches");
         return true;
       }
@@ -361,12 +371,14 @@ bool NtfSecurityAlarmFilter::checkSeverity(SaNtfSecurityAlarmNotificationT *s) {
   return false;
 }
 
-bool NtfSecurityAlarmFilter::checkServiceUser(SaNtfSecurityAlarmNotificationT *s) {
+bool NtfSecurityAlarmFilter::checkServiceUser(
+    SaNtfSecurityAlarmNotificationT *s) {
   TRACE_8("serverUsers: %hd", filter_->numServiceUsers);
   if (filter_->numServiceUsers) {
     for (int i = 0; i < filter_->numServiceUsers; i++) {
-      if(cmpSaNtfValueT(s->serviceUser->valueType, &s->serviceUser->value,
-                        filter_->serviceUsers[i].valueType, &filter_->serviceUsers[i].value)) {
+      if (cmpSaNtfValueT(s->serviceUser->valueType, &s->serviceUser->value,
+                         filter_->serviceUsers[i].valueType,
+                         &filter_->serviceUsers[i].value)) {
         TRACE_2("ServiceUser matches");
         return true;
       }
@@ -377,12 +389,15 @@ bool NtfSecurityAlarmFilter::checkServiceUser(SaNtfSecurityAlarmNotificationT *s
   return false;
 }
 
-bool NtfSecurityAlarmFilter::checkServiceProvider(SaNtfSecurityAlarmNotificationT *s) {
+bool NtfSecurityAlarmFilter::checkServiceProvider(
+    SaNtfSecurityAlarmNotificationT *s) {
   TRACE_8("serverProviders: %hd", filter_->numServiceProviders);
   if (filter_->numServiceProviders) {
     for (int i = 0; i < filter_->numServiceProviders; i++) {
-      if(cmpSaNtfValueT(s->serviceProvider->valueType, &s->serviceProvider->value,
-                        filter_->serviceProviders[i].valueType, &filter_->serviceProviders[i].value)) {
+      if (cmpSaNtfValueT(s->serviceProvider->valueType,
+                         &s->serviceProvider->value,
+                         filter_->serviceProviders[i].valueType,
+                         &filter_->serviceProviders[i].value)) {
         TRACE_2("ServiceProvider matches");
         return true;
       }
@@ -393,12 +408,15 @@ bool NtfSecurityAlarmFilter::checkServiceProvider(SaNtfSecurityAlarmNotification
   return false;
 }
 
-bool NtfSecurityAlarmFilter::checkSecurityAlarmDetector(SaNtfSecurityAlarmNotificationT *s) {
+bool NtfSecurityAlarmFilter::checkSecurityAlarmDetector(
+    SaNtfSecurityAlarmNotificationT *s) {
   TRACE_8("serverProviders: %hd", filter_->numSecurityAlarmDetectors);
   if (filter_->numSecurityAlarmDetectors) {
     for (int i = 0; i < filter_->numSecurityAlarmDetectors; i++) {
-      if(cmpSaNtfValueT(s->securityAlarmDetector->valueType, &s->securityAlarmDetector->value,
-                        filter_->securityAlarmDetectors[i].valueType, &filter_->securityAlarmDetectors[i].value)) {
+      if (cmpSaNtfValueT(s->securityAlarmDetector->valueType,
+                         &s->securityAlarmDetector->value,
+                         filter_->securityAlarmDetectors[i].valueType,
+                         &filter_->securityAlarmDetectors[i].value)) {
         TRACE_2("SecurityAlarmDetector matches");
         return true;
       }
@@ -409,8 +427,9 @@ bool NtfSecurityAlarmFilter::checkSecurityAlarmDetector(SaNtfSecurityAlarmNotifi
   return false;
 }
 
-NtfObjectCreateDeleteFilter::NtfObjectCreateDeleteFilter(SaNtfObjectCreateDeleteNotificationFilterT *f):
-    NtfFilter(SA_NTF_TYPE_OBJECT_CREATE_DELETE), filter_(f) {
+NtfObjectCreateDeleteFilter::NtfObjectCreateDeleteFilter(
+    SaNtfObjectCreateDeleteNotificationFilterT *f)
+    : NtfFilter(SA_NTF_TYPE_OBJECT_CREATE_DELETE), filter_(f) {
   TRACE_8("NtfObjectCreateDeleteFilter created");
 }
 
@@ -428,22 +447,25 @@ NtfObjectCreateDeleteFilter::~NtfObjectCreateDeleteFilter() {
  * @return bool
  *    true if the filter matches the notification
  */
-bool NtfObjectCreateDeleteFilter::checkFilter(NtfSmartPtr& notif) {
+bool NtfObjectCreateDeleteFilter::checkFilter(NtfSmartPtr &notif) {
   bool rv = false;
   TRACE_ENTER();
   rv = this->checkHeader(&filter_->notificationFilterHeader, notif);
   if (rv) {
-    SaNtfObjectCreateDeleteNotificationT *o = &(notif->getNotInfo()->notification.objectCreateDelete);
-    rv = checkSourceIndicator(filter_->numSourceIndicators, filter_->sourceIndicators, o->sourceIndicator);
+    SaNtfObjectCreateDeleteNotificationT *o =
+        &(notif->getNotInfo()->notification.objectCreateDelete);
+    rv = checkSourceIndicator(filter_->numSourceIndicators,
+                              filter_->sourceIndicators, o->sourceIndicator);
   }
   TRACE_LEAVE();
   return rv;
 }
 
-NtfStateChangeFilter::NtfStateChangeFilter(SaNtfStateChangeNotificationFilterT *f):NtfFilter(SA_NTF_TYPE_STATE_CHANGE),
-                                                                                   filter_(f) {
+NtfStateChangeFilter::NtfStateChangeFilter(
+    SaNtfStateChangeNotificationFilterT *f)
+    : NtfFilter(SA_NTF_TYPE_STATE_CHANGE), filter_(f) {
   TRACE_8("NtfStateChangeFilter created");
-                                                                                   }
+}
 
 NtfStateChangeFilter::~NtfStateChangeFilter() {
   TRACE_8("destructor p = %p", filter_);
@@ -459,14 +481,16 @@ NtfStateChangeFilter::~NtfStateChangeFilter() {
  * @return bool
  *    true if the filter matches the notification
  */
-bool NtfStateChangeFilter::checkFilter(NtfSmartPtr& notif) {
+bool NtfStateChangeFilter::checkFilter(NtfSmartPtr &notif) {
   bool rv = false;
   TRACE_ENTER();
   rv = this->checkHeader(&filter_->notificationFilterHeader, notif);
   if (rv) {
-    SaNtfStateChangeNotificationT *s = &(notif->getNotInfo()->notification.stateChange);
-    rv = checkSourceIndicator(filter_->numSourceIndicators, filter_->sourceIndicators, s->sourceIndicator) &&
-        checkStateId(s->numStateChanges, s->changedStates);
+    SaNtfStateChangeNotificationT *s =
+        &(notif->getNotInfo()->notification.stateChange);
+    rv = checkSourceIndicator(filter_->numSourceIndicators,
+                              filter_->sourceIndicators, s->sourceIndicator) &&
+         checkStateId(s->numStateChanges, s->changedStates);
   }
   TRACE_LEAVE();
   return rv;
@@ -475,10 +499,9 @@ bool NtfStateChangeFilter::checkFilter(NtfSmartPtr& notif) {
 bool NtfStateChangeFilter::checkStateId(SaUint16T ns, SaNtfStateChangeT *sc) {
   int i, j;
   if (filter_->numStateChanges) {
-    for (i = 0; i< filter_->numStateChanges; i++) {
-      for (j= 0; j< ns; j++){
-        if (filter_->changedStates[i].stateId == sc[j].stateId)
-          return true;
+    for (i = 0; i < filter_->numStateChanges; i++) {
+      for (j = 0; j < ns; j++) {
+        if (filter_->changedStates[i].stateId == sc[j].stateId) return true;
       }
     }
   } else {
@@ -487,8 +510,9 @@ bool NtfStateChangeFilter::checkStateId(SaUint16T ns, SaNtfStateChangeT *sc) {
   return false;
 }
 
-NtfAttributeChangeFilter::NtfAttributeChangeFilter(SaNtfAttributeChangeNotificationFilterT *f):
-    NtfFilter(SA_NTF_TYPE_ATTRIBUTE_CHANGE), filter_(f) {
+NtfAttributeChangeFilter::NtfAttributeChangeFilter(
+    SaNtfAttributeChangeNotificationFilterT *f)
+    : NtfFilter(SA_NTF_TYPE_ATTRIBUTE_CHANGE), filter_(f) {
   TRACE_8("NtfAttributeChangeFilter created");
 }
 
@@ -500,13 +524,15 @@ NtfAttributeChangeFilter::NtfAttributeChangeFilter(SaNtfAttributeChangeNotificat
  * @return bool
  *    true if the filter matches the notification
  */
-bool NtfAttributeChangeFilter::checkFilter(NtfSmartPtr& notif) {
+bool NtfAttributeChangeFilter::checkFilter(NtfSmartPtr &notif) {
   bool rv = false;
   TRACE_ENTER();
   rv = this->checkHeader(&filter_->notificationFilterHeader, notif);
   if (rv) {
-    SaNtfAttributeChangeNotificationT *a = &(notif->getNotInfo()->notification.attributeChange);
-    rv = checkSourceIndicator(filter_->numSourceIndicators, filter_->sourceIndicators, a->sourceIndicator);
+    SaNtfAttributeChangeNotificationT *a =
+        &(notif->getNotInfo()->notification.attributeChange);
+    rv = checkSourceIndicator(filter_->numSourceIndicators,
+                              filter_->sourceIndicators, a->sourceIndicator);
   }
   TRACE_LEAVE();
   return rv;
@@ -517,5 +543,3 @@ NtfAttributeChangeFilter::~NtfAttributeChangeFilter() {
   ntfsv_filter_attr_ch_free(filter_, true);
   free(filter_);
 }
-
-

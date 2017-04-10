@@ -27,12 +27,13 @@ void saLogLimitGet_01(void)
 		test_validate(rc, SA_AIS_OK);
 		return;
 	}
-	rc = saLogLimitGet(logHandle, SA_LOG_MAX_NUM_CLUSTER_APP_LOG_STREAMS_ID, &limitValue);
+	rc = saLogLimitGet(logHandle, SA_LOG_MAX_NUM_CLUSTER_APP_LOG_STREAMS_ID,
+			   &limitValue);
 	logFinalize();
 	test_validate(rc, SA_AIS_ERR_NOT_SUPPORTED);
 }
 
-__attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
+__attribute__((constructor)) static void saLibraryLifeCycle_constructor(void)
 {
 	test_suite_add(3, "Limit Fetch API");
 	test_case_add(3, saLogLimitGet_01, "saLogLimitGet(), Not supported");

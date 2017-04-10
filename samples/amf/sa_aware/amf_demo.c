@@ -43,23 +43,14 @@
 #include <ctype.h>
 
 #define MD5_LEN 32
-//extern void saAisNameLend(SaConstStringT value, SaNameT* name);
-//extern SaConstStringT saAisNameBorrow(const SaNameT* name);
+// extern void saAisNameLend(SaConstStringT value, SaNameT* name);
+// extern SaConstStringT saAisNameBorrow(const SaNameT* name);
 /* Some dummies in place of real service logic */
-int foo_activate(void)
-{
-	return 0;
-}
+int foo_activate(void) { return 0; }
 
-int foo_deactivate(void)
-{
-	return 0;
-}
+int foo_deactivate(void) { return 0; }
 
-int foo_healthcheck(void)
-{
-	return 0;
-}
+int foo_healthcheck(void) { return 0; }
 
 /* AMF Handle */
 static SaAmfHandleT my_amf_hdl;
@@ -74,13 +65,11 @@ static SaAmfHAStateT my_ha_state;
 static SaNameT my_comp_name;
 
 /* Logical HA State names for nicer logging */
-static const char *ha_state_name[] =
-{
-	"None",
-	"Active",    /* SA_AMF_HA_ACTIVE       */
-	"Standby",   /* SA_AMF_HA_STANDBY      */
-	"Quiesced",  /* SA_AMF_HA_QUIESCED     */
-	"Quiescing"  /* SA_AMF_HA_QUIESCING    */
+static const char *ha_state_name[] = {
+    "None", "Active", /* SA_AMF_HA_ACTIVE       */
+    "Standby",	/* SA_AMF_HA_STANDBY      */
+    "Quiesced",       /* SA_AMF_HA_QUIESCED     */
+    "Quiescing"       /* SA_AMF_HA_QUIESCING    */
 };
 
 /**
@@ -88,18 +77,18 @@ static const char *ha_state_name[] =
  * to change state of an already assigned workload (TARGET_ALL).
  * The callback is used for the initial assignment, as a consequence
  * of admin operations and fail/switch-over
- * 
+ *
  * See example sequence diagrams in chapter 10.
- * 
+ *
  * @param invocation
  * @param comp_name
  * @param ha_state
  * @param csi_desc
  */
 static void amf_csi_set_callback(SaInvocationT invocation,
-								 const SaNameT *comp_name,
-								 SaAmfHAStateT ha_state,
-								 SaAmfCSIDescriptorT csi_desc)
+				 const SaNameT *comp_name,
+				 SaAmfHAStateT ha_state,
+				 SaAmfCSIDescriptorT csi_desc)
 {
 	SaAisErrorT rc, error;
 	SaAmfCSIAttributeT *attr;
@@ -107,23 +96,25 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 
 	if (csi_desc.csiFlags == SA_AMF_CSI_ADD_ONE) {
 
-		syslog(LOG_INFO, "CSI Set - add '%s' HAState %s", 
-			saAisNameBorrow(&csi_desc.csiName), ha_state_name[ha_state]);
+		syslog(LOG_INFO, "CSI Set - add '%s' HAState %s",
+		       saAisNameBorrow(&csi_desc.csiName),
+		       ha_state_name[ha_state]);
 
 		/* For debug log the CSI attributes, they could
 		** define the workload characteristics */
 		for (i = 0; i < csi_desc.csiAttr.number; i++) {
 			attr = &csi_desc.csiAttr.attr[i];
 			syslog(LOG_DEBUG, "    name: %s, value: %s",
-				attr->attrName, attr->attrValue);
+			       attr->attrName, attr->attrValue);
 		}
 
 	} else if (csi_desc.csiFlags == SA_AMF_CSI_TARGET_ALL) {
-		syslog(LOG_INFO, "CSI Set - HAState %s for all assigned CSIs", 
-			ha_state_name[ha_state]);
+		syslog(LOG_INFO, "CSI Set - HAState %s for all assigned CSIs",
+		       ha_state_name[ha_state]);
 	} else {
-		syslog(LOG_INFO, "CSI Set - HAState %s for '%s'", 
-			ha_state_name[ha_state], saAisNameBorrow(&csi_desc.csiName));
+		syslog(LOG_INFO, "CSI Set - HAState %s for '%s'",
+		       ha_state_name[ha_state],
+		       saAisNameBorrow(&csi_desc.csiName));
 	}
 
 	switch (ha_state) {
@@ -131,7 +122,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 		status = foo_activate();
 		break;
 	case SA_AMF_HA_STANDBY:
-		/* 
+		/*
 		 * Not much to do in this simple example code
 		 * For real one could open a checkpoint for reads
 		 * Open a communication channel for listening
@@ -167,27 +158,32 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	if (ha_state == SA_AMF_HA_QUIESCING) {
 		/* "gracefully quiescing CSI work assignment" */
 		sleep(1);
-		rc = saAmfCSIQuiescingComplete(my_amf_hdl, invocation, SA_AIS_OK);
+		rc = saAmfCSIQuiescingComplete(my_amf_hdl, invocation,
+					       SA_AIS_OK);
 		if (rc != SA_AIS_OK) {
-			syslog(LOG_ERR, "saAmfCSIQuiescingComplete FAILED - %u", rc);
+			syslog(LOG_ERR, "saAmfCSIQuiescingComplete FAILED - %u",
+			       rc);
 			exit(1);
 		}
 		if (csi_desc.csiFlags == SA_AMF_CSI_TARGET_ONE) {
-			rc = saAmfHAStateGet(my_amf_hdl, comp_name, &csi_desc.csiName, &my_ha_state);
+			rc = saAmfHAStateGet(my_amf_hdl, comp_name,
+					     &csi_desc.csiName, &my_ha_state);
 			if (rc != SA_AIS_OK) {
-				syslog(LOG_ERR, "saAmfHAStateGet FAILED - %u", rc);
+				syslog(LOG_ERR, "saAmfHAStateGet FAILED - %u",
+				       rc);
 				exit(1);
 			}
 		} else if (csi_desc.csiFlags == SA_AMF_CSI_TARGET_ALL) {
-			// Application could iterate saAmfHAStateGet() for every csi
-			// which had been assigned to this component to ensure
-			// all csi(s) are QUIESCED
+			// Application could iterate saAmfHAStateGet() for every
+			// csi which had been assigned to this component to
+			// ensure all csi(s) are QUIESCED
 
 			// temporary set to QUIESCED
 			my_ha_state = SA_AMF_HA_QUIESCED;
 		}
 
-		syslog(LOG_INFO, "My HA state is %s", ha_state_name[my_ha_state]);
+		syslog(LOG_INFO, "My HA state is %s",
+		       ha_state_name[my_ha_state]);
 	}
 }
 
@@ -196,23 +192,24 @@ static void amf_csi_set_callback(SaInvocationT invocation,
  * As a consequence of admin lock of the SU, a CSI would first get QUIESCED
  * and then removed.
  * See Figure 44, page 405
- * 
+ *
  * @param invocation
  * @param comp_name
  * @param csi_name
  * @param csi_flags
  */
 static void amf_csi_remove_callback(SaInvocationT invocation,
-									const SaNameT *comp_name,
-									const SaNameT *csi_name,
-									SaAmfCSIFlagsT csi_flags)
+				    const SaNameT *comp_name,
+				    const SaNameT *csi_name,
+				    SaAmfCSIFlagsT csi_flags)
 {
 	SaAisErrorT rc;
 
 	if (csi_flags == SA_AMF_CSI_TARGET_ALL)
 		syslog(LOG_INFO, "CSI Remove for all CSIs");
 	else if (csi_flags == SA_AMF_CSI_TARGET_ONE)
-		syslog(LOG_INFO, "CSI Remove for '%s'", saAisNameBorrow(csi_name));
+		syslog(LOG_INFO, "CSI Remove for '%s'",
+		       saAisNameBorrow(csi_name));
 	else
 		// A non valid case, see 7.9.3
 		abort();
@@ -229,14 +226,14 @@ static void amf_csi_remove_callback(SaInvocationT invocation,
 
 /**
  * AMF invoked this callback periodically to assess our health.
- * 
+ *
  * @param inv
  * @param comp_name
  * @param health_check_key
  */
 static void amf_healthcheck_callback(SaInvocationT inv,
-									 const SaNameT *comp_name,
-									 SaAmfHealthcheckKeyT *health_check_key)
+				     const SaNameT *comp_name,
+				     SaAmfHealthcheckKeyT *health_check_key)
 {
 	SaAisErrorT rc, status = SA_AIS_OK;
 	static int healthcheck_count = 0;
@@ -247,11 +244,14 @@ static void amf_healthcheck_callback(SaInvocationT inv,
 
 	/* Check the status of our service but only if active */
 	if ((my_ha_state == SA_AMF_HA_ACTIVE) && (foo_healthcheck() != 0)) {
-		/* 7.8.2 - an error report should be done before returning failed op */
+		/* 7.8.2 - an error report should be done before returning
+		 * failed op */
 		rc = saAmfComponentErrorReport(my_amf_hdl, &my_comp_name, 0,
-			SA_AMF_COMPONENT_RESTART, SA_NTF_IDENTIFIER_UNUSED);
+					       SA_AMF_COMPONENT_RESTART,
+					       SA_NTF_IDENTIFIER_UNUSED);
 		if (rc != SA_AIS_OK) {
-			syslog(LOG_ERR, "saAmfComponentErrorReport FAILED - %u", rc);
+			syslog(LOG_ERR, "saAmfComponentErrorReport FAILED - %u",
+			       rc);
 			exit(1);
 		}
 		status = SA_AIS_ERR_FAILED_OPERATION;
@@ -267,12 +267,12 @@ static void amf_healthcheck_callback(SaInvocationT inv,
 /**
  * AMF invokes this callback as a consequence of admin operations
  * such as SU or node lock-instantiation.
- * 
+ *
  * @param inv
  * @param comp_name
  */
 static void amf_comp_terminate_callback(SaInvocationT inv,
-										const SaNameT *comp_name)
+					const SaNameT *comp_name)
 {
 	SaAisErrorT rc;
 
@@ -287,7 +287,6 @@ static void amf_comp_terminate_callback(SaInvocationT inv,
 	exit(0);
 }
 
-
 /**
  * AMF invokes this callback as a consequence of change in
  * csi attribute value.
@@ -295,32 +294,32 @@ static void amf_comp_terminate_callback(SaInvocationT inv,
  * @param csi_name
  * @param csiAttr
  */
-static void amf_csi_attr_change_callback(SaInvocationT invocation, const SaNameT *csi_name,
-                                                             SaAmfCSIAttributeListT csiAttr)
+static void amf_csi_attr_change_callback(SaInvocationT invocation,
+					 const SaNameT *csi_name,
+					 SaAmfCSIAttributeListT csiAttr)
 {
-        SaAisErrorT rc;
-        SaAmfCSIAttributeT *attr;
-        static int i ;
-        syslog(LOG_INFO, "=====CSI Attr Change====>");
+	SaAisErrorT rc;
+	SaAmfCSIAttributeT *attr;
+	static int i;
+	syslog(LOG_INFO, "=====CSI Attr Change====>");
 
-        syslog(LOG_INFO, "CSI----->:'%s'", saAisNameBorrow(csi_name));
-        for (i = 0; i < csiAttr.number; i++) {
-                attr = &csiAttr.attr[i];
-                syslog(LOG_INFO, "CSIATTR--->: %s, val--->: %s",
-                                attr->attrName, 
-				attr->attrValue);
-        }
-        rc = saAmfResponse_4(my_amf_hdl, invocation, 0, SA_AIS_OK);
+	syslog(LOG_INFO, "CSI----->:'%s'", saAisNameBorrow(csi_name));
+	for (i = 0; i < csiAttr.number; i++) {
+		attr = &csiAttr.attr[i];
+		syslog(LOG_INFO, "CSIATTR--->: %s, val--->: %s", attr->attrName,
+		       attr->attrValue);
+	}
+	rc = saAmfResponse_4(my_amf_hdl, invocation, 0, SA_AIS_OK);
 	if (rc != SA_AIS_OK) {
 		syslog(LOG_ERR, "saAmfResponse_4 FAILED - %u", rc);
 		exit(1);
 	}
-        syslog(LOG_INFO, "<=================");
+	syslog(LOG_INFO, "<=================");
 }
 
 /**
  * Create a PID file in directory
- * 
+ *
  * @param directory
  * @param filename_prefix
  */
@@ -332,7 +331,7 @@ static void create_pid_file(const char *directory, const char *filename_prefix)
 	snprintf(path, sizeof(path), "%s/%s.pid", directory, filename_prefix);
 
 	fp = fopen(path, "w");
-	if (fp == NULL)	{
+	if (fp == NULL) {
 		syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
@@ -354,22 +353,25 @@ static void sigterm_handler(int sig)
 /**
  * Initialize with AMF
  * @param amf_sel_obj [out]
- * 
+ *
  * @return SaAisErrorT
  */
 static SaAisErrorT amf_initialize(SaSelectionObjectT *amf_sel_obj)
 {
 	SaAisErrorT rc;
 	SaAmfCallbacksT_o4 amf_callbacks = {0};
-	SaVersionT api_ver =
-		{.releaseCode = 'B', api_ver.majorVersion = 0x04, api_ver.minorVersion = 0x02};
+	SaVersionT api_ver = {.releaseCode = 'B',
+			      api_ver.majorVersion = 0x04,
+			      api_ver.minorVersion = 0x02};
 
 	/* Initialize our callbacks */
 	amf_callbacks.saAmfCSISetCallback = amf_csi_set_callback;
 	amf_callbacks.saAmfCSIRemoveCallback = amf_csi_remove_callback;
 	amf_callbacks.saAmfHealthcheckCallback = amf_healthcheck_callback;
-	amf_callbacks.saAmfComponentTerminateCallback = amf_comp_terminate_callback;
-	amf_callbacks.osafCsiAttributeChangeCallback = amf_csi_attr_change_callback;
+	amf_callbacks.saAmfComponentTerminateCallback =
+	    amf_comp_terminate_callback;
+	amf_callbacks.osafCsiAttributeChangeCallback =
+	    amf_csi_attr_change_callback;
 	rc = saAmfInitialize_o4(&my_amf_hdl, &amf_callbacks, &api_ver);
 	if (rc != SA_AIS_OK) {
 		syslog(LOG_ERR, " saAmfInitialize FAILED %u", rc);
@@ -388,16 +390,18 @@ static SaAisErrorT amf_initialize(SaSelectionObjectT *amf_sel_obj)
 		goto done;
 	}
 
-	syslog(LOG_INFO, "before saAmfComponentRegister [%s]", saAisNameBorrow(&my_comp_name));
+	syslog(LOG_INFO, "before saAmfComponentRegister [%s]",
+	       saAisNameBorrow(&my_comp_name));
 	rc = saAmfComponentRegister(my_amf_hdl, &my_comp_name, 0);
 	syslog(LOG_INFO, "after saAmfComponentRegister ");
 	if (rc != SA_AIS_OK) {
 		syslog(LOG_ERR, "saAmfComponentRegister FAILED %u", rc);
 		goto done;
 	}
-	
-	rc = saAmfHealthcheckStart(my_amf_hdl, &my_comp_name, &my_healthcheck_key,
-		SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
+
+	rc = saAmfHealthcheckStart(
+	    my_amf_hdl, &my_comp_name, &my_healthcheck_key,
+	    SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
 	if (rc != SA_AIS_OK) {
 		syslog(LOG_ERR, "saAmfHealthcheckStart FAILED - %u", rc);
 		goto done;
@@ -406,14 +410,16 @@ done:
 	return rc;
 }
 
-static int getMD5Code(const char *str, char *md5_sum) {
+static int getMD5Code(const char *str, char *md5_sum)
+{
 	char cmd[2048];
 	FILE *pipe;
 	int i, ch;
 
 	sprintf(cmd, "echo %s | md5sum | awk '{print $1}' 2>/dev/null", str);
 	pipe = popen(cmd, "r");
-	if (pipe == NULL) return 0;
+	if (pipe == NULL)
+		return 0;
 
 	for (i = 0; i < MD5_LEN && isxdigit(ch = fgetc(pipe)); i++) {
 		*md5_sum++ = ch;
@@ -424,7 +430,6 @@ static int getMD5Code(const char *str, char *md5_sum) {
 	return i == MD5_LEN;
 }
 
-
 int main(int argc, char **argv)
 {
 	SaAisErrorT rc;
@@ -433,7 +438,8 @@ int main(int argc, char **argv)
 	char *env_comp_name;
 	char md5[MD5_LEN + 1];
 
-	/* Environment variable "SA_AMF_COMPONENT_NAME" exist when started by AMF */
+	/* Environment variable "SA_AMF_COMPONENT_NAME" exist when started by
+	 * AMF */
 	if ((env_comp_name = getenv("SA_AMF_COMPONENT_NAME")) == NULL) {
 		fprintf(stderr, "not started by AMF exiting...\n");
 		exit(EXIT_FAILURE);
@@ -448,7 +454,8 @@ int main(int argc, char **argv)
 		goto done;
 	}
 
-	/* Install a TERM handler just to log and visualize when cleanup is called */
+	/* Install a TERM handler just to log and visualize when cleanup is
+	 * called */
 	if ((signal(SIGTERM, sigterm_handler)) == SIG_ERR) {
 		syslog(LOG_ERR, "signal TERM failed: %s", strerror(errno));
 		goto done;
@@ -458,10 +465,12 @@ int main(int argc, char **argv)
 	** Use AMF component name as file name so multiple instances of this
 	** component can be managed by the same script.
 	*/
-	// This is a temporary solution to overcome the limit of linux in filename length (255)
-	//create_pid_file("/tmp", env_comp_name);
+	// This is a temporary solution to overcome the limit of linux in
+	// filename length (255)
+	// create_pid_file("/tmp", env_comp_name);
 	if (!getMD5Code(env_comp_name, md5)) {
-		syslog(LOG_ERR, "failed to get the hash code of comp: %s", env_comp_name);
+		syslog(LOG_ERR, "failed to get the hash code of comp: %s",
+		       env_comp_name);
 		goto done;
 	}
 
@@ -469,7 +478,7 @@ int main(int argc, char **argv)
 	create_pid_file("/tmp", md5);
 
 	// Enable long DN
-	if(setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
 		syslog(LOG_ERR, "failed to set SA_ENABLE_EXTENDED_NAMES");
 	}
 
@@ -495,14 +504,16 @@ int main(int argc, char **argv)
 			if (errno == EINTR)
 				continue;
 			else {
-				syslog(LOG_ERR, "poll FAILED - %s", strerror(errno));
+				syslog(LOG_ERR, "poll FAILED - %s",
+				       strerror(errno));
 				goto done;
 			}
 		}
 
 		if (fds[0].revents & POLLIN) {
-			/* An AMF event is received, call AMF dispatch which in turn will
-			 * call our installed callbacks. In context of this main thread.
+			/* An AMF event is received, call AMF dispatch which in
+			 * turn will call our installed callbacks. In context of
+			 * this main thread.
 			 */
 			rc = saAmfDispatch(my_amf_hdl, SA_DISPATCH_ONE);
 			if (rc != SA_AIS_OK) {
@@ -515,4 +526,3 @@ int main(int argc, char **argv)
 done:
 	return EXIT_FAILURE;
 }
-

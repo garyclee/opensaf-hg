@@ -32,7 +32,8 @@
 
 namespace base {
 
-template <size_t Capacity> class Buffer;
+template <size_t Capacity>
+class Buffer;
 
 // The LogMessage class implements support for formatting log records according
 // to RFC 5424
@@ -40,16 +41,17 @@ class LogMessage {
  public:
   class String {
    public:
-    String(const char* str, const std::string::size_type size) :
-        str_{size != 0 ? str : "-", size != 0 ? size : 1} {}
-    String(const std::string& str, const std::string::size_type max_size) :
-        str_{str.empty() ? std::string{"-"} : str.substr(0, max_size)} {}
+    String(const char* str, const std::string::size_type size)
+        : str_{size != 0 ? str : "-", size != 0 ? size : 1} {}
+    String(const std::string& str, const std::string::size_type max_size)
+        : str_{str.empty() ? std::string{"-"} : str.substr(0, max_size)} {}
     bool empty() const { return str_.empty(); }
     const char* c_str() const { return str_.c_str(); }
     const char* data() const { return str_.data(); }
     const std::string::size_type size() const { return str_.size(); }
     bool operator<(const String& str) const { return str_ < str.str_; }
     bool operator==(const String& str) const { return str_ == str.str_; }
+
    protected:
     constexpr static const bool IsPrintableAscii(char c) {
       return c >= 33 && c <= 126;
@@ -65,9 +67,9 @@ class LogMessage {
   template <std::string::size_type MaxSize>
   class PrintableAscii : public String {
    public:
-    explicit PrintableAscii(const std::string& str) :
-        String{str, MaxSize} {
-      for (char& c : str_) if (!IsPrintableAscii(c)) c = '_';
+    explicit PrintableAscii(const std::string& str) : String{str, MaxSize} {
+      for (char& c : str_)
+        if (!IsPrintableAscii(c)) c = '_';
     }
   };
   // std::string extended with a maximum string length of 32 characters and a
@@ -80,8 +82,7 @@ class LogMessage {
   class SdName : public String {
    public:
     constexpr static const std::string::size_type kMaxSize = 32;
-    explicit SdName(const std::string& sd_name) :
-        String{sd_name, kMaxSize} {
+    explicit SdName(const std::string& sd_name) : String{sd_name, kMaxSize} {
       for (char& c : str_) {
         if (!IsPrintableAscii(c) || c == '=' || c == ']' || c == '"') c = '_';
       }
@@ -140,14 +141,14 @@ class LogMessage {
   // A parameter/value pair for a structued element
   class Parameter {
    public:
-    Parameter(const SdName& name, const std::string& value) :
-        name_{name},
-        value_{value} {}
+    Parameter(const SdName& name, const std::string& value)
+        : name_{name}, value_{value} {}
     template <size_t Capacity>
     void Write(Buffer<Capacity>* buffer) const;
     bool operator==(const Parameter& param) const {
       return name_ == param.name_ && value_ == param.value_;
     }
+
    private:
     SdName name_;
     std::string value_;
@@ -158,16 +159,15 @@ class LogMessage {
   // parameter/value pairs.
   class Element {
    public:
-    Element(const SdName& id,
-            const ParameterList& parameter_list) :
-        id_{id},
-        parameter_list_{parameter_list} {}
+    Element(const SdName& id, const ParameterList& parameter_list)
+        : id_{id}, parameter_list_{parameter_list} {}
     template <size_t Capacity>
     void Write(Buffer<Capacity>* buffer) const;
     bool operator<(const Element& elem) const { return id_ < elem.id_; }
     bool operator==(const Element& elem) const {
       return id_ == elem.id_ && parameter_list_ == elem.parameter_list_;
     }
+
    private:
     SdName id_;
     ParameterList parameter_list_;
@@ -182,24 +182,17 @@ class LogMessage {
   template <size_t Capacity>
   static void Write(Facility facility, Severity severity,
                     const struct timespec& time_stamp,
-                    const HostName& host_name,
-                    const AppName& app_name,
-                    const ProcId& proc_id,
-                    const MsgId& msg_id,
+                    const HostName& host_name, const AppName& app_name,
+                    const ProcId& proc_id, const MsgId& msg_id,
                     const StructuredElements& structured_elements,
-                    const std::string& message,
-                    Buffer<Capacity>* buffer);
+                    const std::string& message, Buffer<Capacity>* buffer);
   template <size_t Capacity>
   static void Write(Facility facility, Severity severity,
                     const struct timespec& time_stamp,
-                    const HostName& host_name,
-                    const AppName& app_name,
-                    const ProcId& proc_id,
-                    const MsgId& msg_id,
+                    const HostName& host_name, const AppName& app_name,
+                    const ProcId& proc_id, const MsgId& msg_id,
                     const StructuredElements& structured_elements,
-                    const char* format,
-                    va_list ap,
-                    Buffer<Capacity>* buffer);
+                    const char* format, va_list ap, Buffer<Capacity>* buffer);
   template <size_t Capacity>
   static void WriteTime(const struct timespec& ts, Buffer<Capacity>* buffer);
 };
@@ -207,15 +200,12 @@ class LogMessage {
 template <size_t Capacity>
 void LogMessage::Write(Facility facility, Severity severity,
                        const struct timespec& time_stamp,
-                       const HostName& host_name,
-                       const AppName& app_name,
-                       const ProcId& proc_id,
-                       const MsgId& msg_id,
+                       const HostName& host_name, const AppName& app_name,
+                       const ProcId& proc_id, const MsgId& msg_id,
                        const StructuredElements& structured_elements,
-                       const std::string& message,
-                       Buffer<Capacity>* buffer) {
-  uint32_t priority = static_cast<uint32_t>(facility) * uint32_t{8}
-      + static_cast<uint32_t>(severity);
+                       const std::string& message, Buffer<Capacity>* buffer) {
+  uint32_t priority = static_cast<uint32_t>(facility) * uint32_t{8} +
+                      static_cast<uint32_t>(severity);
   buffer->AppendChar('<');
   buffer->AppendNumber(priority, 100);
   buffer->AppendString(">1 ", 3);
@@ -243,16 +233,13 @@ void LogMessage::Write(Facility facility, Severity severity,
 template <size_t Capacity>
 void LogMessage::Write(Facility facility, Severity severity,
                        const struct timespec& time_stamp,
-                       const HostName& host_name,
-                       const AppName& app_name,
-                       const ProcId& proc_id,
-                       const MsgId& msg_id,
+                       const HostName& host_name, const AppName& app_name,
+                       const ProcId& proc_id, const MsgId& msg_id,
                        const StructuredElements& structured_elements,
-                       const char* format,
-                       va_list ap,
+                       const char* format, va_list ap,
                        Buffer<Capacity>* buffer) {
-  uint32_t priority = static_cast<uint32_t>(facility) * uint32_t{8}
-      + static_cast<uint32_t>(severity);
+  uint32_t priority = static_cast<uint32_t>(facility) * uint32_t{8} +
+                      static_cast<uint32_t>(severity);
   buffer->AppendChar('<');
   buffer->AppendNumber(priority, 100);
   buffer->AppendString(">1 ", 3);
@@ -288,9 +275,9 @@ void LogMessage::WriteTime(const struct timespec& ts,
                            Buffer<Capacity>* buffer) {
   struct tm local_time;
   struct tm* local_ptr = localtime_r(&ts.tv_sec, &local_time);
-  if (local_ptr != nullptr && local_ptr->tm_year >= -1900
-      && local_ptr->tm_year <= (9999 - 1900)
-      && ts.tv_nsec >= 0 && ts.tv_nsec < kNanosPerSec) {
+  if (local_ptr != nullptr && local_ptr->tm_year >= -1900 &&
+      local_ptr->tm_year <= (9999 - 1900) && ts.tv_nsec >= 0 &&
+      ts.tv_nsec < kNanosPerSec) {
     buffer->AppendFixedWidthNumber(local_ptr->tm_year + 1900, 1000);
     buffer->AppendChar('-');
     buffer->AppendFixedWidthNumber(local_ptr->tm_mon + 1, 10);
@@ -315,8 +302,7 @@ void LogMessage::WriteTime(const struct timespec& ts,
     char* buf = buffer->end();
     if ((buffer->capacity() - buffer->size()) >= 6 &&
         strftime(buf, 6, "%z", local_ptr) == 5) {
-      if (buf[1] != '0' || buf[2] != '0' ||
-          buf[3] != '0' || buf[4] != '0') {
+      if (buf[1] != '0' || buf[2] != '0' || buf[3] != '0' || buf[4] != '0') {
         buf[5] = buf[4];
         buf[4] = buf[3];
         buf[3] = ':';

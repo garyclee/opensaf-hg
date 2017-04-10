@@ -1,4 +1,4 @@
-/*      -*- OpenSAF  -*-/ 
+/*      -*- OpenSAF  -*-/
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  *
@@ -35,7 +35,8 @@ static void print_object_attribute(SaNtfAttributeT *input)
 	(void)TRACE_2("Attr Value: %d\n", (int)input->attributeValue.int32Val);
 }
 
-void ntfsv_print_object_attributes(SaNtfAttributeT *objectAttributes, SaUint16T numAttributes)
+void ntfsv_print_object_attributes(SaNtfAttributeT *objectAttributes,
+				   SaUint16T numAttributes)
 {
 	int i;
 	(void)TRACE_2("numAttr: %d\n", (int)numAttributes);
@@ -45,12 +46,13 @@ void ntfsv_print_object_attributes(SaNtfAttributeT *objectAttributes, SaUint16T 
 	}
 }
 
-static uint32_t encodeSaNtfValueT(NCS_UBAID *uba, uint8_t *p8, SaNtfValueTypeT attributeType,
-			       SaNtfValueT *ntfAttr)
+static uint32_t encodeSaNtfValueT(NCS_UBAID *uba, uint8_t *p8,
+				  SaNtfValueTypeT attributeType,
+				  SaNtfValueT *ntfAttr)
 {
 	uint32_t rv = NCSCC_RC_SUCCESS;
 	binfl_t bf_val;
-	
+
 	switch (attributeType) {
 	case SA_NTF_VALUE_UINT8:
 		p8 = ncs_enc_reserve_space(uba, 1);
@@ -149,7 +151,8 @@ static uint32_t encodeSaNtfValueT(NCS_UBAID *uba, uint8_t *p8, SaNtfValueTypeT a
 	case SA_NTF_VALUE_IPADDRESS:
 	case SA_NTF_VALUE_BINARY:
 		TRACE_2("enc type: %d offset: %hu size: %hu",
-			(int)attributeType, ntfAttr->ptrVal.dataOffset, ntfAttr->ptrVal.dataSize);
+			(int)attributeType, ntfAttr->ptrVal.dataOffset,
+			ntfAttr->ptrVal.dataSize);
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
@@ -160,9 +163,11 @@ static uint32_t encodeSaNtfValueT(NCS_UBAID *uba, uint8_t *p8, SaNtfValueTypeT a
 		ncs_enc_claim_space(uba, 4);
 		break;
 	case SA_NTF_VALUE_ARRAY:
-		TRACE_2("enc type SA_NTF_VALUE_ARRAY: %d offset: %hu nelem: %hu esize: %hu",
-			(int)attributeType,
-			ntfAttr->arrayVal.arrayOffset, ntfAttr->arrayVal.numElements, ntfAttr->arrayVal.elementSize);
+		TRACE_2(
+		    "enc type SA_NTF_VALUE_ARRAY: %d offset: %hu nelem: %hu esize: %hu",
+		    (int)attributeType, ntfAttr->arrayVal.arrayOffset,
+		    ntfAttr->arrayVal.numElements,
+		    ntfAttr->arrayVal.elementSize);
 		p8 = ncs_enc_reserve_space(uba, 6);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
@@ -180,10 +185,11 @@ static uint32_t encodeSaNtfValueT(NCS_UBAID *uba, uint8_t *p8, SaNtfValueTypeT a
 	return rv;
 }
 
-static uint32_t encodeSaNtfAttributeChangeT(NCS_UBAID *uba, uint8_t *p8, SaNtfAttributeChangeT *ntfAttr)
+static uint32_t encodeSaNtfAttributeChangeT(NCS_UBAID *uba, uint8_t *p8,
+					    SaNtfAttributeChangeT *ntfAttr)
 {
 	uint32_t rv = NCSCC_RC_SUCCESS;
-		
+
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
 		TRACE("ncs_enc_reserve_space failed");
@@ -194,18 +200,20 @@ static uint32_t encodeSaNtfAttributeChangeT(NCS_UBAID *uba, uint8_t *p8, SaNtfAt
 	ncs_encode_32bit(&p8, ntfAttr->oldAttributePresent);
 	ncs_enc_claim_space(uba, 8);
 	if (ntfAttr->oldAttributePresent) {
-		rv = encodeSaNtfValueT(uba,
-						 p8, ntfAttr->attributeType, &ntfAttr->oldAttributeValue);
+		rv = encodeSaNtfValueT(uba, p8, ntfAttr->attributeType,
+				       &ntfAttr->oldAttributeValue);
 	}
 	if (NCSCC_RC_SUCCESS == rv)
-		rv = encodeSaNtfValueT(uba, p8, ntfAttr->attributeType, &ntfAttr->newAttributeValue);
+		rv = encodeSaNtfValueT(uba, p8, ntfAttr->attributeType,
+				       &ntfAttr->newAttributeValue);
 	return rv;
 }
 
-static uint32_t encodeSaNtfAttribute(NCS_UBAID *uba, uint8_t *p8, SaNtfAttributeT *ntfAttr)
+static uint32_t encodeSaNtfAttribute(NCS_UBAID *uba, uint8_t *p8,
+				     SaNtfAttributeT *ntfAttr)
 {
 	uint32_t rv = NCSCC_RC_SUCCESS;
-		
+
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
 		TRACE("ncs_enc_reserve_space failed");
@@ -214,11 +222,13 @@ static uint32_t encodeSaNtfAttribute(NCS_UBAID *uba, uint8_t *p8, SaNtfAttribute
 	ncs_encode_16bit(&p8, ntfAttr->attributeId);
 	ncs_encode_16bit(&p8, (uint16_t)ntfAttr->attributeType);
 	ncs_enc_claim_space(uba, 4);
-	rv = encodeSaNtfValueT(uba, p8, ntfAttr->attributeType, &ntfAttr->attributeValue);
+	rv = encodeSaNtfValueT(uba, p8, ntfAttr->attributeType,
+			       &ntfAttr->attributeValue);
 	return rv;
 }
 
-static uint32_t decodeNtfValueT(NCS_UBAID *uba, SaNtfValueTypeT attributeType, SaNtfValueT *ntfAttr)
+static uint32_t decodeNtfValueT(NCS_UBAID *uba, SaNtfValueTypeT attributeType,
+				SaNtfValueT *ntfAttr)
 {
 	uint8_t *p8;
 	uint8_t local_data[8];
@@ -286,7 +296,8 @@ static uint32_t decodeNtfValueT(NCS_UBAID *uba, SaNtfValueTypeT attributeType, S
 		ntfAttr->ptrVal.dataSize = ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 4);
 		TRACE_2("dec type: %d offset: %hu size: %hu",
-			(int)attributeType, ntfAttr->ptrVal.dataOffset, ntfAttr->ptrVal.dataSize);
+			(int)attributeType, ntfAttr->ptrVal.dataOffset,
+			ntfAttr->ptrVal.dataSize);
 		break;
 	case SA_NTF_VALUE_ARRAY:
 		p8 = ncs_dec_flatten_space(uba, local_data, 6);
@@ -295,8 +306,9 @@ static uint32_t decodeNtfValueT(NCS_UBAID *uba, SaNtfValueTypeT attributeType, S
 		ntfAttr->arrayVal.elementSize = ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 6);
 		TRACE_2("enc type: %d offset: %hu nelem: %hu esize: %hu",
-			(int)attributeType,
-			ntfAttr->arrayVal.arrayOffset, ntfAttr->arrayVal.numElements, ntfAttr->arrayVal.elementSize);
+			(int)attributeType, ntfAttr->arrayVal.arrayOffset,
+			ntfAttr->arrayVal.numElements,
+			ntfAttr->arrayVal.elementSize);
 		break;
 	default:
 		TRACE_2("attributeType %d not valid", (int)attributeType);
@@ -304,7 +316,8 @@ static uint32_t decodeNtfValueT(NCS_UBAID *uba, SaNtfValueTypeT attributeType, S
 	return NCSCC_RC_SUCCESS;
 }
 
-static uint32_t decodeSaNtfAttributeChangeT(NCS_UBAID *uba, SaNtfAttributeChangeT *ntfAttr)
+static uint32_t decodeSaNtfAttributeChangeT(NCS_UBAID *uba,
+					    SaNtfAttributeChangeT *ntfAttr)
 {
 	uint8_t *p8, rv;
 	uint8_t local_data[8];
@@ -314,9 +327,11 @@ static uint32_t decodeSaNtfAttributeChangeT(NCS_UBAID *uba, SaNtfAttributeChange
 	ntfAttr->oldAttributePresent = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 8);
 	if (ntfAttr->oldAttributePresent) {
-		rv = decodeNtfValueT(uba, ntfAttr->attributeType, &ntfAttr->oldAttributeValue);
+		rv = decodeNtfValueT(uba, ntfAttr->attributeType,
+				     &ntfAttr->oldAttributeValue);
 	}
-	rv = decodeNtfValueT(uba, ntfAttr->attributeType, &ntfAttr->newAttributeValue);
+	rv = decodeNtfValueT(uba, ntfAttr->attributeType,
+			     &ntfAttr->newAttributeValue);
 	return rv;
 }
 
@@ -329,7 +344,8 @@ static uint32_t decodeSaNtfAttribute(NCS_UBAID *uba, SaNtfAttributeT *ntfAttr)
 	ntfAttr->attributeId = ncs_decode_16bit(&p8);
 	ntfAttr->attributeType = ncs_decode_16bit(&p8);
 	ncs_dec_skip_space(uba, 4);
-	rv = decodeNtfValueT(uba, ntfAttr->attributeType, &ntfAttr->attributeValue);
+	rv = decodeNtfValueT(uba, ntfAttr->attributeType,
+			     &ntfAttr->attributeValue);
 	return rv;
 }
 
@@ -344,14 +360,15 @@ static uint32_t encodeSaNameT(NCS_UBAID *uba, uint8_t *p8, SaNameT *name)
 
 	if (!ntfsv_sanamet_is_valid(name)) {
 		LOG_ER("SaNameT is invalid");
- 		osafassert(0);
- 	}
+		osafassert(0);
+	}
 
 	SaConstStringT value = osaf_extended_name_borrow(name);
 	size_t length = ntfs_sanamet_length(name);
 	ncs_encode_16bit(&p8, length);
- 	ncs_enc_claim_space(uba, 2);
-	rv = ncs_encode_n_octets_in_uba(uba, (uint8_t*) value, (uint32_t) length);
+	ncs_enc_claim_space(uba, 2);
+	rv =
+	    ncs_encode_n_octets_in_uba(uba, (uint8_t *)value, (uint32_t)length);
 	return rv;
 }
 
@@ -367,19 +384,21 @@ static uint32_t decodeSaNameT(NCS_UBAID *uba, uint8_t *p8, SaNameT *name)
 		osafassert(0);
 	}
 	ncs_dec_skip_space(uba, 2);
-	char* value = (char*) malloc(length + 1);
+	char *value = (char *)malloc(length + 1);
 	if (value == NULL) {
 		LOG_ER("Out of memory");
 		/* this should not happen */
 		osafassert(0);
 	}
-	rv = ncs_decode_n_octets_from_uba(uba, (uint8_t*) value, (uint32_t) length);
+	rv = ncs_decode_n_octets_from_uba(uba, (uint8_t *)value,
+					  (uint32_t)length);
 	value[length] = '\0';
 	ntfs_sanamet_steal(value, length, name);
 	return rv;
 }
 
-static uint32_t ntfsv_enc_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *param)
+static uint32_t ntfsv_enc_not_header(NCS_UBAID *uba,
+				     SaNtfNotificationHeaderT *param)
 {
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_SUCCESS;
@@ -429,9 +448,11 @@ static uint32_t ntfsv_enc_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *p
 	}
 	ncs_encode_64bit(&p8, *param->notificationId);
 	ncs_enc_claim_space(uba, 8);
-	TRACE_2("ENC: Not ptr %p: %llu", param->notificationId, *param->notificationId);
+	TRACE_2("ENC: Not ptr %p: %llu", param->notificationId,
+		*param->notificationId);
 
-	ncs_encode_n_octets_in_uba(uba, (uint8_t *)param->additionalText, (uint32_t)param->lengthAdditionalText);
+	ncs_encode_n_octets_in_uba(uba, (uint8_t *)param->additionalText,
+				   (uint32_t)param->lengthAdditionalText);
 
 	for (i = 0; i < param->numCorrelatedNotifications; i++) {
 		p8 = ncs_enc_reserve_space(uba, 8);
@@ -441,24 +462,25 @@ static uint32_t ntfsv_enc_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *p
 		ncs_enc_claim_space(uba, 8);
 	}
 
-	TRACE_2("enc : param->numAdditionalInfo %hu\n", param->numAdditionalInfo);
+	TRACE_2("enc : param->numAdditionalInfo %hu\n",
+		param->numAdditionalInfo);
 	for (i = 0; i < param->numAdditionalInfo; i++) {
-		TRACE_2("enc additionalInfo Type: %d\n", param->additionalInfo[i].infoType);
+		TRACE_2("enc additionalInfo Type: %d\n",
+			param->additionalInfo[i].infoType);
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8)
 			goto error_done;
 		ncs_encode_16bit(&p8, param->additionalInfo[i].infoId);
 		ncs_encode_16bit(&p8, param->additionalInfo[i].infoType);
 		ncs_enc_claim_space(uba, 4);
-		rv = encodeSaNtfValueT(uba,
-						 p8,
-						 param->additionalInfo[i].infoType,
-						 &param->additionalInfo[i].infoValue);
+		rv = encodeSaNtfValueT(uba, p8,
+				       param->additionalInfo[i].infoType,
+				       &param->additionalInfo[i].infoValue);
 		if (NCSCC_RC_SUCCESS != rv)
-		      break; 
+			break;
 	}
 	return rv;
- error_done:
+error_done:
 	TRACE("ncs_enc_reserve_space failed");
 	return rv;
 }
@@ -485,15 +507,19 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		int i;
 	case SA_NTF_TYPE_ALARM:
 		TRACE("enc SA_NTF_TYPE_ALARM");
-		ntfsv_enc_not_header(uba, &param->notification.alarm.notificationHeader);
+		ntfsv_enc_not_header(
+		    uba, &param->notification.alarm.notificationHeader);
 		p8 = ncs_enc_reserve_space(uba, 6);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
 			return NCSCC_RC_OUT_OF_MEM;
 		}
-		ncs_encode_16bit(&p8, param->notification.alarm.numSpecificProblems);
-		ncs_encode_16bit(&p8, param->notification.alarm.numMonitoredAttributes);
-		ncs_encode_16bit(&p8, param->notification.alarm.numProposedRepairActions);
+		ncs_encode_16bit(&p8,
+				 param->notification.alarm.numSpecificProblems);
+		ncs_encode_16bit(
+		    &p8, param->notification.alarm.numMonitoredAttributes);
+		ncs_encode_16bit(
+		    &p8, param->notification.alarm.numProposedRepairActions);
 		ncs_enc_claim_space(uba, 6);
 		p8 = ncs_enc_reserve_space(uba, 10);
 		if (!p8) {
@@ -501,7 +527,8 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 			return NCSCC_RC_OUT_OF_MEM;
 		}
 		ncs_encode_32bit(&p8, *param->notification.alarm.probableCause);
-		ncs_encode_32bit(&p8, *param->notification.alarm.perceivedSeverity);
+		ncs_encode_32bit(&p8,
+				 *param->notification.alarm.perceivedSeverity);
 		ncs_encode_16bit(&p8, *param->notification.alarm.trend);
 		ncs_enc_claim_space(uba, 10);
 		p8 = ncs_enc_reserve_space(uba, 12);
@@ -509,110 +536,160 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 			TRACE("ncs_enc_reserve_space failed");
 			return NCSCC_RC_OUT_OF_MEM;
 		}
-		ncs_encode_16bit(&p8, param->notification.alarm.thresholdInformation->thresholdId);
-		ncs_encode_16bit(&p8, param->notification.alarm.thresholdInformation->thresholdValueType);
-		ncs_encode_64bit(&p8, param->notification.alarm.thresholdInformation->armTime);
+		ncs_encode_16bit(&p8, param->notification.alarm
+					  .thresholdInformation->thresholdId);
+		ncs_encode_16bit(&p8,
+				 param->notification.alarm.thresholdInformation
+				     ->thresholdValueType);
+		ncs_encode_64bit(
+		    &p8,
+		    param->notification.alarm.thresholdInformation->armTime);
 		ncs_enc_claim_space(uba, 12);
 		TRACE("thresholdInformation->thresholdValueType %hu",
-		      param->notification.alarm.thresholdInformation->thresholdValueType);
-		rv = encodeSaNtfValueT(uba,
-						 p8,
-						 param->notification.alarm.thresholdInformation->thresholdValueType,
-						 &param->notification.alarm.thresholdInformation->thresholdValue);
+		      param->notification.alarm.thresholdInformation
+			  ->thresholdValueType);
+		rv = encodeSaNtfValueT(
+		    uba, p8,
+		    param->notification.alarm.thresholdInformation
+			->thresholdValueType,
+		    &param->notification.alarm.thresholdInformation
+			 ->thresholdValue);
 		if (NCSCC_RC_SUCCESS != rv)
-			goto error_done; 
-		rv = encodeSaNtfValueT(uba,
-						 p8,
-						 param->notification.alarm.thresholdInformation->thresholdValueType,
-						 &param->notification.alarm.thresholdInformation->thresholdHysteresis);
+			goto error_done;
+		rv = encodeSaNtfValueT(
+		    uba, p8,
+		    param->notification.alarm.thresholdInformation
+			->thresholdValueType,
+		    &param->notification.alarm.thresholdInformation
+			 ->thresholdHysteresis);
 		if (NCSCC_RC_SUCCESS != rv)
-		      goto error_done; 
-		rv = encodeSaNtfValueT(uba,
-						 p8,
-						 param->notification.alarm.thresholdInformation->thresholdValueType,
-						 &param->notification.alarm.thresholdInformation->observedValue);
+			goto error_done;
+		rv = encodeSaNtfValueT(
+		    uba, p8,
+		    param->notification.alarm.thresholdInformation
+			->thresholdValueType,
+		    &param->notification.alarm.thresholdInformation
+			 ->observedValue);
 		if (NCSCC_RC_SUCCESS != rv)
-		      goto error_done; 
+			goto error_done;
 
-		TRACE("thresholdInformation->numSpecificProblems %hu", param->notification.alarm.numSpecificProblems);
-		for (i = 0; i < param->notification.alarm.numSpecificProblems; i++) {
+		TRACE("thresholdInformation->numSpecificProblems %hu",
+		      param->notification.alarm.numSpecificProblems);
+		for (i = 0; i < param->notification.alarm.numSpecificProblems;
+		     i++) {
 			p8 = ncs_enc_reserve_space(uba, 12);
 			if (!p8) {
 				TRACE("ncs_enc_reserve_space failed");
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-			ncs_encode_16bit(&p8, param->notification.alarm.specificProblems[i].problemId);
-			ncs_encode_16bit(&p8, param->notification.alarm.specificProblems[i].problemClassId.majorId);
-			ncs_encode_16bit(&p8, param->notification.alarm.specificProblems[i].problemClassId.minorId);
-			ncs_encode_32bit(&p8, param->notification.alarm.specificProblems[i].problemClassId.vendorId);
-			ncs_encode_16bit(&p8, param->notification.alarm.specificProblems[i].problemType);
+			ncs_encode_16bit(
+			    &p8, param->notification.alarm.specificProblems[i]
+				     .problemId);
+			ncs_encode_16bit(
+			    &p8, param->notification.alarm.specificProblems[i]
+				     .problemClassId.majorId);
+			ncs_encode_16bit(
+			    &p8, param->notification.alarm.specificProblems[i]
+				     .problemClassId.minorId);
+			ncs_encode_32bit(
+			    &p8, param->notification.alarm.specificProblems[i]
+				     .problemClassId.vendorId);
+			ncs_encode_16bit(
+			    &p8, param->notification.alarm.specificProblems[i]
+				     .problemType);
 			ncs_enc_claim_space(uba, 12);
-			rv = encodeSaNtfValueT(uba,
-							 p8,
-							 param->notification.alarm.specificProblems[i].problemType,
-							 &param->notification.alarm.specificProblems[i].problemValue);
+			rv = encodeSaNtfValueT(
+			    uba, p8,
+			    param->notification.alarm.specificProblems[i]
+				.problemType,
+			    &param->notification.alarm.specificProblems[i]
+				 .problemValue);
 			if (NCSCC_RC_SUCCESS != rv)
-			      goto error_done; 
+				goto error_done;
 		}
 		TRACE("thresholdInformation->numMonitoredAttributes %hu",
 		      param->notification.alarm.numMonitoredAttributes);
-		for (i = 0; i < param->notification.alarm.numMonitoredAttributes; i++) {
+		for (i = 0;
+		     i < param->notification.alarm.numMonitoredAttributes;
+		     i++) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8) {
 				TRACE("ncs_enc_reserve_space failed");
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-			ncs_encode_16bit(&p8, param->notification.alarm.monitoredAttributes[i].attributeId);
-			ncs_encode_16bit(&p8, param->notification.alarm.monitoredAttributes[i].attributeType);
+			ncs_encode_16bit(&p8, param->notification.alarm
+						  .monitoredAttributes[i]
+						  .attributeId);
+			ncs_encode_16bit(&p8, param->notification.alarm
+						  .monitoredAttributes[i]
+						  .attributeType);
 			ncs_enc_claim_space(uba, 4);
-			rv = encodeSaNtfValueT(uba,
-							 p8,
-							 param->notification.alarm.monitoredAttributes[i].attributeType,
-							 &param->notification.alarm.monitoredAttributes[i].
-							 attributeValue);
+			rv = encodeSaNtfValueT(
+			    uba, p8,
+			    param->notification.alarm.monitoredAttributes[i]
+				.attributeType,
+			    &param->notification.alarm.monitoredAttributes[i]
+				 .attributeValue);
 			if (NCSCC_RC_SUCCESS != rv)
-			      goto error_done; 
+				goto error_done;
 		}
 		TRACE("thresholdInformation->numProposedRepairActions %hu",
 		      param->notification.alarm.numProposedRepairActions);
-		for (i = 0; i < param->notification.alarm.numProposedRepairActions; i++) {
+		for (i = 0;
+		     i < param->notification.alarm.numProposedRepairActions;
+		     i++) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8) {
 				TRACE("ncs_enc_reserve_space failed");
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-			ncs_encode_16bit(&p8, param->notification.alarm.proposedRepairActions[i].actionId);
-			ncs_encode_16bit(&p8, param->notification.alarm.proposedRepairActions[i].actionValueType);
+			ncs_encode_16bit(&p8, param->notification.alarm
+						  .proposedRepairActions[i]
+						  .actionId);
+			ncs_encode_16bit(&p8, param->notification.alarm
+						  .proposedRepairActions[i]
+						  .actionValueType);
 			ncs_enc_claim_space(uba, 4);
-			rv = encodeSaNtfValueT(uba,
-							 p8,
-							 param->notification.alarm.proposedRepairActions[i].
-							 actionValueType,
-							 &param->notification.alarm.proposedRepairActions[i].
-							 actionValue);
+			rv = encodeSaNtfValueT(
+			    uba, p8,
+			    param->notification.alarm.proposedRepairActions[i]
+				.actionValueType,
+			    &param->notification.alarm.proposedRepairActions[i]
+				 .actionValue);
 			if (NCSCC_RC_SUCCESS != rv)
-			      goto error_done; 
+				goto error_done;
 		}
 		break;
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
 		TRACE("enc SA_NTF_TYPE_OBJECT_CREATE_DELETE");
-		ntfsv_enc_not_header(uba, &param->notification.objectCreateDelete.notificationHeader);
+		ntfsv_enc_not_header(
+		    uba,
+		    &param->notification.objectCreateDelete.notificationHeader);
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
 			return NCSCC_RC_OUT_OF_MEM;
 		}
-		ncs_encode_16bit(&p8, param->notification.objectCreateDelete.numAttributes);
-		ncs_encode_16bit(&p8, *param->notification.objectCreateDelete.sourceIndicator);
-		TRACE_2("sourceIndicator %d", (int)*param->notification.objectCreateDelete.sourceIndicator);
+		ncs_encode_16bit(
+		    &p8, param->notification.objectCreateDelete.numAttributes);
+		ncs_encode_16bit(
+		    &p8,
+		    *param->notification.objectCreateDelete.sourceIndicator);
+		TRACE_2("sourceIndicator %d",
+			(int)*param->notification.objectCreateDelete
+			    .sourceIndicator);
 		ncs_enc_claim_space(uba, 4);
-		ntfsv_print_object_attributes(param->notification.objectCreateDelete.objectAttributes,
-					      param->notification.objectCreateDelete.numAttributes);
+		ntfsv_print_object_attributes(
+		    param->notification.objectCreateDelete.objectAttributes,
+		    param->notification.objectCreateDelete.numAttributes);
 
-		for (i = 0; i < param->notification.objectCreateDelete.numAttributes; i++) {
-			rv = encodeSaNtfAttribute(uba,
-							   p8,
-							   &param->notification.objectCreateDelete.objectAttributes[i]);
+		for (i = 0;
+		     i < param->notification.objectCreateDelete.numAttributes;
+		     i++) {
+			rv = encodeSaNtfAttribute(
+			    uba, p8,
+			    &param->notification.objectCreateDelete
+				 .objectAttributes[i]);
 			if (rv != NCSCC_RC_SUCCESS) {
 				goto error_done;
 			}
@@ -620,52 +697,71 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		break;
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
 		TRACE("enc SA_NTF_TYPE_ATTRIBUTE_CHANGE");
-		ntfsv_enc_not_header(uba, &param->notification.attributeChange.notificationHeader);
+		ntfsv_enc_not_header(
+		    uba,
+		    &param->notification.attributeChange.notificationHeader);
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
 			return NCSCC_RC_OUT_OF_MEM;
 		}
-		ncs_encode_16bit(&p8, param->notification.attributeChange.numAttributes);
-		ncs_encode_16bit(&p8, *param->notification.attributeChange.sourceIndicator);
+		ncs_encode_16bit(
+		    &p8, param->notification.attributeChange.numAttributes);
+		ncs_encode_16bit(
+		    &p8, *param->notification.attributeChange.sourceIndicator);
 		ncs_enc_claim_space(uba, 4);
-		for (i = 0; i < param->notification.attributeChange.numAttributes; i++) {
-			rv =
-			    encodeSaNtfAttributeChangeT(uba,
-							p8,
-							&param->notification.attributeChange.changedAttributes[i]);
+		for (i = 0;
+		     i < param->notification.attributeChange.numAttributes;
+		     i++) {
+			rv = encodeSaNtfAttributeChangeT(
+			    uba, p8,
+			    &param->notification.attributeChange
+				 .changedAttributes[i]);
 			if (NCSCC_RC_SUCCESS != rv)
-			      goto error_done; 
+				goto error_done;
 		}
 		break;
 	case SA_NTF_TYPE_STATE_CHANGE:
 		TRACE("enc SA_NTF_TYPE_STATE_CHANGE");
-		ntfsv_enc_not_header(uba, &param->notification.stateChange.notificationHeader);
+		ntfsv_enc_not_header(
+		    uba, &param->notification.stateChange.notificationHeader);
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
 			return NCSCC_RC_OUT_OF_MEM;
 		}
-		TRACE("enc numStCh: %d", (int)param->notification.stateChange.numStateChanges);
-		ncs_encode_16bit(&p8, param->notification.stateChange.numStateChanges);
-		ncs_encode_16bit(&p8, *param->notification.stateChange.sourceIndicator);
+		TRACE("enc numStCh: %d",
+		      (int)param->notification.stateChange.numStateChanges);
+		ncs_encode_16bit(
+		    &p8, param->notification.stateChange.numStateChanges);
+		ncs_encode_16bit(
+		    &p8, *param->notification.stateChange.sourceIndicator);
 		ncs_enc_claim_space(uba, 4);
-		for (i = 0; i < param->notification.stateChange.numStateChanges; i++) {
+		for (i = 0; i < param->notification.stateChange.numStateChanges;
+		     i++) {
 			p8 = ncs_enc_reserve_space(uba, 6);
 			if (!p8) {
 				TRACE("ncs_enc_reserve_space failed");
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-			ncs_encode_16bit(&p8, param->notification.stateChange.changedStates[i].stateId);
-			ncs_encode_32bit(&p8, param->notification.stateChange.changedStates[i].oldStatePresent);
+			ncs_encode_16bit(&p8, param->notification.stateChange
+						  .changedStates[i]
+						  .stateId);
+			ncs_encode_32bit(&p8, param->notification.stateChange
+						  .changedStates[i]
+						  .oldStatePresent);
 			ncs_enc_claim_space(uba, 6);
-			if (param->notification.stateChange.changedStates[i].oldStatePresent) {
+			if (param->notification.stateChange.changedStates[i]
+				.oldStatePresent) {
 				p8 = ncs_enc_reserve_space(uba, 2);
 				if (!p8) {
 					TRACE("ncs_enc_reserve_space failed");
 					return NCSCC_RC_OUT_OF_MEM;
 				}
-				ncs_encode_16bit(&p8, param->notification.stateChange.changedStates[i].oldState);
+				ncs_encode_16bit(&p8,
+						 param->notification.stateChange
+						     .changedStates[i]
+						     .oldState);
 				ncs_enc_claim_space(uba, 2);
 			}
 			p8 = ncs_enc_reserve_space(uba, 2);
@@ -673,24 +769,36 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 				TRACE("ncs_enc_reserve_space failed");
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-			ncs_encode_16bit(&p8, param->notification.stateChange.changedStates[i].newState);
+			ncs_encode_16bit(&p8, param->notification.stateChange
+						  .changedStates[i]
+						  .newState);
 			ncs_enc_claim_space(uba, 2);
 		}
 		break;
 	case SA_NTF_TYPE_SECURITY_ALARM:
 		TRACE("enc SA_NTF_TYPE_SECURITY_ALARM");
-		ntfsv_enc_not_header(uba, &param->notification.securityAlarm.notificationHeader);
+		ntfsv_enc_not_header(
+		    uba, &param->notification.securityAlarm.notificationHeader);
 		p8 = ncs_enc_reserve_space(uba, 10);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
 			return NCSCC_RC_OUT_OF_MEM;
 		}
-		ncs_encode_32bit(&p8, *param->notification.securityAlarm.probableCause);
-		ncs_encode_32bit(&p8, *param->notification.securityAlarm.severity);
-		ncs_encode_16bit(&p8, param->notification.securityAlarm.securityAlarmDetector->valueType);
+		ncs_encode_32bit(
+		    &p8, *param->notification.securityAlarm.probableCause);
+		ncs_encode_32bit(&p8,
+				 *param->notification.securityAlarm.severity);
+		ncs_encode_16bit(&p8, param->notification.securityAlarm
+					  .securityAlarmDetector->valueType);
 		ncs_enc_claim_space(uba, 10);
-		TRACE_2("enc Security Alarm Detector Type: %d\n", param->notification.securityAlarm.securityAlarmDetector->valueType);
-		rv = encodeSaNtfValueT(uba, p8, param->notification.securityAlarm.securityAlarmDetector->valueType, &param->notification.securityAlarm.securityAlarmDetector->value);
+		TRACE_2("enc Security Alarm Detector Type: %d\n",
+			param->notification.securityAlarm.securityAlarmDetector
+			    ->valueType);
+		rv = encodeSaNtfValueT(uba, p8,
+				       param->notification.securityAlarm
+					   .securityAlarmDetector->valueType,
+				       &param->notification.securityAlarm
+					    .securityAlarmDetector->value);
 		if (rv != NCSCC_RC_SUCCESS) {
 			goto error_done;
 		}
@@ -698,34 +806,39 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
 			return NCSCC_RC_OUT_OF_MEM;
-		}		
-		ncs_encode_16bit(&p8, param->notification.securityAlarm.serviceUser->valueType);
+		}
+		ncs_encode_16bit(
+		    &p8,
+		    param->notification.securityAlarm.serviceUser->valueType);
 		ncs_enc_claim_space(uba, 2);
-		rv = encodeSaNtfValueT(uba,
-						 p8,
-						 param->notification.securityAlarm.serviceUser->valueType,
-						 &param->notification.securityAlarm.serviceUser->value);
+		rv = encodeSaNtfValueT(
+		    uba, p8,
+		    param->notification.securityAlarm.serviceUser->valueType,
+		    &param->notification.securityAlarm.serviceUser->value);
 		if (NCSCC_RC_SUCCESS != rv)
-		      goto error_done; 
+			goto error_done;
 		p8 = ncs_enc_reserve_space(uba, 2);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
 			return NCSCC_RC_OUT_OF_MEM;
 		}
-		ncs_encode_16bit(&p8, param->notification.securityAlarm.serviceProvider->valueType);
+		ncs_encode_16bit(&p8, param->notification.securityAlarm
+					  .serviceProvider->valueType);
 		ncs_enc_claim_space(uba, 2);
-		rv = encodeSaNtfValueT(uba,
-						 p8,
-						 param->notification.securityAlarm.serviceProvider->valueType,
-						 &param->notification.securityAlarm.serviceProvider->value);
+		rv = encodeSaNtfValueT(
+		    uba, p8,
+		    param->notification.securityAlarm.serviceProvider
+			->valueType,
+		    &param->notification.securityAlarm.serviceProvider->value);
 		if (NCSCC_RC_SUCCESS != rv)
-		      goto error_done; 
+			goto error_done;
 
 		break;
 
 	default:
-		TRACE("notificationType: %d not valid", (int)param->notificationType);
-		rv=  NCSCC_RC_INVALID_INPUT;
+		TRACE("notificationType: %d not valid",
+		      (int)param->notificationType);
+		rv = NCSCC_RC_INVALID_INPUT;
 		goto error_done;
 	}
 	p8 = ncs_enc_reserve_space(uba, 4);
@@ -736,13 +849,14 @@ uint32_t ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 	ncs_encode_32bit(&p8, param->variable_data.size);
 	ncs_enc_claim_space(uba, 4);
 	if (param->variable_data.size)
-		ncs_encode_n_octets_in_uba(uba, param->variable_data.p_base, param->variable_data.size);
+		ncs_encode_n_octets_in_uba(uba, param->variable_data.p_base,
+					   param->variable_data.size);
 
- done:
+done:
 	TRACE_LEAVE();
 	return rv;
 
- error_done:
+error_done:
 	TRACE_1("encoding error");
 	goto done;
 }
@@ -752,7 +866,7 @@ uint32_t ntfsv_enc_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_SUCCESS;
 	int i;
-	
+
 	TRACE_ENTER();
 	osafassert(uba != NULL);
 	/** encode the contents **/
@@ -761,9 +875,8 @@ uint32_t ntfsv_enc_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
 		TRACE("ncs_enc_reserve_space failed");
 		return NCSCC_RC_OUT_OF_MEM;
 	}
-	TRACE_3("t:%#x, nd: %u",
-		param->notificationType,
-		param->numberDiscarded); 
+	TRACE_3("t:%#x, nd: %u", param->notificationType,
+		param->numberDiscarded);
 	ncs_encode_32bit(&p8, param->notificationType);
 	ncs_encode_32bit(&p8, param->numberDiscarded);
 	ncs_enc_claim_space(uba, 8);
@@ -771,17 +884,19 @@ uint32_t ntfsv_enc_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
 		p8 = ncs_enc_reserve_space(uba, 8);
 		if (!p8) {
 			TRACE_1("encoding error");
-			rv = NCSCC_RC_OUT_OF_MEM;			
+			rv = NCSCC_RC_OUT_OF_MEM;
 			break;
 		}
-		ncs_encode_64bit(&p8, param->discardedNotificationIdentifiers[i]);
+		ncs_encode_64bit(&p8,
+				 param->discardedNotificationIdentifiers[i]);
 		ncs_enc_claim_space(uba, 8);
 	}
-	TRACE_LEAVE();  
+	TRACE_LEAVE();
 	return rv;
 }
 
-static uint32_t ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *param)
+static uint32_t ntfsv_dec_not_header(NCS_UBAID *uba,
+				     SaNtfNotificationHeaderT *param)
 {
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_SUCCESS;
@@ -794,14 +909,15 @@ static uint32_t ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *p
 	SaUint16T numAdditionalInfo;
 	TRACE_ENTER();
 
-/* SaNtfNotificationHeaderT size params */
+	/* SaNtfNotificationHeaderT size params */
 	p8 = ncs_dec_flatten_space(uba, local_data, 6);
 	numCorrelatedNotifications = ncs_decode_16bit(&p8);
 	lengthAdditionalText = ncs_decode_16bit(&p8);
 	numAdditionalInfo = ncs_decode_16bit(&p8);
 	ncs_dec_skip_space(uba, 6);
 
-	rc = ntfsv_alloc_ntf_header(param, numCorrelatedNotifications, lengthAdditionalText, numAdditionalInfo);
+	rc = ntfsv_alloc_ntf_header(param, numCorrelatedNotifications,
+				    lengthAdditionalText, numAdditionalInfo);
 	osafassert(rc == SA_AIS_OK);
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	*param->eventType = ncs_decode_32bit(&p8);
@@ -825,7 +941,9 @@ static uint32_t ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *p
 
 	if (param->lengthAdditionalText > 0) {
 		/* dealloc in ntfs_evt.c: proc_send_not_msg */
-		rv = ncs_decode_n_octets_from_uba(uba, (uint8_t *)param->additionalText, (uint32_t)param->lengthAdditionalText);
+		rv = ncs_decode_n_octets_from_uba(
+		    uba, (uint8_t *)param->additionalText,
+		    (uint32_t)param->lengthAdditionalText);
 		param->additionalText[param->lengthAdditionalText - 1] = '\0';
 	}
 
@@ -839,9 +957,12 @@ static uint32_t ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *p
 		param->additionalInfo[i].infoId = ncs_decode_16bit(&p8);
 		param->additionalInfo[i].infoType = ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 4);
-		rv = decodeNtfValueT(uba, param->additionalInfo[i].infoType, &param->additionalInfo[i].infoValue);
-		TRACE_2("dec additionalInfo Type: %d\n", param->additionalInfo[i].infoType);
-		TRACE_2("dec additionaInfo Value int32: %d\n", param->additionalInfo[i].infoValue.int32Val);
+		rv = decodeNtfValueT(uba, param->additionalInfo[i].infoType,
+				     &param->additionalInfo[i].infoValue);
+		TRACE_2("dec additionalInfo Type: %d\n",
+			param->additionalInfo[i].infoType);
+		TRACE_2("dec additionaInfo Value int32: %d\n",
+			param->additionalInfo[i].infoValue.int32Val);
 	}
 	TRACE_LEAVE();
 	return rv;
@@ -867,152 +988,235 @@ uint32_t ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 
 	case SA_NTF_TYPE_ALARM:
 		TRACE("dec SA_NTF_TYPE_ALARM");
-		rv = ntfsv_dec_not_header(uba, &param->notification.alarm.notificationHeader);
+		rv = ntfsv_dec_not_header(
+		    uba, &param->notification.alarm.notificationHeader);
 		p8 = ncs_dec_flatten_space(uba, local_data, 16);
-		param->notification.alarm.numSpecificProblems = ncs_decode_16bit(&p8);
-		param->notification.alarm.numMonitoredAttributes = ncs_decode_16bit(&p8);
-		param->notification.alarm.numProposedRepairActions = ncs_decode_16bit(&p8);
-		ntfsv_alloc_ntf_alarm(&param->notification.alarm,
-				      param->notification.alarm.numSpecificProblems,
-				      param->notification.alarm.numMonitoredAttributes,
-				      param->notification.alarm.numProposedRepairActions);
-		*param->notification.alarm.probableCause = ncs_decode_32bit(&p8);
-		*param->notification.alarm.perceivedSeverity = ncs_decode_32bit(&p8);
+		param->notification.alarm.numSpecificProblems =
+		    ncs_decode_16bit(&p8);
+		param->notification.alarm.numMonitoredAttributes =
+		    ncs_decode_16bit(&p8);
+		param->notification.alarm.numProposedRepairActions =
+		    ncs_decode_16bit(&p8);
+		ntfsv_alloc_ntf_alarm(
+		    &param->notification.alarm,
+		    param->notification.alarm.numSpecificProblems,
+		    param->notification.alarm.numMonitoredAttributes,
+		    param->notification.alarm.numProposedRepairActions);
+		*param->notification.alarm.probableCause =
+		    ncs_decode_32bit(&p8);
+		*param->notification.alarm.perceivedSeverity =
+		    ncs_decode_32bit(&p8);
 		*param->notification.alarm.trend = ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 16);
 		p8 = ncs_dec_flatten_space(uba, local_data, 12);
-		param->notification.alarm.thresholdInformation->thresholdId = ncs_decode_16bit(&p8);
-		param->notification.alarm.thresholdInformation->thresholdValueType = ncs_decode_16bit(&p8);
-		param->notification.alarm.thresholdInformation->armTime = ncs_decode_64bit(&p8);
+		param->notification.alarm.thresholdInformation->thresholdId =
+		    ncs_decode_16bit(&p8);
+		param->notification.alarm.thresholdInformation
+		    ->thresholdValueType = ncs_decode_16bit(&p8);
+		param->notification.alarm.thresholdInformation->armTime =
+		    ncs_decode_64bit(&p8);
 		ncs_dec_skip_space(uba, 12);
-		rv = decodeNtfValueT(uba,
-					      param->notification.alarm.thresholdInformation->thresholdValueType,
-					      &param->notification.alarm.thresholdInformation->thresholdValue);
-		rv = decodeNtfValueT(uba,
-					      param->notification.alarm.thresholdInformation->thresholdValueType,
-					      &param->notification.alarm.thresholdInformation->thresholdHysteresis);
-		rv = decodeNtfValueT(uba,
-					      param->notification.alarm.thresholdInformation->thresholdValueType,
-					      &param->notification.alarm.thresholdInformation->observedValue);
-		for (i = 0; i < param->notification.alarm.numSpecificProblems; i++) {
+		rv = decodeNtfValueT(
+		    uba,
+		    param->notification.alarm.thresholdInformation
+			->thresholdValueType,
+		    &param->notification.alarm.thresholdInformation
+			 ->thresholdValue);
+		rv = decodeNtfValueT(
+		    uba,
+		    param->notification.alarm.thresholdInformation
+			->thresholdValueType,
+		    &param->notification.alarm.thresholdInformation
+			 ->thresholdHysteresis);
+		rv = decodeNtfValueT(
+		    uba,
+		    param->notification.alarm.thresholdInformation
+			->thresholdValueType,
+		    &param->notification.alarm.thresholdInformation
+			 ->observedValue);
+		for (i = 0; i < param->notification.alarm.numSpecificProblems;
+		     i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 12);
-			param->notification.alarm.specificProblems[i].problemId = ncs_decode_16bit(&p8);
-			param->notification.alarm.specificProblems[i].problemClassId.majorId = ncs_decode_16bit(&p8);
-			param->notification.alarm.specificProblems[i].problemClassId.minorId = ncs_decode_16bit(&p8);
-			param->notification.alarm.specificProblems[i].problemClassId.vendorId = ncs_decode_32bit(&p8);
-			param->notification.alarm.specificProblems[i].problemType = ncs_decode_16bit(&p8);
+			param->notification.alarm.specificProblems[i]
+			    .problemId = ncs_decode_16bit(&p8);
+			param->notification.alarm.specificProblems[i]
+			    .problemClassId.majorId = ncs_decode_16bit(&p8);
+			param->notification.alarm.specificProblems[i]
+			    .problemClassId.minorId = ncs_decode_16bit(&p8);
+			param->notification.alarm.specificProblems[i]
+			    .problemClassId.vendorId = ncs_decode_32bit(&p8);
+			param->notification.alarm.specificProblems[i]
+			    .problemType = ncs_decode_16bit(&p8);
 			ncs_dec_skip_space(uba, 12);
-			rv = decodeNtfValueT(uba,
-						      param->notification.alarm.specificProblems[i].problemType,
-						      &param->notification.alarm.specificProblems[i].problemValue);
+			rv = decodeNtfValueT(
+			    uba,
+			    param->notification.alarm.specificProblems[i]
+				.problemType,
+			    &param->notification.alarm.specificProblems[i]
+				 .problemValue);
 		}
-		for (i = 0; i < param->notification.alarm.numMonitoredAttributes; i++) {
+		for (i = 0;
+		     i < param->notification.alarm.numMonitoredAttributes;
+		     i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->notification.alarm.monitoredAttributes[i].attributeId = ncs_decode_16bit(&p8);
-			param->notification.alarm.monitoredAttributes[i].attributeType = ncs_decode_16bit(&p8);
+			param->notification.alarm.monitoredAttributes[i]
+			    .attributeId = ncs_decode_16bit(&p8);
+			param->notification.alarm.monitoredAttributes[i]
+			    .attributeType = ncs_decode_16bit(&p8);
 			ncs_dec_skip_space(uba, 4);
-			rv = decodeNtfValueT(uba,
-						      param->notification.alarm.monitoredAttributes[i].attributeType,
-						      &param->notification.alarm.monitoredAttributes[i].attributeValue);
+			rv = decodeNtfValueT(
+			    uba,
+			    param->notification.alarm.monitoredAttributes[i]
+				.attributeType,
+			    &param->notification.alarm.monitoredAttributes[i]
+				 .attributeValue);
 		}
-		for (i = 0; i < param->notification.alarm.numProposedRepairActions; i++) {
+		for (i = 0;
+		     i < param->notification.alarm.numProposedRepairActions;
+		     i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			param->notification.alarm.proposedRepairActions[i].actionId = ncs_decode_16bit(&p8);
-			param->notification.alarm.proposedRepairActions[i].actionValueType = ncs_decode_16bit(&p8);
+			param->notification.alarm.proposedRepairActions[i]
+			    .actionId = ncs_decode_16bit(&p8);
+			param->notification.alarm.proposedRepairActions[i]
+			    .actionValueType = ncs_decode_16bit(&p8);
 			ncs_dec_skip_space(uba, 4);
-			rv = decodeNtfValueT(uba,
-						      param->notification.alarm.proposedRepairActions[i].
-						      actionValueType,
-						      &param->notification.alarm.proposedRepairActions[i].actionValue);
+			rv = decodeNtfValueT(
+			    uba,
+			    param->notification.alarm.proposedRepairActions[i]
+				.actionValueType,
+			    &param->notification.alarm.proposedRepairActions[i]
+				 .actionValue);
 		}
 		break;
 
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
 		TRACE("dec SA_NTF_TYPE_OBJECT_CREATE_DELETE");
 
-		rv = ntfsv_dec_not_header(uba, &param->notification.objectCreateDelete.notificationHeader);
+		rv = ntfsv_dec_not_header(
+		    uba,
+		    &param->notification.objectCreateDelete.notificationHeader);
 		p8 = ncs_dec_flatten_space(uba, local_data, 4);
-		param->notification.objectCreateDelete.numAttributes = ncs_decode_16bit(&p8);
-		ntfsv_alloc_ntf_obj_create_del(&param->notification.objectCreateDelete,
-					       param->notification.objectCreateDelete.numAttributes);
-		*param->notification.objectCreateDelete.sourceIndicator = ncs_decode_16bit(&p8);
-		TRACE_2("sourceIndicator %d", (int)*param->notification.objectCreateDelete.sourceIndicator);
+		param->notification.objectCreateDelete.numAttributes =
+		    ncs_decode_16bit(&p8);
+		ntfsv_alloc_ntf_obj_create_del(
+		    &param->notification.objectCreateDelete,
+		    param->notification.objectCreateDelete.numAttributes);
+		*param->notification.objectCreateDelete.sourceIndicator =
+		    ncs_decode_16bit(&p8);
+		TRACE_2("sourceIndicator %d",
+			(int)*param->notification.objectCreateDelete
+			    .sourceIndicator);
 		ncs_dec_skip_space(uba, 4);
 
 		if (param->notification.objectCreateDelete.numAttributes > 0) {
-			for (i = 0; i < param->notification.objectCreateDelete.numAttributes; i++) {
-				rv =
-				    decodeSaNtfAttribute(uba,
-							 &param->notification.objectCreateDelete.objectAttributes[i]);
+			for (i = 0; i < param->notification.objectCreateDelete
+					    .numAttributes;
+			     i++) {
+				rv = decodeSaNtfAttribute(
+				    uba, &param->notification.objectCreateDelete
+					      .objectAttributes[i]);
 			}
-			ntfsv_print_object_attributes(param->notification.objectCreateDelete.objectAttributes,
-						      param->notification.objectCreateDelete.numAttributes);
+			ntfsv_print_object_attributes(
+			    param->notification.objectCreateDelete
+				.objectAttributes,
+			    param->notification.objectCreateDelete
+				.numAttributes);
 		}
 		break;
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
 		TRACE("dec A_NTF_TYPE_ATTRIBUTE_CHANGE");
-		rv = ntfsv_dec_not_header(uba, &param->notification.attributeChange.notificationHeader);
+		rv = ntfsv_dec_not_header(
+		    uba,
+		    &param->notification.attributeChange.notificationHeader);
 		p8 = ncs_dec_flatten_space(uba, local_data, 4);
-		param->notification.attributeChange.numAttributes = ncs_decode_16bit(&p8);
-		ntfsv_alloc_ntf_attr_change(&param->notification.attributeChange,
-					    param->notification.objectCreateDelete.numAttributes);
-		*param->notification.attributeChange.sourceIndicator = ncs_decode_16bit(&p8);
+		param->notification.attributeChange.numAttributes =
+		    ncs_decode_16bit(&p8);
+		ntfsv_alloc_ntf_attr_change(
+		    &param->notification.attributeChange,
+		    param->notification.objectCreateDelete.numAttributes);
+		*param->notification.attributeChange.sourceIndicator =
+		    ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 4);
-		for (i = 0; i < param->notification.attributeChange.numAttributes; i++) {
-			rv =
-			    decodeSaNtfAttributeChangeT(uba,
-							&param->notification.attributeChange.changedAttributes[i]);
+		for (i = 0;
+		     i < param->notification.attributeChange.numAttributes;
+		     i++) {
+			rv = decodeSaNtfAttributeChangeT(
+			    uba, &param->notification.attributeChange
+				      .changedAttributes[i]);
 		}
 		break;
 	case SA_NTF_TYPE_STATE_CHANGE:
 		TRACE("dec SA_NTF_TYPE_STATE_CHANGE");
-		rv = ntfsv_dec_not_header(uba, &param->notification.stateChange.notificationHeader);
+		rv = ntfsv_dec_not_header(
+		    uba, &param->notification.stateChange.notificationHeader);
 		p8 = ncs_dec_flatten_space(uba, local_data, 4);
-		param->notification.stateChange.numStateChanges = ncs_decode_16bit(&p8);
-		ntfsv_alloc_ntf_state_change(&param->notification.stateChange,
-					     param->notification.stateChange.numStateChanges);
-		*param->notification.stateChange.sourceIndicator = ncs_decode_16bit(&p8);
+		param->notification.stateChange.numStateChanges =
+		    ncs_decode_16bit(&p8);
+		ntfsv_alloc_ntf_state_change(
+		    &param->notification.stateChange,
+		    param->notification.stateChange.numStateChanges);
+		*param->notification.stateChange.sourceIndicator =
+		    ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 4);
-		TRACE("dec numStCh: %d", (int)param->notification.stateChange.numStateChanges);
-		for (i = 0; i < param->notification.stateChange.numStateChanges; i++) {
+		TRACE("dec numStCh: %d",
+		      (int)param->notification.stateChange.numStateChanges);
+		for (i = 0; i < param->notification.stateChange.numStateChanges;
+		     i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 6);
-			param->notification.stateChange.changedStates[i].stateId = ncs_decode_16bit(&p8);
-			param->notification.stateChange.changedStates[i].oldStatePresent = ncs_decode_32bit(&p8);
+			param->notification.stateChange.changedStates[i]
+			    .stateId = ncs_decode_16bit(&p8);
+			param->notification.stateChange.changedStates[i]
+			    .oldStatePresent = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 6);
-			if (param->notification.stateChange.changedStates[i].oldStatePresent) {
+			if (param->notification.stateChange.changedStates[i]
+				.oldStatePresent) {
 				p8 = ncs_dec_flatten_space(uba, local_data, 2);
-				param->notification.stateChange.changedStates[i].oldState = ncs_decode_16bit(&p8);
+				param->notification.stateChange.changedStates[i]
+				    .oldState = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(uba, 2);
 			}
 			p8 = ncs_dec_flatten_space(uba, local_data, 2);
-			param->notification.stateChange.changedStates[i].newState = ncs_decode_16bit(&p8);
+			param->notification.stateChange.changedStates[i]
+			    .newState = ncs_decode_16bit(&p8);
 			ncs_dec_skip_space(uba, 2);
 		}
 		break;
 	case SA_NTF_TYPE_SECURITY_ALARM:
 		TRACE("dec SA_NTF_TYPE_SECURITY_ALARM");
-		rv = ntfsv_dec_not_header(uba, &param->notification.securityAlarm.notificationHeader);
+		rv = ntfsv_dec_not_header(
+		    uba, &param->notification.securityAlarm.notificationHeader);
 		p8 = ncs_dec_flatten_space(uba, local_data, 10);
-		ntfsv_alloc_ntf_security_alarm(&param->notification.securityAlarm);
-		*param->notification.securityAlarm.probableCause = ncs_decode_32bit(&p8);
-		*param->notification.securityAlarm.severity = ncs_decode_32bit(&p8);
-		param->notification.securityAlarm.securityAlarmDetector->valueType = ncs_decode_16bit(&p8);
+		ntfsv_alloc_ntf_security_alarm(
+		    &param->notification.securityAlarm);
+		*param->notification.securityAlarm.probableCause =
+		    ncs_decode_32bit(&p8);
+		*param->notification.securityAlarm.severity =
+		    ncs_decode_32bit(&p8);
+		param->notification.securityAlarm.securityAlarmDetector
+		    ->valueType = ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 10);
 		rv = decodeNtfValueT(uba,
-					      param->notification.securityAlarm.securityAlarmDetector->valueType,
-					      &param->notification.securityAlarm.securityAlarmDetector->value);
+				     param->notification.securityAlarm
+					 .securityAlarmDetector->valueType,
+				     &param->notification.securityAlarm
+					  .securityAlarmDetector->value);
 		p8 = ncs_dec_flatten_space(uba, local_data, 2);
-		param->notification.securityAlarm.serviceUser->valueType = ncs_decode_16bit(&p8);
+		param->notification.securityAlarm.serviceUser->valueType =
+		    ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 2);
-		rv = decodeNtfValueT(uba,
-					      param->notification.securityAlarm.serviceUser->valueType,
-					      &param->notification.securityAlarm.serviceUser->value);
+		rv = decodeNtfValueT(
+		    uba,
+		    param->notification.securityAlarm.serviceUser->valueType,
+		    &param->notification.securityAlarm.serviceUser->value);
 		p8 = ncs_dec_flatten_space(uba, local_data, 2);
-		param->notification.securityAlarm.serviceProvider->valueType = ncs_decode_16bit(&p8);
+		param->notification.securityAlarm.serviceProvider->valueType =
+		    ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 2);
-		rv = decodeNtfValueT(uba,
-					      param->notification.securityAlarm.serviceProvider->valueType,
-					      &param->notification.securityAlarm.serviceProvider->value);
+		rv = decodeNtfValueT(
+		    uba,
+		    param->notification.securityAlarm.serviceProvider
+			->valueType,
+		    &param->notification.securityAlarm.serviceProvider->value);
 
 		break;
 	default:
@@ -1025,9 +1229,11 @@ uint32_t ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 	ncs_dec_skip_space(uba, 4);
 	if (param->variable_data.size) {
 		/* freed in ntfsv_dealloc_notification */
-		param->variable_data.p_base = calloc(1, param->variable_data.size);
+		param->variable_data.p_base =
+		    calloc(1, param->variable_data.size);
 		TRACE("alloc v_data.p_base %p", param->variable_data.p_base);
-		ncs_decode_n_octets_from_uba(uba, param->variable_data.p_base, param->variable_data.size);
+		ncs_decode_n_octets_from_uba(uba, param->variable_data.p_base,
+					     param->variable_data.size);
 	}
 	TRACE_LEAVE();
 	return rv;
@@ -1038,24 +1244,27 @@ uint32_t ntfsv_dec_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
 	uint8_t *p8;
 	uint8_t local_data[8];
 	int i;
-	
+
 	TRACE_ENTER();
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	param->notificationType = ncs_decode_32bit(&p8);
 	param->numberDiscarded = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 8);
-	TRACE_3("t:%#x, nd: %u", param->notificationType, param->numberDiscarded);
+	TRACE_3("t:%#x, nd: %u", param->notificationType,
+		param->numberDiscarded);
 	if (param->numberDiscarded) {
-		param->discardedNotificationIdentifiers = calloc(1, sizeof(SaNtfIdentifierT) * param->numberDiscarded);
+		param->discardedNotificationIdentifiers = calloc(
+		    1, sizeof(SaNtfIdentifierT) * param->numberDiscarded);
 		if (!param->discardedNotificationIdentifiers) {
 			TRACE_LEAVE();
 			return NCSCC_RC_OUT_OF_MEM;
 		}
 		for (i = 0; i < param->numberDiscarded; i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 8);
-			param->discardedNotificationIdentifiers[i] = ncs_decode_64bit(&p8);
+			param->discardedNotificationIdentifiers[i] =
+			    ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(uba, 8);
-		} 
+		}
 	} else {
 		param->discardedNotificationIdentifiers = NULL;
 	}
@@ -1063,7 +1272,8 @@ uint32_t ntfsv_dec_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
 	return NCSCC_RC_SUCCESS;
 }
 
-uint32_t ntfsv_enc_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT *h)
+uint32_t ntfsv_enc_filter_header(NCS_UBAID *uba,
+				 SaNtfNotificationFilterHeaderT *h)
 {
 	int i;
 	uint32_t rv;
@@ -1077,7 +1287,7 @@ uint32_t ntfsv_enc_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT 
 	ncs_encode_16bit(&p8, h->numNotificationObjects);
 	ncs_encode_16bit(&p8, h->numNotifyingObjects);
 	ncs_enc_claim_space(uba, 8);
-	
+
 	for (i = 0; i < h->numEventTypes; i++) {
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8)
@@ -1094,24 +1304,24 @@ uint32_t ntfsv_enc_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT 
 		ncs_encode_16bit(&p8, h->notificationClassIds[i].minorId);
 		ncs_enc_claim_space(uba, 8);
 	}
-	for (i = 0; i < h->numNotifyingObjects; i++) {	
+	for (i = 0; i < h->numNotifyingObjects; i++) {
 		rv = encodeSaNameT(uba, p8, &h->notifyingObjects[i]);
 		if (rv != NCSCC_RC_SUCCESS) {
 			goto error_done;
 		}
 	}
-	for (i = 0; i < h->numNotificationObjects; i++) {	
+	for (i = 0; i < h->numNotificationObjects; i++) {
 		rv = encodeSaNameT(uba, p8, &h->notificationObjects[i]);
 		if (rv != NCSCC_RC_SUCCESS) {
 			goto error_done;
 		}
 	}
-	return 1; 
-	
- error_done:
+	return 1;
+
+error_done:
 	TRACE_2("reserv space failed");
-	return NCSCC_RC_OUT_OF_MEM;  
-}  
+	return NCSCC_RC_OUT_OF_MEM;
+}
 
 static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 {
@@ -1126,15 +1336,17 @@ static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			return NCSCC_RC_OUT_OF_MEM;
 		ncs_encode_32bit(&p8, SA_NTF_TYPE_ALARM);
 		ncs_enc_claim_space(uba, 4);
-		rv = ntfsv_enc_filter_header(uba, &f_rec->alarm_filter->notificationFilterHeader);
+		rv = ntfsv_enc_filter_header(
+		    uba, &f_rec->alarm_filter->notificationFilterHeader);
 		if (rv != NCSCC_RC_SUCCESS)
 			return NCSCC_RC_OUT_OF_MEM;
 
 		p8 = ncs_enc_reserve_space(uba, 6);
-		if (!p8) 
+		if (!p8)
 			return NCSCC_RC_OUT_OF_MEM;
 		ncs_encode_16bit(&p8, f_rec->alarm_filter->numProbableCauses);
-		ncs_encode_16bit(&p8, f_rec->alarm_filter->numPerceivedSeverities);
+		ncs_encode_16bit(&p8,
+				 f_rec->alarm_filter->numPerceivedSeverities);
 		ncs_encode_16bit(&p8, f_rec->alarm_filter->numTrends);
 		ncs_enc_claim_space(uba, 6);
 
@@ -1143,14 +1355,17 @@ static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			if (!p8) {
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-			ncs_encode_32bit(&p8, f_rec->alarm_filter->probableCauses[i]);
+			ncs_encode_32bit(
+			    &p8, f_rec->alarm_filter->probableCauses[i]);
 			ncs_enc_claim_space(uba, 4);
 		}
-		for (i = 0; i < f_rec->alarm_filter->numPerceivedSeverities; i++) {
+		for (i = 0; i < f_rec->alarm_filter->numPerceivedSeverities;
+		     i++) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8)
 				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, f_rec->alarm_filter->perceivedSeverities[i]);
+			ncs_encode_32bit(
+			    &p8, f_rec->alarm_filter->perceivedSeverities[i]);
 			ncs_enc_claim_space(uba, 4);
 		}
 		for (i = 0; i < f_rec->alarm_filter->numTrends; i++) {
@@ -1159,7 +1374,7 @@ static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 				return NCSCC_RC_OUT_OF_MEM;
 			ncs_encode_32bit(&p8, f_rec->alarm_filter->trends[i]);
 			ncs_enc_claim_space(uba, 4);
-		}  
+		}
 	} else {
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8)
@@ -1176,17 +1391,20 @@ static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 		}
 		ncs_encode_32bit(&p8, SA_NTF_TYPE_SECURITY_ALARM);
 		ncs_enc_claim_space(uba, 4);
-		rv = ntfsv_enc_filter_header(uba, &f_rec->sec_al_filter->notificationFilterHeader);
+		rv = ntfsv_enc_filter_header(
+		    uba, &f_rec->sec_al_filter->notificationFilterHeader);
 		if (rv != NCSCC_RC_SUCCESS)
 			return NCSCC_RC_OUT_OF_MEM;
 		p8 = ncs_enc_reserve_space(uba, 10);
 		if (!p8) {
 			return NCSCC_RC_OUT_OF_MEM;
-		}		
+		}
 		ncs_encode_16bit(&p8, f_rec->sec_al_filter->numProbableCauses);
 		ncs_encode_16bit(&p8, f_rec->sec_al_filter->numSeverities);
-		ncs_encode_16bit(&p8, f_rec->sec_al_filter->numSecurityAlarmDetectors);
-		ncs_encode_16bit(&p8, f_rec->sec_al_filter->numServiceProviders);
+		ncs_encode_16bit(
+		    &p8, f_rec->sec_al_filter->numSecurityAlarmDetectors);
+		ncs_encode_16bit(&p8,
+				 f_rec->sec_al_filter->numServiceProviders);
 		ncs_encode_16bit(&p8, f_rec->sec_al_filter->numServiceUsers);
 		ncs_enc_claim_space(uba, 10);
 
@@ -1195,45 +1413,69 @@ static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			if (!p8) {
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-			ncs_encode_32bit(&p8, f_rec->sec_al_filter->probableCauses[i]);
+			ncs_encode_32bit(
+			    &p8, f_rec->sec_al_filter->probableCauses[i]);
 			ncs_enc_claim_space(uba, 4);
 		}
 		for (i = 0; i < f_rec->sec_al_filter->numSeverities; i++) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8)
 				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, f_rec->sec_al_filter->severities[i]);
+			ncs_encode_32bit(&p8,
+					 f_rec->sec_al_filter->severities[i]);
 			ncs_enc_claim_space(uba, 4);
 		}
 
-		for (i = 0; i < f_rec->sec_al_filter->numSecurityAlarmDetectors; i++) {
+		for (i = 0; i < f_rec->sec_al_filter->numSecurityAlarmDetectors;
+		     i++) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8)
 				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, f_rec->sec_al_filter->securityAlarmDetectors[i].valueType);
+			ncs_encode_32bit(
+			    &p8, f_rec->sec_al_filter->securityAlarmDetectors[i]
+				     .valueType);
 			ncs_enc_claim_space(uba, 4);
-			rv = encodeSaNtfValueT(uba, p8, f_rec->sec_al_filter->securityAlarmDetectors[i].valueType, &f_rec->sec_al_filter->securityAlarmDetectors[i].value); 
-			if (rv != NCSCC_RC_SUCCESS) return NCSCC_RC_OUT_OF_MEM;  
+			rv = encodeSaNtfValueT(
+			    uba, p8,
+			    f_rec->sec_al_filter->securityAlarmDetectors[i]
+				.valueType,
+			    &f_rec->sec_al_filter->securityAlarmDetectors[i]
+				 .value);
+			if (rv != NCSCC_RC_SUCCESS)
+				return NCSCC_RC_OUT_OF_MEM;
 		}
 
-		for (i = 0; i < f_rec->sec_al_filter->numServiceProviders; i++) {
+		for (i = 0; i < f_rec->sec_al_filter->numServiceProviders;
+		     i++) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8)
 				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, f_rec->sec_al_filter->serviceProviders[i].valueType);
+			ncs_encode_32bit(
+			    &p8, f_rec->sec_al_filter->serviceProviders[i]
+				     .valueType);
 			ncs_enc_claim_space(uba, 4);
-			rv = encodeSaNtfValueT(uba, p8, f_rec->sec_al_filter->serviceProviders[i].valueType, &f_rec->sec_al_filter->serviceProviders[i].value);			
-			if (rv != NCSCC_RC_SUCCESS) return NCSCC_RC_OUT_OF_MEM;   
+			rv = encodeSaNtfValueT(
+			    uba, p8,
+			    f_rec->sec_al_filter->serviceProviders[i].valueType,
+			    &f_rec->sec_al_filter->serviceProviders[i].value);
+			if (rv != NCSCC_RC_SUCCESS)
+				return NCSCC_RC_OUT_OF_MEM;
 		}
 
 		for (i = 0; i < f_rec->sec_al_filter->numServiceUsers; i++) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8)
 				return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_32bit(&p8, f_rec->sec_al_filter->serviceUsers[i].valueType);
+			ncs_encode_32bit(
+			    &p8,
+			    f_rec->sec_al_filter->serviceUsers[i].valueType);
 			ncs_enc_claim_space(uba, 4);
-			rv = encodeSaNtfValueT(uba, p8, f_rec->sec_al_filter->serviceUsers[i].valueType, &f_rec->sec_al_filter->serviceUsers[i].value);
-			if (rv != NCSCC_RC_SUCCESS) return NCSCC_RC_OUT_OF_MEM;  
+			rv = encodeSaNtfValueT(
+			    uba, p8,
+			    f_rec->sec_al_filter->serviceUsers[i].valueType,
+			    &f_rec->sec_al_filter->serviceUsers[i].value);
+			if (rv != NCSCC_RC_SUCCESS)
+				return NCSCC_RC_OUT_OF_MEM;
 		}
 	} else {
 		p8 = ncs_enc_reserve_space(uba, 4);
@@ -1251,22 +1493,26 @@ static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			return NCSCC_RC_OUT_OF_MEM;
 		ncs_encode_32bit(&p8, SA_NTF_TYPE_ATTRIBUTE_CHANGE);
 		ncs_enc_claim_space(uba, 4);
-		rv = ntfsv_enc_filter_header(uba, &f_rec->att_ch_filter->notificationFilterHeader);
+		rv = ntfsv_enc_filter_header(
+		    uba, &f_rec->att_ch_filter->notificationFilterHeader);
 		if (rv != NCSCC_RC_SUCCESS)
 			return NCSCC_RC_OUT_OF_MEM;
 
 		p8 = ncs_enc_reserve_space(uba, 2);
-		if (!p8) 
+		if (!p8)
 			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_16bit(&p8, f_rec->att_ch_filter->numSourceIndicators);
+		ncs_encode_16bit(&p8,
+				 f_rec->att_ch_filter->numSourceIndicators);
 		ncs_enc_claim_space(uba, 2);
 
-		for (i = 0; i < f_rec->att_ch_filter->numSourceIndicators; i++) {
+		for (i = 0; i < f_rec->att_ch_filter->numSourceIndicators;
+		     i++) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8) {
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-			ncs_encode_32bit(&p8, f_rec->att_ch_filter->sourceIndicators[i]);
+			ncs_encode_32bit(
+			    &p8, f_rec->att_ch_filter->sourceIndicators[i]);
 			ncs_enc_claim_space(uba, 4);
 		}
 	} else {
@@ -1284,22 +1530,26 @@ static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			return NCSCC_RC_OUT_OF_MEM;
 		ncs_encode_32bit(&p8, SA_NTF_TYPE_OBJECT_CREATE_DELETE);
 		ncs_enc_claim_space(uba, 4);
-		rv = ntfsv_enc_filter_header(uba, &f_rec->obj_cr_del_filter->notificationFilterHeader);
+		rv = ntfsv_enc_filter_header(
+		    uba, &f_rec->obj_cr_del_filter->notificationFilterHeader);
 		if (rv != NCSCC_RC_SUCCESS)
 			return NCSCC_RC_OUT_OF_MEM;
 
 		p8 = ncs_enc_reserve_space(uba, 2);
-		if (!p8) 
+		if (!p8)
 			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_16bit(&p8, f_rec->obj_cr_del_filter->numSourceIndicators);
+		ncs_encode_16bit(&p8,
+				 f_rec->obj_cr_del_filter->numSourceIndicators);
 		ncs_enc_claim_space(uba, 2);
 
-		for (i = 0; i < f_rec->obj_cr_del_filter->numSourceIndicators; i++) {
+		for (i = 0; i < f_rec->obj_cr_del_filter->numSourceIndicators;
+		     i++) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8) {
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-			ncs_encode_32bit(&p8, f_rec->obj_cr_del_filter->sourceIndicators[i]);
+			ncs_encode_32bit(
+			    &p8, f_rec->obj_cr_del_filter->sourceIndicators[i]);
 			ncs_enc_claim_space(uba, 4);
 		}
 	} else {
@@ -1317,38 +1567,57 @@ static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			return NCSCC_RC_OUT_OF_MEM;
 		ncs_encode_32bit(&p8, SA_NTF_TYPE_STATE_CHANGE);
 		ncs_enc_claim_space(uba, 4);
-		rv = ntfsv_enc_filter_header(uba, &f_rec->sta_ch_filter->notificationFilterHeader);
+		rv = ntfsv_enc_filter_header(
+		    uba, &f_rec->sta_ch_filter->notificationFilterHeader);
 		if (rv != NCSCC_RC_SUCCESS)
 			return NCSCC_RC_OUT_OF_MEM;
 
 		p8 = ncs_enc_reserve_space(uba, 8);
-		if (!p8) 
+		if (!p8)
 			return NCSCC_RC_OUT_OF_MEM;
-		ncs_encode_32bit(&p8, f_rec->sta_ch_filter->numSourceIndicators);
+		ncs_encode_32bit(&p8,
+				 f_rec->sta_ch_filter->numSourceIndicators);
 		ncs_encode_32bit(&p8, f_rec->sta_ch_filter->numStateChanges);
 		ncs_enc_claim_space(uba, 8);
-		TRACE_3("numSourceIndicators: %d", (int)f_rec->sta_ch_filter->numSourceIndicators);
-		for (i = 0; i < f_rec->sta_ch_filter->numSourceIndicators; i++) {
+		TRACE_3("numSourceIndicators: %d",
+			(int)f_rec->sta_ch_filter->numSourceIndicators);
+		for (i = 0; i < f_rec->sta_ch_filter->numSourceIndicators;
+		     i++) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8) {
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-			ncs_encode_32bit(&p8, f_rec->sta_ch_filter->sourceIndicators[i]);
+			ncs_encode_32bit(
+			    &p8, f_rec->sta_ch_filter->sourceIndicators[i]);
 			ncs_enc_claim_space(uba, 4);
 		}
-		TRACE_3("numStateChanges: %d", (int)f_rec->sta_ch_filter->numStateChanges);
+		TRACE_3("numStateChanges: %d",
+			(int)f_rec->sta_ch_filter->numStateChanges);
 		for (i = 0; i < f_rec->sta_ch_filter->numStateChanges; i++) {
 			p8 = ncs_enc_reserve_space(uba, 8);
-			if (!p8)	return NCSCC_RC_OUT_OF_MEM;
-			ncs_encode_16bit(&p8, f_rec->sta_ch_filter->changedStates[i].stateId);
-			ncs_encode_16bit(&p8, f_rec->sta_ch_filter->changedStates[i].newState);
-			ncs_encode_32bit(&p8, f_rec->sta_ch_filter->changedStates[i].oldStatePresent);
+			if (!p8)
+				return NCSCC_RC_OUT_OF_MEM;
+			ncs_encode_16bit(
+			    &p8,
+			    f_rec->sta_ch_filter->changedStates[i].stateId);
+			ncs_encode_16bit(
+			    &p8,
+			    f_rec->sta_ch_filter->changedStates[i].newState);
+			ncs_encode_32bit(&p8,
+					 f_rec->sta_ch_filter->changedStates[i]
+					     .oldStatePresent);
 			ncs_enc_claim_space(uba, 8);
-			TRACE_3("oldStatePresent: %d", f_rec->sta_ch_filter->changedStates[i].oldStatePresent);
-			if (f_rec->sta_ch_filter->changedStates[i].oldStatePresent) {
+			TRACE_3("oldStatePresent: %d",
+				f_rec->sta_ch_filter->changedStates[i]
+				    .oldStatePresent);
+			if (f_rec->sta_ch_filter->changedStates[i]
+				.oldStatePresent) {
 				p8 = ncs_enc_reserve_space(uba, 2);
-				if (!p8) return NCSCC_RC_OUT_OF_MEM;
-				ncs_encode_16bit(&p8, f_rec->sta_ch_filter->changedStates[i].oldState);
+				if (!p8)
+					return NCSCC_RC_OUT_OF_MEM;
+				ncs_encode_16bit(
+				    &p8, f_rec->sta_ch_filter->changedStates[i]
+					     .oldState);
 				ncs_enc_claim_space(uba, 2);
 			}
 		}
@@ -1358,7 +1627,7 @@ static uint32_t ntfsv_enc_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 			return NCSCC_RC_OUT_OF_MEM;
 		ncs_encode_32bit(&p8, 0);
 		ncs_enc_claim_space(uba, 4);
-	}	
+	}
 	return rv;
 }
 
@@ -1366,7 +1635,7 @@ uint32_t ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 {
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_SUCCESS;
-	
+
 	TRACE_ENTER();
 	osafassert(uba != NULL);
 
@@ -1379,34 +1648,36 @@ uint32_t ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 	ncs_encode_32bit(&p8, param->client_id);
 	ncs_encode_32bit(&p8, param->subscriptionId);
 	ncs_enc_claim_space(uba, 8);
-	
+
 	rv = ntfsv_enc_filter_msg(uba, &param->f_rec);
 	if (rv != NCSCC_RC_SUCCESS) {
 		return rv;
 	}
-		
+
 	rv = ntfsv_enc_discard_msg(uba, &param->d_info);
 
 	TRACE_LEAVE();
 	return rv;
 }
 
-uint32_t ntfsv_dec_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT *h)
+uint32_t ntfsv_dec_filter_header(NCS_UBAID *uba,
+				 SaNtfNotificationFilterHeaderT *h)
 {
 	int i;
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_FAILURE;
 	uint8_t local_data[8];
 	SaAisErrorT rc;
-	
+
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	h->numEventTypes = ncs_decode_16bit(&p8);
 	h->numNotificationClassIds = ncs_decode_16bit(&p8);
 	h->numNotificationObjects = ncs_decode_16bit(&p8);
 	h->numNotifyingObjects = ncs_decode_16bit(&p8);
 	ncs_dec_skip_space(uba, 8);
-	rc = ntfsv_filter_header_alloc(h, h->numEventTypes, h->numNotificationObjects, h->numNotifyingObjects,
-		h->numNotificationClassIds);
+	rc = ntfsv_filter_header_alloc(
+	    h, h->numEventTypes, h->numNotificationObjects,
+	    h->numNotifyingObjects, h->numNotificationClassIds);
 	osafassert(rc == SA_AIS_OK);
 	for (i = 0; i < h->numEventTypes; i++) {
 		p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -1424,26 +1695,27 @@ uint32_t ntfsv_dec_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT 
 		h->notificationClassIds[i].minorId = ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 8);
 	}
-	for (i = 0; i < h->numNotifyingObjects; i++) {	
+	for (i = 0; i < h->numNotifyingObjects; i++) {
 		rv = decodeSaNameT(uba, p8, &h->notifyingObjects[i]);
 		if (rv != NCSCC_RC_SUCCESS) {
 			goto error_done;
 		}
 	}
-	for (i = 0; i < h->numNotificationObjects; i++) {	
+	for (i = 0; i < h->numNotificationObjects; i++) {
 		rv = decodeSaNameT(uba, p8, &h->notificationObjects[i]);
 		if (rv != NCSCC_RC_SUCCESS) {
 			for (i = 0; i < h->numNotifyingObjects; i++)
-				osaf_extended_name_free(&h->notifyingObjects[i]);
+				osaf_extended_name_free(
+				    &h->notifyingObjects[i]);
 			goto error_done;
 		}
-	} 
+	}
 	return NCSCC_RC_SUCCESS;
-	
- error_done:
+
+error_done:
 	ntfsv_filter_header_free(h, false);
 	TRACE_2("reserv space failed");
-	return rv;   
+	return rv;
 }
 
 static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
@@ -1453,51 +1725,55 @@ static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 	uint32_t rv = NCSCC_RC_OUT_OF_MEM;
 	uint32_t filter_type;
 	uint8_t local_data[10];
-	
+
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	filter_type = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
 
-/* memory allocated is freed in filter destructors */
+	/* memory allocated is freed in filter destructors */
 	if (filter_type == SA_NTF_TYPE_ALARM) {
 		TRACE_2("dec: SA_NTF_TYPE_ALARM");
 		f_rec->alarm_filter = malloc(sizeof(*f_rec->alarm_filter));
 		if (f_rec->alarm_filter == NULL) {
 			goto error_free;
 		}
-		rv = ntfsv_dec_filter_header(uba, &f_rec->alarm_filter->notificationFilterHeader);
+		rv = ntfsv_dec_filter_header(
+		    uba, &f_rec->alarm_filter->notificationFilterHeader);
 		if (rv != NCSCC_RC_SUCCESS)
 			goto error_free;
 
 		p8 = ncs_dec_flatten_space(uba, local_data, 6);
 		f_rec->alarm_filter->numProbableCauses = ncs_decode_16bit(&p8);
-		f_rec->alarm_filter->numPerceivedSeverities = ncs_decode_16bit(&p8);
+		f_rec->alarm_filter->numPerceivedSeverities =
+		    ncs_decode_16bit(&p8);
 		f_rec->alarm_filter->numTrends = ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 6);
 
-		rv = ntfsv_filter_alarm_alloc(f_rec->alarm_filter,
-			f_rec->alarm_filter->numProbableCauses,
-			f_rec->alarm_filter->numPerceivedSeverities,
-			f_rec->alarm_filter->numTrends);
+		rv = ntfsv_filter_alarm_alloc(
+		    f_rec->alarm_filter, f_rec->alarm_filter->numProbableCauses,
+		    f_rec->alarm_filter->numPerceivedSeverities,
+		    f_rec->alarm_filter->numTrends);
 		if (rv != NCSCC_RC_SUCCESS)
 			goto error_free;
 
 		for (i = 0; i < f_rec->alarm_filter->numProbableCauses; i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			f_rec->alarm_filter->probableCauses[i] = ncs_decode_32bit(&p8);
+			f_rec->alarm_filter->probableCauses[i] =
+			    ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
-
 		}
-		for (i = 0; i < f_rec->alarm_filter->numPerceivedSeverities; i++) {
+		for (i = 0; i < f_rec->alarm_filter->numPerceivedSeverities;
+		     i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			f_rec->alarm_filter->perceivedSeverities[i] = ncs_decode_32bit(&p8);
+			f_rec->alarm_filter->perceivedSeverities[i] =
+			    ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
 		}
 		for (i = 0; i < f_rec->alarm_filter->numTrends; i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
 			f_rec->alarm_filter->trends[i] = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
-		}  				  
+		}
 	} else {
 		osafassert(!filter_type);
 		f_rec->alarm_filter = NULL;
@@ -1512,61 +1788,82 @@ static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 		if (f_rec->sec_al_filter == NULL) {
 			goto error_free;
 		}
-		rv = ntfsv_dec_filter_header(uba, &f_rec->sec_al_filter->notificationFilterHeader);
+		rv = ntfsv_dec_filter_header(
+		    uba, &f_rec->sec_al_filter->notificationFilterHeader);
 		if (rv != NCSCC_RC_SUCCESS)
 			goto error_free;
 		p8 = ncs_dec_flatten_space(uba, local_data, 10);
 		f_rec->sec_al_filter->numProbableCauses = ncs_decode_16bit(&p8);
 		f_rec->sec_al_filter->numSeverities = ncs_decode_16bit(&p8);
-		f_rec->sec_al_filter->numSecurityAlarmDetectors = ncs_decode_16bit(&p8);
-		f_rec->sec_al_filter->numServiceProviders = ncs_decode_16bit(&p8);
+		f_rec->sec_al_filter->numSecurityAlarmDetectors =
+		    ncs_decode_16bit(&p8);
+		f_rec->sec_al_filter->numServiceProviders =
+		    ncs_decode_16bit(&p8);
 		f_rec->sec_al_filter->numServiceUsers = ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 10);
 
-		rv = ntfsv_filter_sec_alarm_alloc(f_rec->sec_al_filter,
-			f_rec->sec_al_filter->numProbableCauses,
-			f_rec->sec_al_filter->numSeverities,
-			f_rec->sec_al_filter->numSecurityAlarmDetectors,
-			f_rec->sec_al_filter->numServiceUsers,
-			f_rec->sec_al_filter->numServiceProviders);
+		rv = ntfsv_filter_sec_alarm_alloc(
+		    f_rec->sec_al_filter,
+		    f_rec->sec_al_filter->numProbableCauses,
+		    f_rec->sec_al_filter->numSeverities,
+		    f_rec->sec_al_filter->numSecurityAlarmDetectors,
+		    f_rec->sec_al_filter->numServiceUsers,
+		    f_rec->sec_al_filter->numServiceProviders);
 		if (rv != NCSCC_RC_SUCCESS)
 			goto error_free;
 
 		for (i = 0; i < f_rec->sec_al_filter->numProbableCauses; i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			f_rec->sec_al_filter->probableCauses[i] = ncs_decode_32bit(&p8);
+			f_rec->sec_al_filter->probableCauses[i] =
+			    ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
-
 		}
 		for (i = 0; i < f_rec->sec_al_filter->numSeverities; i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			f_rec->sec_al_filter->severities[i] = ncs_decode_32bit(&p8);
+			f_rec->sec_al_filter->severities[i] =
+			    ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
 		}
-		for (i = 0; i < f_rec->sec_al_filter->numSecurityAlarmDetectors; i++) {
+		for (i = 0; i < f_rec->sec_al_filter->numSecurityAlarmDetectors;
+		     i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			f_rec->sec_al_filter->securityAlarmDetectors[i].valueType = ncs_decode_32bit(&p8);
+			f_rec->sec_al_filter->securityAlarmDetectors[i]
+			    .valueType = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
-			rv = decodeNtfValueT(uba, f_rec->sec_al_filter->securityAlarmDetectors[i].valueType, &f_rec->sec_al_filter->securityAlarmDetectors[i].value);
+			rv = decodeNtfValueT(
+			    uba,
+			    f_rec->sec_al_filter->securityAlarmDetectors[i]
+				.valueType,
+			    &f_rec->sec_al_filter->securityAlarmDetectors[i]
+				 .value);
 			if (rv != NCSCC_RC_SUCCESS)
 				goto error_free;
-		}  				  		
-		for (i = 0; i < f_rec->sec_al_filter->numServiceProviders; i++) {
+		}
+		for (i = 0; i < f_rec->sec_al_filter->numServiceProviders;
+		     i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			f_rec->sec_al_filter->serviceProviders[i].valueType = ncs_decode_32bit(&p8);
+			f_rec->sec_al_filter->serviceProviders[i].valueType =
+			    ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
-			rv = decodeNtfValueT(uba, f_rec->sec_al_filter->serviceProviders[i].valueType, &f_rec->sec_al_filter->serviceProviders[i].value);
+			rv = decodeNtfValueT(
+			    uba,
+			    f_rec->sec_al_filter->serviceProviders[i].valueType,
+			    &f_rec->sec_al_filter->serviceProviders[i].value);
 			if (rv != NCSCC_RC_SUCCESS)
 				goto error_free;
-		}  				  
+		}
 		for (i = 0; i < f_rec->sec_al_filter->numServiceUsers; i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			f_rec->sec_al_filter->serviceUsers[i].valueType = ncs_decode_32bit(&p8);
+			f_rec->sec_al_filter->serviceUsers[i].valueType =
+			    ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
-			rv = decodeNtfValueT(uba, f_rec->sec_al_filter->serviceUsers[i].valueType, &f_rec->sec_al_filter->serviceUsers[i].value);
+			rv = decodeNtfValueT(
+			    uba,
+			    f_rec->sec_al_filter->serviceUsers[i].valueType,
+			    &f_rec->sec_al_filter->serviceUsers[i].value);
 			if (rv != NCSCC_RC_SUCCESS)
 				goto error_free;
-		}  				  
+		}
 	} else {
 		osafassert(!filter_type);
 		f_rec->sec_al_filter = NULL;
@@ -1574,29 +1871,34 @@ static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	filter_type = ncs_decode_32bit(&p8);
-	ncs_dec_skip_space(uba, 4) ;
+	ncs_dec_skip_space(uba, 4);
 	if (filter_type == SA_NTF_TYPE_ATTRIBUTE_CHANGE) {
 		TRACE_2("dec: SA_NTF_TYPE_ATTRIBUTE_CHANGE");
 		f_rec->att_ch_filter = malloc(sizeof(*f_rec->att_ch_filter));
 		if (f_rec->att_ch_filter == NULL) {
 			goto error_free;
 		}
-		rv = ntfsv_dec_filter_header(uba, &f_rec->att_ch_filter->notificationFilterHeader);
+		rv = ntfsv_dec_filter_header(
+		    uba, &f_rec->att_ch_filter->notificationFilterHeader);
 		if (rv != NCSCC_RC_SUCCESS)
 			goto error_free;
 
 		p8 = ncs_dec_flatten_space(uba, local_data, 2);
-		f_rec->att_ch_filter->numSourceIndicators = ncs_decode_16bit(&p8);
+		f_rec->att_ch_filter->numSourceIndicators =
+		    ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 2);
 
-		rv = ntfsv_filter_attr_change_alloc(f_rec->att_ch_filter,
-			f_rec->att_ch_filter->numSourceIndicators);
+		rv = ntfsv_filter_attr_change_alloc(
+		    f_rec->att_ch_filter,
+		    f_rec->att_ch_filter->numSourceIndicators);
 		if (rv != NCSCC_RC_SUCCESS)
 			goto error_free;
 
-		for (i = 0; i < f_rec->att_ch_filter->numSourceIndicators; i++) {
+		for (i = 0; i < f_rec->att_ch_filter->numSourceIndicators;
+		     i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			f_rec->att_ch_filter->sourceIndicators[i] = ncs_decode_32bit(&p8);
+			f_rec->att_ch_filter->sourceIndicators[i] =
+			    ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
 		}
 	} else {
@@ -1606,29 +1908,35 @@ static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	filter_type = ncs_decode_32bit(&p8);
-	ncs_dec_skip_space(uba, 4) ;
+	ncs_dec_skip_space(uba, 4);
 	if (filter_type == SA_NTF_TYPE_OBJECT_CREATE_DELETE) {
 		TRACE_2("dec: SA_NTF_TYPE_OBJECT_CREATE_DELETE");
-		f_rec->obj_cr_del_filter = malloc(sizeof(*f_rec->obj_cr_del_filter));
+		f_rec->obj_cr_del_filter =
+		    malloc(sizeof(*f_rec->obj_cr_del_filter));
 		if (f_rec->obj_cr_del_filter == NULL) {
 			goto error_free;
 		}
-		rv = ntfsv_dec_filter_header(uba, &f_rec->obj_cr_del_filter->notificationFilterHeader);
+		rv = ntfsv_dec_filter_header(
+		    uba, &f_rec->obj_cr_del_filter->notificationFilterHeader);
 		if (rv != NCSCC_RC_SUCCESS)
 			goto error_free;
 
 		p8 = ncs_dec_flatten_space(uba, local_data, 2);
-		f_rec->obj_cr_del_filter->numSourceIndicators = ncs_decode_16bit(&p8);
+		f_rec->obj_cr_del_filter->numSourceIndicators =
+		    ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 2);
 
-		rv = ntfsv_filter_obj_cr_del_alloc(f_rec->obj_cr_del_filter,
-			f_rec->obj_cr_del_filter->numSourceIndicators);
+		rv = ntfsv_filter_obj_cr_del_alloc(
+		    f_rec->obj_cr_del_filter,
+		    f_rec->obj_cr_del_filter->numSourceIndicators);
 		if (rv != NCSCC_RC_SUCCESS)
 			goto error_free;
 
-		for (i = 0; i < f_rec->obj_cr_del_filter->numSourceIndicators; i++) {
+		for (i = 0; i < f_rec->obj_cr_del_filter->numSourceIndicators;
+		     i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			f_rec->obj_cr_del_filter->sourceIndicators[i] = ncs_decode_32bit(&p8);
+			f_rec->obj_cr_del_filter->sourceIndicators[i] =
+			    ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
 		}
 	} else {
@@ -1638,45 +1946,59 @@ static uint32_t ntfsv_dec_filter_msg(NCS_UBAID *uba, ntfsv_filter_ptrs_t *f_rec)
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	filter_type = ncs_decode_32bit(&p8);
-	ncs_dec_skip_space(uba, 4) ;
+	ncs_dec_skip_space(uba, 4);
 	if (filter_type == SA_NTF_TYPE_STATE_CHANGE) {
 		TRACE_2("dec: SA_NTF_TYPE_STATE_CHANGE");
 		f_rec->sta_ch_filter = malloc(sizeof(*f_rec->sta_ch_filter));
 		if (f_rec->sta_ch_filter == NULL) {
 			goto error_free;
 		}
-		rv = ntfsv_dec_filter_header(uba, &f_rec->sta_ch_filter->notificationFilterHeader);
+		rv = ntfsv_dec_filter_header(
+		    uba, &f_rec->sta_ch_filter->notificationFilterHeader);
 		if (rv != NCSCC_RC_SUCCESS)
 			goto error_free;
 
 		p8 = ncs_dec_flatten_space(uba, local_data, 8);
-		f_rec->sta_ch_filter->numSourceIndicators = ncs_decode_32bit(&p8);
+		f_rec->sta_ch_filter->numSourceIndicators =
+		    ncs_decode_32bit(&p8);
 		f_rec->sta_ch_filter->numStateChanges = ncs_decode_32bit(&p8);
 		ncs_dec_skip_space(uba, 8);
 
-		rv = ntfsv_filter_state_ch_alloc(f_rec->sta_ch_filter,
-			f_rec->sta_ch_filter->numSourceIndicators, 
-			f_rec->sta_ch_filter->numStateChanges);
+		rv = ntfsv_filter_state_ch_alloc(
+		    f_rec->sta_ch_filter,
+		    f_rec->sta_ch_filter->numSourceIndicators,
+		    f_rec->sta_ch_filter->numStateChanges);
 		if (rv != NCSCC_RC_SUCCESS)
 			goto error_free;
-		TRACE_2("numSourceIndicators: %d", f_rec->sta_ch_filter->numSourceIndicators);
+		TRACE_2("numSourceIndicators: %d",
+			f_rec->sta_ch_filter->numSourceIndicators);
 
-		for (i = 0; i < f_rec->sta_ch_filter->numSourceIndicators; i++) {
+		for (i = 0; i < f_rec->sta_ch_filter->numSourceIndicators;
+		     i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			f_rec->sta_ch_filter->sourceIndicators[i] = ncs_decode_32bit(&p8);
+			f_rec->sta_ch_filter->sourceIndicators[i] =
+			    ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(uba, 4);
 		}
-		TRACE_2("numStateChanges: %d", f_rec->sta_ch_filter->numStateChanges);
+		TRACE_2("numStateChanges: %d",
+			f_rec->sta_ch_filter->numStateChanges);
 		for (i = 0; i < f_rec->sta_ch_filter->numStateChanges; i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 8);
-			f_rec->sta_ch_filter->changedStates[i].stateId = ncs_decode_16bit(&p8);
-			f_rec->sta_ch_filter->changedStates[i].newState = ncs_decode_16bit(&p8);
-			f_rec->sta_ch_filter->changedStates[i].oldStatePresent = ncs_decode_32bit(&p8);
-			TRACE_2("oldStatePresent: %d", f_rec->sta_ch_filter->changedStates[i].oldStatePresent);
+			f_rec->sta_ch_filter->changedStates[i].stateId =
+			    ncs_decode_16bit(&p8);
+			f_rec->sta_ch_filter->changedStates[i].newState =
+			    ncs_decode_16bit(&p8);
+			f_rec->sta_ch_filter->changedStates[i].oldStatePresent =
+			    ncs_decode_32bit(&p8);
+			TRACE_2("oldStatePresent: %d",
+				f_rec->sta_ch_filter->changedStates[i]
+				    .oldStatePresent);
 			ncs_dec_skip_space(uba, 8);
-			if (f_rec->sta_ch_filter->changedStates[i].oldStatePresent){
+			if (f_rec->sta_ch_filter->changedStates[i]
+				.oldStatePresent) {
 				p8 = ncs_dec_flatten_space(uba, local_data, 2);
-				f_rec->sta_ch_filter->changedStates[i].oldState = ncs_decode_16bit(&p8);				
+				f_rec->sta_ch_filter->changedStates[i]
+				    .oldState = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(uba, 2);
 			}
 		}
@@ -1689,7 +2011,7 @@ done:
 	return rv;
 
 error_free:
-   TRACE("No memory");
+	TRACE("No memory");
 	free(f_rec->alarm_filter);
 	free(f_rec->att_ch_filter);
 	free(f_rec->obj_cr_del_filter);
@@ -1709,7 +2031,7 @@ uint32_t ntfsv_dec_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 	param->f_rec.obj_cr_del_filter = NULL;
 	param->f_rec.sec_al_filter = NULL;
 	param->f_rec.sta_ch_filter = NULL;
-	
+
 	TRACE_ENTER();
 	/* client_id  */
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -1722,13 +2044,13 @@ uint32_t ntfsv_dec_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 
 	rv = ntfsv_dec_filter_msg(uba, &param->f_rec);
 	if (rv != NCSCC_RC_SUCCESS)
-		goto done;		
-	
+		goto done;
+
 	rv = ntfsv_dec_discard_msg(uba, &param->d_info);
 	if (rv != NCSCC_RC_SUCCESS)
 		free(param->d_info.discardedNotificationIdentifiers);
 
-done:	
+done:
 	TRACE_8("NTFSV_SUBSCRIBE_REQ");
 	TRACE_LEAVE();
 	return rv;
@@ -1753,7 +2075,7 @@ uint32_t ntfsv_enc_64bit_msg(NCS_UBAID *uba, uint64_t param)
 
 	TRACE_LEAVE();
 	return rv;
-    }
+}
 
 uint32_t ntfsv_dec_64bit_msg(NCS_UBAID *uba, uint64_t *param)
 {
@@ -1802,7 +2124,8 @@ uint32_t ntfsv_dec_32bit_msg(NCS_UBAID *uba, uint32_t *param)
 	return rv;
 }
 
-uint32_t ntfsv_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param)
+uint32_t ntfsv_enc_unsubscribe_msg(NCS_UBAID *uba,
+				   ntfsv_unsubscribe_req_t *param)
 {
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_SUCCESS;
@@ -1821,7 +2144,8 @@ uint32_t ntfsv_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *para
 	return rv;
 }
 
-uint32_t ntfsv_dec_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param)
+uint32_t ntfsv_dec_unsubscribe_msg(NCS_UBAID *uba,
+				   ntfsv_unsubscribe_req_t *param)
 {
 	uint8_t *p8;
 	uint32_t rv = NCSCC_RC_SUCCESS;
@@ -1829,7 +2153,10 @@ uint32_t ntfsv_dec_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *para
 
 	/* client_id, lstr_id, lstr_open_id */
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
-	if (!p8) {TRACE("ncs_enc_reserve_space failed"); return NCSCC_RC_OUT_OF_MEM;}
+	if (!p8) {
+		TRACE("ncs_enc_reserve_space failed");
+		return NCSCC_RC_OUT_OF_MEM;
+	}
 	param->client_id = ncs_decode_32bit(&p8);
 	param->subscriptionId = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 8);
@@ -1846,7 +2173,7 @@ uint32_t ntfsv_enc_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	TRACE_ENTER();
 	osafassert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 22);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -1879,23 +2206,23 @@ uint32_t ntfsv_dec_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	TRACE_8("NTFSV_reader_initialize_REQ");
 	return NCSCC_RC_SUCCESS;
 }
- 
+
 uint32_t ntfsv_enc_reader_initialize_msg_2(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uint32_t rv; 
-	rv = ntfsv_enc_reader_initialize_msg(uba,msg);
-	if (rv != NCSCC_RC_SUCCESS) 
-		return rv; 
-	return ntfsv_enc_filter_msg(uba, &msg->info.api_info.param.reader_init_2.f_rec); 
+	uint32_t rv;
+	rv = ntfsv_enc_reader_initialize_msg(uba, msg);
+	if (rv != NCSCC_RC_SUCCESS)
+		return rv;
+	return ntfsv_enc_filter_msg(
+	    uba, &msg->info.api_info.param.reader_init_2.f_rec);
 }
 
 uint32_t ntfsv_dec_reader_initialize_msg_2(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uint32_t rv;   
+	uint32_t rv;
 	rv = ntfsv_dec_reader_initialize_msg(uba, msg);
-	if (rv != NCSCC_RC_SUCCESS) 
-		return rv; 
-	return ntfsv_dec_filter_msg(uba, &msg->info.api_info.param.reader_init_2.f_rec);
+	if (rv != NCSCC_RC_SUCCESS)
+		return rv;
+	return ntfsv_dec_filter_msg(
+	    uba, &msg->info.api_info.param.reader_init_2.f_rec);
 }
-
-

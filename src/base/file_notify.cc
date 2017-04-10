@@ -32,9 +32,7 @@ FileNotify::FileNotify() {
   }
 }
 
-FileNotify::~FileNotify() {
-  close(inotify_fd_);
-}
+FileNotify::~FileNotify() { close(inotify_fd_); }
 
 void FileNotify::SplitFileName(const std::string &file_name) {
   char *tmp1 = strdup(file_name.c_str());
@@ -45,14 +43,14 @@ void FileNotify::SplitFileName(const std::string &file_name) {
   free(tmp2);
 }
 
-FileNotify::FileNotifyErrors
-FileNotify::WaitForFileCreation(const std::string &file_name,
-                                const std::vector<int>& user_fds, int timeout) {
-  FileNotify::FileNotifyErrors rc {FileNotifyErrors::kOK};
+FileNotify::FileNotifyErrors FileNotify::WaitForFileCreation(
+    const std::string &file_name, const std::vector<int> &user_fds,
+    int timeout) {
+  FileNotify::FileNotifyErrors rc{FileNotifyErrors::kOK};
   SplitFileName(file_name);
 
-  if ((inotify_wd_ =
-       inotify_add_watch(inotify_fd_, file_path_.c_str(), IN_CREATE)) == -1) {
+  if ((inotify_wd_ = inotify_add_watch(inotify_fd_, file_path_.c_str(),
+                                       IN_CREATE)) == -1) {
     LOG_NO("inotify_add_watch failed: %s", strerror(errno));
     return FileNotifyErrors::kError;
   }
@@ -68,11 +66,10 @@ FileNotify::WaitForFileCreation(const std::string &file_name,
   return rc;
 }
 
-FileNotify::FileNotifyErrors
-FileNotify::WaitForFileDeletion(const std::string &file_name,
-                                const std::vector<int>& user_fds,
-                                int timeout) {
-  FileNotify::FileNotifyErrors rc {FileNotifyErrors::kOK};
+FileNotify::FileNotifyErrors FileNotify::WaitForFileDeletion(
+    const std::string &file_name, const std::vector<int> &user_fds,
+    int timeout) {
+  FileNotify::FileNotifyErrors rc{FileNotifyErrors::kOK};
 
   if ((inotify_wd_ = inotify_add_watch(inotify_fd_, file_name.c_str(),
                                        IN_DELETE_SELF)) == -1) {
@@ -90,18 +87,18 @@ FileNotify::WaitForFileDeletion(const std::string &file_name,
   return rc;
 }
 
-FileNotify::FileNotifyErrors
-FileNotify::ProcessEvents(const std::vector<int>& user_fds, int timeout) {
+FileNotify::FileNotifyErrors FileNotify::ProcessEvents(
+    const std::vector<int> &user_fds, int timeout) {
   enum {
     FD_INOTIFY = 0,
   };
 
-  timespec start_time {0};
-  timespec time_left_ts {0};
-  timespec timeout_ts {0};
+  timespec start_time{0};
+  timespec time_left_ts{0};
+  timespec timeout_ts{0};
 
   int num_of_fds = user_fds.size() + 1;
-  pollfd* fds = new pollfd[num_of_fds];
+  pollfd *fds = new pollfd[num_of_fds];
 
   fds[FD_INOTIFY].fd = inotify_fd_;
   fds[FD_INOTIFY].events = POLLIN;
@@ -123,27 +120,27 @@ FileNotify::ProcessEvents(const std::vector<int>& user_fds, int timeout) {
 
         if (num_read == 0) {
           LOG_WA("read returned zero");
-          delete [] fds;
+          delete[] fds;
           return FileNotifyErrors::kError;
         } else if (num_read == -1) {
           if (errno == EINTR) {
             continue;
           } else {
             LOG_WA("read error: %s", strerror(errno));
-            delete [] fds;
+            delete[] fds;
             return FileNotifyErrors::kError;
           }
         } else {
           for (char *p = buf_; p < buf_ + num_read;) {
-            inotify_event *event = reinterpret_cast<inotify_event*> (p);
+            inotify_event *event = reinterpret_cast<inotify_event *>(p);
             if (event->mask & IN_DELETE_SELF) {
-              delete [] fds;
+              delete[] fds;
               return FileNotifyErrors::kOK;
             }
             if (event->mask & IN_CREATE) {
               if (file_name_ == event->name) {
                 TRACE("file name: %s created", file_name_.c_str());
-                delete [] fds;
+                delete[] fds;
                 return FileNotifyErrors::kOK;
               }
             }
@@ -154,8 +151,8 @@ FileNotify::ProcessEvents(const std::vector<int>& user_fds, int timeout) {
           }
           if (timeout != -1) {
             // calculate remaining timeout only if timeout is not infinite (-1)
-            timespec current_time {0};
-            timespec elapsed_time {0};
+            timespec current_time{0};
+            timespec elapsed_time{0};
 
             current_time = base::ReadMonotonicClock();
 
@@ -173,17 +170,16 @@ FileNotify::ProcessEvents(const std::vector<int>& user_fds, int timeout) {
       }
       // Check user file descriptors
       for (int i = 1; i < num_of_fds; i++) {
-        if ((fds[i].revents & POLLIN) ||
-            (fds[i].revents & POLLHUP) ||
+        if ((fds[i].revents & POLLIN) || (fds[i].revents & POLLHUP) ||
             (fds[i].revents & POLLERR)) {
-          delete [] fds;
+          delete[] fds;
           return FileNotifyErrors::kUserFD;
         }
       }
     } else if (rc == 0) {
-        TRACE("timeout");
-        delete [] fds;
-        return FileNotifyErrors::kTimeOut;
+      TRACE("timeout");
+      delete[] fds;
+      return FileNotifyErrors::kTimeOut;
     }
   }
 }

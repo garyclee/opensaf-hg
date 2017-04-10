@@ -29,9 +29,9 @@
 
     Enqueue an event into the queue within a queue ctrl blk
 
-    PARAMETERS:        
-                       q:  Pointer to queue
-         item: Ptr to the object to be queued.
+    PARAMETERS:
+		       q:  Pointer to queue
+	 item: Ptr to the object to be queued.
 
     RETURNS:           Nothing.
 
@@ -46,7 +46,8 @@ unsigned int ncs_enqueue(NCS_QUEUE *queue, void *item)
 
 	qelem = (NCS_QELEM *)item;
 
-	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON,
+		      22);
 
 	if (queue->tail != NCS_QELEM_NULL)
 		queue->tail->next = qelem;
@@ -57,10 +58,10 @@ unsigned int ncs_enqueue(NCS_QUEUE *queue, void *item)
 	queue->tail = qelem;
 	qelem->next = NCS_QELEM_NULL;
 
-	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE,
+			NCS_SERVICE_ID_COMMON, 22);
 
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /****************************************************************************
@@ -71,14 +72,14 @@ unsigned int ncs_enqueue(NCS_QUEUE *queue, void *item)
 
    Enqueue an event into the queue within a queue ctrl blk at the head
 
-   PARAMETERS:        
+   PARAMETERS:
       q:  Pointer to queue
       item: Ptr to the object to be queued.
 
    RETURNS:           Nothing.
 
    NOTES:
-            
+
 *****************************************************************************/
 unsigned int ncs_enqueue_head(NCS_QUEUE *queue, void *item)
 {
@@ -87,7 +88,8 @@ unsigned int ncs_enqueue_head(NCS_QUEUE *queue, void *item)
 
 	qelem = (NCS_QELEM *)item;
 
-	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON,
+		      22);
 
 	qelem->next = queue->head;
 	queue->head = qelem;
@@ -96,10 +98,10 @@ unsigned int ncs_enqueue_head(NCS_QUEUE *queue, void *item)
 
 	queue->count++;
 
-	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE,
+			NCS_SERVICE_ID_COMMON, 22);
 
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /****************************************************************************
@@ -114,7 +116,7 @@ unsigned int ncs_enqueue_head(NCS_QUEUE *queue, void *item)
     PARAMETERS:        Ptr to the Queue Ctrl Blk
 
     RETURNS:           NULL ptr if nothing is queued.
-                       Ptr to object removed from the queue.
+		       Ptr to object removed from the queue.
 
     NOTES:
 
@@ -122,11 +124,12 @@ unsigned int ncs_enqueue_head(NCS_QUEUE *queue, void *item)
 
 void *ncs_dequeue(NCS_QUEUE *queue)
 {
-	NCS_QELEM *qelem;	/* K100316 */
+	NCS_QELEM *qelem; /* K100316 */
 
 	qelem = NCS_QELEM_NULL;
 
-	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON,
+		      22);
 	if (queue->count) {
 		queue->count--;
 		if ((qelem = queue->head) != NCS_QELEM_NULL) {
@@ -136,10 +139,10 @@ void *ncs_dequeue(NCS_QUEUE *queue)
 		}
 	}
 
-	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE,
+			NCS_SERVICE_ID_COMMON, 22);
 
 	return ((void *)qelem);
-
 }
 
 /****************************************************************************
@@ -152,11 +155,11 @@ void *ncs_dequeue(NCS_QUEUE *queue)
     to find the target item, and remove it from the list.
 
     PARAMETERS:        Ptr to the Queue Ctrl Blk
-                       void* value representing MATCH criteria
-                       function matching prototype NCSQ_MATCH()
+		       void* value representing MATCH criteria
+		       function matching prototype NCSQ_MATCH()
 
     RETURNS:           NULL ptr if a match is not found.
-                       Ptr to object MATCHed and removed from the queue.
+		       Ptr to object MATCHed and removed from the queue.
 
     NOTES:
 
@@ -167,30 +170,33 @@ void *ncs_remove_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match)
 	NCS_QELEM *front = queue->head;
 	NCS_QELEM *behind = (NCS_QELEM *)&queue->head;
 
-	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON,
+		      22);
 	while (front != NCS_QELEM_NULL) {
 		if (match(key, front) == true) {
 			behind->next = front->next;
 
 			queue->count--;
 
-			/* 
-			 * Check if the number of elements in the queue are zero then only 
-			 * set the tail to NULL else tail should point to the last element 
-			 * of the queue.
+			/*
+			 * Check if the number of elements in the queue are zero
+			 * then only set the tail to NULL else tail should point
+			 * to the last element of the queue.
 			 */
 			if (queue->count == 0)
 				queue->tail = NCS_QELEM_NULL;
 			else if (front->next == NCS_QELEM_NULL)
 				queue->tail = behind;
 
-			m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+			m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE,
+					NCS_SERVICE_ID_COMMON, 22);
 			return front;
 		}
 		behind = front;
 		front = front->next;
 	}
-	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE,
+			NCS_SERVICE_ID_COMMON, 22);
 	return NULL;
 }
 
@@ -204,11 +210,11 @@ void *ncs_remove_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match)
     to find the target item. Once found, return the void* ncs_qelem value.
 
     PARAMETERS:        Ptr to the Queue Ctrl Blk
-                       void* value representing MATCH criteria
-                       function matching prototype NCSQ_MATCH()
+		       void* value representing MATCH criteria
+		       function matching prototype NCSQ_MATCH()
 
     RETURNS:           NULL ptr if a match is not found.
-                       Ptr to object MATCHed and from the queue.
+		       Ptr to object MATCHed and from the queue.
 
     NOTES:
 
@@ -218,16 +224,19 @@ void *ncs_find_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match)
 {
 	NCS_QELEM *front = queue->head;
 
-	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON,
+		      22);
 	while (front != NCS_QELEM_NULL) {
 		if (match(key, front) == true) {
-			m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+			m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE,
+					NCS_SERVICE_ID_COMMON, 22);
 			return front;
 		}
 
 		front = front->next;
 	}
-	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE,
+			NCS_SERVICE_ID_COMMON, 22);
 	return NULL;
 }
 
@@ -242,7 +251,7 @@ void *ncs_find_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match)
     PARAMETERS:        Ptr to the Queue Ctrl Blk
 
     RETURNS:           NULL ptr if nothing is queued.
-                       Ptr to object removed from the queue.
+		       Ptr to object removed from the queue.
 
     NOTES:
 
@@ -254,13 +263,14 @@ void *ncs_peek_queue(NCS_QUEUE *queue)
 
 	qelem = NCS_QELEM_NULL;
 
-	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON,
+		      22);
 	if (queue->count)
 		qelem = queue->head;
-	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ,
+			NCS_SERVICE_ID_COMMON, 22);
 
 	return ((void *)qelem);
-
 }
 
 /****************************************************************************
@@ -274,16 +284,16 @@ void *ncs_peek_queue(NCS_QUEUE *queue)
     PARAMETERS:        Ptr to the Queue Ctrl Blk
 
     RETURNS:           NULL ptr if we are at the end or there are no elements
-                       Ptr to the next object on the queue.
+		       Ptr to the next object on the queue.
 
     NOTES:             itr->state must be set to NULL for first invocation
-                       and must then be LEFT ALONE.
-                       
+		       and must then be LEFT ALONE.
+
     IMPORTANT:         When itr->state == 0, this function locks this queue.
-                       It will remain locked until it has walked the entire
-                       list.. That is, until it returns a NULL. This implies,
-                       and NCS_QUEUE expects, that you are in a tight loop and
-                       will break out of the loop once all nodes are visited.
+		       It will remain locked until it has walked the entire
+		       list.. That is, until it returns a NULL. This implies,
+		       and NCS_QUEUE expects, that you are in a tight loop and
+		       will break out of the loop once all nodes are visited.
 
 *****************************************************************************/
 
@@ -291,20 +301,22 @@ void *ncs_walk_items(NCS_QUEUE *queue, NCS_Q_ITR *itr)
 {
 	NCS_QELEM *qelem;
 
-	if (itr->state == NULL) {	/* first time in, prime the pump */
+	if (itr->state == NULL) { /* first time in, prime the pump */
 		if (queue->head) {
-			m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+			m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ,
+				      NCS_SERVICE_ID_COMMON, 22);
 			return (itr->state = queue->head);
 		} else
 			return NULL;
 	}
 
-	qelem = (NCS_QELEM *)itr->state;	/* now its routine walking */
+	qelem = (NCS_QELEM *)itr->state; /* now its routine walking */
 	if (qelem->next != NULL)
 		return (itr->state = qelem->next);
-	else {			/* hit the end of the line */
+	else { /* hit the end of the line */
 
-		m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+		m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ,
+				NCS_SERVICE_ID_COMMON, 22);
 		return NULL;
 	}
 }
@@ -320,34 +332,38 @@ void *ncs_walk_items(NCS_QUEUE *queue, NCS_Q_ITR *itr)
     PARAMETERS:        Ptr to the Queue Ctrl Blk
 
     RETURNS:           NULL ptr if we are at the end or there are no elements
-                       Ptr to the next object on the queue.
+		       Ptr to the next object on the queue.
 
     NOTES:             itr->state must be set to NULL for first invocation
-                       and must then be LEFT ALONE.
-                       
+		       and must then be LEFT ALONE.
+
 *****************************************************************************/
 
 void *ncs_queue_get_next(NCS_QUEUE *queue, NCS_Q_ITR *itr)
 {
 	NCS_QELEM *qelem;
 
-	if (itr->state == NULL) {	/* first time in, prime the pump */
+	if (itr->state == NULL) { /* first time in, prime the pump */
 		if (queue->head) {
-			m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+			m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ,
+				      NCS_SERVICE_ID_COMMON, 22);
 			itr->state = queue->head;
-			m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+			m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ,
+					NCS_SERVICE_ID_COMMON, 22);
 			return (itr->state);
 		} else
 			return NULL;
 	}
 
-	qelem = (NCS_QELEM *)itr->state;	/* now its routine walking */
+	qelem = (NCS_QELEM *)itr->state; /* now its routine walking */
 	if (qelem->next != NULL) {
-		m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+		m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ,
+			      NCS_SERVICE_ID_COMMON, 22);
 		itr->state = qelem->next;
-		m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+		m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ,
+				NCS_SERVICE_ID_COMMON, 22);
 		return (itr->state);
-	} else {		/* hit the end of the line */
+	} else { /* hit the end of the line */
 
 		return NULL;
 	}

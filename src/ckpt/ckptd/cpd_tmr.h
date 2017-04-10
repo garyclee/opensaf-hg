@@ -21,19 +21,19 @@
 #include "base/ncssysf_tmr.h"
 
 typedef enum cpd_tmr_type {
-	CPD_TMR_TYPE_CPND_RETENTION = 1,
-	CPD_TMR_TYPE_CKPT_UPDATE,
-	CPD_TMR_TYPE_MAX = CPD_TMR_TYPE_CKPT_UPDATE,
+  CPD_TMR_TYPE_CPND_RETENTION = 1,
+  CPD_TMR_TYPE_CKPT_UPDATE,
+  CPD_TMR_TYPE_MAX = CPD_TMR_TYPE_CKPT_UPDATE,
 } CPD_TMR_TYPE;
 
 typedef struct cpd_tmr {
-	CPD_TMR_TYPE type;
-	tmr_t tmr_id;
-	uint32_t uarg;
-	bool is_active;
-	union {
-		MDS_DEST cpnd_dest;
-	} info;
+  CPD_TMR_TYPE type;
+  tmr_t tmr_id;
+  uint32_t uarg;
+  bool is_active;
+  union {
+    MDS_DEST cpnd_dest;
+  } info;
 } CPD_TMR;
 
 uint32_t cpd_tmr_start(CPD_TMR *tmr, SaTimeT duration);

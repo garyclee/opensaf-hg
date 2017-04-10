@@ -18,7 +18,7 @@
 /***************************************************************************
  *
  * uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
- * 
+ *
  *
  * Description:
  *   This routine handles operating system primitives for message-queues.

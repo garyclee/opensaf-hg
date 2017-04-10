@@ -12,31 +12,24 @@ extern "C" {
  * Method:    s_invokeSelect
  * Signature: ([J)V
  */
-	JNIEXPORT void JNICALL
-	Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3J(JNIEnv *,
-							     jclass,
-							     jlongArray);
+JNIEXPORT void JNICALL Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3J(
+    JNIEnv *, jclass, jlongArray);
 
 /*
  * Class:     org_opensaf_ais_HandleImpl
  * Method:    s_invokeSelect
  * Signature: ([JJ)I
  */
-	JNIEXPORT jint JNICALL
-	Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3JJ(JNIEnv *,
-							      jclass,
-							      jlongArray,
-							      jlong);
+JNIEXPORT jint JNICALL Java_org_opensaf_ais_HandleImpl_s_1invokeSelect___3JJ(
+    JNIEnv *, jclass, jlongArray, jlong);
 
 /*
  * Class:     org_opensaf_ais_HandleImpl
  * Method:    checkSelectionObject
  * Signature: (J)Z
  */
-	JNIEXPORT jboolean JNICALL
-	Java_org_opensaf_ais_HandleImpl_checkSelectionObject(JNIEnv *,
-							     jobject,
-							     jlong);
+JNIEXPORT jboolean JNICALL
+Java_org_opensaf_ais_HandleImpl_checkSelectionObject(JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }
@@ -63,9 +56,11 @@ extern "C" {
  * Method:    doSelect
  * Signature: ([II)[I
  */
-	JNIEXPORT jintArray JNICALL
-	Java_org_opensaf_ais_SelectionObjectMediator_00024Worker_doSelect
-	(JNIEnv *, jobject, jintArray, jint);
+JNIEXPORT jintArray JNICALL
+Java_org_opensaf_ais_SelectionObjectMediator_00024Worker_doSelect(JNIEnv *,
+                                                                  jobject,
+                                                                  jintArray,
+                                                                  jint);
 
 #ifdef __cplusplus
 }
@@ -82,44 +77,35 @@ extern "C" {
  * Method:    openSocketpair
  * Signature: ()[I
  */
-	JNIEXPORT jintArray JNICALL
-	Java_org_opensaf_ais_SelectionObjectMediator_openSocketpair(JNIEnv
-								    *,
-								    jobject);
+JNIEXPORT jintArray JNICALL
+Java_org_opensaf_ais_SelectionObjectMediator_openSocketpair(JNIEnv *, jobject);
 
 /*
  * Class:     org_opensaf_ais_SelectionObjectMediator
  * Method:    closeSocketpair
  * Signature: ([I)V
  */
-	JNIEXPORT void JNICALL
-	Java_org_opensaf_ais_SelectionObjectMediator_closeSocketpair(JNIEnv
-								     *,
-								     jobject,
-								     jintArray);
+JNIEXPORT void JNICALL
+Java_org_opensaf_ais_SelectionObjectMediator_closeSocketpair(JNIEnv *, jobject,
+                                                             jintArray);
 
 /*
  * Class:     org_opensaf_ais_SelectionObjectMediator
  * Method:    readSocketpair
  * Signature: (I)I
  */
-	JNIEXPORT jint JNICALL
-	Java_org_opensaf_ais_SelectionObjectMediator_readSocketpair(JNIEnv
-								    *,
-								    jobject,
-								    jint);
+JNIEXPORT jint JNICALL
+Java_org_opensaf_ais_SelectionObjectMediator_readSocketpair(JNIEnv *, jobject,
+                                                            jint);
 
 /*
  * Class:     org_opensaf_ais_SelectionObjectMediator
  * Method:    writeSocketpair
  * Signature: (II)V
  */
-	JNIEXPORT void JNICALL
-	Java_org_opensaf_ais_SelectionObjectMediator_writeSocketpair(JNIEnv
-								     *,
-								     jobject,
-								     jint,
-								     jint);
+JNIEXPORT void JNICALL
+Java_org_opensaf_ais_SelectionObjectMediator_writeSocketpair(JNIEnv *, jobject,
+                                                             jint, jint);
 
 #ifdef __cplusplus
 }

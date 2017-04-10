@@ -61,8 +61,8 @@ smfnd_cb_t *smfnd_cb = &_smfnd_cb;
 /****************************************************************************
  * Name          : smfnd_cb_init
  *
- * Description   : This function initializes the SMFND_CB. 
- *                 
+ * Description   : This function initializes the SMFND_CB.
+ *
  *
  * Arguments     : smfnd_cb * - Pointer to the SMFND_CB.
  *
@@ -70,7 +70,7 @@ smfnd_cb_t *smfnd_cb = &_smfnd_cb;
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t smfnd_cb_init(smfnd_cb_t * smfnd_cb)
+uint32_t smfnd_cb_init(smfnd_cb_t *smfnd_cb)
 {
 	TRACE_ENTER();
 
@@ -90,7 +90,7 @@ uint32_t smfnd_cb_init(smfnd_cb_t * smfnd_cb)
 
 /**
  * Initialize smfnd
- * 
+ *
  * @return uns32
  */
 static uint32_t initialize_smfnd(void)
@@ -136,7 +136,7 @@ static uint32_t initialize_smfnd(void)
 		goto done;
 	}
 
- done:
+done:
 	TRACE_LEAVE();
 	return (rc);
 }
@@ -191,7 +191,8 @@ static void main_process(void)
 		if (fds[SMFND_AMF_FD].revents & POLLIN) {
 			/* dispatch all the AMF pending function */
 			if ((error = saAmfDispatch(smfnd_cb->amf_hdl,
-					SA_DISPATCH_ALL)) != SA_AIS_OK) {
+						   SA_DISPATCH_ALL)) !=
+			    SA_AIS_OK) {
 				LOG_ER("saAmfDispatch failed: %u", error);
 				break;
 			}
@@ -209,14 +210,15 @@ static void main_process(void)
  * The main routine for the smfnd daemon.
  * @param argc
  * @param argv
- * 
+ *
  * @return int
  */
 int main(int argc, char *argv[])
 {
-	if(setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0)
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0)
 		LOG_WA("smfd_main(): failed to setenv SA_ENABLE_EXTENDED_NAMES "
-			"- %s",strerror(errno));
+		       "- %s",
+		       strerror(errno));
 	daemonize_as_user("root", argc, argv);
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
@@ -233,7 +235,7 @@ int main(int argc, char *argv[])
 
 	exit(EXIT_SUCCESS);
 
- done:
+done:
 	LOG_ER("SMFND initialization failed, exiting...");
 	exit(EXIT_FAILURE);
 }

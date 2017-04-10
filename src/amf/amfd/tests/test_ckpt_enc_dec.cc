@@ -30,14 +30,10 @@ AVD_CL_CB *avd_cb = &_control_block;
 
 // The fixture for testing encode decode for mbcsv
 class CkptEncDecTest : public ::testing::Test {
-
  protected:
+  virtual void SetUp() {}
 
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-  }
+  virtual void TearDown() {}
 
   bool isLittleEndian() const {
     union {
@@ -45,21 +41,21 @@ class CkptEncDecTest : public ::testing::Test {
       char c[sizeof(int)];
     } x;
     x.i = 1;
-    if(x.c[0] == 1) {
+    if (x.c[0] == 1) {
       return true;
     } else {
       return false;
     }
   }
 
-  NCS_MBCSV_CB_DEC dec {};
-  NCS_MBCSV_CB_ENC enc {};
-  NCS_UBAID uba {};
+  NCS_MBCSV_CB_DEC dec{};
+  NCS_MBCSV_CB_ENC enc{};
+  NCS_UBAID uba{};
 };
 
 TEST_F(CkptEncDecTest, testEncDecAvdApp) {
   int rc = 0;
-  std::string app_name {"AppName"};
+  std::string app_name{"AppName"};
   AVD_APP app(app_name);
   app.saAmfApplicationAdminState = SA_AMF_ADMIN_LOCKED;
   app.saAmfApplicationCurrNumSGs = 0x44332211;
@@ -69,18 +65,18 @@ TEST_F(CkptEncDecTest, testEncDecAvdApp) {
 
   enc.io_msg_type = NCS_MBCSV_MSG_ASYNC_UPDATE;
   enc.io_action = NCS_MBCSV_ACT_UPDATE;
-  enc.io_reo_hdl = (MBCSV_REO_HDL) &app;
+  enc.io_reo_hdl = (MBCSV_REO_HDL)&app;
   enc.io_reo_type = AVSV_CKPT_AVD_APP_CONFIG;
   enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_3;
 
   encode_app(&enc.io_uba, &app);
- 
+
   // retrieve saAmfApplicationCurrNumSGs encoded from the USR buf
   int32_t size = enc.io_uba.ttl;
   char *tmpData = new char[size];
   char *buf = sysf_data_at_start(enc.io_uba.ub, size, tmpData);
   uint32_t offset = sizeof(SaNameT) + sizeof(uint32_t);
-  uint32_t *fld = reinterpret_cast<uint32_t*>(&buf[offset]);
+  uint32_t *fld = reinterpret_cast<uint32_t *>(&buf[offset]);
 
   // verify that the encoded value is in network byte order
   if (isLittleEndian()) {
@@ -91,8 +87,8 @@ TEST_F(CkptEncDecTest, testEncDecAvdApp) {
     ASSERT_EQ(*fld, static_cast<uint32_t>(0x44332211));
   }
 
-  delete [] tmpData;
- 
+  delete[] tmpData;
+
   decode_app(&enc.io_uba, &app);
 
   ASSERT_EQ(app.name, "AppName");
@@ -117,19 +113,19 @@ TEST_F(CkptEncDecTest, testEncDecAvdComp) {
 
   enc.io_msg_type = NCS_MBCSV_MSG_ASYNC_UPDATE;
   enc.io_action = NCS_MBCSV_ACT_UPDATE;
-  enc.io_reo_hdl = (MBCSV_REO_HDL) & comp;
+  enc.io_reo_hdl = (MBCSV_REO_HDL)&comp;
   enc.io_reo_type = AVSV_CKPT_AVD_COMP_CONFIG;
   enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_3;
 
   encode_comp(&enc.io_uba, &comp);
- 
+
   // retrieve AVD_COMP encoded data from the USR buf
   int32_t size = enc.io_uba.ttl;
   char *tmpData = new char[size];
   char *buf = sysf_data_at_start(enc.io_uba.ub, size, tmpData);
   uint32_t offset = sizeof(SaNameT);
-  uint32_t *fld = reinterpret_cast<uint32_t*>(&buf[offset]);
-  
+  uint32_t *fld = reinterpret_cast<uint32_t *>(&buf[offset]);
+
   // verify that the encoded value is in network byte order
   if (isLittleEndian()) {
     // saAmfCompOperState
@@ -147,14 +143,17 @@ TEST_F(CkptEncDecTest, testEncDecAvdComp) {
     ASSERT_EQ(*fld, static_cast<uint32_t>(0x66554433));
   }
 
-  delete [] tmpData;
+  delete[] tmpData;
 
   decode_comp(&enc.io_uba, &comp);
 
   ASSERT_EQ(Amf::to_string(&comp.comp_info.name), "CompName");
-  ASSERT_EQ(comp.saAmfCompOperState, static_cast<SaAmfOperationalStateT>(0x44332211));
-  ASSERT_EQ(comp.saAmfCompReadinessState, static_cast<SaAmfReadinessStateT>(0x55443322));
-  ASSERT_EQ(comp.saAmfCompPresenceState, static_cast<SaAmfPresenceStateT>(0x66554433));
+  ASSERT_EQ(comp.saAmfCompOperState,
+            static_cast<SaAmfOperationalStateT>(0x44332211));
+  ASSERT_EQ(comp.saAmfCompReadinessState,
+            static_cast<SaAmfReadinessStateT>(0x55443322));
+  ASSERT_EQ(comp.saAmfCompPresenceState,
+            static_cast<SaAmfPresenceStateT>(0x66554433));
   ASSERT_EQ(comp.saAmfCompRestartCount, static_cast<uint32_t>(0x77665544));
   ASSERT_EQ(comp.saAmfCompCurrProxyName, "CompProxyName");
 }
@@ -179,7 +178,7 @@ TEST_F(CkptEncDecTest, testEncDecAvdSiAss) {
   susi.si = &si;
   susi.state = SA_AMF_HA_ACTIVE;
   susi.fsm = AVD_SU_SI_STATE_ABSENT;
-  susi.csi_add_rem = SA_FALSE; 
+  susi.csi_add_rem = SA_FALSE;
   susi.comp_name = comp_name;
   susi.csi_name = csi_name;
 
@@ -208,7 +207,7 @@ TEST_F(CkptEncDecTest, testEncDecAvdCb) {
   cb.init_state = AVD_APP_STATE;
   cb.cluster_init_time = 0x8877665544332211;
   cb.nodes_exit_cnt = 0x55443322;
-  
+
   rc = ncs_enc_init_space(&enc.io_uba);
   ASSERT_TRUE(rc == NCSCC_RC_SUCCESS);
 
@@ -219,15 +218,15 @@ TEST_F(CkptEncDecTest, testEncDecAvdCb) {
   enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_3;
 
   encode_cb(&enc.io_uba, &cb, enc.i_peer_version);
-  
+
   // retrieve AVD_CL_CB encoded data from the USR buf
   int32_t size = enc.io_uba.ttl;
   char *tmpData = new char[size];
 
   char *buf = sysf_data_at_start(enc.io_uba.ub, size, tmpData);
   uint32_t offset = 0;
-  uint32_t *fld = reinterpret_cast<uint32_t*>(&buf[offset]);
-  
+  uint32_t *fld = reinterpret_cast<uint32_t *>(&buf[offset]);
+
   // verify that the encoded value is in network byte order
   if (isLittleEndian()) {
     // app_state
@@ -247,12 +246,12 @@ TEST_F(CkptEncDecTest, testEncDecAvdCb) {
     ASSERT_EQ(*fld, static_cast<uint32_t>(0x55443322));
   }
 
-  delete [] tmpData;
+  delete[] tmpData;
 
   cb.init_state = AVD_INIT_BGN;
   cb.cluster_init_time = 0x0;
   cb.nodes_exit_cnt = 0x0;
- 
+
   decode_cb(&enc.io_uba, &cb, enc.i_peer_version);
 
   ASSERT_EQ(cb.init_state, AVD_APP_STATE);
@@ -289,7 +288,7 @@ TEST_F(CkptEncDecTest, testEncDecAvdSiTrans) {
   enc.io_reo_type = AVSV_CKPT_AVD_SI_TRANS;
   enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_4;
 
-  encode_si_trans(&enc.io_uba, static_cast<AVD_SG*>(&sg), enc.i_peer_version);
+  encode_si_trans(&enc.io_uba, static_cast<AVD_SG *>(&sg), enc.i_peer_version);
   decode_si_trans(&enc.io_uba, &msg, enc.i_peer_version);
 
   ASSERT_EQ(Amf::to_string(&msg.sg_name), sg_name);
@@ -302,7 +301,7 @@ TEST_F(CkptEncDecTest, testEncDecAvdNodeConfig) {
   int rc = 0;
   AVD_AVND avnd;
 
-  // generate an address for comparison    
+  // generate an address for comparison
   SaClmNodeAddressT nodeAddress;
   nodeAddress.family = SA_CLM_AF_INET6;
   nodeAddress.length = 64;
@@ -312,10 +311,8 @@ TEST_F(CkptEncDecTest, testEncDecAvdNodeConfig) {
 
   // convert to string for human readability if address doesn't match
   std::string address;
-  std::transform(nodeAddress.value,
-    nodeAddress.value + 64,
-    std::back_inserter(address),
-    [](int c){return c+'0';});
+  std::transform(nodeAddress.value, nodeAddress.value + 64,
+                 std::back_inserter(address), [](int c) { return c + '0'; });
   const std::string name("this_is_a_test");
 
   // initialize avnd structure
@@ -346,17 +343,18 @@ TEST_F(CkptEncDecTest, testEncDecAvdNodeConfig) {
 
   // convert decoded address to string
   std::string decoded_address;
-  std::transform(avnd.node_info.nodeAddress.value,
-    avnd.node_info.nodeAddress.value + 64,
-    std::back_inserter(decoded_address),
-    [](int c){return c + '0';});
+  std::transform(
+      avnd.node_info.nodeAddress.value, avnd.node_info.nodeAddress.value + 64,
+      std::back_inserter(decoded_address), [](int c) { return c + '0'; });
   ASSERT_EQ(avnd.node_info.nodeId, static_cast<SaClmNodeIdT>(1));
   ASSERT_EQ(avnd.node_info.nodeAddress.family, SA_CLM_AF_INET6);
   ASSERT_EQ(avnd.node_info.nodeAddress.length, static_cast<SaUint16T>(64));
   ASSERT_EQ(decoded_address, address);
   ASSERT_EQ(avnd.node_info.member, SA_TRUE);
-  ASSERT_EQ(avnd.node_info.bootTimestamp, static_cast<SaTimeT>(0x3322118877665544));
-  ASSERT_EQ(avnd.node_info.initialViewNumber, static_cast<SaUint64T>(0x8877665544332211));
+  ASSERT_EQ(avnd.node_info.bootTimestamp,
+            static_cast<SaTimeT>(0x3322118877665544));
+  ASSERT_EQ(avnd.node_info.initialViewNumber,
+            static_cast<SaUint64T>(0x8877665544332211));
   ASSERT_EQ(avnd.name, name);
   ASSERT_EQ(avnd.adest, static_cast<MDS_DEST>(0x4433221188776655));
   ASSERT_EQ(avnd.saAmfNodeAdminState, SA_AMF_ADMIN_UNLOCKED);

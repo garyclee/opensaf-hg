@@ -19,16 +19,16 @@
 
 void _logtrace_log(const char *file, unsigned int line, int priority,
                    const char *format, ...) {
-  (void) file;
-  (void) line;
-  (void) priority;
-  (void) format;
+  (void)file;
+  (void)line;
+  (void)priority;
+  (void)format;
 }
 
 void _logtrace_trace(const char *file, unsigned int line, unsigned int category,
                      const char *format, ...) {
-  (void) file;
-  (void) line;
-  (void) category;
-  (void) format;
+  (void)file;
+  (void)line;
+  (void)category;
+  (void)format;
 }

@@ -45,15 +45,13 @@
  * ========================================================================
  */
 
-enum {
-	FD_TERM = 0,
-	FD_AMF = 1,
-	FD_MBCSV,
-	FD_MBX,
-	FD_LOG,
-	FD_CLM,
-	SIZE_FDS
-} NTFS_FDS;
+enum { FD_TERM = 0,
+       FD_AMF = 1,
+       FD_MBCSV,
+       FD_MBX,
+       FD_LOG,
+       FD_CLM,
+       SIZE_FDS } NTFS_FDS;
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -79,16 +77,16 @@ extern void logEvent();
 const char *ha_state_str(SaAmfHAStateT state)
 {
 	switch (state) {
-		case SA_AMF_HA_ACTIVE:
-			return "SA_AMF_HA_ACTIVE";
-		case SA_AMF_HA_STANDBY:
-			return "SA_AMF_HA_STANDBY";
-		case SA_AMF_HA_QUIESCED:
-			return "SA_AMF_HA_QUIESCED";
-		case SA_AMF_HA_QUIESCING:
-			return "SA_AMF_HA_QUIESCING";
-		default:
-			return "Unknown";
+	case SA_AMF_HA_ACTIVE:
+		return "SA_AMF_HA_ACTIVE";
+	case SA_AMF_HA_STANDBY:
+		return "SA_AMF_HA_STANDBY";
+	case SA_AMF_HA_QUIESCED:
+		return "SA_AMF_HA_QUIESCED";
+	case SA_AMF_HA_QUIESCING:
+		return "SA_AMF_HA_QUIESCING";
+	default:
+		return "Unknown";
 	}
 	return "dummy";
 }
@@ -99,10 +97,11 @@ const char *ha_state_str(SaAmfHAStateT state)
  * @param cb_info
  * @param error_code
  */
-static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info,
+		   PCSRDA_RETURN_CODE error_code)
 {
 	uint32_t rc;
-	ntfsv_ntfs_evt_t *evt=NULL;
+	ntfsv_ntfs_evt_t *evt = NULL;
 
 	TRACE_ENTER();
 
@@ -115,7 +114,8 @@ static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE
 	evt->evt_type = NTFSV_EVT_RDA;
 	evt->info.rda_info.io_role = cb_info->info.io_role;
 
-	rc = ncs_ipc_send(&ntfs_cb->mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_VERY_HIGH);
+	rc = ncs_ipc_send(&ntfs_cb->mbx, (NCS_IPC_MSG *)evt,
+			  MDS_SEND_PRIORITY_VERY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("IPC send failed %d", rc);
 		free(evt);
@@ -129,12 +129,12 @@ done:
  * USR1 signal is used when AMF wants instantiate us as a
  * component. Wake up the main thread so it can register with
  * AMF.
- * 
+ *
  * @param i_sig_num
  */
 static void sigusr1_handler(int sig)
 {
-	(void) sig;
+	(void)sig;
 	signal(SIGUSR1, SIG_IGN);
 	ncs_sel_obj_ind(&usr1_sel_obj);
 	TRACE("Got USR1 signal");
@@ -170,17 +170,19 @@ static void dump_sig_handler(int sig)
 
 /**
  * Initialize ntfs
- * 
+ *
  * @return uns32
  */
 static uint32_t initialize()
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	;
 
 	TRACE_ENTER();
 	/* Set extended SaNameT environment var*/
 	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
-		LOG_ER("Failed to set environment variable: SA_ENABLE_EXTENDED_NAMES");
+		LOG_ER(
+		    "Failed to set environment variable: SA_ENABLE_EXTENDED_NAMES");
 		goto done;
 	}
 
@@ -225,39 +227,37 @@ static uint32_t initialize()
 	}
 
 	if (ntfs_cb->nid_started &&
-		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS)
-	{
+	    (rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
 	if (ntfs_cb->nid_started &&
-			(rc = ncs_sel_obj_create(&ntfs_cb->usr2_sel_obj)) != NCSCC_RC_SUCCESS)
-	{
+	    (rc = ncs_sel_obj_create(&ntfs_cb->usr2_sel_obj)) !=
+		NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
 
 	if (ntfs_cb->nid_started &&
-		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+	    signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 failed: %s", strerror(errno));
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
-	
 
 	if (!ntfs_cb->nid_started && ntfs_amf_init() != SA_AIS_OK) {
 		goto done;
 	}
 
 	if ((rc = initialize_for_assignment(ntfs_cb, ntfs_cb->ha_state)) !=
-		NCSCC_RC_SUCCESS) {
-		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned)rc);
 		goto done;
 	}
 
 done:
 	if (ntfs_cb->nid_started &&
-		nid_notify("NTFD", rc, NULL) != NCSCC_RC_SUCCESS) {
+	    nid_notify("NTFD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		rc = NCSCC_RC_FAILURE;
 	}
@@ -267,7 +267,7 @@ done:
 
 uint32_t initialize_for_assignment(ntfs_cb_t *cb, SaAmfHAStateT ha_state)
 {
-	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	TRACE_ENTER2("ha_state = %d", (int)ha_state);
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) {
 		goto done;
@@ -319,20 +319,20 @@ int main(int argc, char *argv[])
 	/* Set up all file descriptors to listen to */
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
-	fds[FD_AMF].fd = ntfs_cb->nid_started ?
-		usr1_sel_obj.rmv_obj : ntfs_cb->amfSelectionObject;
+	fds[FD_AMF].fd = ntfs_cb->nid_started ? usr1_sel_obj.rmv_obj
+					      : ntfs_cb->amfSelectionObject;
 	fds[FD_AMF].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
-	ntfs_cb->clmSelectionObject = ntfs_cb->nid_started ?
-                ntfs_cb->usr2_sel_obj.rmv_obj : -1;
+	ntfs_cb->clmSelectionObject =
+	    ntfs_cb->nid_started ? ntfs_cb->usr2_sel_obj.rmv_obj : -1;
 	/* NTFS main processing loop. */
 	while (1) {
 		fds[FD_MBCSV].fd = ntfs_cb->mbcsv_sel_obj;
 		fds[FD_MBCSV].events = POLLIN;
 		fds[FD_LOG].fd = ntfs_cb->logSelectionObject;
 		fds[FD_LOG].events = POLLIN;
-		fds[FD_CLM].fd = ntfs_cb->clmSelectionObject; 
+		fds[FD_CLM].fd = ntfs_cb->clmSelectionObject;
 		fds[FD_CLM].events = POLLIN;
 
 		int ret = poll(fds, SIZE_FDS, -1);
@@ -346,15 +346,18 @@ int main(int argc, char *argv[])
 
 		if (fds[FD_TERM].revents & POLLIN) {
 			TRACE("Exit via FD_TERM calling stop_ntfimcn()");
-			(void) stop_ntfimcn();
+			(void)stop_ntfimcn();
 			daemon_exit();
 		}
 
 		if (fds[FD_AMF].revents & POLLIN) {
 			/* dispatch all the AMF pending function */
 			if (ntfs_cb->amf_hdl != 0) {
-				if ((error = saAmfDispatch(ntfs_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
-					LOG_ER("saAmfDispatch failed: %u", error);
+				if ((error = saAmfDispatch(ntfs_cb->amf_hdl,
+							   SA_DISPATCH_ALL)) !=
+				    SA_AIS_OK) {
+					LOG_ER("saAmfDispatch failed: %u",
+					       error);
 					break;
 				}
 			} else {
@@ -369,7 +372,6 @@ int main(int argc, char *argv[])
 				TRACE("AMF Initialization SUCCESS......");
 				fds[FD_AMF].fd = ntfs_cb->amfSelectionObject;
 			}
-
 		}
 
 		if (fds[FD_MBCSV].revents & POLLIN) {
@@ -380,13 +382,17 @@ int main(int argc, char *argv[])
 
 		if (fds[FD_CLM].revents & POLLIN) {
 			if (ntfs_cb->clm_hdl != 0) {
-				if ((error = saClmDispatch(ntfs_cb->clm_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
-					LOG_ER("saClmDispatch failed: %u", error);
+				if ((error = saClmDispatch(ntfs_cb->clm_hdl,
+							   SA_DISPATCH_ALL)) !=
+				    SA_AIS_OK) {
+					LOG_ER("saClmDispatch failed: %u",
+					       error);
 					break;
 				}
 			} else {
 				TRACE("SIGUSR2 event rec");
-				ncs_sel_obj_rmv_ind(&ntfs_cb->usr2_sel_obj, true, true);
+				ncs_sel_obj_rmv_ind(&ntfs_cb->usr2_sel_obj,
+						    true, true);
 				ncs_sel_obj_destroy(&ntfs_cb->usr2_sel_obj);
 				ntfs_cb->clmSelectionObject = -1;
 				init_with_clm();

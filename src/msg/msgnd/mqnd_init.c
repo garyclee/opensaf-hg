@@ -22,7 +22,7 @@
 
   FUNCTIONS INCLUDED in this module:
   mqnd_lib_req ............ SE API to init and create PWE for MQND
-  mqnd_lib_init ........... Function used to init MQND.  
+  mqnd_lib_init ........... Function used to init MQND.
   mqnd_lib_destroy ........ Function used to destroy MQNDND.
   mqnd_main_process ...........Process all the events posted to MQND.
 ******************************************************************************/
@@ -33,20 +33,15 @@
 #define MQND_CLM_API_TIMEOUT 10000000000LL
 uint32_t gl_mqnd_cb_hdl = 0;
 
-enum {
-	FD_TERM = 0,
-	FD_AMF,
-	FD_CLM,
-	FD_MBX,
-	FD_IMM,
-	NUM_FD
-};
+enum { FD_TERM = 0, FD_AMF, FD_CLM, FD_MBX, FD_IMM, NUM_FD };
 
 static struct pollfd fds[NUM_FD];
 static nfds_t nfds = NUM_FD;
 /* Static Function Declerations */
-static uint32_t mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INFO *create_info);
-static uint32_t mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_INFO *destroy_info);
+static uint32_t mqnd_extract_create_info(int argc, char *argv[],
+					 MQSV_CREATE_INFO *create_info);
+static uint32_t mqnd_extract_destroy_info(int argc, char *argv[],
+					  MQSV_DESTROY_INFO *destroy_info);
 static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info);
 static uint32_t mqnd_lib_destroy(MQSV_DESTROY_INFO *info);
 static uint32_t mqnd_compare_mqa_dest(uint8_t *valInDb, uint8_t *key);
@@ -63,11 +58,11 @@ static void mqnd_asapi_unbind(void);
 /****************************************************************************
  * Name          : mqnd_lib_req
  *
- * Description   : This is the SE API which is used to init/destroy or 
+ * Description   : This is the SE API which is used to init/destroy or
  *                 Create/destroy PWE's of MQND. This will be called by SBOM.
  *
- * Arguments     : req_info  - This is the pointer to the input information 
- *                             which SBOM gives.  
+ * Arguments     : req_info  - This is the pointer to the input information
+ *                             which SBOM gives.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
@@ -82,15 +77,17 @@ uint32_t mqnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
-		if (mqnd_extract_create_info(req_info->info.create.argc,
-					     req_info->info.create.argv, &create_info) == NCSCC_RC_FAILURE) {
+		if (mqnd_extract_create_info(
+			req_info->info.create.argc, req_info->info.create.argv,
+			&create_info) == NCSCC_RC_FAILURE) {
 			break;
 		}
 		rc = mqnd_lib_init(&create_info);
 		break;
 	case NCS_LIB_REQ_DESTROY:
-		if (mqnd_extract_destroy_info(req_info->info.create.argc,
-					      req_info->info.create.argv, &destroy_info) == NCSCC_RC_FAILURE) {
+		if (mqnd_extract_destroy_info(
+			req_info->info.create.argc, req_info->info.create.argv,
+			&destroy_info) == NCSCC_RC_FAILURE) {
 			break;
 		}
 		rc = mqnd_lib_destroy(&destroy_info);
@@ -98,8 +95,8 @@ uint32_t mqnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 	default:
 		break;
 	}
-	if(rc != NCSCC_RC_SUCCESS)
-	LOG_ER("Either library initialization or destroy failed");
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("Either library initialization or destroy failed");
 
 	TRACE_LEAVE2("Returned with return code %d", rc);
 	return (rc);
@@ -118,12 +115,14 @@ uint32_t mqnd_lib_req(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INFO *create_info)
+static uint32_t mqnd_extract_create_info(int argc, char *argv[],
+					 MQSV_CREATE_INFO *create_info)
 {
 
 	memset(create_info, 0, sizeof(MQSV_CREATE_INFO));
 
-	/* SUD:TBD Need to change this once we get these parameters in the argv */
+	/* SUD:TBD Need to change this once we get these parameters in the argv
+	 */
 	create_info->pool_id = NCS_HM_POOL_ID_COMMON;
 
 	return (NCSCC_RC_SUCCESS);
@@ -136,13 +135,15 @@ static uint32_t mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INF
  *
  * Arguments     : argc  - This is the Number of arguments received.
  *                 argv  - string received.
- *                 destroy_info - Structure to be filled for initing the service.
+ *                 destroy_info - Structure to be filled for initing the
+ *service.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_INFO *destroy_info)
+static uint32_t mqnd_extract_destroy_info(int argc, char *argv[],
+					  MQSV_DESTROY_INFO *destroy_info)
 {
 
 	memset(destroy_info, 0, sizeof(MQSV_DESTROY_INFO));
@@ -159,8 +160,8 @@ static uint32_t mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_I
  * Description   : This is the function which initalize the MQND libarary.
  *                 This function creates an IPC mail Box and spawns MQND
  *                 thread.
- *                 This function initializes the CB, handle manager, MDS, CPA 
- *                 and Registers with AMF with respect to the component Type 
+ *                 This function initializes the CB, handle manager, MDS, CPA
+ *                 and Registers with AMF with respect to the component Type
  *                 (MQND).
  *
  * Arguments     : create_info: pointer to struct MQSV_CREATE_INFO.
@@ -248,7 +249,8 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	close(fd);
 
-	/* As there is no specific limit for priority queue size at present it is kept as max msg size */
+	/* As there is no specific limit for priority queue size at present it
+	 * is kept as max msg size */
 	cb->gl_msg_max_prio_q_size = cb->gl_msg_max_q_size;
 
 	/* END: Set attributes of queue in global variable */
@@ -262,7 +264,8 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	}
 	TRACE_1("CB Database Init Success");
 
-	if ((cb->cb_hdl = ncshm_create_hdl(cb->hm_pool, NCS_SERVICE_ID_MQND, (NCSCONTEXT)cb)) == 0) {
+	if ((cb->cb_hdl = ncshm_create_hdl(cb->hm_pool, NCS_SERVICE_ID_MQND,
+					   (NCSCONTEXT)cb)) == 0) {
 		LOG_ER("CB Handle Creation Failed");
 		rc = NCSCC_RC_FAILURE;
 		goto mqnd_hdl_fail;
@@ -317,7 +320,8 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 		goto mqnd_mds_fail;
 	}
 
-	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID, MQND_CLM_API_TIMEOUT, &cluster_node);
+	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID,
+				 MQND_CLM_API_TIMEOUT, &cluster_node);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saClmClusterNodeGet failed with return code %d", rc);
 		goto mqnd_clm_fail;
@@ -334,7 +338,8 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	/* Imm Initialization */
 	amf_error = mqnd_imm_initialize(cb);
 	if (amf_error != SA_AIS_OK) {
-		/* we need to log here (NCSFL_SEV_ERROR, "Imm Initialization  Failed %u\n", amf_error); */
+		/* we need to log here (NCSFL_SEV_ERROR, "Imm Initialization
+		 * Failed %u\n", amf_error); */
 		LOG_ER("mqnd_imm_initialize Failed: %u", amf_error);
 		goto amf_reg_err;
 	}
@@ -357,14 +362,17 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	if (health_key == NULL) {
 		strcpy((char *)healthy.key, "E5F6");
 	} else {
-		strncpy((char *)healthy.key, health_key, SA_AMF_HEALTHCHECK_KEY_MAX - 1);
+		strncpy((char *)healthy.key, health_key,
+			SA_AMF_HEALTHCHECK_KEY_MAX - 1);
 	}
 	healthy.keyLen = strlen((char *)healthy.key);
 
 	amf_error = saAmfHealthcheckStart(cb->amf_hdl, &cb->comp_name, &healthy,
-					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
+					  SA_AMF_HEALTHCHECK_AMF_INVOKED,
+					  SA_AMF_COMPONENT_RESTART);
 	if (amf_error != SA_AIS_OK) {
-		LOG_ER("saAmfHealthcheckStart Failed with error value %d", amf_error);
+		LOG_ER("saAmfHealthcheckStart Failed with error value %d",
+		       amf_error);
 		goto amf_reg_err;
 	}
 	/* End of code for No Redundanccy Support */
@@ -375,30 +383,30 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
- mqnd_mds_fail:
+mqnd_mds_fail:
 	/* IMM FInalize. */
 	saImmOiFinalize(cb->immOiHandle);
- mqnd_clm_fail:
+mqnd_clm_fail:
 	saClmFinalize(cb->clm_hdl);
- amf_reg_err:
+amf_reg_err:
 	mqnd_amf_de_init(cb);
- amf_init_err:
+amf_init_err:
 	m_NCS_IPC_DETACH(&cb->mbx, mqnd_clear_mbx, cb);
 
- mqnd_ipc_att_fail:
+mqnd_ipc_att_fail:
 	m_NCS_IPC_RELEASE(&cb->mbx, NULL);
 
- mqnd_shm_create_fail:
+mqnd_shm_create_fail:
 	mqnd_shm_destroy(cb);
 
- mqnd_ipc_create_fail:
+mqnd_ipc_create_fail:
 	ncshm_destroy_hdl(NCS_SERVICE_ID_MQND, cb->cb_hdl);
 
- mqnd_hdl_fail:
+mqnd_hdl_fail:
 	mqnd_cb_db_destroy(cb);
 	mqnd_cb_namedb_destroy(cb);
 	mqnd_cb_qevt_node_db_destroy(cb);
- mqnd_cb_init_fail:
+mqnd_cb_init_fail:
 
 	m_MMGR_FREE_MQND_CB(cb);
 
@@ -412,8 +420,8 @@ static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
  *
  * Description   : This is the function which destroy the mqnd libarary.
  *                 This function releases the Task and the IPX mail Box.
- *                 This function unregisters with AMF, destroies handle 
- *                 manager, CB and clean up all the component specific 
+ *                 This function unregisters with AMF, destroies handle
+ *                 manager, CB and clean up all the component specific
  *                 databases.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
@@ -429,8 +437,8 @@ static uint32_t mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
 	TRACE_ENTER();
 
 	mqnd_hdl = m_MQND_GET_HDL();
-	if ((cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_MQND, mqnd_hdl))
-	    == NULL) {
+	if ((cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_MQND, mqnd_hdl)) ==
+	    NULL) {
 		TRACE_2("CB Take Failed");
 		rc = NCSCC_RC_FAILURE;
 		return rc;
@@ -473,7 +481,7 @@ static uint32_t mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
 /****************************************************************************
  * Name          : mqnd_cb_db_init
  *
- * Description   : This is the function which initializes all the data 
+ * Description   : This is the function which initializes all the data
  *                 structures and locks used belongs to MQND.
  *
  * Arguments     : cb  - MQND control block pointer.
@@ -490,15 +498,16 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 
 	/* initialze the queue handle tree */
 	params.key_size = sizeof(SaMsgQueueHandleT);
-	if ((rc = ncs_patricia_tree_init(&cb->qhndl_db, &params))
-	    != NCSCC_RC_SUCCESS) {
+	if ((rc = ncs_patricia_tree_init(&cb->qhndl_db, &params)) !=
+	    NCSCC_RC_SUCCESS) {
 		TRACE_2("Controlblock Initialization Failed");
 		return rc;
 	}
 	cb->is_qhdl_db_up = true;
 	/* Initialise the queuename tree */
 	params.key_size = sizeof(SaNameT);
-	if ((ncs_patricia_tree_init(&cb->qname_db, &params)) != NCSCC_RC_SUCCESS) {
+	if ((ncs_patricia_tree_init(&cb->qname_db, &params)) !=
+	    NCSCC_RC_SUCCESS) {
 		TRACE_2("Initialization of Queue database Failed");
 		rc = NCSCC_RC_FAILURE;
 	}
@@ -506,8 +515,8 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 	cb->is_qname_db_up = true;
 	/*Initialize the qevt node tree */
 	params.key_size = sizeof(SaMsgQueueHandleT);
-	if ((rc = ncs_patricia_tree_init(&cb->q_transfer_evt_db, &params))
-	    != NCSCC_RC_SUCCESS) {
+	if ((rc = ncs_patricia_tree_init(&cb->q_transfer_evt_db, &params)) !=
+	    NCSCC_RC_SUCCESS) {
 		TRACE_2("Controlblock Initialization Failed");
 		return rc;
 	}
@@ -575,7 +584,6 @@ static uint32_t mqnd_cb_db_destroy(MQND_CB *cb)
 		m_MMGR_FREE_MQND_QUEUE_NODE(qnode);
 
 		mqnd_queue_node_getnext(cb, qhdl, &qnode);
-
 	}
 
 	if (cb->is_qhdl_db_up)
@@ -664,7 +672,8 @@ static uint32_t mqnd_cb_qevt_node_db_destroy(MQND_CB *cb)
 /****************************************************************************
  * Name          : mqnd_compare_mqa_dest
  *
- * Description   : Compare the key with the value of mqa mds destination in the list.
+ * Description   : Compare the key with the value of mqa mds destination in the
+ *list.
  *
  * Arguments     : valInDb - MDS destination value in the database.
  *                 key     - MDS destination value from the function.
@@ -711,7 +720,7 @@ static uint32_t mqnd_mqa_list_init(NCS_DB_LINK_LIST *mqalist)
 /****************************************************************************
  * Name          : mqnd_clear_mbx
  *
- * Description   : This is the function which deletes all the messages from 
+ * Description   : This is the function which deletes all the messages from
  *                 the mail box.
  *
  * Arguments     : arg     - argument to be passed.
@@ -721,22 +730,19 @@ static uint32_t mqnd_mqa_list_init(NCS_DB_LINK_LIST *mqalist)
  *
  * Notes         : None.
  *****************************************************************************/
-static bool mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
-{
-	return true;
-}
+static bool mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg) { return true; }
 
 /****************************************************************************
  * Name          : mqnd_main_process
  *
- * Description   : This is the function which is given as a input to the 
+ * Description   : This is the function which is given as a input to the
  *                 MQND task.
  *                 This function will be select of both the FD's (AMF FD and
  *                 Mail Box FD), depending on which FD has been selected, it
  *                 will call the corresponding routines.
  *
- * Arguments     : mbx  - This is the mail box pointer on which IfD/IfND is 
- *                        going to block.  
+ * Arguments     : mbx  - This is the mail box pointer on which IfD/IfND is
+ *                        going to block.
  *
  * Return Values : None.
  *
@@ -786,12 +792,13 @@ void mqnd_main_process(uint32_t hdl)
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_IMM].fd = cb->imm_sel_obj;
 	fds[FD_IMM].events = POLLIN;
-	
-        if (saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL) != SA_AIS_OK) {
-		LOG_ER("saClmClusterTrack Failed");
-                return;
-        }
 
+	if (saClmClusterTrack(cb->clm_hdl,
+			      (SA_TRACK_CURRENT | SA_TRACK_CHANGES),
+			      NULL) != SA_AIS_OK) {
+		LOG_ER("saClmClusterTrack Failed");
+		return;
+	}
 
 	while (1) {
 
@@ -818,9 +825,12 @@ void mqnd_main_process(uint32_t hdl)
 
 		if (fds[FD_AMF].revents & POLLIN) {
 			if (cb->amf_hdl != 0) {
-				err = saAmfDispatch(cb->amf_hdl, SA_DISPATCH_ALL);
+				err =
+				    saAmfDispatch(cb->amf_hdl, SA_DISPATCH_ALL);
 				if (err != SA_AIS_OK) {
-					LOG_ER("saAmfDispatch Failed with error %d", err);
+					LOG_ER(
+					    "saAmfDispatch Failed with error %d",
+					    err);
 				}
 			} else
 				LOG_ER("cb->amf_hdl is NULL");
@@ -829,39 +839,48 @@ void mqnd_main_process(uint32_t hdl)
 		if (fds[FD_CLM].revents & POLLIN) {
 			clm_error = saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL);
 			if (clm_error != SA_AIS_OK) {
-				LOG_ER("saClmDispatch Failed with error %d", clm_error);
+				LOG_ER("saClmDispatch Failed with error %d",
+				       clm_error);
 			}
 		}
 
 		if (fds[FD_MBX].revents & POLLIN) {
-			if (NULL != (evt = (MQSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&cb->mbx, evt))) {
+			if (NULL !=
+			    (evt = (MQSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(
+				 &cb->mbx, evt))) {
 				if (evt->evt_type == MQSV_NOT_DSEND_EVENT)
-					mqnd_process_evt(evt);	/* now got the IPC mail box event */
+					mqnd_process_evt(evt); /* now got the
+								  IPC mail box
+								  event */
 				else if (evt->evt_type == MQSV_DSEND_EVENT) {
 					dsend_evt = (MQSV_DSEND_EVT *)evt;
 					mqnd_process_dsend_evt(dsend_evt);
 				} else {
 					/*Assert */
 				}
-
 			}
 		}
 
 		if (fds[FD_IMM].revents & POLLIN) {
 			err = saImmOiDispatch(cb->immOiHandle, SA_DISPATCH_ONE);
 			if (err == SA_AIS_ERR_BAD_HANDLE) {
-				LOG_ER("saImmOiDispatch returned BAD_HANDLE with error %u", err);
+				LOG_ER(
+				    "saImmOiDispatch returned BAD_HANDLE with error %u",
+				    err);
 				/*
-				 ** Invalidate the IMM OI handle, this info is used in other
-				 ** locations. E.g. giving TRY_AGAIN responses to a create and
-				 ** close resource requests. That is needed since the IMM OI
-				 ** is used in context of these functions.
+				 ** Invalidate the IMM OI handle, this info is
+				 *used in other * locations. E.g. giving
+				 *TRY_AGAIN responses to a create and * close
+				 *resource requests. That is needed since the
+				 *IMM OI * is used in context of these
+				 *functions.
 				 */
 				cb->immOiHandle = 0;
 				/* Reinitiate IMM */
 				mqnd_imm_reinit_bg(cb);
 			} else if (err != SA_AIS_OK) {
-				LOG_ER("saImmOiDispatch Failed with error %u", err); 
+				LOG_ER("saImmOiDispatch Failed with error %u",
+				       err);
 				break;
 			}
 		}

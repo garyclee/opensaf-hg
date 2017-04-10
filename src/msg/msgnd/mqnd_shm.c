@@ -20,18 +20,18 @@
 
 ..............................................................................
 
-  DESCRIPTION: This file contains the Library functions for Shared memory 
-               stats update of the queue 
+  DESCRIPTION: This file contains the Library functions for Shared memory
+	       stats update of the queue
 
     This file inclused following routines:
-    
+
     mqnd_kernel_msgparams
     mqnd_shm_create
     mqnd_reset_queue_stats
     mqnd_find_shm_ckpt_empty_section
     mqnd_send_msg_update_stats_shm
     mqnd_shm_queue_ckpt_section_invalidate
-    
+
 ******************************************************************************/
 
 #include "mqnd.h"
@@ -39,13 +39,14 @@
 /**************************************************************************************************************
  * Name           : mqnd_shm_create
  *
- * Description    : To create a shared memory segment to store the stats of the queues opened on a Node
+ * Description    : To create a shared memory segment to store the stats of the
+ *queues opened on a Node
  *
- * Arguments      : MQND_CB *cb 
+ * Arguments      : MQND_CB *cb
  *
  * Return Values  : SUCCESS/FAILURE
  * Notes          : None
-**************************************************************************************************************/
+ **************************************************************************************************************/
 
 uint32_t mqnd_shm_create(MQND_CB *cb)
 {
@@ -65,7 +66,8 @@ uint32_t mqnd_shm_create(MQND_CB *cb)
 
 	mqnd_open_req.type = NCS_OS_POSIX_SHM_REQ_OPEN;
 	mqnd_open_req.info.open.i_size =
-	    sizeof(MQND_SHM_VERSION) + (sizeof(MQND_QUEUE_CKPT_INFO) * cb->mqnd_shm.max_open_queues);
+	    sizeof(MQND_SHM_VERSION) +
+	    (sizeof(MQND_QUEUE_CKPT_INFO) * cb->mqnd_shm.max_open_queues);
 	mqnd_open_req.ensures_space = false;
 	mqnd_open_req.info.open.i_offset = 0;
 	mqnd_open_req.info.open.i_name = shm_name;
@@ -86,21 +88,26 @@ uint32_t mqnd_shm_create(MQND_CB *cb)
 		} else {
 			memset(mqnd_open_req.info.open.o_addr, 0,
 			       sizeof(MQND_SHM_VERSION) +
-			       (sizeof(MQND_QUEUE_CKPT_INFO) * (cb->mqnd_shm.max_open_queues)));
+				   (sizeof(MQND_QUEUE_CKPT_INFO) *
+				    (cb->mqnd_shm.max_open_queues)));
 			TRACE_1("First time starting the MQND");
 			cb->is_restart_done = true;
 			TRACE("Firsttime Openingthe Ckpt");
 			cb->is_create_ckpt = true;
-			memcpy(mqnd_open_req.info.open.o_addr, &mqnd_shm_version, sizeof(mqnd_shm_version));
+			memcpy(mqnd_open_req.info.open.o_addr,
+			       &mqnd_shm_version, sizeof(mqnd_shm_version));
 		}
 	} else
 		cb->is_create_ckpt = false;
 
-	/* Store Shared memory start address which contains MQSV Sharedmemory version */
+	/* Store Shared memory start address which contains MQSV Sharedmemory
+	 * version */
 	cb->mqnd_shm.shm_start_addr = mqnd_open_req.info.open.o_addr;
 
-	/* Store Shared memory base address which is used by MQSV to checkpoint queue informaition */
-	cb->mqnd_shm.shm_base_addr = mqnd_open_req.info.open.o_addr + sizeof(mqnd_shm_version);
+	/* Store Shared memory base address which is used by MQSV to checkpoint
+	 * queue informaition */
+	cb->mqnd_shm.shm_base_addr =
+	    mqnd_open_req.info.open.o_addr + sizeof(mqnd_shm_version);
 
 	TRACE_LEAVE();
 	return rc;
@@ -109,13 +116,13 @@ uint32_t mqnd_shm_create(MQND_CB *cb)
 /**************************************************************************************************************
  * Name           : mqnd_shm_destroy
  *
- * Description    : To destroy shared memory segment 
+ * Description    : To destroy shared memory segment
  *
  * Arguments      : MQND_CB
  *
  * Return Values  : SUCCESS/FAILURE
  * Notes          : None
-**************************************************************************************************************/
+ **************************************************************************************************************/
 
 uint32_t mqnd_shm_destroy(MQND_CB *cb)
 {
@@ -127,8 +134,9 @@ uint32_t mqnd_shm_destroy(MQND_CB *cb)
 	mqnd_dest_req.info.unlink.i_name = shm_name;
 
 	rc = ncs_os_posix_shm(&mqnd_dest_req);
-	if (rc != NCSCC_RC_SUCCESS);
-		LOG_CR("Destroying the shared memory segment failed");
+	if (rc != NCSCC_RC_SUCCESS)
+		;
+	LOG_CR("Destroying the shared memory segment failed");
 
 	return rc;
 }
@@ -136,13 +144,14 @@ uint32_t mqnd_shm_destroy(MQND_CB *cb)
 /**************************************************************************************************************
  * Name           : mqnd_reset_queue_stats
  *
- * Description    : To reset queue stats when an existing message queue is opened with empty flag set
+ * Description    : To reset queue stats when an existing message queue is
+ *opened with empty flag set
  *
- * Arguments      : MQND_CB , INDEX (representing the queue offset in shm) 
+ * Arguments      : MQND_CB , INDEX (representing the queue offset in shm)
  *
- * Return Values  : 
+ * Return Values  :
  * Notes          : None
-**************************************************************************************************************/
+ **************************************************************************************************************/
 
 void mqnd_reset_queue_stats(MQND_CB *cb, uint32_t index)
 {
@@ -150,25 +159,30 @@ void mqnd_reset_queue_stats(MQND_CB *cb, uint32_t index)
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
 	shm_base_addr = cb->mqnd_shm.shm_base_addr;
-	for (j = SA_MSG_MESSAGE_HIGHEST_PRIORITY; j <= SA_MSG_MESSAGE_LOWEST_PRIORITY; j++) {
-		shm_base_addr[index].QueueStatsShm.saMsgQueueUsage[j].queueUsed = 0;
-		shm_base_addr[index].QueueStatsShm.saMsgQueueUsage[j].numberOfMessages = 0;
+	for (j = SA_MSG_MESSAGE_HIGHEST_PRIORITY;
+	     j <= SA_MSG_MESSAGE_LOWEST_PRIORITY; j++) {
+		shm_base_addr[index]
+		    .QueueStatsShm.saMsgQueueUsage[j]
+		    .queueUsed = 0;
+		shm_base_addr[index]
+		    .QueueStatsShm.saMsgQueueUsage[j]
+		    .numberOfMessages = 0;
 	}
 	shm_base_addr[index].QueueStatsShm.totalQueueUsed = 0;
 	shm_base_addr[index].QueueStatsShm.totalNumberOfMessages = 0;
-
 }
 
 /**************************************************************************************************************
- * Name           : mqnd_find_shm_ckpt_empty_section  
+ * Name           : mqnd_find_shm_ckpt_empty_section
  *
- * Description    : To do a linear search through the shared memory segment and find a free section 
+ * Description    : To do a linear search through the shared memory segment and
+ *find a free section
  *
- * Arguments      : MQND_CB 
+ * Arguments      : MQND_CB
  *
- * Return Values  : Index value which is the offset to access the queue stats in shared memory
- * Notes          : None
-**************************************************************************************************************/
+ * Return Values  : Index value which is the offset to access the queue stats in
+ *shared memory Notes          : None
+ **************************************************************************************************************/
 
 uint32_t mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uint32_t *index)
 {
@@ -182,30 +196,32 @@ uint32_t mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uint32_t *index)
 		if (shm_base_addr[i].valid == SHM_QUEUE_INFO_VALID)
 			continue;
 		else {
-			memset((shm_base_addr + i), '\0', sizeof(MQND_QUEUE_CKPT_INFO));
+			memset((shm_base_addr + i), '\0',
+			       sizeof(MQND_QUEUE_CKPT_INFO));
 			shm_base_addr[i].valid = SHM_QUEUE_INFO_VALID;
 			*index = i;
 			return rc;
 		}
 	}
 	return NCSCC_RC_FAILURE;
-
 }
 
 /****************************************************************************
  * Name          : mqnd_send_msg_update_stats_shm
  *
- * Description   : Function to update stats of queue in shm when message is sent.
+ * Description   : Function to update stats of queue in shm when message is
+ sent.
  *
  * Arguments     : MQND_QUEUE_NODE *qnode
-                   MQP_SEND_MSG *snd_msg 
- *                
+		   MQP_SEND_MSG *snd_msg
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaSizeT size, SaUint8T priority)
+uint32_t mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode,
+					SaSizeT size, SaUint8T priority)
 {
 	uint32_t offset;
 
@@ -215,8 +231,12 @@ uint32_t mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaS
 
 	offset = qnode->qinfo.shm_queue_index;
 	if (shm_base_addr[offset].valid == SHM_QUEUE_INFO_VALID) {
-		shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[priority].queueUsed += size;
-		shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[priority].numberOfMessages += 1;
+		shm_base_addr[offset]
+		    .QueueStatsShm.saMsgQueueUsage[priority]
+		    .queueUsed += size;
+		shm_base_addr[offset]
+		    .QueueStatsShm.saMsgQueueUsage[priority]
+		    .numberOfMessages += 1;
 		shm_base_addr[offset].QueueStatsShm.totalQueueUsed += size;
 		shm_base_addr[offset].QueueStatsShm.totalNumberOfMessages += 1;
 	} else {
@@ -224,16 +244,15 @@ uint32_t mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaS
 		return NCSCC_RC_FAILURE;
 	}
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /****************************************************************************
  * Name          : mqnd_shm_queue_ckpt_section_invalidate
  *
- * Description   : Function to invalidate the shared memory area of the queue 
+ * Description   : Function to invalidate the shared memory area of the queue
  *
  * Arguments     : MQND_QUEUE_NODE *qnode
-                   
+
  *
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
@@ -241,7 +260,8 @@ uint32_t mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaS
  * Notes         : None.
  *****************************************************************************/
 
-uint32_t mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
+uint32_t mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb,
+						MQND_QUEUE_NODE *qnode)
 {
 	uint32_t offset;
 
@@ -257,7 +277,8 @@ uint32_t mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb, MQND_QUEUE_NODE *qn
 	offset = qnode->qinfo.shm_queue_index;
 	if (shm_base_addr[offset].valid == SHM_QUEUE_INFO_VALID) {
 		shm_base_addr[offset].valid = SHM_QUEUE_INFO_INVALID;
-		memset((shm_base_addr + offset), '\0', sizeof(MQND_QUEUE_CKPT_INFO));
+		memset((shm_base_addr + offset), '\0',
+		       sizeof(MQND_QUEUE_CKPT_INFO));
 	}
 	return NCSCC_RC_SUCCESS;
 }

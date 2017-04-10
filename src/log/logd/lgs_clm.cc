@@ -22,7 +22,7 @@
 #include "base/time.h"
 
 static bool clm_initialized;
-static void *clm_node_db = NULL;       /* used for C++ STL map */
+static void *clm_node_db = NULL; /* used for C++ STL map */
 typedef std::map<NODE_ID, lgs_clm_node_t *> ClmNodeMap;
 
 /**
@@ -31,8 +31,7 @@ typedef std::map<NODE_ID, lgs_clm_node_t *> ClmNodeMap;
  * @return true/false.
  */
 static bool is_clm_init() {
-  return (((lgs_cb->clm_hdl != 0)
-           && (clm_initialized == true)) ? true : false);
+  return (((lgs_cb->clm_hdl != 0) && (clm_initialized == true)) ? true : false);
 }
 
 /**
@@ -54,7 +53,6 @@ uint32_t lgs_clm_node_map_init(lgs_cb_t *lgs_cb) {
   return NCSCC_RC_SUCCESS;
 }
 
-
 /**
  * Name     : lgs_clm_node_find
  * Description   : This routine finds the clm_node .
@@ -66,8 +64,7 @@ static uint32_t lgs_clm_node_find(NODE_ID clm_node_id) {
   TRACE_ENTER();
   uint32_t rc;
 
-  ClmNodeMap *clmNodeMap(reinterpret_cast<ClmNodeMap *>
-                         (clm_node_db));
+  ClmNodeMap *clmNodeMap(reinterpret_cast<ClmNodeMap *>(clm_node_db));
 
   if (clmNodeMap) {
     ClmNodeMap::iterator it(clmNodeMap->find(clm_node_id));
@@ -104,12 +101,11 @@ static uint32_t lgs_clm_node_add(NODE_ID clm_node_id) {
 
   clm_node->clm_node_id = clm_node_id;
 
-  ClmNodeMap *clmNodeMap(reinterpret_cast<ClmNodeMap *>
-                         (clm_node_db));
+  ClmNodeMap *clmNodeMap(reinterpret_cast<ClmNodeMap *>(clm_node_db));
 
   if (clmNodeMap) {
-    std::pair<ClmNodeMap::iterator, bool> p(clmNodeMap->insert(
-        std::make_pair(clm_node->clm_node_id, clm_node)));
+    std::pair<ClmNodeMap::iterator, bool> p(
+        clmNodeMap->insert(std::make_pair(clm_node->clm_node_id, clm_node)));
 
     if (!p.second) {
       TRACE("unable to add clm node info map - the id %x already existed",
@@ -135,8 +131,7 @@ static uint32_t lgs_clm_node_del(NODE_ID clm_node_id) {
   TRACE_ENTER();
   uint32_t rc;
 
-  ClmNodeMap *clmNodeMap(reinterpret_cast<ClmNodeMap *>
-                         (clm_node_db));
+  ClmNodeMap *clmNodeMap(reinterpret_cast<ClmNodeMap *>(clm_node_db));
 
   if (clmNodeMap) {
     auto it = (clmNodeMap->find(clm_node_id));
@@ -169,7 +164,8 @@ static uint32_t lgs_clm_node_del(NODE_ID clm_node_id) {
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  */
 static uint32_t send_clm_node_status_lib(SaClmClusterChangesT clusterChange,
-                                         unsigned int client_id, MDS_DEST mdsDest) {
+                                         unsigned int client_id,
+                                         MDS_DEST mdsDest) {
   uint32_t rc;
   NCSMDS_INFO mds_info = {0};
   lgsv_msg_t msg;
@@ -215,8 +211,8 @@ static uint32_t send_cluster_membership_msg_to_clients(
   TRACE_3("clm_node_id: %x, change:%u", clm_node_id, clusterChange);
   /* Loop through Client DB */
   ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
-  for (const auto& value : *clientMap) {
-    rec =  value.second; 
+  for (const auto &value : *clientMap) {
+    rec = value.second;
     NODE_ID tmp_clm_node_id = m_LGS_GET_NODE_ID_FROM_ADEST(rec->mds_dest);
     //  Do not send to A11 client. Send only to specific Node
     if (tmp_clm_node_id == clm_node_id)
@@ -242,11 +238,10 @@ static uint32_t send_clm_node_status_change(SaClmClusterChangesT clusterChange,
  */
 bool is_client_clm_member(NODE_ID clm_node_id, SaVersionT *ver) {
   //  Before CLM init all clients are clm member.
-  if (is_clm_init() == false)
-    return true;
+  if (is_clm_init() == false) return true;
 
-  TRACE("client Version: %d.%d.%d", ver->releaseCode,
-        ver->majorVersion, ver->minorVersion);
+  TRACE("client Version: %d.%d.%d", ver->releaseCode, ver->majorVersion,
+        ver->minorVersion);
   //  CLM integration is supported from A.02.02.
   //  So old clients A.02.01 are always clm member.
   if ((ver->releaseCode == LOG_RELEASE_CODE_0) &&
@@ -254,8 +249,8 @@ bool is_client_clm_member(NODE_ID clm_node_id, SaVersionT *ver) {
       (ver->minorVersion == LOG_MINOR_VERSION_0))
     return true;
   /*
-        It means CLM initialization is successful and this is atleast a A.02.02 client.
-        So check CLM membership status of client's node.
+        It means CLM initialization is successful and this is atleast a A.02.02
+     client. So check CLM membership status of client's node.
   */
   if (lgs_clm_node_find(clm_node_id) != NCSCC_RC_SUCCESS)
     return false;
@@ -276,11 +271,8 @@ bool is_client_clm_member(NODE_ID clm_node_id, SaVersionT *ver) {
 static void lgs_clm_track_cbk(
     const SaClmClusterNotificationBufferT_4 *notificationBuffer,
     SaUint32T numberOfMembers, SaInvocationT invocation,
-    const SaNameT *rootCauseEntity,
-    const SaNtfCorrelationIdsT *correlationIds,
-    SaClmChangeStepT step, SaTimeT timeSupervision,
-    SaAisErrorT error) {
-
+    const SaNameT *rootCauseEntity, const SaNtfCorrelationIdsT *correlationIds,
+    SaClmChangeStepT step, SaTimeT timeSupervision, SaAisErrorT error) {
   NODE_ID clm_node_id;
   SaClmClusterChangesT clusterChange;
   SaBoolT is_member;
@@ -330,10 +322,7 @@ done:
 }
 
 /* saClmClusterTrackCallback */
-static const SaClmCallbacksT_4 clm_callbacks = {
-  0,
-  lgs_clm_track_cbk
-};
+static const SaClmCallbacksT_4 clm_callbacks = {0, lgs_clm_track_cbk};
 
 /*
  * @brief   Registers with the CLM service (B.04.01).
@@ -341,8 +330,8 @@ static const SaClmCallbacksT_4 clm_callbacks = {
  * @return  SaAisErrorT
  */
 void *lgs_clm_init_thread(void *cb) {
-  static SaVersionT clmVersion = { 'B', 0x04, 0x01 };
-  lgs_cb_t *_lgs_cb = reinterpret_cast<lgs_cb_t *> (cb);
+  static SaVersionT clmVersion = {'B', 0x04, 0x01};
+  lgs_cb_t *_lgs_cb = reinterpret_cast<lgs_cb_t *>(cb);
   SaAisErrorT rc;
 
   TRACE_ENTER();

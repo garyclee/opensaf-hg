@@ -22,7 +22,7 @@
 #include "osaf/immutil/immutil.h"
 #include "ntfimcn_main.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -30,17 +30,16 @@ int ntfimcn_ntf_init(ntfimcn_cb_t *cb);
 int ntfimcn_send_object_create_notification(
     CcbUtilOperationData_t *CcbUtilOperationData, SaStringT rdn_attr_name,
     SaBoolT ccbLast);
-int ntfimcn_send_object_delete_notification(CcbUtilOperationData_t *CcbUtilOperationData,
-                                            const SaNameT *invoke_name,
-                                            SaBoolT ccbLast);
-int ntfimcn_send_object_modify_notification(CcbUtilOperationData_t *CcbUtilOperationData,
-                                            SaNameT *invoker_name,
-                                            SaBoolT ccbLast);
+int ntfimcn_send_object_delete_notification(
+    CcbUtilOperationData_t *CcbUtilOperationData, const SaNameT *invoke_name,
+    SaBoolT ccbLast);
+int ntfimcn_send_object_modify_notification(
+    CcbUtilOperationData_t *CcbUtilOperationData, SaNameT *invoker_name,
+    SaBoolT ccbLast);
 int ntfimcn_send_lost_cm_notification(void);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
 #endif  // NTF_NTFIMCND_NTFIMCN_NOTIFIER_H_
-

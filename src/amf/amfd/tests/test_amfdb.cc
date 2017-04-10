@@ -18,27 +18,20 @@
 #include "gtest/gtest.h"
 #include "amf/common/amf_db_template.h"
 
-class TEST_APP {
-};
+class TEST_APP {};
 
 // The fixture for testing class AmfDb
 class AmfDbTest : public ::testing::Test {
-
  protected:
+  virtual void SetUp() {}
 
-  virtual void SetUp() {
-
-  }
-
-  virtual void TearDown() {
-  }
+  virtual void TearDown() {}
 
   AmfDb<std::string, TEST_APP> db_;
-
 };
 
 TEST_F(AmfDbTest, IsEmptyInitially) {
-  std::map<std::string, TEST_APP*>::const_iterator it = db_.begin();
+  std::map<std::string, TEST_APP *>::const_iterator it = db_.begin();
   EXPECT_EQ(it, db_.end());
 }
 

@@ -20,9 +20,9 @@
 
 ..............................................................................
 
-  DESCRIPTION: This file contains the Library functions for Native message 
-               queue operations.
-  
+  DESCRIPTION: This file contains the Library functions for Native message
+	       queue operations.
+
     This file inclused following routines:
     mqnd_mq_create
     mqnd_mq_open
@@ -31,13 +31,13 @@
     mqnd_mq_msg_rcv
 
 ******************************************************************************/
-#if(NCS_MQND == 1)
+#if (NCS_MQND == 1)
 #include "mqnd.h"
 #include "base/ncs_osprm.h"
 
 uint32_t gl_key = 1;
 
-NCS_OS_MQ_MSG transfer_mq_msg;	/* used in queue owner ship */
+NCS_OS_MQ_MSG transfer_mq_msg; /* used in queue owner ship */
 
 /****************************************************************************
  * Function Name: mqnd_mq_create
@@ -62,7 +62,8 @@ uint32_t mqnd_mq_create(MQND_QUEUE_INFO *q_info)
 	info.info.open.node = m_NCS_NODE_ID_FROM_MDS_DEST(q_info->rcvr_mqa);
 	info.info.open.iflags = O_CREAT;
 
-	for (i = SA_MSG_MESSAGE_HIGHEST_PRIORITY; i <= SA_MSG_MESSAGE_LOWEST_PRIORITY; i++) {
+	for (i = SA_MSG_MESSAGE_HIGHEST_PRIORITY;
+	     i <= SA_MSG_MESSAGE_LOWEST_PRIORITY; i++) {
 		size += q_info->size[i];
 	}
 
@@ -70,7 +71,8 @@ uint32_t mqnd_mq_create(MQND_QUEUE_INFO *q_info)
 
 	/* Create a New message queue */
 	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s:%u: Creation of New message queue failed", __FILE__, __LINE__);
+		LOG_ER("%s:%u: Creation of New message queue failed", __FILE__,
+		       __LINE__);
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -79,7 +81,8 @@ uint32_t mqnd_mq_create(MQND_QUEUE_INFO *q_info)
 		zero_q = *q_info;
 		zero_q.queueHandle = 0;
 		if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s:%u: Creation of New message queue failed", __FILE__, __LINE__);
+			LOG_ER("%s:%u: Creation of New message queue failed",
+			       __FILE__, __LINE__);
 			rc = NCSCC_RC_FAILURE;
 		}
 		mqnd_mq_destroy(&zero_q);
@@ -112,7 +115,8 @@ uint32_t mqnd_mq_open(MQND_QUEUE_INFO *q_info)
 
 	/* Create a New message queue */
 	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s:%u: Creation of New message queue failed", __FILE__, __LINE__);
+		LOG_ER("%s:%u: Creation of New message queue failed", __FILE__,
+		       __LINE__);
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -129,7 +133,7 @@ uint32_t mqnd_mq_open(MQND_QUEUE_INFO *q_info)
 uint32_t mqnd_mq_destroy(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
-	uint8_t qName[SA_MAX_NAME_LENGTH] = { 0 };
+	uint8_t qName[SA_MAX_NAME_LENGTH] = {0};
 
 	/* No queuehdl present so return success */
 	if (q_info->queueHandle == 0)
@@ -140,14 +144,16 @@ uint32_t mqnd_mq_destroy(MQND_QUEUE_INFO *q_info)
 	info.info.close.mqd = q_info->queueHandle;
 
 	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s:%u: Closing the existing message queue failed", __FILE__, __LINE__);
+		LOG_ER("%s:%u: Closing the existing message queue failed",
+		       __FILE__, __LINE__);
 		return (NCSCC_RC_FAILURE);
 	}
 
-/* Unlink the file created by leap */
+	/* Unlink the file created by leap */
 	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
 	info.req = NCS_OS_POSIX_MQ_REQ_UNLINK;
-	strncpy((char *)qName, (char *)q_info->queueName.value, q_info->queueName.length);
+	strncpy((char *)qName, (char *)q_info->queueName.value,
+		q_info->queueName.length);
 	info.info.unlink.qname = qName;
 	info.info.unlink.node = m_NCS_NODE_ID_FROM_MDS_DEST(q_info->rcvr_mqa);
 
@@ -177,10 +183,10 @@ uint32_t mqnd_mq_msg_send(uint32_t qhdl, MQSV_MESSAGE *mqsv_msg, uint32_t size)
 	info.info.send.mqd = qhdl;
 	info.info.send.datalen = size;
 	info.info.send.i_msg = &mq_msg;
-	/* Priority 1 will be used for control messages like MQP_EVT_CANCEL_REQ 
-	   Priority 2 will be used for re-sending the messages that failed to deliver
-	   to applications in saMsgMessageGet. 
-	   Priority 3 to 6 will be used for SAF priorities 0 to 3 respectivelyp */
+	/* Priority 1 will be used for control messages like MQP_EVT_CANCEL_REQ
+	   Priority 2 will be used for re-sending the messages that failed to
+	   deliver to applications in saMsgMessageGet. Priority 3 to 6 will be
+	   used for SAF priorities 0 to 3 respectivelyp */
 
 	info.info.send.i_mtype = mqsv_msg->info.msg.message.priority + 3;
 
@@ -218,8 +224,8 @@ uint32_t mqnd_mq_empty(SaMsgQueueHandleT handle)
 	mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC;
 	mq_req.info.recv.mqd = handle;
 
-	/* TBD: When POSIX is ready, pass the timeout. right now 
-	 * wait indefinitely 
+	/* TBD: When POSIX is ready, pass the timeout. right now
+	 * wait indefinitely
 	 */
 	memset(&mq_req.info.recv.timeout, 0, sizeof(NCS_OS_POSIX_TIMESPEC));
 
@@ -253,8 +259,8 @@ uint32_t mqnd_mq_rcv(SaMsgQueueHandleT handle)
 	mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_RECV;
 	mq_req.info.recv.mqd = handle;
 
-	/* TBD: When POSIX is ready, pass the timeout. right now 
-	 * wait indefinitely 
+	/* TBD: When POSIX is ready, pass the timeout. right now
+	 * wait indefinitely
 	 */
 	memset(&mq_req.info.recv.timeout, 0, sizeof(NCS_OS_POSIX_TIMESPEC));
 
@@ -265,8 +271,9 @@ uint32_t mqnd_mq_rcv(SaMsgQueueHandleT handle)
 	mq_req.info.recv.i_msg = &transfer_mq_msg;
 	mq_req.info.recv.datalen = NCS_OS_MQ_MAX_PAYLOAD;
 	mq_req.info.recv.dataprio = 0;
-	mq_req.info.recv.i_mtype = -7;	/* Read only the priorities brtween 1 and 6,
-					   with 1 as highest priority */
+	mq_req.info.recv.i_mtype =
+	    -7; /* Read only the priorities brtween 1 and 6,
+		   with 1 as highest priority */
 
 	if (m_NCS_OS_POSIX_MQ(&mq_req) != NCSCC_RC_SUCCESS) {
 		LOG_ER("Receiving the message from message queue failed");
@@ -299,7 +306,8 @@ uint32_t mqnd_listenerq_create(MQND_QUEUE_INFO *q_info)
 
 	/* Create a New message queue */
 	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s:%u: Creation of message queue failed", __FILE__, __LINE__);
+		LOG_ER("%s:%u: Creation of message queue failed", __FILE__,
+		       __LINE__);
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -308,7 +316,8 @@ uint32_t mqnd_listenerq_create(MQND_QUEUE_INFO *q_info)
 		zero_q = *q_info;
 		zero_q.listenerHandle = 0;
 		if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s:%u: Creation of message queue failed", __FILE__, __LINE__);
+			LOG_ER("%s:%u: Creation of message queue failed",
+			       __FILE__, __LINE__);
 			rc = NCSCC_RC_FAILURE;
 		}
 		mqnd_listenerq_destroy(&zero_q);
@@ -328,7 +337,7 @@ uint32_t mqnd_listenerq_create(MQND_QUEUE_INFO *q_info)
 uint32_t mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
-	uint8_t qName[SA_MAX_NAME_LENGTH] = { 0 };
+	uint8_t qName[SA_MAX_NAME_LENGTH] = {0};
 
 	/* No listener queue present, return */
 	if (!q_info->listenerHandle)
@@ -339,11 +348,12 @@ uint32_t mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
 	info.info.close.mqd = q_info->listenerHandle;
 
 	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s:%u: Closing the existing message queue failed", __FILE__, __LINE__);
+		LOG_ER("%s:%u: Closing the existing message queue failed",
+		       __FILE__, __LINE__);
 		return (NCSCC_RC_FAILURE);
 	}
 
-/* Unlink the file created by leap */
+	/* Unlink the file created by leap */
 	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
 	info.req = NCS_OS_POSIX_MQ_REQ_UNLINK;
 	sprintf((char *)qName, "NCS_MQSV%llu", q_info->queueHandle);
@@ -358,4 +368,4 @@ uint32_t mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
 	return NCSCC_RC_SUCCESS;
 }
 
-#endif   /* (NCS_MQND == 1) */
+#endif /* (NCS_MQND == 1) */

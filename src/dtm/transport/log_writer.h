@@ -48,13 +48,9 @@ class LogWriter {
   void Close();
   void RotateLog();
 
-  const char* mds_log_file() const {
-    return mds_log_file_.c_str();
-  }
+  const char* mds_log_file() const { return mds_log_file_.c_str(); }
 
-  const char* old_mds_log_file() const {
-    return old_mds_log_file_.c_str();
-  }
+  const char* old_mds_log_file() const { return old_mds_log_file_.c_str(); }
 
   const std::string mds_log_file_;
   const std::string old_mds_log_file_;

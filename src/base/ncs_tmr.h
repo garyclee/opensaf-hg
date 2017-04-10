@@ -35,26 +35,30 @@
 #include "base/ncssysf_tmr.h"
 #include "base/ncssysf_mem.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef NCSCONTEXT NCS_RP_TMR_HDL;      /* Datatype is opaque to user */
+typedef NCSCONTEXT NCS_RP_TMR_HDL; /* Datatype is opaque to user */
 
 /* 1 sec default */
 #define m_RP_TMR_DEF_PERIOD (1)
 
-typedef void (*RP_TMR_CALLBACK) (void *);
+typedef void (*RP_TMR_CALLBACK)(void *);
 
 typedef struct ncs_rp_tmr_cb_tag {
-  uint32_t tmr_ganularity;        /* minimum granularity is 1 sec */
-  tmr_t tmr_id;   /* Maps to OS timer ID */
-  TMR_CALLBACK tmr_callback;      /* call back which will be used to registered with the OS timer */
-  void *callback_arg;     /* argument for the above call back */
-  NCS_SERVICE_ID svc_id;  /* service id of the RP */
-  uint32_t svc_sub_id;    /* sub id for the above service ID */
-  struct ncs_rp_tmr_info_tag *start_list; /* hold the pointer of the starting tmr list */
-  time_t last_trig_tmr;   /* this will hold the time stamp of last trigered value */
+  uint32_t tmr_ganularity; /* minimum granularity is 1 sec */
+  tmr_t tmr_id;            /* Maps to OS timer ID */
+  TMR_CALLBACK
+      tmr_callback;      /* call back which will be used to registered with the OS
+                            timer */
+  void *callback_arg;    /* argument for the above call back */
+  NCS_SERVICE_ID svc_id; /* service id of the RP */
+  uint32_t svc_sub_id;   /* sub id for the above service ID */
+  struct ncs_rp_tmr_info_tag
+      *start_list; /* hold the pointer of the starting tmr list */
+  time_t
+      last_trig_tmr; /* this will hold the time stamp of last trigered value */
   bool active;
   NCS_LOCK tmr_lock;
 } NCS_RP_TMR_CB;
@@ -62,10 +66,16 @@ typedef struct ncs_rp_tmr_cb_tag {
 typedef struct ncs_rp_tmr_info_tag {
   struct ncs_rp_tmr_info_tag *pnext;
   struct ncs_rp_tmr_info_tag *pprev;
-  RP_TMR_CALLBACK rp_tmr_callback;        /* this is the timer call back which the RP has to register, which will be invoked when the particular timer expires */
-  void *callback_arg;     /* this is the argument, which is used by the above callback */
-  int64_t tmr_value;     /* this is the tmr value which the RP needs to register for */
-  time_t tmr_trig_at;     /* this is the system timer, exactly when it has trigered this timer */
+  RP_TMR_CALLBACK rp_tmr_callback; /* this is the timer call back which the RP
+                                      has to register, which will be invoked
+                                      when the particular timer expires */
+  void *callback_arg;              /* this is the argument, which is used by the above
+                                      callback */
+  int64_t
+      tmr_value; /* this is the tmr value which the RP needs to register for */
+  time_t
+      tmr_trig_at; /* this is the system timer, exactly when it has trigered
+                      this timer */
 } NCS_RP_TMR_INFO;
 
 typedef struct ncs_rp_tmr_init_tag {
@@ -75,7 +85,6 @@ typedef struct ncs_rp_tmr_init_tag {
   NCS_SERVICE_ID svc_id;
   uint32_t svc_sub_id;
 } NCS_RP_TMR_INIT;
-
 
 #undef RP_LOG_ENB
 #ifdef RP_LOG_ENB
@@ -103,7 +112,8 @@ typedef struct ncs_rp_tmr_init_tag {
  * timer id and restart the timer. This should be done only after
  * m_NCS_RP_TMR_CREATE is called. timer id should be valid.
  */
-#define m_NCS_RP_TMR_START(tmr_cb, tmr_id, period, callbk, arg) ncs_rp_tmr_start(tmr_cb, tmr_id, period, callbk, arg)
+#define m_NCS_RP_TMR_START(tmr_cb, tmr_id, period, callbk, arg) \
+  ncs_rp_tmr_start(tmr_cb, tmr_id, period, callbk, arg)
 
 /* m_NCS_RP_TMR_STOP is used to stop the timer and remove it from the RP
  * timer list, this will not frees structures whatever the m_NCS_RP_TMR_START
@@ -136,32 +146,25 @@ NCS_RP_TMR_CB *ncs_rp_tmr_init(NCS_RP_TMR_INIT *tmr_init_info);
 NCS_RP_TMR_HDL
 ncs_rp_tmr_create(NCS_RP_TMR_CB *tmr_cb);
 
-uint32_t
-ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, int64_t period, RP_TMR_CALLBACK callbk,
-                 void *arg);
+uint32_t ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id,
+                          int64_t period, RP_TMR_CALLBACK callbk, void *arg);
 
-uint32_t
-ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
+uint32_t ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
 
-uint32_t
-ncs_rp_tmr_delete(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
+uint32_t ncs_rp_tmr_delete(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
 
-uint32_t
-ncs_rp_tmr_destory(NCS_RP_TMR_CB **tmr_cb);
+uint32_t ncs_rp_tmr_destory(NCS_RP_TMR_CB **tmr_cb);
 
-uint32_t
-ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb);
+uint32_t ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb);
 
-int64_t
-ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
+int64_t ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
 
 /* This is the utill function which will give the time left by taking in the
  * time at which that particular timer is triggered
  */
-int64_t
-rp_tmr_time_left_in_sec(time_t tmr_trig_at, int64_t tmr_val);
+int64_t rp_tmr_time_left_in_sec(time_t tmr_trig_at, int64_t tmr_val);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -66,62 +66,65 @@ extern "C" {
 
 */
 
-#define m_NCS_EDP_SAUINT8T                          ncs_edp_uns8
-#define m_NCS_EDP_SAUINT16T                         ncs_edp_uns16
-#define m_NCS_EDP_SAUINT32T                         ncs_edp_uns32
-#define m_NCS_EDP_SAINT32T                          ncs_edp_int
-#define m_NCS_EDP_SAUINT64T                         ncs_edp_uns64
-#define m_NCS_EDP_SAINT64T                          ncs_edp_int64
+#define m_NCS_EDP_SAUINT8T ncs_edp_uns8
+#define m_NCS_EDP_SAUINT16T ncs_edp_uns16
+#define m_NCS_EDP_SAUINT32T ncs_edp_uns32
+#define m_NCS_EDP_SAINT32T ncs_edp_int
+#define m_NCS_EDP_SAUINT64T ncs_edp_uns64
+#define m_NCS_EDP_SAINT64T ncs_edp_int64
 
-#define m_NCS_EDP_SAAMFHEALTHCHECKINVOCATIONT       ncs_edp_uns32
-#define m_NCS_EDP_SAAMFRECOMMENDEDRECOVERYT         ncs_edp_uns32
-#define m_NCS_EDP_SAERRORT                          ncs_edp_uns32
-#define m_NCS_EDP_SAAMFREADINESSSTATET              ncs_edp_uns32
-#define m_NCS_EDP_SAAMFHASTATET                     ncs_edp_uns32
-#define m_NCS_EDP_SAAMFCOMPONENTCAPABILITYMODELT    ncs_edp_uns32
-#define m_NCS_EDP_SAAMFCSITRANSITIONDESCRIPTORT     ncs_edp_uns32
-#define m_NCS_EDP_SAAMFEXTERNALCOMPONENTACTIONT     ncs_edp_uns32
-#define m_NCS_EDP_SAAMFHANDLET                      m_NCS_EDP_SAUINT64T
-#define m_NCS_EDP_SAAMFPENDINGOPERATIONFLAGST       m_NCS_EDP_SAUINT32T
-#define m_NCS_EDP_SAAMFCSIFLAGST                    m_NCS_EDP_SAUINT32T
-#define m_NCS_EDP_SAINVOCATIONT                     m_NCS_EDP_SAUINT64T
-#define m_NCS_EDP_SASIZET                           m_NCS_EDP_SAUINT64T
-#define m_NCS_EDP_SACLMNODEIDT                      m_NCS_EDP_SAUINT32T
-#define m_NCS_EDP_SATIMET                           m_NCS_EDP_SAINT64T
-#define m_NCS_EDP_NCSOPERSTATE                      ncs_edp_uns32
-#define m_NCS_EDP_SAAMFPROTECTIONGROUPCHANGEST      ncs_edp_uns32
+#define m_NCS_EDP_SAAMFHEALTHCHECKINVOCATIONT ncs_edp_uns32
+#define m_NCS_EDP_SAAMFRECOMMENDEDRECOVERYT ncs_edp_uns32
+#define m_NCS_EDP_SAERRORT ncs_edp_uns32
+#define m_NCS_EDP_SAAMFREADINESSSTATET ncs_edp_uns32
+#define m_NCS_EDP_SAAMFHASTATET ncs_edp_uns32
+#define m_NCS_EDP_SAAMFCOMPONENTCAPABILITYMODELT ncs_edp_uns32
+#define m_NCS_EDP_SAAMFCSITRANSITIONDESCRIPTORT ncs_edp_uns32
+#define m_NCS_EDP_SAAMFEXTERNALCOMPONENTACTIONT ncs_edp_uns32
+#define m_NCS_EDP_SAAMFHANDLET m_NCS_EDP_SAUINT64T
+#define m_NCS_EDP_SAAMFPENDINGOPERATIONFLAGST m_NCS_EDP_SAUINT32T
+#define m_NCS_EDP_SAAMFCSIFLAGST m_NCS_EDP_SAUINT32T
+#define m_NCS_EDP_SAINVOCATIONT m_NCS_EDP_SAUINT64T
+#define m_NCS_EDP_SASIZET m_NCS_EDP_SAUINT64T
+#define m_NCS_EDP_SACLMNODEIDT m_NCS_EDP_SAUINT32T
+#define m_NCS_EDP_SATIMET m_NCS_EDP_SAINT64T
+#define m_NCS_EDP_NCSOPERSTATE ncs_edp_uns32
+#define m_NCS_EDP_SAAMFPROTECTIONGROUPCHANGEST ncs_edp_uns32
 
-#define m_NCS_EDP_SAAMFPMERRORST                    m_NCS_EDP_SAUINT32T
-#define m_NCS_EDP_SAAMFPMSTOPQUALIFIERT             ncs_edp_uns32
-#define m_NCS_EDP_SACLMHANDLET                      m_NCS_EDP_SAUINT64T
-#define m_NCS_EDP_SABOOLT                           ncs_edp_uns32
-#define m_NCS_EDP_SACLMCLUSTERCHANGEST              ncs_edp_uns32
+#define m_NCS_EDP_SAAMFPMERRORST m_NCS_EDP_SAUINT32T
+#define m_NCS_EDP_SAAMFPMSTOPQUALIFIERT ncs_edp_uns32
+#define m_NCS_EDP_SACLMHANDLET m_NCS_EDP_SAUINT64T
+#define m_NCS_EDP_SABOOLT ncs_edp_uns32
+#define m_NCS_EDP_SACLMCLUSTERCHANGEST ncs_edp_uns32
 
-uint32_t ncs_edp_sanamet_old(EDU_HDL *edu_hdl,
-                         EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-                         uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t ncs_edp_sanamet(EDU_HDL *edu_hdl,
-                         EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-                         uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t ncs_edp_sanamet_net(EDU_HDL *edu_hdl,
-                             EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-                             uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t ncs_edp_saversiont(EDU_HDL *edu_hdl,
-                            EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-                            uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t ncs_edp_saamfhealthcheckkeyt(EDU_HDL *edu_hdl,
-                                      EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-                                      uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
-                                      EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t ncs_edp_saclmnodeaddresst(EDU_HDL *edu_hdl,
-                                   EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-                                   uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_sanamet_old(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                             uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                             EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_sanamet(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                         uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                         EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_sanamet_net(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                             uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                             EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_saversiont(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                            uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                            EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_saamfhealthcheckkeyt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+                                      NCSCONTEXT ptr, uint32_t *ptr_data_len,
+                                      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+                                      EDU_ERR *o_err);
+uint32_t ncs_edp_saclmnodeaddresst(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+                                   NCSCONTEXT ptr, uint32_t *ptr_data_len,
+                                   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+                                   EDU_ERR *o_err);
 uint32_t ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-                                             NCSCONTEXT ptr, uint32_t *ptr_data_len,
-                                             EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t ncs_edp_saamfprotectiongroupnotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-                                                   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-                                                   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+                                             NCSCONTEXT ptr,
+                                             uint32_t *ptr_data_len,
+                                             EDU_BUF_ENV *buf_env,
+                                             EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_saamfprotectiongroupnotificationt(
+    EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uint32_t *ptr_data_len,
+    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 /* Utility routines to free data structures malloc'ed by EDU */
 void ncs_saf_free_saamfhealthcheckkeyt(SaAmfHealthcheckKeyT *p);

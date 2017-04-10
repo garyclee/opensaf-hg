@@ -35,7 +35,7 @@
 #include "base/ncsgl_defs.h"
 #include "base/logtrace.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -44,9 +44,9 @@ extern "C" {
  **             Operating System Task Premption Lock macros                 **
  **                                                                         **
  ****************************************************************************/
-#define m_INIT_CRITICAL                m_NCS_OS_INIT_TASK_LOCK
-#define m_START_CRITICAL               m_NCS_OS_START_TASK_LOCK
-#define m_END_CRITICAL                 m_NCS_OS_END_TASK_LOCK
+#define m_INIT_CRITICAL m_NCS_OS_INIT_TASK_LOCK
+#define m_START_CRITICAL m_NCS_OS_START_TASK_LOCK
+#define m_END_CRITICAL m_NCS_OS_END_TASK_LOCK
 
 /**
  *  Prepare for a future call to opensaf_reboot() by opening the necessary file
@@ -82,8 +82,7 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason);
  **                             the argument tod.                           **
  **                                                                         **
  ****************************************************************************/
-#define m_GET_TIME_STAMP(timestamp)             \
-  m_NCS_OS_GET_TIME_STAMP(timestamp)
+#define m_GET_TIME_STAMP(timestamp) m_NCS_OS_GET_TIME_STAMP(timestamp)
 
 /*****************************************************************************
  **                                                                         **
@@ -91,9 +90,19 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason);
  **                                                                         **
  ****************************************************************************/
 
-#define m_KEY_CHK_FMT(k,f)  { if (k.fmat != f) m_LEAP_DBG_SINK_VOID;}
-#define m_KEY_CHK_LEN(l)    { if (l > SYSF_MAX_KEY_LEN) m_LEAP_DBG_SINK_VOID; }
-#define m_KEY_CHK_SLEN(s)   { uint32_t l = m_NCS_STRLEN(s); m_KEY_CHK_LEN(l); }
+#define m_KEY_CHK_FMT(k, f)                \
+  {                                        \
+    if (k.fmat != f) m_LEAP_DBG_SINK_VOID; \
+  }
+#define m_KEY_CHK_LEN(l)                            \
+  {                                                 \
+    if (l > SYSF_MAX_KEY_LEN) m_LEAP_DBG_SINK_VOID; \
+  }
+#define m_KEY_CHK_SLEN(s)         \
+  {                               \
+    uint32_t l = m_NCS_STRLEN(s); \
+    m_KEY_CHK_LEN(l);             \
+  }
 
 /*
  * m_LEAP_DBG_SINK
@@ -102,8 +111,8 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason);
  * under normal conditions, it will call this macro.
  *
  */
-#define m_LEAP_DBG_SINK(r)      (TRACE("IN LEAP_DBG_SINK"), r)
-#define m_LEAP_DBG_SINK_VOID    TRACE("IN LEAP_DBG_SINK")
+#define m_LEAP_DBG_SINK(r) (TRACE("IN LEAP_DBG_SINK"), r)
+#define m_LEAP_DBG_SINK_VOID TRACE("IN LEAP_DBG_SINK")
 
 /*****************************************************************************
  **                                                                         **
@@ -114,26 +123,26 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason);
 /* (relative) stack size options... Most all tasks use MEDIUM */
 
 #ifndef NCS_STACKSIZE_SMALL
-#define NCS_STACKSIZE_SMALL    16000
+#define NCS_STACKSIZE_SMALL 16000
 #endif
 
 #ifndef NCS_STACKSIZE_MEDIUM
-#define NCS_STACKSIZE_MEDIUM   32000
+#define NCS_STACKSIZE_MEDIUM 32000
 #endif
 
 #ifndef NCS_STACKSIZE_LARGE
-#define NCS_STACKSIZE_LARGE    64000
+#define NCS_STACKSIZE_LARGE 64000
 #endif
 
 #ifndef NCS_STACKSIZE_HUGE
-#define NCS_STACKSIZE_HUGE     128000
+#define NCS_STACKSIZE_HUGE 128000
 #endif
 
 #ifndef NCS_STACKSIZE_HUGEX2
-#define NCS_STACKSIZE_HUGEX2   256000
+#define NCS_STACKSIZE_HUGEX2 256000
 #endif
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 /*****************************************************************************

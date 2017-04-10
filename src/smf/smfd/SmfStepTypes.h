@@ -49,16 +49,15 @@ class SmfUpgradeStep;
 /// Purpose: Base class for all step types.
 ///
 class SmfStepType {
-public:
+ public:
+  SmfStepType(SmfUpgradeStep* i_step);
+  virtual ~SmfStepType();
 
-        SmfStepType(SmfUpgradeStep * i_step);
-        virtual ~SmfStepType();
+  virtual bool execute() = 0;
+  virtual bool rollback() = 0;
 
-	virtual bool execute() = 0;
-	virtual bool rollback() = 0;
-
-protected:
-        SmfUpgradeStep * m_step;
+ protected:
+  SmfUpgradeStep* m_step;
 };
 
 //================================================================================
@@ -68,14 +67,14 @@ protected:
 /// Purpose: Step type SW install.
 ///
 class SmfStepTypeSwInstall : public SmfStepType {
-public:
-        SmfStepTypeSwInstall(SmfUpgradeStep * i_step) : SmfStepType(i_step) {}
-        virtual ~SmfStepTypeSwInstall() {}
+ public:
+  SmfStepTypeSwInstall(SmfUpgradeStep* i_step) : SmfStepType(i_step) {}
+  virtual ~SmfStepTypeSwInstall() {}
 
-	virtual bool execute();
-	virtual bool rollback();
+  virtual bool execute();
+  virtual bool rollback();
 
-private:
+ private:
 };
 
 //================================================================================
@@ -85,14 +84,14 @@ private:
 /// Purpose: Step type SW install with activation.
 ///
 class SmfStepTypeSwInstallAct : public SmfStepType {
-public:
-        SmfStepTypeSwInstallAct(SmfUpgradeStep * i_step) : SmfStepType(i_step) {}
-        virtual ~SmfStepTypeSwInstallAct() {}
+ public:
+  SmfStepTypeSwInstallAct(SmfUpgradeStep* i_step) : SmfStepType(i_step) {}
+  virtual ~SmfStepTypeSwInstallAct() {}
 
-	virtual bool execute();
-	virtual bool rollback();
+  virtual bool execute();
+  virtual bool rollback();
 
-private:
+ private:
 };
 
 //================================================================================
@@ -102,14 +101,14 @@ private:
 /// Purpose: Step type AU Lock.
 ///
 class SmfStepTypeAuLock : public SmfStepType {
-public:
-        SmfStepTypeAuLock(SmfUpgradeStep * i_step) : SmfStepType(i_step) {}
-        virtual ~SmfStepTypeAuLock() {}
+ public:
+  SmfStepTypeAuLock(SmfUpgradeStep* i_step) : SmfStepType(i_step) {}
+  virtual ~SmfStepTypeAuLock() {}
 
-	virtual bool execute();
-	virtual bool rollback();
+  virtual bool execute();
+  virtual bool rollback();
 
-private:
+ private:
 };
 
 //================================================================================
@@ -119,14 +118,14 @@ private:
 /// Purpose: Step type AU Lock with activation.
 ///
 class SmfStepTypeAuLockAct : public SmfStepType {
-public:
-        SmfStepTypeAuLockAct(SmfUpgradeStep * i_step) : SmfStepType(i_step) {}
-        virtual ~SmfStepTypeAuLockAct() {}
+ public:
+  SmfStepTypeAuLockAct(SmfUpgradeStep* i_step) : SmfStepType(i_step) {}
+  virtual ~SmfStepTypeAuLockAct() {}
 
-	virtual bool execute();
-	virtual bool rollback();
+  virtual bool execute();
+  virtual bool rollback();
 
-private:
+ private:
 };
 
 //================================================================================
@@ -136,14 +135,14 @@ private:
 /// Purpose: Step type AU restart .
 ///
 class SmfStepTypeAuRestart : public SmfStepType {
-public:
-        SmfStepTypeAuRestart(SmfUpgradeStep * i_step) : SmfStepType(i_step) {}
-        virtual ~SmfStepTypeAuRestart() {}
+ public:
+  SmfStepTypeAuRestart(SmfUpgradeStep* i_step) : SmfStepType(i_step) {}
+  virtual ~SmfStepTypeAuRestart() {}
 
-	virtual bool execute();
-	virtual bool rollback();
+  virtual bool execute();
+  virtual bool rollback();
 
-private:
+ private:
 };
 
 //================================================================================
@@ -153,14 +152,14 @@ private:
 /// Purpose: Step type AU restart with activation .
 ///
 class SmfStepTypeAuRestartAct : public SmfStepType {
-public:
-        SmfStepTypeAuRestartAct(SmfUpgradeStep * i_step) : SmfStepType(i_step) {}
-        virtual ~SmfStepTypeAuRestartAct() {}
+ public:
+  SmfStepTypeAuRestartAct(SmfUpgradeStep* i_step) : SmfStepType(i_step) {}
+  virtual ~SmfStepTypeAuRestartAct() {}
 
-	virtual bool execute();
-	virtual bool rollback();
+  virtual bool execute();
+  virtual bool rollback();
 
-private:
+ private:
 };
 
 //================================================================================
@@ -170,14 +169,14 @@ private:
 /// Purpose: Step type node reboot.
 ///
 class SmfStepTypeNodeReboot : public SmfStepType {
-public:
-        SmfStepTypeNodeReboot(SmfUpgradeStep * i_step) : SmfStepType(i_step) {}
-        virtual ~SmfStepTypeNodeReboot() {}
+ public:
+  SmfStepTypeNodeReboot(SmfUpgradeStep* i_step) : SmfStepType(i_step) {}
+  virtual ~SmfStepTypeNodeReboot() {}
 
-	virtual bool execute();
-	virtual bool rollback();
+  virtual bool execute();
+  virtual bool rollback();
 
-private:
+ private:
 };
 
 //================================================================================
@@ -187,14 +186,14 @@ private:
 /// Purpose: Step type node reboot with activation.
 ///
 class SmfStepTypeNodeRebootAct : public SmfStepType {
-public:
-        SmfStepTypeNodeRebootAct(SmfUpgradeStep * i_step) : SmfStepType(i_step) {}
-        virtual ~SmfStepTypeNodeRebootAct() {}
+ public:
+  SmfStepTypeNodeRebootAct(SmfUpgradeStep* i_step) : SmfStepType(i_step) {}
+  virtual ~SmfStepTypeNodeRebootAct() {}
 
-	virtual bool execute();
-	virtual bool rollback();
+  virtual bool execute();
+  virtual bool rollback();
 
-private:
+ private:
 };
 
 //================================================================================
@@ -204,14 +203,14 @@ private:
 /// Purpose: Step type cluster reboot.
 ///
 class SmfStepTypeClusterReboot : public SmfStepType {
-public:
-        SmfStepTypeClusterReboot(SmfUpgradeStep * i_step) : SmfStepType(i_step) {}
-        virtual ~SmfStepTypeClusterReboot() {}
+ public:
+  SmfStepTypeClusterReboot(SmfUpgradeStep* i_step) : SmfStepType(i_step) {}
+  virtual ~SmfStepTypeClusterReboot() {}
 
-	virtual bool execute();
-	virtual bool rollback();
+  virtual bool execute();
+  virtual bool rollback();
 
-private:
+ private:
 };
 
 //================================================================================
@@ -221,14 +220,14 @@ private:
 /// Purpose: Step type cluster reboot with activation.
 ///
 class SmfStepTypeClusterRebootAct : public SmfStepType {
-public:
-        SmfStepTypeClusterRebootAct(SmfUpgradeStep * i_step) : SmfStepType(i_step) {}
-        virtual ~SmfStepTypeClusterRebootAct() {}
+ public:
+  SmfStepTypeClusterRebootAct(SmfUpgradeStep* i_step) : SmfStepType(i_step) {}
+  virtual ~SmfStepTypeClusterRebootAct() {}
 
-	virtual bool execute();
-	virtual bool rollback();
+  virtual bool execute();
+  virtual bool rollback();
 
-private:
+ private:
 };
 
 #endif  // SMF_SMFD_SMFSTEPTYPES_H_

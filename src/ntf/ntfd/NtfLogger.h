@@ -21,7 +21,6 @@
 #ifndef NTF_NTFD_NTFLOGGER_H_
 #define NTF_NTFD_NTFLOGGER_H_
 
-
 /* ========================================================================
  *   INCLUDE FILES
  * ========================================================================
@@ -47,11 +46,11 @@
  *   DATA DECLARATIONS
  * ========================================================================
  */
-//class NtfReader;
+// class NtfReader;
 
-class NtfLogger
-{
+class NtfLogger {
   friend class NtfReader;
+
  public:
   NtfLogger();
   //    virtual ~NtfLogger();
@@ -72,4 +71,3 @@ class NtfLogger
 };
 
 #endif  // NTF_NTFD_NTFLOGGER_H_
-

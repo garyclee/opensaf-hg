@@ -16,17 +16,17 @@
  */
 
 /*****************************************************************************
-*                                                                            *
-*  MODULE NAME:  nid_api.c                                                   *
-*                                                                            *
-*                                                                            *
-*  DESCRIPTION                                                               *
-*  This module defines the API used by bladeinitd spawned services. From ser *
-*  vices point of view, this API provides interface to communicate the       *
-*  initialization status to bladeinitd. Bladeinitd spawned services are      *
-*  HPM,RDF,XND,LHC,DRBD,NETWORKING,TIPC,PCAP,SCAP.                      *
-*                                                                            *
-*****************************************************************************/
+ *                                                                            *
+ *  MODULE NAME:  nid_api.c                                                   *
+ *                                                                            *
+ *                                                                            *
+ *  DESCRIPTION                                                               *
+ *  This module defines the API used by bladeinitd spawned services. From ser *
+ *  vices point of view, this API provides interface to communicate the       *
+ *  initialization status to bladeinitd. Bladeinitd spawned services are      *
+ *  HPM,RDF,XND,LHC,DRBD,NETWORKING,TIPC,PCAP,SCAP.                      *
+ *                                                                            *
+ *****************************************************************************/
 
 #include "nid/agent/nid_api.h"
 #include <stdbool.h>
@@ -46,7 +46,7 @@ static bool is_nid_notified = false;
  *                                                                          *
  * Notes         : None.                                                    *
  ***************************************************************************/
-uint32_t nid_notify(const char* service, uint32_t status, uint32_t* error)
+uint32_t nid_notify(const char *service, uint32_t status, uint32_t *error)
 {
 	uint32_t scode;
 	char msg[250];
@@ -54,7 +54,8 @@ uint32_t nid_notify(const char* service, uint32_t status, uint32_t* error)
 	uint32_t retry = 3;
 	char strbuff[256];
 
-	if (is_nid_notified) return NCSCC_RC_SUCCESS;
+	if (is_nid_notified)
+		return NCSCC_RC_SUCCESS;
 
 	scode = status;
 

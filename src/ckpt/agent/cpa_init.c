@@ -21,9 +21,9 @@
 ..............................................................................
 
   DESCRIPTION:
-  
+
   This file contains the CPSv's service part CPA's Init/Destory routines.
-    
+
 ******************************************************************************/
 
 #include "ckpt/agent/cpa.h"
@@ -46,14 +46,14 @@ static void cpa_sync_with_cpnd(CPA_CB *cb);
 
 /****************************************************************************
   Name          : cpa_lib_req
- 
+
   Description   : This routine is exported to the other NCS entities & is used
-                  to create & destroy the CPA library.
- 
+		  to create & destroy the CPA library.
+
   Arguments     : req_info - ptr to the request info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None
 ******************************************************************************/
 uint32_t cpa_lib_req(NCS_LIB_REQ_INFO *req_info)
@@ -84,7 +84,7 @@ uint32_t cpa_lib_req(NCS_LIB_REQ_INFO *req_info)
  Name    :  cpa_sync_with_cpnd
 
  Description : This is for CPA to sync with CPND when it gets MDS callback
- 
+
 **********************************************************************/
 void cpa_sync_with_cpnd(CPA_CB *cb)
 {
@@ -114,13 +114,13 @@ void cpa_sync_with_cpnd(CPA_CB *cb)
 
 /****************************************************************************
   Name          : cpa_create
- 
+
   Description   : This routine creates & initializes the CPA control block.
- 
+
   Arguments     : create_info - ptr to the create info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None
 ******************************************************************************/
 static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
@@ -131,7 +131,6 @@ static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
 	/* validate create info */
 	if (create_info == NULL)
 		return NCSCC_RC_FAILURE;
-
 
 	/* Malloc the CB for CPA */
 	cb = m_MMGR_ALLOC_CPA_CB;
@@ -145,7 +144,8 @@ static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
 	cb->pool_id = NCS_HM_POOL_ID_COMMON;
 
 	/* create the association with hdl-mngr */
-	if (!(cb->agent_handle_id = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_CPA, (NCSCONTEXT)cb))) {
+	if (!(cb->agent_handle_id = ncshm_create_hdl(
+		  cb->pool_id, NCS_SERVICE_ID_CPA, (NCSCONTEXT)cb))) {
 		TRACE_4("cpa create failed int ncsshm_create_hdl");
 		goto hm_create_fail;
 	}
@@ -188,43 +188,42 @@ static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
 /* error8:
    m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl); */
 
- edu_init_fail:
+edu_init_fail:
 	/* MDS unregister. */
 	cpa_mds_unregister(cb);
 
- mds_reg_fail:
+mds_reg_fail:
 	cb->is_cpnd_joined_clm = false;
 	cpa_db_destroy(cb);
 
- db_init_fail:
+db_init_fail:
 	/* destroy the lock */
 	cb->is_cpnd_joined_clm = false;
 	m_NCS_LOCK_DESTROY(&cb->cb_lock);
 
- lock_init_fail:
+lock_init_fail:
 	/* remove the association with hdl-mngr */
 	ncshm_destroy_hdl(NCS_SERVICE_ID_CPA, cb->agent_handle_id);
 	gl_cpa_hdl = 0;
 
- hm_create_fail:
+hm_create_fail:
 	/* Free the CB */
 	m_MMGR_FREE_CPA_CB(cb);
 
- cb_alloc_fail:
-
+cb_alloc_fail:
 
 	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
   Name          : cpa_destroy
- 
+
   Description   : This routine destroys the CPA control block.
- 
+
   Arguments     : destroy_info - ptr to the destroy info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None
 ******************************************************************************/
 static uint32_t cpa_destroy(NCS_LIB_DESTROY *destroy_info)
@@ -268,19 +267,19 @@ static uint32_t cpa_destroy(NCS_LIB_DESTROY *destroy_info)
   Name          :  ncs_cpa_startup
 
   Description   :  This routine creates a CPSv agent infrastructure to interface
-                   with CPSv service. Once the infrastructure is created from 
-                   then on use_count is incremented for every startup request.
+		   with CPSv service. Once the infrastructure is created from
+		   then on use_count is incremented for every startup request.
 
   Arguments     :  - NIL-
 
   Return Values :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         :  None
 ******************************************************************************/
 unsigned int ncs_cpa_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
-        char *value;
+	char *value;
 	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 
 	if (cpa_use_count > 0) {
@@ -290,7 +289,7 @@ unsigned int ncs_cpa_startup(void)
 		return NCSCC_RC_SUCCESS;
 	}
 
-        /*** Init CPA ***/
+	/*** Init CPA ***/
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (cpa_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
@@ -302,21 +301,20 @@ unsigned int ncs_cpa_startup(void)
 
 	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 
-       /* Initialize trace system first of all so we can see what is going. */
-       if ((value = getenv("CPA_TRACE_PATHNAME")) != NULL) {
-              logtrace_init("cpa", value, CATEGORY_ALL);
-
-       }
+	/* Initialize trace system first of all so we can see what is going. */
+	if ((value = getenv("CPA_TRACE_PATHNAME")) != NULL) {
+		logtrace_init("cpa", value, CATEGORY_ALL);
+	}
 
 	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
-  Name          :  ncs_cpa_shutdown 
+  Name          :  ncs_cpa_shutdown
 
-  Description   :  This routine destroys the CPSv agent infrastructure created 
-                   to interface CPSv service. If the registered users are > 1, 
-                   it just decrements the use_count.   
+  Description   :  This routine destroys the CPSv agent infrastructure created
+		   to interface CPSv service. If the registered users are > 1,
+		   it just decrements the use_count.
 
   Arguments     :  - NIL -
 

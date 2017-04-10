@@ -40,10 +40,7 @@ extern "C" {
  * ========================================================================
  */
 
-typedef enum SmfNdStateT {
-        ndUp,
-        ndDown
-} SmfNdStateT;
+typedef enum SmfNdStateT { ndUp, ndDown } SmfNdStateT;
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -51,37 +48,38 @@ typedef enum SmfNdStateT {
  */
 
 typedef struct SmfndNodeDest {
-	MDS_DEST dest;
-        MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver;
-        uint32_t nd_up_cntr;
+  MDS_DEST dest;
+  MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver;
+  uint32_t nd_up_cntr;
 } SmfndNodeDest;
 
 typedef struct SmfndNodeT {
-	struct SmfndNodeT *next;
-	SaClmClusterNodeT clmInfo;
-	MDS_DEST dest;
-        MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver;
-        SmfNdStateT nd_state;
-        uint32_t nd_up_cntr;
+  struct SmfndNodeT *next;
+  SaClmClusterNodeT clmInfo;
+  MDS_DEST dest;
+  MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver;
+  SmfNdStateT nd_state;
+  uint32_t nd_up_cntr;
 } SmfndNodeT;
 
-typedef struct smfd_smfnd_adest_invid_map{
-        SaInvocationT                           inv_id;
-        uint32_t                                   no_of_cbks;
-	SYSF_MBX				*cbk_mbx;
-        struct smfd_smfnd_adest_invid_map       *next_invid;
-}SMFD_SMFND_ADEST_INVID_MAP;
+typedef struct smfd_smfnd_adest_invid_map {
+  SaInvocationT inv_id;
+  uint32_t no_of_cbks;
+  SYSF_MBX *cbk_mbx;
+  struct smfd_smfnd_adest_invid_map *next_invid;
+} SMFD_SMFND_ADEST_INVID_MAP;
 
 /* ========================================================================
  *   DATA DECLARATIONS
  * ========================================================================
  */
 
-	uint32_t smfnd_up(SaClmNodeIdT node_id, MDS_DEST smfnd_dest, MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver);
-	uint32_t smfnd_down(SaClmNodeIdT node_id);
-	bool smfnd_for_name(const char *i_nodeName, SmfndNodeDest* o_nodeDest);
-	uint32_t smfnd_exec_remote_cmd(const char *i_cmd, const SmfndNodeDest* i_smfnd,
-                                       uint32_t i_timeout, uint32_t i_localTimeout);
+uint32_t smfnd_up(SaClmNodeIdT node_id, MDS_DEST smfnd_dest,
+                  MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver);
+uint32_t smfnd_down(SaClmNodeIdT node_id);
+bool smfnd_for_name(const char *i_nodeName, SmfndNodeDest *o_nodeDest);
+uint32_t smfnd_exec_remote_cmd(const char *i_cmd, const SmfndNodeDest *i_smfnd,
+                               uint32_t i_timeout, uint32_t i_localTimeout);
 
 #ifdef __cplusplus
 }

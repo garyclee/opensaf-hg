@@ -23,7 +23,7 @@
   DESCRIPTION:
 
   This file contains macros for memory operations.
-  
+
 ******************************************************************************
 */
 
@@ -31,9 +31,9 @@
 #define AMF_AGENT_AVA_DEF_H_
 
 /****************************************************************************
-                        Timeout Values (in millisecs) 
+                        Timeout Values (in millisecs)
 *****************************************************************************/
 /* time out for synchronous blocking calls */
-#define SYSF_AVA_API_RESP_TIME   1000
+#define SYSF_AVA_API_RESP_TIME 1000
 
 #endif  // AMF_AGENT_AVA_DEF_H_

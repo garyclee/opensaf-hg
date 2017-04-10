@@ -29,30 +29,28 @@
 #include "ckpt/ckptnd/cpnd.h"
 
 struct ltSectionIdT {
-  bool operator()(const SaCkptSectionIdT *s1, const SaCkptSectionIdT *s2) const
-  {
+  bool operator()(const SaCkptSectionIdT *s1,
+                  const SaCkptSectionIdT *s2) const {
     bool status(false);
 
     if (s1->idLen < s2->idLen)
       status = true;
     else if (s1->idLen > s2->idLen)
       status = false;
-    else 
+    else
       status = (memcmp(s1->id, s2->id, s1->idLen) < 0);
 
     return status;
   }
 };
 
-typedef std::map<const SaCkptSectionIdT *,
-                 CPND_CKPT_SECTION_INFO *,
-                 ltSectionIdT> SectionMap;
+typedef std::map<const SaCkptSectionIdT *, CPND_CKPT_SECTION_INFO *,
+                 ltSectionIdT>
+    SectionMap;
 
 typedef std::map<uint32_t, CPND_CKPT_SECTION_INFO *> LocalSectionIdMap;
 
-void
-cpnd_ckpt_sec_map_init(CPND_CKPT_REPLICA_INFO *replicaInfo)
-{
+void cpnd_ckpt_sec_map_init(CPND_CKPT_REPLICA_INFO *replicaInfo) {
   if (replicaInfo->section_db) {
     LOG_ER("section map already exists");
     osafassert(false);
@@ -67,9 +65,7 @@ cpnd_ckpt_sec_map_init(CPND_CKPT_REPLICA_INFO *replicaInfo)
   replicaInfo->local_section_db = new LocalSectionIdMap;
 }
 
-void
-cpnd_ckpt_sec_map_destroy(CPND_CKPT_REPLICA_INFO *replicaInfo)
-{
+void cpnd_ckpt_sec_map_destroy(CPND_CKPT_REPLICA_INFO *replicaInfo) {
   delete static_cast<SectionMap *>(replicaInfo->section_db);
   delete static_cast<LocalSectionIdMap *>(replicaInfo->local_section_db);
 
@@ -84,35 +80,31 @@ cpnd_ckpt_sec_map_destroy(CPND_CKPT_REPLICA_INFO *replicaInfo)
  *
  * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
  *               : SaCkptSectionIdT id - Section Identifier
- *                 
+ *
  * Return Values :  NULL/CPND_CKPT_SECTION_INFO
  *
  * Notes         : None.
  *****************************************************************************/
-CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_get(const CPND_CKPT_NODE *cp_node, const SaCkptSectionIdT *id)
-{
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(const CPND_CKPT_NODE *cp_node,
+                                          const SaCkptSectionIdT *id) {
   CPND_CKPT_SECTION_INFO *sectionInfo(0);
 
   TRACE_ENTER();
 
   if (cp_node->replica_info.n_secs) {
-    SectionMap *map(static_cast<SectionMap *>
-      (cp_node->replica_info.section_db));
+    SectionMap *map(
+        static_cast<SectionMap *>(cp_node->replica_info.section_db));
 
     if (map) {
       SectionMap::iterator it(map->find(id));
 
-      if (it != map->end())
-        sectionInfo = it->second;
-    }
-    else {
+      if (it != map->end()) sectionInfo = it->second;
+    } else {
       LOG_ER("can't find map in cpnd_ckpt_sec_get");
       osafassert(false);
     }
-  }
-  else {
-    TRACE_4("cpnd replica has no section for ckpt_id:%llx",cp_node->ckpt_id);
+  } else {
+    TRACE_4("cpnd replica has no section for ckpt_id:%llx", cp_node->ckpt_id);
   }
 
   TRACE_LEAVE();
@@ -126,15 +118,13 @@ cpnd_ckpt_sec_get(const CPND_CKPT_NODE *cp_node, const SaCkptSectionIdT *id)
  *
  * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
  *               : SaCkptSectionIdT id - Section Identifier
- *                 
+ *
  * Return Values :  NULL/CPND_CKPT_SECTION_INFO
  *
  * Notes         : None.
  *****************************************************************************/
-CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_get_create(const CPND_CKPT_NODE *cp_node,
-                         const SaCkptSectionIdT *id)
-{
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_create(const CPND_CKPT_NODE *cp_node,
+                                                 const SaCkptSectionIdT *id) {
   return cpnd_ckpt_sec_get(cp_node, id);
 }
 
@@ -145,14 +135,13 @@ cpnd_ckpt_sec_get_create(const CPND_CKPT_NODE *cp_node,
  *
  * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
  *               : SaCkptSectionIdT id - Section Identifier
- *                 
+ *
  * Return Values :  NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t
-cpnd_ckpt_sec_find(const CPND_CKPT_NODE *cp_node, const SaCkptSectionIdT *id)
-{
+uint32_t cpnd_ckpt_sec_find(const CPND_CKPT_NODE *cp_node,
+                            const SaCkptSectionIdT *id) {
   return (cpnd_ckpt_sec_get(cp_node, id)) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
 }
 
@@ -164,14 +153,14 @@ cpnd_ckpt_sec_find(const CPND_CKPT_NODE *cp_node, const SaCkptSectionIdT *id)
  * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
  *               : SaCkptSectionIdT id - Section Identifier
  *               : hdr_update - UPDATE THE SECTION/CHECKPOINT HEADER or NOT
- *                 
+ *
  * Return Values :  ptr to CPND_CKPT_SECTION_INFO/NULL;
  *
  * Notes         : None.
  *****************************************************************************/
-CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id, bool hdr_update)
-{
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
+                                          SaCkptSectionIdT *id,
+                                          bool hdr_update) {
   CPND_CKPT_SECTION_INFO *sectionInfo(0);
 
   TRACE_ENTER();
@@ -185,45 +174,43 @@ cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id, bo
       sectionInfo = it->second;
       map->erase(it);
     }
-  }
-  else {
+  } else {
     LOG_ER("can't find map in cpnd_ckpt_sec_del");
     osafassert(false);
   }
 
-  LocalSectionIdMap *localSecMap(static_cast<LocalSectionIdMap *>
-    (cp_node->replica_info.local_section_db));
+  LocalSectionIdMap *localSecMap(
+      static_cast<LocalSectionIdMap *>(cp_node->replica_info.local_section_db));
 
   if (localSecMap) {
     if (sectionInfo) {
-      LocalSectionIdMap::iterator it(localSecMap->find(sectionInfo->lcl_sec_id));
+      LocalSectionIdMap::iterator it(
+          localSecMap->find(sectionInfo->lcl_sec_id));
 
-      if (it != localSecMap->end())
-        localSecMap->erase(it);
+      if (it != localSecMap->end()) localSecMap->erase(it);
     }
-  }
-  else {
+  } else {
     LOG_ER("can't find local sec map in cpnd_ckpt_sec_del");
     osafassert(false);
   }
 
   if (sectionInfo) {
-	  cp_node->replica_info.n_secs--;
-	  cp_node->replica_info.mem_used = cp_node->replica_info.mem_used - (sectionInfo->sec_size);
-	  if (hdr_update == true) {
+    cp_node->replica_info.n_secs--;
+    cp_node->replica_info.mem_used =
+        cp_node->replica_info.mem_used - (sectionInfo->sec_size);
+    if (hdr_update == true) {
+      // UPDATE THE SECTION HEADER
+      uint32_t rc(cpnd_sec_hdr_update(cb, sectionInfo, cp_node));
+      if (rc == NCSCC_RC_FAILURE) {
+        LOG_ER("cpnd sect hdr update failed");
+      }
 
-		  // UPDATE THE SECTION HEADER
-		  uint32_t rc(cpnd_sec_hdr_update(cb, sectionInfo, cp_node));
-		  if (rc == NCSCC_RC_FAILURE) {
-			  LOG_ER("cpnd sect hdr update failed");
-		  }
-
-		  // UPDATE THE CHECKPOINT HEADER
-		  rc = cpnd_ckpt_hdr_update(cb, cp_node);
-		  if (rc == NCSCC_RC_FAILURE) {
-			  LOG_ER("cpnd ckpt hdr update failed");
-		  }
-	  }
+      // UPDATE THE CHECKPOINT HEADER
+      rc = cpnd_ckpt_hdr_update(cb, cp_node);
+      if (rc == NCSCC_RC_FAILURE) {
+        LOG_ER("cpnd ckpt hdr update failed");
+      }
+    }
   }
 
   TRACE_LEAVE();
@@ -238,51 +225,48 @@ cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id, bo
  *
  * Arguments     : CPND_CKPT_REPLICA_INFO *replicaInfo - Check point replica.
  *               : CPND_CKPT_SECTION_INFO sectionInfo - Section Info
- *                 
+ *
  * Return Values :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t
-cpnd_ckpt_sec_add_db(CPND_CKPT_REPLICA_INFO *replicaInfo,
-                     CPND_CKPT_SECTION_INFO *sectionInfo)
-{
+uint32_t cpnd_ckpt_sec_add_db(CPND_CKPT_REPLICA_INFO *replicaInfo,
+                              CPND_CKPT_SECTION_INFO *sectionInfo) {
   uint32_t rc(NCSCC_RC_SUCCESS);
 
   SectionMap *map(static_cast<SectionMap *>(replicaInfo->section_db));
 
   if (map) {
-    std::pair<SectionMap::iterator, bool> p(map->insert(
-      std::make_pair(&sectionInfo->sec_id, sectionInfo)));
+    std::pair<SectionMap::iterator, bool> p(
+        map->insert(std::make_pair(&sectionInfo->sec_id, sectionInfo)));
 
     if (!p.second) {
       LOG_ER("unable to add section info to map");
       rc = NCSCC_RC_FAILURE;
       return rc;
     }
-  }
-  else {
+  } else {
     LOG_ER("can't find map in cpnd_ckpt_sec_add_db");
     osafassert(false);
   }
 
   LocalSectionIdMap *localSecMap(
-    static_cast<LocalSectionIdMap *>(replicaInfo->local_section_db));
+      static_cast<LocalSectionIdMap *>(replicaInfo->local_section_db));
 
   if (localSecMap) {
     std::pair<LocalSectionIdMap::iterator, bool> p(localSecMap->insert(
-      std::make_pair(sectionInfo->lcl_sec_id, sectionInfo)));
+        std::make_pair(sectionInfo->lcl_sec_id, sectionInfo)));
 
     if (!p.second) {
-      LOG_ER("unable to add section info to local section id map - the id %d already existed", 
-             sectionInfo->lcl_sec_id);
+      LOG_ER(
+          "unable to add section info to local section id map - the id %d already existed",
+          sectionInfo->lcl_sec_id);
       rc = NCSCC_RC_FAILURE;
 
       /* Erase the element was inserted into section_db */
       map->erase(&sectionInfo->sec_id);
     }
-  }
-  else {
+  } else {
     LOG_ER("can't find local sec map in cpnd_ckpt_sec_add_db");
     osafassert(false);
   }
@@ -296,21 +280,18 @@ cpnd_ckpt_sec_add_db(CPND_CKPT_REPLICA_INFO *replicaInfo,
  * Description   : Function to add the section to a checkpoint.
  *
  * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
- *                 
+ *
  * Return Values :  NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
  *
  * Notes         : None.
  *****************************************************************************/
-void
-cpnd_ckpt_delete_all_sect(CPND_CKPT_NODE *cp_node)
-{
-  LocalSectionIdMap *localSecMap(static_cast<LocalSectionIdMap *>
-    (cp_node->replica_info.local_section_db));
+void cpnd_ckpt_delete_all_sect(CPND_CKPT_NODE *cp_node) {
+  LocalSectionIdMap *localSecMap(
+      static_cast<LocalSectionIdMap *>(cp_node->replica_info.local_section_db));
 
   if (localSecMap) {
     localSecMap->erase(localSecMap->begin(), localSecMap->end());
-  }
-  else {
+  } else {
     LOG_ER("can't find local sec map in cpnd_ckpt_delete_all_sect");
     osafassert(false);
   }
@@ -335,63 +316,55 @@ cpnd_ckpt_delete_all_sect(CPND_CKPT_NODE *cp_node)
 
       map->erase(tmpIt);
     }
-  }
-  else {
+  } else {
     LOG_ER("can't find sec map in cpnd_ckpt_delete_all_sect");
     osafassert(false);
   }
 }
 
 /****************************************************************************
- * Name          : cpnd_get_sect_with_id 
+ * Name          : cpnd_get_sect_with_id
  *
  * Description   : Function to Find the section in a checkpoint.
  *
  * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
  *               : lck_sec_id -  lcl Section Identifier
- *                 
+ *
  * Return Values :  NULL/ pointer to CPND_CKPT_SECTION_INFO
  *
  * Notes         : None.
  *****************************************************************************/
-CPND_CKPT_SECTION_INFO *
-cpnd_get_sect_with_id(const CPND_CKPT_NODE *cp_node, uint32_t lcl_sec_id)
-{
+CPND_CKPT_SECTION_INFO *cpnd_get_sect_with_id(const CPND_CKPT_NODE *cp_node,
+                                              uint32_t lcl_sec_id) {
   CPND_CKPT_SECTION_INFO *sectionInfo(0);
 
   if (cp_node->replica_info.n_secs) {
-    LocalSectionIdMap *map(static_cast<LocalSectionIdMap *>
-      (cp_node->replica_info.local_section_db));
+    LocalSectionIdMap *map(static_cast<LocalSectionIdMap *>(
+        cp_node->replica_info.local_section_db));
 
     if (map) {
       LocalSectionIdMap::iterator it(map->find(lcl_sec_id));
 
-      if (it != map->end())
-        sectionInfo = it->second;
-    }
-    else {
+      if (it != map->end()) sectionInfo = it->second;
+    } else {
       LOG_ER("can't find sec map in cpnd_get_sect_with_id");
       osafassert(false);
     }
-  }
-  else {
-    TRACE_4("cpnd replica has no sections for ckpt_id:%llx",cp_node->ckpt_id);
+  } else {
+    TRACE_4("cpnd replica has no sections for ckpt_id:%llx", cp_node->ckpt_id);
   }
 
   return sectionInfo;
 }
 
-bool
-cpnd_ckpt_sec_empty(const CPND_CKPT_REPLICA_INFO *replicaInfo)
-{
+bool cpnd_ckpt_sec_empty(const CPND_CKPT_REPLICA_INFO *replicaInfo) {
   SectionMap *map(static_cast<SectionMap *>(replicaInfo->section_db));
 
   return map ? map->empty() : true;
 }
 
-CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_get_first(const CPND_CKPT_REPLICA_INFO *replicaInfo)
-{
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_first(
+    const CPND_CKPT_REPLICA_INFO *replicaInfo) {
   CPND_CKPT_SECTION_INFO *sectionInfo(0);
 
   SectionMap *map(static_cast<SectionMap *>(replicaInfo->section_db));
@@ -399,20 +372,17 @@ cpnd_ckpt_sec_get_first(const CPND_CKPT_REPLICA_INFO *replicaInfo)
   if (map) {
     SectionMap::iterator it(map->begin());
 
-    if (it != map->end())
-      sectionInfo = it->second;
-  }
-  else {
+    if (it != map->end()) sectionInfo = it->second;
+  } else {
     LOG_ER("can't find sec map in cpnd_ckpt_sec_get_first");
   }
 
   return sectionInfo;
 }
 
-CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_get_next(const CPND_CKPT_REPLICA_INFO *replicaInfo,
-                       const CPND_CKPT_SECTION_INFO *section)
-{
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_next(
+    const CPND_CKPT_REPLICA_INFO *replicaInfo,
+    const CPND_CKPT_SECTION_INFO *section) {
   CPND_CKPT_SECTION_INFO *sectionInfo(0);
 
   SectionMap *map(static_cast<SectionMap *>(replicaInfo->section_db));
@@ -421,11 +391,9 @@ cpnd_ckpt_sec_get_next(const CPND_CKPT_REPLICA_INFO *replicaInfo,
     SectionMap::iterator it(map->find(&section->sec_id));
 
     if (it != map->end()) {
-      if (++it != map->end())
-        sectionInfo = it->second;
+      if (++it != map->end()) sectionInfo = it->second;
     }
-  }
-  else {
+  } else {
     LOG_ER("can't find sec map in cpnd_ckpt_sec_get_next");
   }
 

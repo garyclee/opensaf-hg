@@ -20,8 +20,8 @@
 #include "tet_ntf.h"
 #include "tet_ntf_common.h"
 
-
-void saNtfMiscellaneousNotificationAllocate_01(void) {
+void saNtfMiscellaneousNotificationAllocate_01(void)
+{
 	test_validate(SA_AIS_ERR_NOT_SUPPORTED, SA_AIS_ERR_NOT_SUPPORTED);
 #if 0
 	/*  struct pollfd fds[1];*/
@@ -77,7 +77,8 @@ void saNtfMiscellaneousNotificationAllocate_01(void) {
  * Strategy: Set the handle to zero or invalid number
  *           Create a handle and then destroy it.
  */
-void saNtfMiscellaneousNotificationAllocate_02(void) {
+void saNtfMiscellaneousNotificationAllocate_02(void)
+{
 	test_validate(SA_AIS_ERR_NOT_SUPPORTED, SA_AIS_ERR_NOT_SUPPORTED);
 #if 0
 	/* Variable to count the number of errors */
@@ -152,7 +153,8 @@ void saNtfMiscellaneousNotificationAllocate_02(void) {
  *
  * Strategy:
  */
-void saNtfMiscellaneousNotificationAllocate_03(void) {
+void saNtfMiscellaneousNotificationAllocate_03(void)
+{
 	test_validate(SA_AIS_ERR_NOT_SUPPORTED, SA_AIS_ERR_NOT_SUPPORTED);
 #if 0
 	int errors = 0;
@@ -207,13 +209,20 @@ void saNtfMiscellaneousNotificationAllocate_03(void) {
 #endif
 }
 
-__attribute__ ((constructor)) static void saNtfMiscellaneousNotificationAllocate_constructor(
-		void) {
+__attribute__((constructor)) static void
+saNtfMiscellaneousNotificationAllocate_constructor(void)
+{
 	test_suite_add(6, "Producer API 2 allocate");
-	test_case_add(6, saNtfMiscellaneousNotificationAllocate_01, "saNtfMiscellaneousNotificationAllocate, Not supported");
-	test_case_add(6, saNtfMiscellaneousNotificationAllocate_02, "saNtfMiscellaneousNotificationAllocate SA_AIS_ERR_BAD_HANDLE");
-	test_case_add(6, saNtfMiscellaneousNotificationAllocate_03, "saNtfMiscellaneousNotificationAllocate SA_AIS_ERR_INVALID_PARAM");
-//	test_case_add(30, saNtfAlarmNotificationAllocate_04, "saNtfAlarmNotificationAllocate SA_AIS_ERR_TOO_BIG");
-//	test_case_add(30, saNtfAlarmNotificationAllocate_05, "saNtfAlarmNotificationAllocate SA_AIS_ERR_UNAVAILABLE");
+	test_case_add(6, saNtfMiscellaneousNotificationAllocate_01,
+		      "saNtfMiscellaneousNotificationAllocate, Not supported");
+	test_case_add(
+	    6, saNtfMiscellaneousNotificationAllocate_02,
+	    "saNtfMiscellaneousNotificationAllocate SA_AIS_ERR_BAD_HANDLE");
+	test_case_add(
+	    6, saNtfMiscellaneousNotificationAllocate_03,
+	    "saNtfMiscellaneousNotificationAllocate SA_AIS_ERR_INVALID_PARAM");
+	//	test_case_add(30, saNtfAlarmNotificationAllocate_04,
+	//"saNtfAlarmNotificationAllocate SA_AIS_ERR_TOO_BIG");
+	//	test_case_add(30, saNtfAlarmNotificationAllocate_05,
+	//"saNtfAlarmNotificationAllocate SA_AIS_ERR_UNAVAILABLE");
 }
-

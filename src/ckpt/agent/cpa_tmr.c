@@ -28,7 +28,7 @@
  * Name          : cpa_timer_expiry
  *
  * Description   : This function which is registered with the OS tmr function,
- *                 which will post a message to the corresponding mailbox 
+ *                 which will post a message to the corresponding mailbox
  *                 depending on the component type.
  *
  *****************************************************************************/
@@ -50,10 +50,14 @@ void cpa_timer_expiry(NCSCONTEXT uarg)
 		memset(&evt, 0, sizeof(CPSV_EVT));
 		evt.info.cpa.type = CPA_EVT_TIME_OUT;
 		evt.info.cpa.info.tmr_info.type = tmr->type;
-		if ((tmr->type == CPA_TMR_TYPE_OPEN) || (tmr->type == CPA_TMR_TYPE_SYNC)) {
-			evt.info.cpa.info.tmr_info.lcl_ckpt_hdl = tmr->info.ckpt.lcl_ckpt_hdl;
-			evt.info.cpa.info.tmr_info.client_hdl = tmr->info.ckpt.client_hdl;
-			evt.info.cpa.info.tmr_info.invocation = tmr->info.ckpt.invocation;
+		if ((tmr->type == CPA_TMR_TYPE_OPEN) ||
+		    (tmr->type == CPA_TMR_TYPE_SYNC)) {
+			evt.info.cpa.info.tmr_info.lcl_ckpt_hdl =
+			    tmr->info.ckpt.lcl_ckpt_hdl;
+			evt.info.cpa.info.tmr_info.client_hdl =
+			    tmr->info.ckpt.client_hdl;
+			evt.info.cpa.info.tmr_info.invocation =
+			    tmr->info.ckpt.invocation;
 		}
 
 		ncshm_give_hdl(hdl);
@@ -79,15 +83,18 @@ void cpa_timer_expiry(NCSCONTEXT uarg)
 uint32_t cpa_tmr_start(CPA_TMR *tmr, SaTimeT duration)
 {
 	if (tmr->tmr_id == TMR_T_NULL) {
-		m_NCS_TMR_CREATE(tmr->tmr_id, duration, cpa_timer_expiry, (void *)tmr);
+		m_NCS_TMR_CREATE(tmr->tmr_id, duration, cpa_timer_expiry,
+				 (void *)tmr);
 	}
 
 	if (tmr->is_active == false) {
-		m_NCS_TMR_START(tmr->tmr_id, duration, cpa_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, duration, cpa_timer_expiry,
+				(void *)tmr);
 		tmr->is_active = true;
 	} else {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		m_NCS_TMR_START(tmr->tmr_id, duration, cpa_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, duration, cpa_timer_expiry,
+				(void *)tmr);
 	}
 
 	return (NCSCC_RC_SUCCESS);
@@ -109,11 +116,10 @@ void cpa_tmr_stop(CPA_TMR *tmr)
 	if (tmr->is_active == true) {
 		tmr->is_active = false;
 		m_NCS_TMR_STOP(tmr->tmr_id);
-	}
-	else {
+	} else {
 		return;
-	}	
-	
+	}
+
 	if (tmr->tmr_id != TMR_T_NULL) {
 		m_NCS_TMR_DESTROY(tmr->tmr_id);
 		tmr->tmr_id = TMR_T_NULL;

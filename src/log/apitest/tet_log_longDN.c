@@ -27,15 +27,17 @@
 #include "base/saf_error.h"
 
 /* Default format expression for alm/not streams */
-static const char *fmt_alarm_default="@Cr @Ct @Nt @Ne6 @No30 @Ng30 \"@Cb\"";
+static const char *fmt_alarm_default = "@Cr @Ct @Nt @Ne6 @No30 @Ng30 \"@Cb\"";
 /* Default format expression for sys/app streams */
-static const char *fmt_sys_default="@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv @Sl \"@Cb\"";
+static const char *fmt_sys_default =
+    "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv @Sl \"@Cb\"";
 /* Format expression for testing Long DN at @No */
-static const char *test_alarm_fmt="@Cr @Ct @Nt @Ne6 START_@No_END \"@Cb\"";
+static const char *test_alarm_fmt = "@Cr @Ct @Nt @Ne6 START_@No_END \"@Cb\"";
 /* Format expression for testing Long DN at @Ng */
-static const char *test_notif_fmt="@Cr @Ct @Nt @Ne6 START_@Ng_END \"@Cb\"";
+static const char *test_notif_fmt = "@Cr @Ct @Nt @Ne6 START_@Ng_END \"@Cb\"";
 /* Format expression for testing Long DN at @Sl */
-static const char *test_sys_fmt="@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv START_@Sl_END \"@Cb\"";
+static const char *test_sys_fmt =
+    "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv START_@Sl_END \"@Cb\"";
 // @NOTE:
 // The purpose for adding START_*_END in fmt expression
 // is for searching/test verifying using regular expression.
@@ -49,10 +51,9 @@ static const char *test_sys_fmt="@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv START_@Sl_END \
 // Steps to test Long DN in each test case
 // 1) Change global `logMaxLogrecsize` to max number `SA_LOG_MAX_RECORD_SIZE`
 // 2) Change the `saLogStreamLogFileFormat`
-// 3) Set up the logBuf containing long DN data/or `logSvcUsrName` with long DN (> 255 bytes)
-// 4) Sending the record to log stream
-// 5) Read the log file and verify the content
-// 6) Restore to default settings
+// 3) Set up the logBuf containing long DN data/or `logSvcUsrName` with long DN
+// (> 255 bytes) 4) Sending the record to log stream 5) Read the log file and
+// verify the content 6) Restore to default settings
 //<<
 
 /* Vars holding default values - they have to change to test Long DN */
@@ -63,12 +64,7 @@ static char v_saLogStreamFileName[256] = {0};
 static uint32_t v_longDnsAllowed = 0;
 static bool g_setLongDnsAllowed = false;
 
-typedef enum {
-	E_ALARM,
-	E_NOTIF,
-	E_SYSTE,
-	E_APPLI
-} stream_type_t;
+typedef enum { E_ALARM, E_NOTIF, E_SYSTE, E_APPLI } stream_type_t;
 
 SaConstStringT s_opensafImm = "opensafImm=opensafImm,safApp=safImmService";
 SaNameT sa_opensafImm;
@@ -87,24 +83,22 @@ static SaNameT notificationObjLd;
 static SaNameT notifyingObjLd;
 static SaNameT logStreamNameLd;
 static SaLogBufferT logBufferLd;
-static SaNtfClassIdT notificationClassIdLd = { 1, 2, 3 };
-static SaVersionT logVersionLd = { 'A', 2, 3 };
+static SaNtfClassIdT notificationClassIdLd = {1, 2, 3};
+static SaVersionT logVersionLd = {'A', 2, 3};
 static SaInvocationT invocationLd;
 static SaAisErrorT errorLd;
 
-
 /* Try for 10 seconds before giving up on an API */
-#define TEN_SECONDS 10*1000*1000
+#define TEN_SECONDS 10 * 1000 * 1000
 /* Sleep for 100 ms before retrying an API */
-#define HUNDRED_MS 100*1000
+#define HUNDRED_MS 100 * 1000
 
 SaConstStringT logSvcUsrNameDf = "SvcUserName_Test_LongDN";
 SaConstStringT notifyingObjDf = "NotifyingObj_Test_LongDN";
 SaConstStringT notificationObjDf = "NotificationObj_Test_LongDN";
 
 static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error);
-static SaLogCallbacksT logCallbacksLd = { 0, 0, logWriteLogCallbackT };
-
+static SaLogCallbacksT logCallbacksLd = {0, 0, logWriteLogCallbackT};
 
 //>
 // Enable long DN in IMM it is not set on current system
@@ -118,17 +112,22 @@ static int enableLongDN(void)
 	char command[MAX_DATA] = {0};
 
 	saAisNameLend(s_opensafImm, &sa_opensafImm);
-	rc = get_attr_value(&sa_opensafImm, "longDnsAllowed", &v_longDnsAllowed);
+	rc =
+	    get_attr_value(&sa_opensafImm, "longDnsAllowed", &v_longDnsAllowed);
 	if (rc == -1) {
 		/* Failed, use default one */
-		fprintf(stderr, "Failed to get attribute longDnsAllowed value from IMM\n");
+		fprintf(
+		    stderr,
+		    "Failed to get attribute longDnsAllowed value from IMM\n");
 	}
 
 	// No need to enable if long DN is set on current system
-	if (v_longDnsAllowed != 0) return 0;
+	if (v_longDnsAllowed != 0)
+		return 0;
 
 	/* Enable long DN in IMM */
-	sprintf(command, "immcfg -o safImmService -a longDnsAllowed=1 %s", s_opensafImm);
+	sprintf(command, "immcfg -o safImmService -a longDnsAllowed=1 %s",
+		s_opensafImm);
 	rc = system(command);
 	if (WEXITSTATUS(rc) != 0) {
 		fprintf(stderr, "Failed to enable long DN \n");
@@ -148,7 +147,8 @@ static void disableLongDN(void)
 	char command[MAX_DATA] = {0};
 
 	// No need to enable if long DN is set on current system
-	if (g_setLongDnsAllowed == false) return;
+	if (g_setLongDnsAllowed == false)
+		return;
 
 	sprintf(command, "immcfg -o safImmService -a longDnsAllowed=%d %s",
 		v_longDnsAllowed, s_opensafImm);
@@ -176,84 +176,118 @@ static int backupData(stream_type_t type)
 {
 	int rc;
 
-	rc = get_attr_value(&configurationObject, "logMaxLogrecsize", &v_logMaxLogrecsize);
+	rc = get_attr_value(&configurationObject, "logMaxLogrecsize",
+			    &v_logMaxLogrecsize);
 	if (rc == -1) {
 		/* Failed, use default one */
-		fprintf(stderr, "Failed to get attribute logMaxLogrecsize value from IMM\n");
+		fprintf(
+		    stderr,
+		    "Failed to get attribute logMaxLogrecsize value from IMM\n");
 	}
 
 	switch (type) {
 	case E_ALARM:
 		/* Get and save saLogStreamLogFileFormat */
-		rc = get_attr_value(&alarmStreamName, "saLogStreamLogFileFormat", v_saLogStreamLogFileFormat);
+		rc =
+		    get_attr_value(&alarmStreamName, "saLogStreamLogFileFormat",
+				   v_saLogStreamLogFileFormat);
 		if (rc == -1) {
 			/* Failed, use default one */
-			fprintf(stderr, "Failed to get saLogStreamLogFileFormat attribute value from IMM\n");
-			strncpy(v_saLogStreamLogFileFormat, fmt_alarm_default, 500);
+			fprintf(
+			    stderr,
+			    "Failed to get saLogStreamLogFileFormat attribute value from IMM\n");
+			strncpy(v_saLogStreamLogFileFormat, fmt_alarm_default,
+				500);
 		}
 		/* Get and save salogStreamFileName */
-		rc = get_attr_value(&alarmStreamName, "saLogStreamFileName", v_saLogStreamFileName);
+		rc = get_attr_value(&alarmStreamName, "saLogStreamFileName",
+				    v_saLogStreamFileName);
 		if (rc == -1) {
 			/* Failed, use default one */
-			fprintf(stderr, "Failed to get saLogStreamFileName attribute value from IMM\n");
+			fprintf(
+			    stderr,
+			    "Failed to get saLogStreamFileName attribute value from IMM\n");
 			strncpy(v_saLogStreamFileName, "saLogAlarm", 256);
 		}
 		/* Get and save saLogStreamFixedLogRecordSize */
-		rc = get_attr_value(&alarmStreamName, "saLogStreamFixedLogRecordSize",
+		rc = get_attr_value(&alarmStreamName,
+				    "saLogStreamFixedLogRecordSize",
 				    &v_saLogStreamFixedLogRecordSize);
 		if (rc == -1) {
 			/* Failed, use default one */
-			fprintf(stderr, "Failed to get saLogStreamFixedLogRecordSize attribute value from IMM\n");
+			fprintf(
+			    stderr,
+			    "Failed to get saLogStreamFixedLogRecordSize attribute value from IMM\n");
 		}
 		break;
 
 	case E_NOTIF:
 		/* Get and save saLogStreamLogFileFormat */
-		rc = get_attr_value(&notificationStreamName, "saLogStreamLogFileFormat",
+		rc = get_attr_value(&notificationStreamName,
+				    "saLogStreamLogFileFormat",
 				    v_saLogStreamLogFileFormat);
 		if (rc == -1) {
 			/* Failed, use default one */
-			fprintf(stderr, "Failed to get attribute value from IMM\n");
-			strncpy(v_saLogStreamLogFileFormat, fmt_alarm_default, 256);
+			fprintf(stderr,
+				"Failed to get attribute value from IMM\n");
+			strncpy(v_saLogStreamLogFileFormat, fmt_alarm_default,
+				256);
 		}
 		/* Get and save salogStreamFileName */
-		rc = get_attr_value(&notificationStreamName, "saLogStreamFileName", v_saLogStreamFileName);
+		rc = get_attr_value(&notificationStreamName,
+				    "saLogStreamFileName",
+				    v_saLogStreamFileName);
 		if (rc == -1) {
 			/* Failed, use default one */
-			fprintf(stderr, "Failed to get saLogStreamFileName attribute value from IMM\n");
-			strncpy(v_saLogStreamFileName, "saLogNotification", 256);
+			fprintf(
+			    stderr,
+			    "Failed to get saLogStreamFileName attribute value from IMM\n");
+			strncpy(v_saLogStreamFileName, "saLogNotification",
+				256);
 		}
 		/* Get and save saLogStreamFixedLogRecordSize */
-		rc = get_attr_value(&notificationStreamName, "saLogStreamFixedLogRecordSize",
+		rc = get_attr_value(&notificationStreamName,
+				    "saLogStreamFixedLogRecordSize",
 				    &v_saLogStreamFixedLogRecordSize);
 		if (rc == -1) {
 			/* Failed, use default one */
-			fprintf(stderr, "Failed to get saLogStreamFixedLogRecordSize attribute value from IMM\n");
+			fprintf(
+			    stderr,
+			    "Failed to get saLogStreamFixedLogRecordSize attribute value from IMM\n");
 		}
 		break;
 
 	case E_SYSTE:
 		/* Get and save saLogStreamLogFileFormat */
-		rc = get_attr_value(&systemStreamName, "saLogStreamLogFileFormat",
+		rc = get_attr_value(&systemStreamName,
+				    "saLogStreamLogFileFormat",
 				    v_saLogStreamLogFileFormat);
 		if (rc == -1) {
 			/* Failed, use default one */
-			fprintf(stderr, "Failed to get attribute value from IMM\n");
-			strncpy(v_saLogStreamLogFileFormat, fmt_sys_default, 256);
+			fprintf(stderr,
+				"Failed to get attribute value from IMM\n");
+			strncpy(v_saLogStreamLogFileFormat, fmt_sys_default,
+				256);
 		}
 		/* Get and save salogStreamFileName */
-		rc = get_attr_value(&systemStreamName, "saLogStreamFileName", v_saLogStreamFileName);
+		rc = get_attr_value(&systemStreamName, "saLogStreamFileName",
+				    v_saLogStreamFileName);
 		if (rc == -1) {
 			/* Failed, use default one */
-			fprintf(stderr, "Failed to get saLogStreamFileName attribute value from IMM\n");
+			fprintf(
+			    stderr,
+			    "Failed to get saLogStreamFileName attribute value from IMM\n");
 			strncpy(v_saLogStreamFileName, "saLogSystem", 256);
 		}
 		/* Get and save saLogStreamFixedLogRecordSize */
-		rc = get_attr_value(&systemStreamName, "saLogStreamFixedLogRecordSize",
+		rc = get_attr_value(&systemStreamName,
+				    "saLogStreamFixedLogRecordSize",
 				    &v_saLogStreamFixedLogRecordSize);
 		if (rc == -1) {
 			/* Failed, use default one */
-			fprintf(stderr, "Failed to get saLogStreamFixedLogRecordSize attribute value from IMM\n");
+			fprintf(
+			    stderr,
+			    "Failed to get saLogStreamFixedLogRecordSize attribute value from IMM\n");
 		}
 		break;
 
@@ -284,8 +318,10 @@ static int setUpTestEnv(stream_type_t type)
 	int rc;
 	char command[MAX_DATA];
 
-	sprintf(command, "immcfg -a logMaxLogrecsize=%d "
-		"logConfig=1,safApp=safLogService 2> /dev/null", SA_LOG_MAX_RECORD_SIZE);
+	sprintf(command,
+		"immcfg -a logMaxLogrecsize=%d "
+		"logConfig=1,safApp=safLogService 2> /dev/null",
+		SA_LOG_MAX_RECORD_SIZE);
 	rc = system(command);
 	if (WEXITSTATUS(rc) != 0) {
 		fprintf(stderr, "Failed to execute command %s\n", command);
@@ -294,19 +330,22 @@ static int setUpTestEnv(stream_type_t type)
 
 	switch (type) {
 	case E_ALARM:
-		sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"%s\" "
+		sprintf(command,
+			"immcfg -a saLogStreamLogFileFormat=\"%s\" "
 			" -a saLogStreamFixedLogRecordSize=0 %s",
 			test_alarm_fmt, SA_LOG_STREAM_ALARM);
 		break;
 
 	case E_NOTIF:
-		sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"%s\" "
+		sprintf(command,
+			"immcfg -a saLogStreamLogFileFormat=\"%s\" "
 			" -a saLogStreamFixedLogRecordSize=0 %s",
 			test_notif_fmt, SA_LOG_STREAM_NOTIFICATION);
 		break;
 
 	case E_SYSTE:
-		sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"%s\" "
+		sprintf(command,
+			"immcfg -a saLogStreamLogFileFormat=\"%s\" "
 			" -a saLogStreamFixedLogRecordSize=0 %s",
 			test_sys_fmt, SA_LOG_STREAM_SYSTEM);
 		break;
@@ -334,8 +373,10 @@ void restoreData(stream_type_t type)
 	int rc;
 	char command[MAX_DATA];
 
-	sprintf(command, "immcfg -a logMaxLogrecsize=%d "
-		"logConfig=1,safApp=safLogService 2> /dev/null", v_logMaxLogrecsize);
+	sprintf(command,
+		"immcfg -a logMaxLogrecsize=%d "
+		"logConfig=1,safApp=safLogService 2> /dev/null",
+		v_logMaxLogrecsize);
 	rc = system(command);
 	if (WEXITSTATUS(rc) != 0) {
 		fprintf(stderr, "Failed to perform cmd = %s\n", command);
@@ -343,20 +384,27 @@ void restoreData(stream_type_t type)
 
 	switch (type) {
 	case E_ALARM:
-		sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"%s\" "
-			" -a saLogStreamFixedLogRecordSize=%d %s", v_saLogStreamLogFileFormat,
+		sprintf(command,
+			"immcfg -a saLogStreamLogFileFormat=\"%s\" "
+			" -a saLogStreamFixedLogRecordSize=%d %s",
+			v_saLogStreamLogFileFormat,
 			v_saLogStreamFixedLogRecordSize, SA_LOG_STREAM_ALARM);
 		break;
 
 	case E_NOTIF:
-		sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"%s\" "
-			" -a saLogStreamFixedLogRecordSize=%d %s", v_saLogStreamLogFileFormat,
-			v_saLogStreamFixedLogRecordSize, SA_LOG_STREAM_NOTIFICATION);
+		sprintf(command,
+			"immcfg -a saLogStreamLogFileFormat=\"%s\" "
+			" -a saLogStreamFixedLogRecordSize=%d %s",
+			v_saLogStreamLogFileFormat,
+			v_saLogStreamFixedLogRecordSize,
+			SA_LOG_STREAM_NOTIFICATION);
 		break;
 
 	case E_SYSTE:
-		sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"%s\" "
-			" -a saLogStreamFixedLogRecordSize=%d %s", v_saLogStreamLogFileFormat,
+		sprintf(command,
+			"immcfg -a saLogStreamLogFileFormat=\"%s\" "
+			" -a saLogStreamFixedLogRecordSize=%d %s",
+			v_saLogStreamLogFileFormat,
 			v_saLogStreamFixedLogRecordSize, SA_LOG_STREAM_SYSTEM);
 		break;
 
@@ -373,7 +421,6 @@ void restoreData(stream_type_t type)
 	if (WEXITSTATUS(rc) != 0) {
 		fprintf(stderr, "failed to perform cmd = %s\n", command);
 	}
-
 }
 
 //
@@ -392,7 +439,7 @@ static SaTimeT currentTime(void)
 	SaTimeT ntfTime;
 	gettimeofday(&tv, 0);
 	ntfTime = ((unsigned)tv.tv_sec * 1000000000ULL) +
-		((unsigned)tv.tv_usec * 1000ULL);
+		  ((unsigned)tv.tv_usec * 1000ULL);
 	return ntfTime;
 }
 
@@ -405,7 +452,8 @@ static SaAisErrorT initLog(void)
 	while (error == SA_AIS_ERR_TRY_AGAIN && wait_time < TEN_SECONDS) {
 		usleep(HUNDRED_MS);
 		wait_time += HUNDRED_MS;
-		error = saLogInitialize(&logHandleLd, &logCallbacksLd, &logVersionLd);
+		error = saLogInitialize(&logHandleLd, &logCallbacksLd,
+					&logVersionLd);
 	}
 
 	return error;
@@ -423,9 +471,9 @@ static SaAisErrorT openLog(stream_type_t type)
 	saAisNameLend(notifyingObjDf, &notifyingObjLd);
 	saAisNameLend(notificationObjDf, &notificationObjLd);
 
-
 	saAisNameLend(SA_LOG_STREAM_SYSTEM, &logStreamNameLd);
-	logRecordLd.logTimeStamp = SA_TIME_UNKNOWN;	/* LOG service should supply timestamp */
+	logRecordLd.logTimeStamp =
+	    SA_TIME_UNKNOWN; /* LOG service should supply timestamp */
 	logRecordLd.logHdrType = SA_LOG_GENERIC_HEADER;
 	logRecordLd.logHeader.genericHdr.notificationClassId = NULL;
 	logRecordLd.logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO;
@@ -452,15 +500,19 @@ static SaAisErrorT openLog(stream_type_t type)
 
 	case E_APPLI:
 		appLogFileCreateAttributesIn.logFilePathName = "testLongDN";
-		appLogFileCreateAttributesIn.maxLogFileSize = DEFAULT_APP_LOG_FILE_SIZE;
-		appLogFileCreateAttributesIn.maxLogRecordSize = DEFAULT_APP_LOG_REC_SIZE;
+		appLogFileCreateAttributesIn.maxLogFileSize =
+		    DEFAULT_APP_LOG_FILE_SIZE;
+		appLogFileCreateAttributesIn.maxLogRecordSize =
+		    DEFAULT_APP_LOG_REC_SIZE;
 		appLogFileCreateAttributesIn.haProperty = SA_TRUE;
-		appLogFileCreateAttributesIn.logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE;
+		appLogFileCreateAttributesIn.logFileFullAction =
+		    SA_LOG_FILE_FULL_ACTION_ROTATE;
 		appLogFileCreateAttributesIn.maxFilesRotated = 4;
 
-		char tmp [1000] = {0};
+		char tmp[1000] = {0};
 		memset(tmp, 'L', sizeof(tmp) - 1);
-		snprintf(appStreamDN, sizeof(appStreamDN) - 2, "safLgStr=%s", tmp);
+		snprintf(appStreamDN, sizeof(appStreamDN) - 2, "safLgStr=%s",
+			 tmp);
 
 		/* Use built-in log file format in log server for app stream */
 		appLogFileCreateAttributesIn.logFileFmt = NULL;
@@ -479,11 +531,15 @@ static SaAisErrorT openLog(stream_type_t type)
 
 	if (logRecordLd.logHdrType == SA_LOG_NTF_HEADER) {
 		/* Setup some valid values */
-		logRecordLd.logHeader.ntfHdr.notificationId = SA_NTF_IDENTIFIER_UNUSED;
-		logRecordLd.logHeader.ntfHdr.eventType = SA_NTF_ALARM_PROCESSING;
-		logRecordLd.logHeader.ntfHdr.notificationObject = &notificationObjLd;
+		logRecordLd.logHeader.ntfHdr.notificationId =
+		    SA_NTF_IDENTIFIER_UNUSED;
+		logRecordLd.logHeader.ntfHdr.eventType =
+		    SA_NTF_ALARM_PROCESSING;
+		logRecordLd.logHeader.ntfHdr.notificationObject =
+		    &notificationObjLd;
 		logRecordLd.logHeader.ntfHdr.notifyingObject = &notifyingObjLd;
-		logRecordLd.logHeader.ntfHdr.notificationClassId = &notificationClassIdLd;
+		logRecordLd.logHeader.ntfHdr.notificationClassId =
+		    &notificationClassIdLd;
 		logRecordLd.logHeader.ntfHdr.eventTime = currentTime();
 	}
 
@@ -492,19 +548,25 @@ static SaAisErrorT openLog(stream_type_t type)
 	while (error == SA_AIS_ERR_TRY_AGAIN && wait_time < TEN_SECONDS) {
 		usleep(HUNDRED_MS);
 		wait_time += HUNDRED_MS;
-		error = saLogStreamOpen_2(logHandleLd, &logStreamNameLd, NULL, 0,
-					  SA_TIME_ONE_SECOND, &logStreamHandleLd);
+		error =
+		    saLogStreamOpen_2(logHandleLd, &logStreamNameLd, NULL, 0,
+				      SA_TIME_ONE_SECOND, &logStreamHandleLd);
 	}
 
 	if (error == SA_AIS_ERR_NOT_EXIST && type == E_APPLI) {
 		wait_time = 0;
-		error = saLogStreamOpen_2(logHandleLd, &logStreamNameLd, logFileCreateAttributesLd,
-					  logStreamOpenFlagsIn, SA_TIME_ONE_SECOND, &logStreamHandleLd);
-		while (error == SA_AIS_ERR_TRY_AGAIN && wait_time < TEN_SECONDS) {
+		error = saLogStreamOpen_2(
+		    logHandleLd, &logStreamNameLd, logFileCreateAttributesLd,
+		    logStreamOpenFlagsIn, SA_TIME_ONE_SECOND,
+		    &logStreamHandleLd);
+		while (error == SA_AIS_ERR_TRY_AGAIN &&
+		       wait_time < TEN_SECONDS) {
 			usleep(HUNDRED_MS);
 			wait_time += HUNDRED_MS;
-			error = saLogStreamOpen_2(logHandleLd, &logStreamNameLd, logFileCreateAttributesLd,
-						  logStreamOpenFlagsIn, SA_TIME_ONE_SECOND, &logStreamHandleLd);
+			error = saLogStreamOpen_2(
+			    logHandleLd, &logStreamNameLd,
+			    logFileCreateAttributesLd, logStreamOpenFlagsIn,
+			    SA_TIME_ONE_SECOND, &logStreamHandleLd);
 		}
 	}
 
@@ -524,7 +586,8 @@ static SaAisErrorT endLog(void)
 		error = saLogStreamClose(logStreamHandleLd);
 	}
 	if (SA_AIS_OK != error) {
-		fprintf(stderr, "saLogStreamClose FAILED: %s\n", saf_error(error));
+		fprintf(stderr, "saLogStreamClose FAILED: %s\n",
+			saf_error(error));
 	}
 
 	wait_time = 0;
@@ -544,7 +607,6 @@ static SaAisErrorT endLog(void)
 	selectionObjectLd = -1;
 
 	return error;
-
 }
 
 static SaAisErrorT writeLog(void)
@@ -564,7 +626,8 @@ static SaAisErrorT writeLog(void)
 	invocation = random();
 
 retry:
-	error = saLogWriteLogAsync(logStreamHandleLd, invocation, SA_LOG_RECORD_WRITE_ACK, &logRecordLd);
+	error = saLogWriteLogAsync(logStreamHandleLd, invocation,
+				   SA_LOG_RECORD_WRITE_ACK, &logRecordLd);
 	while (error == SA_AIS_ERR_TRY_AGAIN && wait_time < TEN_SECONDS) {
 		usleep(HUNDRED_MS);
 		wait_time += HUNDRED_MS;
@@ -599,7 +662,8 @@ poll_retry:
 	}
 
 	if (invocationLd != invocation) {
-		fprintf(stderr, "logWriteLogCallbackT FAILED: wrong invocation\n");
+		fprintf(stderr,
+			"logWriteLogCallbackT FAILED: wrong invocation\n");
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 	if (errorLd == SA_AIS_ERR_TRY_AGAIN && wait_time < TEN_SECONDS) {
@@ -613,7 +677,8 @@ poll_retry:
 		goto retry;
 	}
 	if (errorLd != SA_AIS_OK) {
-		fprintf(stderr, "logWriteLogCallbackT FAILED: %s\n", saf_error(errorLd));
+		fprintf(stderr, "logWriteLogCallbackT FAILED: %s\n",
+			saf_error(errorLd));
 		return errorLd;
 	}
 
@@ -621,7 +686,8 @@ poll_retry:
 }
 
 //>
-// Verify the log file content to see if the long DN exists at specific token or not
+// Verify the log file content to see if the long DN exists at specific token or
+// not
 //
 // 1) Find all log files that have changes within last 1 minute
 // 2) Take all log files which match the pattern
@@ -644,11 +710,15 @@ static int verifyData(void)
 	bool disable_stdout = true;
 	SaConstStringT s_stdout = "1> /dev/null";
 
-	if (getenv("LOGTEST_ENABLE_STDOUT")) disable_stdout = false;
+	if (getenv("LOGTEST_ENABLE_STDOUT"))
+		disable_stdout = false;
 
-	sprintf(command, "find %s -type f -mmin -1 | egrep \"%s_[0-9]{8}_[0-9]{6}\\.log$\" "
-		" | xargs egrep \" START.*END \" %s ",
-		log_root_path, v_saLogStreamFileName, disable_stdout ? s_stdout : " ");
+	sprintf(
+	    command,
+	    "find %s -type f -mmin -1 | egrep \"%s_[0-9]{8}_[0-9]{6}\\.log$\" "
+	    " | xargs egrep \" START.*END \" %s ",
+	    log_root_path, v_saLogStreamFileName,
+	    disable_stdout ? s_stdout : " ");
 	rc = system(command);
 	if (WEXITSTATUS(rc) != 0) {
 		fprintf(stderr, "failed to perform cmd = %s\n", command);
@@ -718,7 +788,7 @@ void longDNAt_No_token(void)
 	rc = verifyData();
 	rc_validate(rc, 0);
 
-	// End testing. Close handles and restore data
+// End testing. Close handles and restore data
 done_init:
 	endLog();
 done:
@@ -785,7 +855,7 @@ void longDNAt_Ng_token(void)
 	rc = verifyData();
 	rc_validate(rc, 0);
 
-	// End testing. Close handles and restore data
+// End testing. Close handles and restore data
 done_init:
 	endLog();
 done:
@@ -852,7 +922,7 @@ void longDNAt_Sl_token(void)
 	rc = verifyData();
 	rc_validate(rc, 0);
 
-	// End testing. Close handles and restore data
+// End testing. Close handles and restore data
 done_init:
 	endLog();
 done:
@@ -919,7 +989,7 @@ void longDN_AppStream(void)
 
 	rc_validate(rc, 0);
 
-	// End testing. Close handles and restore data
+// End testing. Close handles and restore data
 done_init:
 	endLog();
 done:
@@ -948,7 +1018,8 @@ void longDNIn_AppStreamDN(void)
 	memset(appStreamDN, 'D', sizeof(appStreamDN) - 1);
 
 	// Perform testing
-	sprintf(command, "saflogger -a safLgStr=%s -f longDN longDN_test", appStreamDN);
+	sprintf(command, "saflogger -a safLgStr=%s -f longDN longDN_test",
+		appStreamDN);
 	rc = system(command);
 	if (WEXITSTATUS(rc) != 0) {
 		fprintf(stderr, "Failed to perform cmd = %s\n", command);
@@ -967,8 +1038,8 @@ done:
 //<
 
 //>>
-// A-UC1: Write an log records with `notificationObject` over kOsafMaxDnLength (2048)
-// using Log API.
+// A-UC1: Write an log records with `notificationObject` over kOsafMaxDnLength
+// (2048) using Log API.
 //<<
 void longDN_No_Over_MaxDn(void)
 {
@@ -1019,7 +1090,7 @@ void longDN_No_Over_MaxDn(void)
 	ais = writeLog();
 	rc_validate(ais, SA_AIS_ERR_INVALID_PARAM);
 
-	// End testing. Close handles and restore data
+// End testing. Close handles and restore data
 done_init:
 	endLog();
 done:
@@ -1027,8 +1098,8 @@ done:
 }
 
 //>>
-// A-UC3: Write an log records with `notifyingObject` over kOsafMaxDnLength (2048)
-// using Log API.
+// A-UC3: Write an log records with `notifyingObject` over kOsafMaxDnLength
+// (2048) using Log API.
 //<<
 void longDN_Ng_Over_MaxDn(void)
 {
@@ -1079,7 +1150,7 @@ void longDN_Ng_Over_MaxDn(void)
 	ais = writeLog();
 	rc_validate(ais, SA_AIS_ERR_INVALID_PARAM);
 
-	// End testing. Close handles and restore data
+// End testing. Close handles and restore data
 done_init:
 	endLog();
 done:
@@ -1139,7 +1210,7 @@ void longDN_Sl_Over_MaxDn(void)
 	ais = writeLog();
 	rc_validate(ais, SA_AIS_ERR_INVALID_PARAM);
 
-	// End testing. Close handles and restore data
+// End testing. Close handles and restore data
 done_init:
 	endLog();
 done:
@@ -1167,7 +1238,10 @@ void longDN_AppStrDN_Over_MaxDn(void)
 	memset(appStreamDN, 'x', sizeof(appStreamDN) - 1);
 
 	// Perform testing
-	sprintf(command, "saflogger -a safLgStrCfg=%s -f longDN_overMax longDN_test 2> /dev/null", appStreamDN);
+	sprintf(
+	    command,
+	    "saflogger -a safLgStrCfg=%s -f longDN_overMax longDN_test 2> /dev/null",
+	    appStreamDN);
 	rc = system(command);
 	if (WEXITSTATUS(rc) != 0) {
 		rc_validate(0, 0);
@@ -1189,14 +1263,17 @@ void longDNIn_AppStreamDN_ButNoF(void)
 	int rc;
 	char command[3000];
 
-	// No need to enable long DN in IMM here as err will be returned at saflogger tool.
+	// No need to enable long DN in IMM here as err will be returned at
+	// saflogger tool.
 
 	// Preparing data
 	char appStreamDN[1000] = {0};
 	memset(appStreamDN, 'E', sizeof(appStreamDN) - 1);
 
 	// Perform testing
-	sprintf(command, "saflogger -a safLgStrCfg=%s longDN_test_no_f 2> /dev/null", appStreamDN);
+	sprintf(command,
+		"saflogger -a safLgStrCfg=%s longDN_test_no_f 2> /dev/null",
+		appStreamDN);
 	rc = system(command);
 	if (WEXITSTATUS(rc) != 0) {
 		rc_validate(0, 0);
@@ -1209,21 +1286,35 @@ void longDNIn_AppStreamDN_ButNoF(void)
 /*
  * Suite #13
  */
-__attribute__ ((constructor)) static void longDN_constructor(void)
+__attribute__((constructor)) static void longDN_constructor(void)
 {
 	test_suite_add(13, "Test Long DN support");
 	// Normal test cases
-	test_case_add(13, longDNAt_No_token, "Write a log record using the long DN in @No");
-	test_case_add(13, longDNAt_Ng_token, "Write a log record using the long DN in @Ng");
-	test_case_add(13, longDNAt_Sl_token, "Write a log record using the long DN in @Sl");
-	test_case_add(13, longDN_AppStream, "Write a log record to long DN app stream");
-	test_case_add(13, longDNIn_AppStreamDN, "Write a log record to long DN runtime app stream using saflogger tool");
+	test_case_add(13, longDNAt_No_token,
+		      "Write a log record using the long DN in @No");
+	test_case_add(13, longDNAt_Ng_token,
+		      "Write a log record using the long DN in @Ng");
+	test_case_add(13, longDNAt_Sl_token,
+		      "Write a log record using the long DN in @Sl");
+	test_case_add(13, longDN_AppStream,
+		      "Write a log record to long DN app stream");
+	test_case_add(
+	    13, longDNIn_AppStreamDN,
+	    "Write a log record to long DN runtime app stream using saflogger tool");
 	// Abnormal test cases
-	test_case_add(13, longDN_No_Over_MaxDn, "Write a log record with notificationObj (@No) over max length");
-	test_case_add(13, longDN_Ng_Over_MaxDn, "Write a log record with notifyingObj (@Ng) over max length");
-	test_case_add(13, longDN_Sl_Over_MaxDn, "Write a log record with logSvcUsrName (@Sl) over max length");
-	test_case_add(13, longDN_AppStrDN_Over_MaxDn, "Write a log record to app stream with DN over max using saflogger tool");
-	test_case_add(13, longDNIn_AppStreamDN_ButNoF, "Write a log record to long DN runtime app using saflogger, but no f option");
-
-
+	test_case_add(
+	    13, longDN_No_Over_MaxDn,
+	    "Write a log record with notificationObj (@No) over max length");
+	test_case_add(
+	    13, longDN_Ng_Over_MaxDn,
+	    "Write a log record with notifyingObj (@Ng) over max length");
+	test_case_add(
+	    13, longDN_Sl_Over_MaxDn,
+	    "Write a log record with logSvcUsrName (@Sl) over max length");
+	test_case_add(
+	    13, longDN_AppStrDN_Over_MaxDn,
+	    "Write a log record to app stream with DN over max using saflogger tool");
+	test_case_add(
+	    13, longDNIn_AppStreamDN_ButNoF,
+	    "Write a log record to long DN runtime app using saflogger, but no f option");
 }

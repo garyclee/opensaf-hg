@@ -23,7 +23,7 @@
   DESCRIPTION:
 
   This file contains PID monitoring related definitions.
-  
+
 ******************************************************************************
 */
 
@@ -36,6 +36,7 @@ uint32_t avnd_mon_task_create(void);
 uint32_t avnd_mon_req_del(struct avnd_cb_tag *, SaUint64T);
 uint32_t avnd_mon_req_free(NCS_DB_LINK_LIST_NODE *);
 uint32_t avnd_evt_pid_exit_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
-struct avnd_mon_req_tag *avnd_mon_req_add(struct avnd_cb_tag *, AVND_COMP_PM_REC *);
+struct avnd_mon_req_tag *avnd_mon_req_add(struct avnd_cb_tag *,
+                                          AVND_COMP_PM_REC *);
 
 #endif  // AMF_AMFND_AVND_MON_H_

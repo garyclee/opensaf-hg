@@ -38,7 +38,6 @@
 
 /* Get target's suite of header files...*/
 
-
 /* From /base/common/inc */
 
 #include "base/ncs_svd.h"

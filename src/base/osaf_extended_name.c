@@ -35,24 +35,24 @@ enum {
 	kExtendedNamePointerOffset = sizeof(SaConstStringT) / sizeof(SaUint16T)
 };
 
-static inline SaConstStringT get_ptr(const SaNameT* name);
-static inline void set_ptr(SaConstStringT value, SaNameT* name);
+static inline SaConstStringT get_ptr(const SaNameT *name);
+static inline void set_ptr(SaConstStringT value, SaNameT *name);
 
 bool osaf_extended_names_enabled = false;
 static bool extended_names_initialized = false;
 
-static inline SaConstStringT get_ptr(const SaNameT* name)
+static inline SaConstStringT get_ptr(const SaNameT *name)
 {
 	union {
 		SaConstStringT pointer;
 		SaUint8T bytes[sizeof(SaConstStringT)];
 	} tmp;
 	memcpy(tmp.bytes, name->_opaque + kExtendedNamePointerOffset,
-		sizeof(SaConstStringT));
+	       sizeof(SaConstStringT));
 	return tmp.pointer;
 }
 
-static inline void set_ptr(SaConstStringT value, SaNameT* name)
+static inline void set_ptr(SaConstStringT value, SaNameT *name)
 {
 	union {
 		SaConstStringT pointer;
@@ -61,13 +61,13 @@ static inline void set_ptr(SaConstStringT value, SaNameT* name)
 	tmp.pointer = value;
 	name->_opaque[0] = kOsafExtendedNameMagic;
 	memcpy(name->_opaque + kExtendedNamePointerOffset, tmp.bytes,
-		sizeof(SaConstStringT));
+	       sizeof(SaConstStringT));
 }
 
 void osaf_extended_name_init(void)
 {
 	if (!extended_names_initialized) {
-		char* enable = getenv("SA_ENABLE_EXTENDED_NAMES");
+		char *enable = getenv("SA_ENABLE_EXTENDED_NAMES");
 		if (enable != NULL && enable[0] == '1' && enable[1] == '\0') {
 			osaf_extended_names_enabled = true;
 		} else {
@@ -77,7 +77,7 @@ void osaf_extended_name_init(void)
 	}
 }
 
-void osaf_extended_name_lend(SaConstStringT value, SaNameT* name)
+void osaf_extended_name_lend(SaConstStringT value, SaNameT *name)
 {
 	size_t length = strlen(value);
 	if (length < SA_MAX_UNEXTENDED_NAME_LENGTH) {
@@ -88,38 +88,39 @@ void osaf_extended_name_lend(SaConstStringT value, SaNameT* name)
 	}
 }
 
-SaConstStringT osaf_extended_name_borrow(const SaNameT* name)
+SaConstStringT osaf_extended_name_borrow(const SaNameT *name)
 {
 	size_t length = name->_opaque[0];
 	SaConstStringT value;
 	if (length != kOsafExtendedNameMagic) {
-		value = (SaConstStringT) (name->_opaque + 1);
+		value = (SaConstStringT)(name->_opaque + 1);
 	} else {
 		value = get_ptr(name);
 	}
 	return value;
 }
 
-bool osaf_is_an_extended_name(const SaNameT* name)
+bool osaf_is_an_extended_name(const SaNameT *name)
 {
 	return name->_opaque[0] == kOsafExtendedNameMagic;
 }
 
-bool osaf_is_extended_name_valid(const SaNameT* name)
+bool osaf_is_extended_name_valid(const SaNameT *name)
 {
 	size_t length = name->_opaque[0];
 	bool is_valid;
 	if (length != kOsafExtendedNameMagic) {
 		is_valid = length < SA_MAX_UNEXTENDED_NAME_LENGTH;
 	} else {
-		is_valid = osaf_extended_names_enabled &&
-			strnlen(get_ptr(name), SA_MAX_UNEXTENDED_NAME_LENGTH) >=
+		is_valid =
+		    osaf_extended_names_enabled &&
+		    strnlen(get_ptr(name), SA_MAX_UNEXTENDED_NAME_LENGTH) >=
 			SA_MAX_UNEXTENDED_NAME_LENGTH;
 	}
 	return is_valid;
 }
 
-bool osaf_is_extended_name_empty(const SaNameT* name)
+bool osaf_is_extended_name_empty(const SaNameT *name)
 {
 	size_t length = name->_opaque[0];
 	bool is_empty;
@@ -131,12 +132,12 @@ bool osaf_is_extended_name_empty(const SaNameT* name)
 	return is_empty;
 }
 
-size_t osaf_extended_name_length(const SaNameT* name)
+size_t osaf_extended_name_length(const SaNameT *name)
 {
 	size_t length = name->_opaque[0];
 	if (length != kOsafExtendedNameMagic) {
 		osafassert(length < SA_MAX_UNEXTENDED_NAME_LENGTH);
-		length = strnlen((const char*) (name->_opaque + 1), length);
+		length = strnlen((const char *)(name->_opaque + 1), length);
 	} else {
 		length = strlen(get_ptr(name));
 		osafassert(osaf_extended_names_enabled &&
@@ -145,15 +146,15 @@ size_t osaf_extended_name_length(const SaNameT* name)
 	return length;
 }
 
-void osaf_extended_name_clear(SaNameT* name)
+void osaf_extended_name_clear(SaNameT *name)
 {
 	name->_opaque[0] = 0;
-	*(char*) (name->_opaque + 1) = '\0';
+	*(char *)(name->_opaque + 1) = '\0';
 	memset(name->_opaque + kExtendedNamePointerOffset, 0,
-		sizeof(SaConstStringT));
+	       sizeof(SaConstStringT));
 }
 
-void osaf_extended_name_steal(SaStringT value, SaNameT* name)
+void osaf_extended_name_steal(SaStringT value, SaNameT *name)
 {
 	if (value != NULL) {
 		size_t length = strlen(value);
@@ -169,11 +170,11 @@ void osaf_extended_name_steal(SaStringT value, SaNameT* name)
 	}
 }
 
-void osaf_extended_name_alloc(SaConstStringT value, SaNameT* name)
+void osaf_extended_name_alloc(SaConstStringT value, SaNameT *name)
 {
 	if (value != NULL) {
 		size_t length = strlen(value);
-		void* pointer;
+		void *pointer;
 		if (length < SA_MAX_UNEXTENDED_NAME_LENGTH) {
 			name->_opaque[0] = length;
 			pointer = name->_opaque + 1;
@@ -188,14 +189,14 @@ void osaf_extended_name_alloc(SaConstStringT value, SaNameT* name)
 	}
 }
 
-void osaf_extended_name_free(SaNameT* name)
+void osaf_extended_name_free(SaNameT *name)
 {
 	if (name != NULL) {
 		if (name->_opaque[0] == kOsafExtendedNameMagic) {
-			free((SaStringT*) get_ptr(name));
+			free((SaStringT *)get_ptr(name));
 		}
 		name->_opaque[0] = 0xffff;
 		memset(name->_opaque + kExtendedNamePointerOffset, 0,
-			sizeof(SaConstStringT));
+		       sizeof(SaConstStringT));
 	}
 }

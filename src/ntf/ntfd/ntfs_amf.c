@@ -31,11 +31,11 @@
  *                 assignment from AMF.
  *
  * Arguments     : invocation - Designates a particular invocation.
- *                 cb         - A pointer to the NTFS control block. 
+ *                 cb         - A pointer to the NTFS control block.
  *
  * Return Values : None
  *
- * Notes         : None 
+ * Notes         : None
  *****************************************************************************/
 static SaAisErrorT amf_active_state_handler(SaInvocationT invocation)
 {
@@ -55,7 +55,7 @@ static SaAisErrorT amf_active_state_handler(SaInvocationT invocation)
  *                 assignment from AMF.
  *
  * Arguments     : invocation - Designates a particular invocation.
- *                 cb         - A pointer to the NTFS control block. 
+ *                 cb         - A pointer to the NTFS control block.
  *
  * Return Values : None
  *
@@ -76,7 +76,7 @@ static SaAisErrorT amf_standby_state_handler(SaInvocationT invocation)
  *                 assignment from AMF.
  *
  * Arguments     : invocation - Designates a particular invocation.
- *                 cb         - A pointer to the NTFS control block. 
+ *                 cb         - A pointer to the NTFS control block.
  *
  * Return Values : None
  *
@@ -85,7 +85,8 @@ static SaAisErrorT amf_standby_state_handler(SaInvocationT invocation)
 static SaAisErrorT amf_quiescing_state_handler(SaInvocationT invocation)
 {
 	TRACE_ENTER2("HA QUIESCING request");
-	return saAmfCSIQuiescingComplete(ntfs_cb->amf_hdl, invocation, SA_AIS_OK);
+	return saAmfCSIQuiescingComplete(ntfs_cb->amf_hdl, invocation,
+					 SA_AIS_OK);
 }
 
 /****************************************************************************
@@ -95,7 +96,7 @@ static SaAisErrorT amf_quiescing_state_handler(SaInvocationT invocation)
  *                 assignment from AMF.
  *
  * Arguments     : invocation - Designates a particular invocation.
- *                 cb         - A pointer to the NTFS control block. 
+ *                 cb         - A pointer to the NTFS control block.
  *
  * Return Values : None
  *
@@ -105,8 +106,8 @@ static SaAisErrorT amf_quiesced_state_handler(SaInvocationT invocation)
 {
 	TRACE_ENTER2("HA AMF QUIESCED STATE request");
 	/*
-	 ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with type
-	 ** MDS_CALLBACK_QUIESCED_ACK. Then change MBCSv role. Don't change
+	 ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with
+	 *type * MDS_CALLBACK_QUIESCED_ACK. Then change MBCSv role. Don't change
 	 ** ntfs_cb->ha_state now.
 	 */
 
@@ -120,20 +121,23 @@ static SaAisErrorT amf_quiesced_state_handler(SaInvocationT invocation)
 /****************************************************************************
  * Name          : amf_health_chk_callback
  *
- * Description   : This is the callback function which will be called 
- *                 when the AMF framework nentfs to health check for the component.
+ * Description   : This is the callback function which will be called
+ *                 when the AMF framework nentfs to health check for the
+ *component.
  *
  * Arguments     : invocation - Designates a particular invocation.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
- *                 checkType      - The type of healthcheck to be executed. 
+ *                 checkType      - The type of healthcheck to be executed.
  *
  * Return Values : None
  *
  * Notes         : None
  *****************************************************************************/
-static void amf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
+static void amf_health_chk_callback(SaInvocationT invocation,
+				    const SaNameT *compName,
+				    SaAmfHealthcheckKeyT *checkType)
 {
 	saAmfResponse(ntfs_cb->amf_hdl, invocation, SA_AIS_OK);
 }
@@ -141,23 +145,23 @@ static void amf_health_chk_callback(SaInvocationT invocation, const SaNameT *com
 /****************************************************************************
  * Name          : amf_csi_set_callback
  *
- * Description   : AMF callback function called 
+ * Description   : AMF callback function called
  *                 when there is any change in the HA state.
  *
- * Arguments     : invocation     - This parameter designated a particular 
- *                                  invocation of this callback function. The 
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
+ * Arguments     : invocation     - This parameter designated a particular
+ *                                  invocation of this callback function. The
+ *                                  invoke process return invocation when it
+ *                                  responds to the Avilability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
- *                 haState        - The new HA state to be assumeb by the 
- *                                  component service instance identified by 
+ *                 haState        - The new HA state to be assumeb by the
+ *                                  component service instance identified by
  *                                  csiName.
- *                 csiDescriptor - This will indicate whether or not the 
- *                                  component service instance for 
+ *                 csiDescriptor - This will indicate whether or not the
+ *                                  component service instance for
  *                                  ativeCompName went through quiescing.
  *
  * Return Values : None.
@@ -165,7 +169,9 @@ static void amf_health_chk_callback(SaInvocationT invocation, const SaNameT *com
  * Notes         : None.
  *****************************************************************************/
 static void amf_csi_set_callback(SaInvocationT invocation,
-				 const SaNameT *compName, SaAmfHAStateT new_haState, SaAmfCSIDescriptorT csiDescriptor)
+				 const SaNameT *compName,
+				 SaAmfHAStateT new_haState,
+				 SaAmfCSIDescriptorT csiDescriptor)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
@@ -180,16 +186,17 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	prev_haState = ntfs_cb->ha_state;
 
 	if (prev_haState == SA_AMF_HA_STANDBY &&
-	    new_haState == SA_AMF_HA_ACTIVE && ntfs_cb->ckpt_state != COLD_SYNC_COMPLETE) {
+	    new_haState == SA_AMF_HA_ACTIVE &&
+	    ntfs_cb->ckpt_state != COLD_SYNC_COMPLETE) {
 		/* We are not synched and cannot take over */
 		LOG_ER("NTFS cannot take over not cold synched");
 		error = SA_AIS_ERR_FAILED_OPERATION;
 		goto response;
 	}
 
-	if ((rc = initialize_for_assignment(ntfs_cb,
-		new_haState)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+	if ((rc = initialize_for_assignment(ntfs_cb, new_haState)) !=
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned)rc);
 		error = SA_AIS_ERR_FAILED_OPERATION;
 		goto response;
 	}
@@ -224,11 +231,13 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	ntfs_cb->ha_state = new_haState;
 
 	/* Handle active to active role change. */
-	if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
+	if ((prev_haState == SA_AMF_HA_ACTIVE) &&
+	    (new_haState == SA_AMF_HA_ACTIVE))
 		role_change = false;
 
 	/* Handle Stby to Stby role change. */
-	if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY))
+	if ((prev_haState == SA_AMF_HA_STANDBY) &&
+	    (new_haState == SA_AMF_HA_STANDBY))
 		role_change = false;
 
 	if (role_change == true) {
@@ -238,28 +247,26 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 		}
 
 		/* Inform MBCSV of HA state change */
-		if (NCSCC_RC_SUCCESS != (error = ntfs_mbcsv_change_HA_state(
-			ntfs_cb, new_haState)))
+		if (NCSCC_RC_SUCCESS !=
+		    (error = ntfs_mbcsv_change_HA_state(ntfs_cb, new_haState)))
 			error = SA_AIS_ERR_FAILED_OPERATION;
-		
-		TRACE("%s NTFS changing HA role from %s to %s",
-				__FUNCTION__,
-				ha_state_str(prev_haState),
-				ha_state_str(new_haState));
+
+		TRACE("%s NTFS changing HA role from %s to %s", __FUNCTION__,
+		      ha_state_str(prev_haState), ha_state_str(new_haState));
 	}
 
- response:
+response:
 	saAmfResponse(ntfs_cb->amf_hdl, invocation, error);
 	if ((new_haState == SA_AMF_HA_ACTIVE) && (role_change == true)) {
-		/* check for unsent notifictions and if notifiction is not logged */
+		/* check for unsent notifictions and if notifiction is not
+		 * logged */
 		checkNotificationList();
 	}
- done:
-	/* Kills the osafntfimcnd process if current state is Active or Standby and
-	 * the process is not already running in this state.
-	 * The process will be restarted by the process surveillance
-	 * thread.
-	 * This function will not return until the process is terminated.
+done:
+	/* Kills the osafntfimcnd process if current state is Active or Standby
+	 * and the process is not already running in this state. The process
+	 * will be restarted by the process surveillance thread. This function
+	 * will not return until the process is terminated.
 	 */
 	handle_state_ntfimcn(ntfs_cb->ha_state);
 
@@ -269,27 +276,28 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 /****************************************************************************
  * Name          : amf_comp_terminate_callback
  *
- * Description   : This is the callback function which will be called 
+ * Description   : This is the callback function which will be called
  *                 when the AMF framework nentfs to terminate NTFS. This does
  *                 all required to destroy NTFS(except to unregister from AMF)
  *
- * Arguments     : invocation     - This parameter designated a particular 
+ * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
+ *                                  invoke process return invocation when it
+ *                                  responds to the Avilability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
  *
  * Return Values : None
  *
  * Notes         : None
  *****************************************************************************/
-static void amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
+static void amf_comp_terminate_callback(SaInvocationT invocation,
+					const SaNameT *compName)
 {
-	SaAisErrorT rc=SA_AIS_OK;
+	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER();
 
@@ -315,7 +323,7 @@ static void amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT 
  * Name          : amf_csi_rmv_callback
  *
  * Description   : This callback routine is invoked by AMF during a
- *                 CSI set removal operation. 
+ *                 CSI set removal operation.
  *
  * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
@@ -328,10 +336,12 @@ static void amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT 
  *                                  Management Framework is setting.
  *                 csiName        - A const pointer to csiName
  *                 csiFlags       - csi Flags
- * Return Values : None 
+ * Return Values : None
  *****************************************************************************/
 static void amf_csi_rmv_callback(SaInvocationT invocation,
-				 const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags)
+				 const SaNameT *compName,
+				 const SaNameT *csiName,
+				 const SaAmfCSIFlagsT csiFlags)
 {
 	TRACE_ENTER();
 	saAmfResponse(ntfs_cb->amf_hdl, invocation, SA_AIS_OK);
@@ -339,15 +349,15 @@ static void amf_csi_rmv_callback(SaInvocationT invocation,
 }
 
 /*****************************************************************************\
- *  Name:          ntfs_healthcheck_start                           * 
+ *  Name:          ntfs_healthcheck_start                           *
  *                                                                            *
  *  Description:   To start the health check                                  *
  *                                                                            *
- *  Arguments:     NCSSA_CB* - Control Block                                  * 
- *                                                                            * 
+ *  Arguments:     NCSSA_CB* - Control Block                                  *
+ *                                                                            *
  *  Returns:       SA_AIS_OK    - everything is OK                            *
  *                 SA_AIS_ERR_* -  failure                                    *
- *  NOTE:                                                                     * 
+ *  NOTE:                                                                     *
 \******************************************************************************/
 SaAisErrorT ntfs_amf_healthcheck_start()
 {
@@ -357,12 +367,13 @@ SaAisErrorT ntfs_amf_healthcheck_start()
 
 	TRACE_ENTER();
 
-    /** start the AMF health check **/
+	/** start the AMF health check **/
 	memset(&healthy, 0, sizeof(healthy));
 	health_key = (char *)getenv("NTFSV_ENV_HEALTHCHECK_KEY");
 
 	if (health_key == NULL) {
-		strncpy((char *)healthy.key, "F1B2", SA_AMF_HEALTHCHECK_KEY_MAX);
+		strncpy((char *)healthy.key, "F1B2",
+			SA_AMF_HEALTHCHECK_KEY_MAX);
 		healthy.keyLen = strlen((const char *)healthy.key);
 	} else {
 		healthy.keyLen = strlen(health_key);
@@ -371,8 +382,9 @@ SaAisErrorT ntfs_amf_healthcheck_start()
 		strncpy((char *)healthy.key, health_key, healthy.keyLen);
 	}
 
-	error = saAmfHealthcheckStart(ntfs_cb->amf_hdl, &ntfs_cb->comp_name, &healthy,
-				      SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
+	error = saAmfHealthcheckStart(ntfs_cb->amf_hdl, &ntfs_cb->comp_name,
+				      &healthy, SA_AMF_HEALTHCHECK_AMF_INVOKED,
+				      SA_AMF_COMPONENT_FAILOVER);
 
 	if (error != SA_AIS_OK)
 		LOG_ER("saAmfHealthcheckStart FAILED: %u", error);
@@ -384,12 +396,12 @@ SaAisErrorT ntfs_amf_healthcheck_start()
 /**************************************************************************
  Function: ntfs_amf_register
 
- Purpose:  Function which registers NTFS with AMF.  
+ Purpose:  Function which registers NTFS with AMF.
 
- Input:    None 
+ Input:    None
 
  Returns:  SA_AIS_OK    - everything is OK
-           SA_AIS_ERR_* -  failure
+	   SA_AIS_ERR_* -  failure
 
 **************************************************************************/
 SaAisErrorT ntfs_amf_init()
@@ -401,14 +413,16 @@ SaAisErrorT ntfs_amf_init()
 	TRACE_ENTER();
 
 	if (ntfs_cb->nid_started &&
-		amf_comp_name_get_set_from_file("NTFD_COMP_NAME_FILE", &ntfs_cb->comp_name) != NCSCC_RC_SUCCESS)
+	    amf_comp_name_get_set_from_file(
+		"NTFD_COMP_NAME_FILE", &ntfs_cb->comp_name) != NCSCC_RC_SUCCESS)
 		goto done;
 
 	/* Initialize AMF callbacks */
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 	amfCallbacks.saAmfHealthcheckCallback = amf_health_chk_callback;
 	amfCallbacks.saAmfCSISetCallback = amf_csi_set_callback;
-	amfCallbacks.saAmfComponentTerminateCallback = amf_comp_terminate_callback;
+	amfCallbacks.saAmfComponentTerminateCallback =
+	    amf_comp_terminate_callback;
 	amfCallbacks.saAmfCSIRemoveCallback = amf_csi_rmv_callback;
 
 	amf_version.releaseCode = 'B';
@@ -423,7 +437,8 @@ SaAisErrorT ntfs_amf_init()
 	}
 
 	/* Obtain the AMF selection object to wait for AMF events */
-	error = saAmfSelectionObjectGet(ntfs_cb->amf_hdl, &ntfs_cb->amfSelectionObject);
+	error = saAmfSelectionObjectGet(ntfs_cb->amf_hdl,
+					&ntfs_cb->amfSelectionObject);
 	if (error != SA_AIS_OK) {
 		LOG_ER("saAmfSelectionObjectGet() FAILED: %u", error);
 		goto done;
@@ -437,20 +452,21 @@ SaAisErrorT ntfs_amf_init()
 	}
 
 	/* Register component with AMF */
-	error = saAmfComponentRegister(ntfs_cb->amf_hdl, &ntfs_cb->comp_name, (SaNameT *)NULL);
+	error = saAmfComponentRegister(ntfs_cb->amf_hdl, &ntfs_cb->comp_name,
+				       (SaNameT *)NULL);
 	if (error != SA_AIS_OK) {
 		LOG_ER("saAmfComponentRegister() FAILED");
 		goto done;
 	}
 
 	/* Start AMF healthchecks */
-	if (ntfs_amf_healthcheck_start() != SA_AIS_OK){
+	if (ntfs_amf_healthcheck_start() != SA_AIS_OK) {
 		LOG_ER("ntfs_amf_healthcheck_start() FAILED");
 		error = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
- done:
+done:
 	TRACE_LEAVE();
 	return error;
 }

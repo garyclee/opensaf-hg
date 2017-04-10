@@ -18,18 +18,18 @@
 #include "base/osaf_time.h"
 #include <errno.h>
 
-const struct timespec kZeroSeconds = { 0, 0 };
-const struct timespec kTenMilliseconds = { 0, 10000000 };
-const struct timespec kHundredMilliseconds = { 0, 100000000 };
-const struct timespec kOneSecond = { 1, 0 };
-const struct timespec kTwoSeconds = { 2, 0 };
-const struct timespec kFiveSeconds = { 5, 0 };
-const struct timespec kTenSeconds = { 10, 0 };
-const struct timespec kFifteenSeconds = { 15, 0 };
-const struct timespec kOneMinute = { 60, 0 };
-const struct timespec kOneHour = { 3600, 0 };
+const struct timespec kZeroSeconds = {0, 0};
+const struct timespec kTenMilliseconds = {0, 10000000};
+const struct timespec kHundredMilliseconds = {0, 100000000};
+const struct timespec kOneSecond = {1, 0};
+const struct timespec kTwoSeconds = {2, 0};
+const struct timespec kFiveSeconds = {5, 0};
+const struct timespec kTenSeconds = {10, 0};
+const struct timespec kFifteenSeconds = {15, 0};
+const struct timespec kOneMinute = {60, 0};
+const struct timespec kOneHour = {3600, 0};
 
-void osaf_nanosleep(const struct timespec* sleep_duration)
+void osaf_nanosleep(const struct timespec *sleep_duration)
 {
 	struct timespec wakeup_time;
 	osaf_clock_gettime(CLOCK_MONOTONIC, &wakeup_time);
@@ -39,5 +39,6 @@ void osaf_nanosleep(const struct timespec* sleep_duration)
 		retval = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
 					 &wakeup_time, NULL);
 	} while (retval == EINTR);
-	if (retval != 0) osaf_abort(retval);
+	if (retval != 0)
+		osaf_abort(retval);
 }

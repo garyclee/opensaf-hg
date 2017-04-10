@@ -23,9 +23,9 @@
 ..............................................................................
 
   DESCRIPTION:
-  
+
   API decleration for MQD SAF library..
-    
+
 ******************************************************************************/
 #ifndef MSG_MSGND_MQND_SAF_H_
 #define MSG_MSGND_MQND_SAF_H_

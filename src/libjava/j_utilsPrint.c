@@ -77,7 +77,7 @@ void U_printSaName(const char *msg, const SaNameT *saNamePtr)
 	_TRACE_INLINE("%s", msg);
 	if (saNamePtr == NULL) {
 		_TRACE2("NULL STRING \n");
-		return;		// EXIT POINT!!!
+		return; // EXIT POINT!!!
 	}
 
 	_TRACE_INLINE("%.*s (length:%d)\n", saNamePtr->length, saNamePtr->value,
@@ -103,7 +103,7 @@ void U_printSaSelectionObjectInfo(const char *msg,
 	_TRACE_INLINE("%s", msg);
 	if (fstat((int)saSelectionObject, &_selectionObjectStat) < 0) {
 		_TRACE2("fstat ERROR: negative return value...\n");
-		return;		// EXIT POINT
+		return; // EXIT POINT
 	}
 	// file type
 	if (S_ISREG(_selectionObjectStat.st_mode)) {
@@ -131,12 +131,12 @@ void U_printSaSelectionObjectInfo(const char *msg,
 	else if (S_ISLNK(_selectionObjectStat.st_mode)) {
 		_TRACE2("\tsymbolic link\n");
 	}
-#endif				// S_ISLNK
+#endif // S_ISLNK
 #ifdef S_ISSOCK
 	else if (S_ISSOCK(_selectionObjectStat.st_mode)) {
 		_TRACE2("\tsocket\n");
 	}
-#endif				// S_ISSOCK
+#endif // S_ISSOCK
 	else {
 		_TRACE2("fstat ERROR: unknown type...\n");
 	}
@@ -148,7 +148,6 @@ void U_printSaSelectionObjectInfo(const char *msg,
 		major(_selectionObjectStat.st_dev));
 	_TRACE2("\tfile system minor: %d \n",
 		minor(_selectionObjectStat.st_dev));
-
 }
 
 // CLM
@@ -161,9 +160,9 @@ void U_printSaSelectionObjectInfo(const char *msg,
  *   returns:     none
  * NOTE:
  *************************************************************************/
-void U_printSaClusterNotificationBuffer(const char *msg,
-					const SaClmClusterNotificationBufferT
-					*saClusterNotificationBufferPtr)
+void U_printSaClusterNotificationBuffer(
+    const char *msg,
+    const SaClmClusterNotificationBufferT *saClusterNotificationBufferPtr)
 {
 	// VARIABLES
 	int _idx;
@@ -178,15 +177,14 @@ void U_printSaClusterNotificationBuffer(const char *msg,
 		(unsigned int)saClusterNotificationBufferPtr->numberOfItems);
 	_TRACE2("NATIVE: \t notification: %p\n",
 		saClusterNotificationBufferPtr->notification);
-	// TODO should be some sensible error handling for invalid numberOfItems values...
+	// TODO should be some sensible error handling for invalid numberOfItems
+	// values...
 	for (_idx = 0; _idx < saClusterNotificationBufferPtr->numberOfItems;
 	     _idx++) {
 		_TRACE2("NATIVE: \t  notification[%d]:\n", _idx);
-		U_printSaClusterNotification("",
-					     &(saClusterNotificationBufferPtr->
-					       notification[_idx]));
+		U_printSaClusterNotification(
+		    "", &(saClusterNotificationBufferPtr->notification[_idx]));
 	}
-
 }
 
 /**************************************************************************
@@ -198,10 +196,9 @@ void U_printSaClusterNotificationBuffer(const char *msg,
  *   returns:     none
  * NOTE:
  *************************************************************************/
-void U_printSaClusterNotificationBuffer_4(const char *msg,
-					  const
-					  SaClmClusterNotificationBufferT_4
-					  *saClusterNotificationBufferPtr)
+void U_printSaClusterNotificationBuffer_4(
+    const char *msg,
+    const SaClmClusterNotificationBufferT_4 *saClusterNotificationBufferPtr)
 {
 	// VARIABLES
 	int _idx;
@@ -216,16 +213,14 @@ void U_printSaClusterNotificationBuffer_4(const char *msg,
 		(unsigned int)saClusterNotificationBufferPtr->numberOfItems);
 	_TRACE2("NATIVE: \t notification: %p\n",
 		saClusterNotificationBufferPtr->notification);
-	// TODO should be some sensible error handling for invalid numberOfItems values...
+	// TODO should be some sensible error handling for invalid numberOfItems
+	// values...
 	for (_idx = 0; _idx < saClusterNotificationBufferPtr->numberOfItems;
 	     _idx++) {
 		_TRACE2("NATIVE: \t  notification[%d]:\n", _idx);
-		U_printSaClusterNotification_4("",
-					       &
-					       (saClusterNotificationBufferPtr->
-						notification[_idx]));
+		U_printSaClusterNotification_4(
+		    "", &(saClusterNotificationBufferPtr->notification[_idx]));
 	}
-
 }
 
 /**************************************************************************
@@ -237,9 +232,8 @@ void U_printSaClusterNotificationBuffer_4(const char *msg,
  *   returns:     none
  * NOTE:
  *************************************************************************/
-void U_printSaClusterNotification(const char *msg,
-				  const SaClmClusterNotificationT
-				  *saClusterNotificationPtr)
+void U_printSaClusterNotification(
+    const char *msg, const SaClmClusterNotificationT *saClusterNotificationPtr)
 {
 	// BODY
 	_TRACE_INLINE("%s", msg);
@@ -260,9 +254,9 @@ void U_printSaClusterNotification(const char *msg,
  *   returns:     none
  * NOTE:
  *************************************************************************/
-void U_printSaClusterNotification_4(const char *msg,
-				    const SaClmClusterNotificationT_4
-				    *saClusterNotificationPtr)
+void U_printSaClusterNotification_4(
+    const char *msg,
+    const SaClmClusterNotificationT_4 *saClusterNotificationPtr)
 {
 	// BODY
 	_TRACE_INLINE("%s", msg);
@@ -347,8 +341,8 @@ void U_printSaNodeAddress(const char *msg,
 			      saClmNodeAddressPtr->length);
 	} else {
 		SaUint8T _eValue[SA_CLM_MAX_ADDRESS_LENGTH + 1];
-		memcpy(_eValue,
-		       saClmNodeAddressPtr->value, saClmNodeAddressPtr->length);
+		memcpy(_eValue, saClmNodeAddressPtr->value,
+		       saClmNodeAddressPtr->length);
 		_eValue[saClmNodeAddressPtr->length] = 0x00;
 		_TRACE_INLINE("%s (length: %d)\n", _eValue,
 			      saClmNodeAddressPtr->length);
@@ -366,9 +360,9 @@ void U_printSaNodeAddress(const char *msg,
  *   returns:     none
  * NOTE:
  *************************************************************************/
-void U_printSaCheckpointDescriptor(const char *msg,
-				   const SaCkptCheckpointDescriptorT
-				   *saCheckpointDescriptorPtr)
+void U_printSaCheckpointDescriptor(
+    const char *msg,
+    const SaCkptCheckpointDescriptorT *saCheckpointDescriptorPtr)
 {
 	// BODY
 	_TRACE_INLINE("%s", msg);
@@ -378,9 +372,9 @@ void U_printSaCheckpointDescriptor(const char *msg,
 		(unsigned int)saCheckpointDescriptorPtr->numberOfSections);
 	_TRACE2("NATIVE: \t\t memoryUsed:%lu\n",
 		(unsigned long)saCheckpointDescriptorPtr->memoryUsed);
-	U_printSaCheckpointCreationAttributes
-		("NATIVE: \t\t checkpointCreationAttributes\n",
-		 &(saCheckpointDescriptorPtr->checkpointCreationAttributes));
+	U_printSaCheckpointCreationAttributes(
+	    "NATIVE: \t\t checkpointCreationAttributes\n",
+	    &(saCheckpointDescriptorPtr->checkpointCreationAttributes));
 }
 
 /**************************************************************************
@@ -392,29 +386,28 @@ void U_printSaCheckpointDescriptor(const char *msg,
  *   returns:     none
  * NOTE:
  *************************************************************************/
-void U_printSaCheckpointCreationAttributes(const char *msg,
-					   const
-					   SaCkptCheckpointCreationAttributesT
-					   *saCheckpointCreationAttributesPtr)
+void U_printSaCheckpointCreationAttributes(
+    const char *msg, const SaCkptCheckpointCreationAttributesT
+			 *saCheckpointCreationAttributesPtr)
 {
 	// BODY
 	_TRACE_INLINE("%s", msg);
 	_TRACE2("NATIVE: \t\t\tcreationFlags:%u\n",
 		(unsigned int)saCheckpointCreationAttributesPtr->creationFlags);
-	_TRACE2("NATIVE: \t\t\tcheckpointSize: %lu\n",
-		(unsigned long)saCheckpointCreationAttributesPtr->
-		checkpointSize);
+	_TRACE2(
+	    "NATIVE: \t\t\tcheckpointSize: %lu\n",
+	    (unsigned long)saCheckpointCreationAttributesPtr->checkpointSize);
 	_TRACE2("NATIVE: \t\t\tretentionDuration: %lu\n",
-		(unsigned long)saCheckpointCreationAttributesPtr->
-		retentionDuration);
+		(unsigned long)
+		    saCheckpointCreationAttributesPtr->retentionDuration);
 	_TRACE2("NATIVE: \t\t\tmaxSections:%u\n",
 		(unsigned int)saCheckpointCreationAttributesPtr->maxSections);
-	_TRACE2("NATIVE: \t\t\tmaxSectionSize: %lu\n",
-		(unsigned long)saCheckpointCreationAttributesPtr->
-		maxSectionSize);
-	_TRACE2("NATIVE: \t\t\tmaxSectionIdSize: %lu\n",
-		(unsigned long)saCheckpointCreationAttributesPtr->
-		maxSectionIdSize);
+	_TRACE2(
+	    "NATIVE: \t\t\tmaxSectionSize: %lu\n",
+	    (unsigned long)saCheckpointCreationAttributesPtr->maxSectionSize);
+	_TRACE2(
+	    "NATIVE: \t\t\tmaxSectionIdSize: %lu\n",
+	    (unsigned long)saCheckpointCreationAttributesPtr->maxSectionIdSize);
 }
 
 // AMF
@@ -459,8 +452,7 @@ void U_printSaAmfHAState(const char *msg, const SaAmfHAStateT haState)
  *   returns:     none
  * NOTE:
  *************************************************************************/
-void U_printSaAmfCSIDescriptor(const char *msg,
-			       const SaAmfHAStateT haState,
+void U_printSaAmfCSIDescriptor(const char *msg, const SaAmfHAStateT haState,
 			       const SaAmfCSIDescriptorT *csiDescriptorPtr)
 {
 	_TRACE_INLINE("%s", msg);
@@ -470,21 +462,19 @@ void U_printSaAmfCSIDescriptor(const char *msg,
 		U_printSaName("\tcsiName: ", &csiDescriptorPtr->csiName);
 	}
 	if (haState == SA_AMF_HA_ACTIVE) {
-		U_printSaAmfCSIActiveDescriptor("\tActive csiStateDescriptor: ",
-						&(csiDescriptorPtr->
-						  csiStateDescriptor.
-						  activeDescriptor));
+		U_printSaAmfCSIActiveDescriptor(
+		    "\tActive csiStateDescriptor: ",
+		    &(csiDescriptorPtr->csiStateDescriptor.activeDescriptor));
 	}
 	if (haState == SA_AMF_HA_STANDBY) {
-		U_printSaAmfCSIStandbyDescriptor
-			("\tStandby csiStateDescriptor: ",
-			 &(csiDescriptorPtr->csiStateDescriptor.standbyDescriptor));
+		U_printSaAmfCSIStandbyDescriptor(
+		    "\tStandby csiStateDescriptor: ",
+		    &(csiDescriptorPtr->csiStateDescriptor.standbyDescriptor));
 	}
 	if (csiDescriptorPtr->csiFlags == SA_AMF_CSI_ADD_ONE) {
 		U_printSaAmfCSIAttributeList("\tcsi attributes: ",
 					     &(csiDescriptorPtr->csiAttr));
 	}
-
 }
 
 /**************************************************************************
@@ -524,9 +514,8 @@ void U_printSaAmfCSIFlags(const char *msg, const SaAmfCSIFlagsT csiFlags)
  *   returns:     none
  * NOTE:
  *************************************************************************/
-void U_printSaAmfCSIActiveDescriptor(const char *msg,
-				     const SaAmfCSIActiveDescriptorT
-				     *activeDescriptorPtr)
+void U_printSaAmfCSIActiveDescriptor(
+    const char *msg, const SaAmfCSIActiveDescriptorT *activeDescriptorPtr)
 {
 	_TRACE_INLINE("%s", msg);
 
@@ -566,9 +555,8 @@ void U_printSaAmfCSIActiveDescriptor(const char *msg,
  *   returns:     none
  * NOTE:
  *************************************************************************/
-void U_printSaAmfCSIStandbyDescriptor(const char *msg,
-				      const SaAmfCSIStandbyDescriptorT
-				      *standbyDescriptorPtr)
+void U_printSaAmfCSIStandbyDescriptor(
+    const char *msg, const SaAmfCSIStandbyDescriptorT *standbyDescriptorPtr)
 {
 	_TRACE_INLINE("%s", msg);
 	U_printSaName("\t\tactiveCompName: ",
@@ -591,8 +579,7 @@ void U_printSaAmfCSIAttributeList(const char *msg,
 {
 	unsigned int _idx;
 
-	_TRACE_INLINE("%s (attr pointer: %p), (length: %u)\n",
-		      msg,
+	_TRACE_INLINE("%s (attr pointer: %p), (length: %u)\n", msg,
 		      (void *)csiAttrListPtr->attr,
 		      (unsigned int)csiAttrListPtr->number);
 	// some error handling
@@ -606,10 +593,8 @@ void U_printSaAmfCSIAttributeList(const char *msg,
 	}
 	// print the attributes
 	for (_idx = 0; _idx < csiAttrListPtr->number; _idx++) {
-		_TRACE2("\t\tattribute[%u]: {%s/%s} \n",
-			_idx,
+		_TRACE2("\t\tattribute[%u]: {%s/%s} \n", _idx,
 			csiAttrListPtr->attr[_idx].attrName,
 			csiAttrListPtr->attr[_idx].attrValue);
 	}
-
 }

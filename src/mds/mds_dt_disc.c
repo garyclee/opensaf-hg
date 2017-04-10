@@ -21,7 +21,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-
 uint16_t mdtm_num_subscriptions;
 MDS_SUBTN_REF_VAL mdtm_handle;
 extern pid_t mdtm_pid;
@@ -29,15 +28,24 @@ extern pid_t mdtm_pid;
 struct pollfd pfd[2];
 
 /* Encode function declarations */
-static void mds_mdtm_enc_svc_subscribe(MDS_MDTM_DTM_MSG * svc_subscribe, uint8_t *buff);
-static void mds_mdtm_enc_svc_unsubscribe(MDS_MDTM_DTM_MSG * svc_unsubscribe, uint8_t *buff);
-static void mds_mdtm_enc_svc_install(MDS_MDTM_DTM_MSG * svc_install, uint8_t *buff);
-static void mds_mdtm_enc_svc_uninstall(MDS_MDTM_DTM_MSG * svc_uninstall, uint8_t *buff);
-static void mds_mdtm_enc_vdest_install(MDS_MDTM_DTM_MSG * vdest_install, uint8_t *buff);
-static void mds_mdtm_enc_vdest_uninstall(MDS_MDTM_DTM_MSG * vdest_uninstall, uint8_t *buff);
-static void mds_mdtm_enc_vdest_subscribe(MDS_MDTM_DTM_MSG * vdest_subscribe, uint8_t *buff);
-static void mds_mdtm_enc_node_subscribe(MDS_MDTM_DTM_MSG * node_subscribe, uint8_t *buff);
-static void mds_mdtm_enc_node_unsubscribe(MDS_MDTM_DTM_MSG * node_unsubscribe, uint8_t *buff);
+static void mds_mdtm_enc_svc_subscribe(MDS_MDTM_DTM_MSG *svc_subscribe,
+				       uint8_t *buff);
+static void mds_mdtm_enc_svc_unsubscribe(MDS_MDTM_DTM_MSG *svc_unsubscribe,
+					 uint8_t *buff);
+static void mds_mdtm_enc_svc_install(MDS_MDTM_DTM_MSG *svc_install,
+				     uint8_t *buff);
+static void mds_mdtm_enc_svc_uninstall(MDS_MDTM_DTM_MSG *svc_uninstall,
+				       uint8_t *buff);
+static void mds_mdtm_enc_vdest_install(MDS_MDTM_DTM_MSG *vdest_install,
+				       uint8_t *buff);
+static void mds_mdtm_enc_vdest_uninstall(MDS_MDTM_DTM_MSG *vdest_uninstall,
+					 uint8_t *buff);
+static void mds_mdtm_enc_vdest_subscribe(MDS_MDTM_DTM_MSG *vdest_subscribe,
+					 uint8_t *buff);
+static void mds_mdtm_enc_node_subscribe(MDS_MDTM_DTM_MSG *node_subscribe,
+					uint8_t *buff);
+static void mds_mdtm_enc_node_unsubscribe(MDS_MDTM_DTM_MSG *node_unsubscribe,
+					  uint8_t *buff);
 
 /**
  * Function contains the logic for service subscribe
@@ -49,8 +57,10 @@ static void mds_mdtm_enc_node_unsubscribe(MDS_MDTM_DTM_MSG * node_unsubscribe, u
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-				 MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
+uint32_t mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id,
+				    NCSMDS_SCOPE_TYPE install_scope,
+				    MDS_SVC_HDL svc_hdl,
+				    MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
 	uint32_t server_type = 0, status = 0;
 	MDS_MDTM_DTM_MSG subscr;
@@ -62,16 +72,19 @@ uint32_t mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_
 	svc_id = svc_id & MDS_EVENT_MASK_FOR_SVCID;
 
 	if (mdtm_num_subscriptions > MAX_SUBSCRIPTIONS) {
-		m_MDS_LOG_ERR("MDTM: SYSTEM CRITICAL Crossing =%d subscriptions\n", mdtm_num_subscriptions);
+		m_MDS_LOG_ERR(
+		    "MDTM: SYSTEM CRITICAL Crossing =%d subscriptions\n",
+		    mdtm_num_subscriptions);
 		if (mdtm_num_subscriptions > MAX_SUBSCRIPTIONS_RETURN_ERROR) {
-			m_MDS_LOG_ERR
-			    ("MDTM: SYSTEM has crossed the max =%d subscriptions , Returning failure to the user",
-			     MAX_SUBSCRIPTIONS_RETURN_ERROR);
+			m_MDS_LOG_ERR(
+			    "MDTM: SYSTEM has crossed the max =%d subscriptions , Returning failure to the user",
+			    MAX_SUBSCRIPTIONS_RETURN_ERROR);
 			return NCSCC_RC_FAILURE;
 		}
 	}
 
-	server_type = server_type | MDS_TCP_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
+	server_type =
+	    server_type | MDS_TCP_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
 
 	memset(&subscr, 0, sizeof(MDS_MDTM_DTM_MSG));
 
@@ -93,8 +106,9 @@ uint32_t mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_
 	mds_mdtm_enc_svc_subscribe(&subscr, tcp_buffer);
 
 	/* send the message directly */
-	if (NCSCC_RC_SUCCESS != mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SUBSCRIBE_BUFFER_SIZE)) {
-			m_MDS_LOG_ERR("MDTM: SVC-SUBSCRIBE send Failed");
+	if (NCSCC_RC_SUCCESS !=
+	    mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SUBSCRIBE_BUFFER_SIZE)) {
+		m_MDS_LOG_ERR("MDTM: SVC-SUBSCRIBE send Failed");
 	}
 
 	status = mdtm_add_to_ref_tbl(svc_hdl, *subtn_ref_val);
@@ -114,8 +128,9 @@ uint32_t mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t mds_mdtm_svc_unsubscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope, 
-		MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_mdtm_svc_unsubscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id,
+				      NCSMDS_SCOPE_TYPE install_scope,
+				      MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 
 	MDS_MDTM_DTM_MSG unsubscr;
@@ -140,10 +155,11 @@ uint32_t mds_mdtm_svc_unsubscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMD
 	mds_mdtm_enc_svc_unsubscribe(&unsubscr, tcp_buffer);
 
 	/* send the message directly */
-	if (NCSCC_RC_SUCCESS != mds_sock_send(tcp_buffer, MDS_MDTM_DTM_UNSUBSCRIBE_BUFFER_SIZE)) {
-			m_MDS_LOG_ERR("MDTM: SVC-UNSUBSCRIBE send Failed");
+	if (NCSCC_RC_SUCCESS !=
+	    mds_sock_send(tcp_buffer, MDS_MDTM_DTM_UNSUBSCRIBE_BUFFER_SIZE)) {
+		m_MDS_LOG_ERR("MDTM: SVC-UNSUBSCRIBE send Failed");
 	}
-	
+
 	mdtm_del_from_ref_tbl(subtn_ref_val);
 	--mdtm_num_subscriptions;
 
@@ -162,9 +178,11 @@ uint32_t mds_mdtm_svc_unsubscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMD
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-			       V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
-			       MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
+uint32_t mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id,
+				  NCSMDS_SCOPE_TYPE install_scope,
+				  V_DEST_RL role, MDS_VDEST_ID vdest_id,
+				  NCS_VDEST_TYPE vdest_policy,
+				  MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
 {
 	uint32_t server_type = 0, server_inst = 0;
 	MDS_MDTM_DTM_MSG svc_install;
@@ -177,9 +195,14 @@ uint32_t mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 	memset(&svc_install, 0, sizeof(MDS_MDTM_DTM_MSG));
 	memset(&tcp_buffer, 0, MDS_MDTM_DTM_SVC_INSTALL_BUFFER_SIZE);
 
-	server_type = server_type | MDS_TCP_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
-	server_inst |= (uint32_t)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper  4  bits */
-	server_inst |= (uint32_t)((mds_svc_pvt_ver) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN));	/* next 8  Bits */
+	server_type =
+	    server_type | MDS_TCP_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
+	server_inst |= (uint32_t)(
+	    (archword) << (LEN_4_BYTES -
+			   MDS_ARCHWORD_BITS_LEN)); /* Upper  4  bits */
+	server_inst |= (uint32_t)((mds_svc_pvt_ver)
+				  << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+				      MDS_VER_BITS_LEN)); /* next 8  Bits */
 
 	if (policy == NCS_VDEST_TYPE_MxN) {
 		policy = 0;
@@ -189,16 +212,26 @@ uint32_t mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 		policy = 1 & 0x1;
 	}
 
-	server_inst |= (uint32_t)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN));	/* Next 1 bit */
+	server_inst |=
+	    (uint32_t)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+					  MDS_VER_BITS_LEN -
+					  VDEST_POLICY_LEN)); /* Next 1 bit */
 
 	if (role == V_DEST_RL_ACTIVE) {
 		role = 0;
 	} else
 		role = 1;
 
-	server_inst |= (uint32_t)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN));	/* Next 1 bit */
+	server_inst |=
+	    (uint32_t)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+					MDS_VER_BITS_LEN - VDEST_POLICY_LEN -
+					ACT_STBY_LEN)); /* Next 1 bit */
 	install_scope = install_scope - 1;
-	server_inst |= (uint32_t)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
+	server_inst |=
+	    (uint32_t)((install_scope & 0x3)
+		       << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+			   MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN -
+			   MDS_SCOPE_LEN)); /* Next 2  bit */
 	server_inst |= vdest_id;
 
 	svc_install.size = MDS_MDTM_DTM_SVC_INSTALL_SIZE;
@@ -213,14 +246,16 @@ uint32_t mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 	svc_install.info.bind.process_id = mdtm_pid;
 	svc_install.info.bind.install_scope = install_scope;
 
-	m_MDS_LOG_INFO("MDTM: install_tcp : <%u,%u,%u>", server_type, server_inst, server_inst);
+	m_MDS_LOG_INFO("MDTM: install_tcp : <%u,%u,%u>", server_type,
+		       server_inst, server_inst);
 
 	/* Convert into the encoded tcp_buffer before send */
 	mds_mdtm_enc_svc_install(&svc_install, tcp_buffer);
 
 	/* send the message directly */
-	if (NCSCC_RC_SUCCESS != mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SVC_INSTALL_BUFFER_SIZE)) {
-			m_MDS_LOG_ERR("MDTM: SVC-INSTALL send Failed");
+	if (NCSCC_RC_SUCCESS !=
+	    mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SVC_INSTALL_BUFFER_SIZE)) {
+		m_MDS_LOG_ERR("MDTM: SVC-INSTALL send Failed");
 	}
 
 	m_MDS_LOG_INFO("MDTM: SVC-INSTALL Success\n");
@@ -237,9 +272,11 @@ uint32_t mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-				 V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
-				 MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
+uint32_t mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id,
+				    NCSMDS_SCOPE_TYPE install_scope,
+				    V_DEST_RL role, MDS_VDEST_ID vdest_id,
+				    NCS_VDEST_TYPE vdest_policy,
+				    MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
 {
 	uint32_t server_inst = 0, server_type = 0;
 	MDS_MDTM_DTM_MSG svc_uninstall;
@@ -252,9 +289,14 @@ uint32_t mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_
 	memset(&svc_uninstall, 0, sizeof(MDS_MDTM_DTM_MSG));
 	memset(&tcp_buffer, 0, MDS_MDTM_DTM_SVC_UNINSTALL_BUFFER_SIZE);
 
-	server_type = server_type | MDS_TCP_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
-	server_inst |= (uint32_t)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper 4 Bits */
-	server_inst |= (uint32_t)((mds_svc_pvt_ver) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN));	/* next 8 Bits */
+	server_type =
+	    server_type | MDS_TCP_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
+	server_inst |= (uint32_t)(
+	    (archword) << (LEN_4_BYTES -
+			   MDS_ARCHWORD_BITS_LEN)); /* Upper 4 Bits */
+	server_inst |= (uint32_t)((mds_svc_pvt_ver)
+				  << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+				      MDS_VER_BITS_LEN)); /* next 8 Bits */
 
 	if (policy == NCS_VDEST_TYPE_MxN) {
 		policy = 0;
@@ -262,17 +304,27 @@ uint32_t mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_
 		policy = 1;
 	}
 
-	server_inst |= (uint32_t)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN));	/* Next 1 bit */
+	server_inst |=
+	    (uint32_t)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+					  MDS_VER_BITS_LEN -
+					  VDEST_POLICY_LEN)); /* Next 1 bit */
 
 	if (role == V_DEST_RL_ACTIVE) {
 		role = 0;
 	} else
 		role = 1;
 
-	server_inst |= (uint32_t)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN));	/* Next 1 bit */
+	server_inst |=
+	    (uint32_t)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+					MDS_VER_BITS_LEN - VDEST_POLICY_LEN -
+					ACT_STBY_LEN)); /* Next 1 bit */
 
 	install_scope = install_scope - 1;
-	server_inst |= (uint32_t)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
+	server_inst |=
+	    (uint32_t)((install_scope & 0x3)
+		       << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+			   MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN -
+			   MDS_SCOPE_LEN)); /* Next 2  bit */
 
 	server_inst |= vdest_id;
 
@@ -288,14 +340,16 @@ uint32_t mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_
 	svc_uninstall.info.unbind.process_id = mdtm_pid;
 	svc_uninstall.info.unbind.install_scope = install_scope;
 
-	m_MDS_LOG_INFO("MDTM: uninstall_tcp : <%u,%u,%u>", server_type, server_inst, server_inst);
+	m_MDS_LOG_INFO("MDTM: uninstall_tcp : <%u,%u,%u>", server_type,
+		       server_inst, server_inst);
 
 	/* Convert into the encoded tcp_buffer before send */
 	mds_mdtm_enc_svc_uninstall(&svc_uninstall, tcp_buffer);
 
 	/* send the message directly */
-	if (NCSCC_RC_SUCCESS != mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SVC_UNINSTALL_BUFFER_SIZE)) {
-			m_MDS_LOG_ERR("MDTM: SVC-UNINSTALL send Failed");
+	if (NCSCC_RC_SUCCESS !=
+	    mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SVC_UNINSTALL_BUFFER_SIZE)) {
+		m_MDS_LOG_ERR("MDTM: SVC-UNINSTALL send Failed");
 	}
 	m_MDS_LOG_INFO("MDTM: SVC-UNINSTALL Success\n");
 	return NCSCC_RC_SUCCESS;
@@ -338,8 +392,9 @@ uint32_t mds_mdtm_vdest_install_tcp(MDS_VDEST_ID vdest_id)
 	mds_mdtm_enc_vdest_install(&server_addr, tcp_buffer);
 
 	/* send the message directly */
-	if (NCSCC_RC_SUCCESS != mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SVC_INSTALL_BUFFER_SIZE)) {
-			m_MDS_LOG_ERR("MDTM: VDEST-INSTALL send Failed");
+	if (NCSCC_RC_SUCCESS !=
+	    mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SVC_INSTALL_BUFFER_SIZE)) {
+		m_MDS_LOG_ERR("MDTM: VDEST-INSTALL send Failed");
 	}
 	m_MDS_LOG_INFO("MDTM: VDEST-INSTALL Success\n");
 	return NCSCC_RC_SUCCESS;
@@ -381,8 +436,9 @@ uint32_t mds_mdtm_vdest_uninstall_tcp(MDS_VDEST_ID vdest_id)
 	mds_mdtm_enc_vdest_uninstall(&server_addr, tcp_buffer);
 
 	/* send the message directly */
-	if (NCSCC_RC_SUCCESS != mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SVC_UNINSTALL_BUFFER_SIZE)) {
-			m_MDS_LOG_ERR("MDTM: VDEST-UNINSTALL send Failed");
+	if (NCSCC_RC_SUCCESS !=
+	    mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SVC_UNINSTALL_BUFFER_SIZE)) {
+		m_MDS_LOG_ERR("MDTM: VDEST-UNINSTALL send Failed");
 	}
 
 	m_MDS_LOG_INFO("MDTM: VDEST-UNINSTALL Success\n");
@@ -398,7 +454,8 @@ uint32_t mds_mdtm_vdest_uninstall_tcp(MDS_VDEST_ID vdest_id)
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val)
+uint32_t mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id,
+				      MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
 	uint32_t inst = 0, server_type = 0;
 	MDS_MDTM_DTM_MSG subscr;
@@ -407,11 +464,13 @@ uint32_t mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *
 	memset(&tcp_buffer, 0, MDS_MDTM_DTM_SUBSCRIBE_BUFFER_SIZE);
 
 	if (mdtm_num_subscriptions > MAX_SUBSCRIPTIONS) {
-		m_MDS_LOG_ERR("MDTM: SYSTEM CRITICAL Crossing =%d subscriptions\n", mdtm_num_subscriptions);
+		m_MDS_LOG_ERR(
+		    "MDTM: SYSTEM CRITICAL Crossing =%d subscriptions\n",
+		    mdtm_num_subscriptions);
 		if (mdtm_num_subscriptions > MAX_SUBSCRIPTIONS_RETURN_ERROR) {
-			m_MDS_LOG_ERR
-			    ("MDTM: SYSTEM has crossed the max =%d subscriptions , Returning failure to the user",
-			     MAX_SUBSCRIPTIONS_RETURN_ERROR);
+			m_MDS_LOG_ERR(
+			    "MDTM: SYSTEM has crossed the max =%d subscriptions , Returning failure to the user",
+			    MAX_SUBSCRIPTIONS_RETURN_ERROR);
 			return NCSCC_RC_FAILURE;
 		}
 	}
@@ -437,8 +496,9 @@ uint32_t mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *
 	mds_mdtm_enc_vdest_subscribe(&subscr, tcp_buffer);
 
 	/* send the message directly */
-	if (NCSCC_RC_SUCCESS != mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SUBSCRIBE_BUFFER_SIZE)) {
-			m_MDS_LOG_ERR("MDTM: VDEST-SUBSCRIBE send Failed");
+	if (NCSCC_RC_SUCCESS !=
+	    mds_sock_send(tcp_buffer, MDS_MDTM_DTM_SUBSCRIBE_BUFFER_SIZE)) {
+		m_MDS_LOG_ERR("MDTM: VDEST-SUBSCRIBE send Failed");
 	}
 
 	++mdtm_num_subscriptions;
@@ -455,7 +515,8 @@ uint32_t mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *
  * @return NCSCC_RC_SUCCESS
  *
  */
-uint32_t mds_mdtm_vdest_unsubscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_mdtm_vdest_unsubscribe_tcp(MDS_VDEST_ID vdest_id,
+					MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 	MDS_MDTM_DTM_MSG unsubscr;
 	uint8_t tcp_buffer[MDS_MDTM_DTM_UNSUBSCRIBE_BUFFER_SIZE];
@@ -479,8 +540,9 @@ uint32_t mds_mdtm_vdest_unsubscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL
 	mds_mdtm_enc_svc_unsubscribe(&unsubscr, tcp_buffer);
 
 	/* send the message directly */
-	if (NCSCC_RC_SUCCESS != mds_sock_send(tcp_buffer, MDS_MDTM_DTM_UNSUBSCRIBE_BUFFER_SIZE)) {
-			m_MDS_LOG_ERR("MDTM: VDEST-UNSUBSCRIBE send Failed");
+	if (NCSCC_RC_SUCCESS !=
+	    mds_sock_send(tcp_buffer, MDS_MDTM_DTM_UNSUBSCRIBE_BUFFER_SIZE)) {
+		m_MDS_LOG_ERR("MDTM: VDEST-UNSUBSCRIBE send Failed");
 	}
 	mdtm_del_from_ref_tbl(subtn_ref_val);
 	--mdtm_num_subscriptions;
@@ -516,7 +578,6 @@ uint32_t mds_mdtm_tx_hdl_unregister_tcp(MDS_DEST adest)
 	return NCSCC_RC_SUCCESS;
 }
 
-
 /**
  * Function contains the logic to subscribe to the node
  *
@@ -526,7 +587,8 @@ uint32_t mds_mdtm_tx_hdl_unregister_tcp(MDS_DEST adest)
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t mds_mdtm_node_subscribe_tcp(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
+uint32_t mds_mdtm_node_subscribe_tcp(MDS_SVC_HDL svc_hdl,
+				     MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
 	MDS_MDTM_DTM_MSG node_subscr;
 	uint32_t status = NCSCC_RC_SUCCESS;
@@ -550,8 +612,10 @@ uint32_t mds_mdtm_node_subscribe_tcp(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *sub
 	mds_mdtm_enc_node_subscribe(&node_subscr, tcp_buffer);
 
 	/* send the message directly */
-	if (NCSCC_RC_SUCCESS != mds_sock_send(tcp_buffer, MDS_MDTM_DTM_NODE_SUBSCRIBE_BUFFER_SIZE)) {
-			m_MDS_LOG_ERR("MDTM: NODE-SUBSCRIBE send Failed");
+	if (NCSCC_RC_SUCCESS !=
+	    mds_sock_send(tcp_buffer,
+			  MDS_MDTM_DTM_NODE_SUBSCRIBE_BUFFER_SIZE)) {
+		m_MDS_LOG_ERR("MDTM: NODE-SUBSCRIBE send Failed");
 	}
 
 	status = mdtm_add_to_ref_tbl(svc_hdl, *subtn_ref_val);
@@ -592,8 +656,10 @@ uint32_t mds_mdtm_node_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
 	mds_mdtm_enc_node_unsubscribe(&node_unsubscr, tcp_buffer);
 
 	/* send the message directly */
-	if (NCSCC_RC_SUCCESS != mds_sock_send(tcp_buffer, MDS_MDTM_DTM_NODE_UNSUBSCRIBE_BUFFER_SIZE)) {
-			m_MDS_LOG_ERR("MDTM: NODE-UNSUBSCRIBE send Failed");
+	if (NCSCC_RC_SUCCESS !=
+	    mds_sock_send(tcp_buffer,
+			  MDS_MDTM_DTM_NODE_UNSUBSCRIBE_BUFFER_SIZE)) {
+		m_MDS_LOG_ERR("MDTM: NODE-UNSUBSCRIBE send Failed");
 	}
 	m_MDS_LOG_INFO("MDTM: In mds_mdtm_node_unsubscribe_tcp\n");
 
@@ -609,17 +675,21 @@ uint32_t mds_mdtm_node_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
  * @param Send buffer, Data packet
  *
  */
-static void mds_mdtm_enc_svc_subscribe(MDS_MDTM_DTM_MSG * svc_subscribe, uint8_t *data)
+static void mds_mdtm_enc_svc_subscribe(MDS_MDTM_DTM_MSG *svc_subscribe,
+				       uint8_t *data)
 {
 	uint8_t *buff = data;
 	ncs_encode_16bit(&buff, svc_subscribe->size);
 	ncs_encode_32bit(&buff, svc_subscribe->mds_indentifire);
 	ncs_encode_8bit(&buff, svc_subscribe->mds_version);
 	ncs_encode_8bit(&buff, (uint8_t)svc_subscribe->type);
-	ncs_encode_8bit(&buff, (uint8_t)svc_subscribe->info.subscribe.scope_type);
+	ncs_encode_8bit(&buff,
+			(uint8_t)svc_subscribe->info.subscribe.scope_type);
 	ncs_encode_32bit(&buff, svc_subscribe->info.subscribe.server_type);
-	ncs_encode_32bit(&buff, svc_subscribe->info.subscribe.server_instance_lower);
-	ncs_encode_32bit(&buff, svc_subscribe->info.subscribe.server_instance_upper);
+	ncs_encode_32bit(&buff,
+			 svc_subscribe->info.subscribe.server_instance_lower);
+	ncs_encode_32bit(&buff,
+			 svc_subscribe->info.subscribe.server_instance_upper);
 	ncs_encode_64bit(&buff, svc_subscribe->info.subscribe.sub_ref_val);
 	ncs_encode_32bit(&buff, svc_subscribe->info.subscribe.node_id);
 	ncs_encode_32bit(&buff, svc_subscribe->info.subscribe.process_id);
@@ -633,7 +703,8 @@ static void mds_mdtm_enc_svc_subscribe(MDS_MDTM_DTM_MSG * svc_subscribe, uint8_t
  * @param Send buffer, Data packet
  *
  */
-static void mds_mdtm_enc_svc_unsubscribe(MDS_MDTM_DTM_MSG * svc_unsubscribe, uint8_t *data)
+static void mds_mdtm_enc_svc_unsubscribe(MDS_MDTM_DTM_MSG *svc_unsubscribe,
+					 uint8_t *data)
 {
 	uint8_t *buff = data;
 	ncs_encode_16bit(&buff, svc_unsubscribe->size);
@@ -653,7 +724,8 @@ static void mds_mdtm_enc_svc_unsubscribe(MDS_MDTM_DTM_MSG * svc_unsubscribe, uin
  * @param Send buffer, Data packet
  *
  */
-static void mds_mdtm_enc_svc_install(MDS_MDTM_DTM_MSG * svc_install, uint8_t *data)
+static void mds_mdtm_enc_svc_install(MDS_MDTM_DTM_MSG *svc_install,
+				     uint8_t *data)
 {
 	uint8_t *buff = data;
 	ncs_encode_16bit(&buff, svc_install->size);
@@ -676,7 +748,8 @@ static void mds_mdtm_enc_svc_install(MDS_MDTM_DTM_MSG * svc_install, uint8_t *da
  * @param Send buffer, Data packet
  *
  */
-static void mds_mdtm_enc_svc_uninstall(MDS_MDTM_DTM_MSG * svc_uninstall, uint8_t *data)
+static void mds_mdtm_enc_svc_uninstall(MDS_MDTM_DTM_MSG *svc_uninstall,
+				       uint8_t *data)
 {
 	uint8_t *buff = data;
 	ncs_encode_16bit(&buff, svc_uninstall->size);
@@ -685,8 +758,10 @@ static void mds_mdtm_enc_svc_uninstall(MDS_MDTM_DTM_MSG * svc_uninstall, uint8_t
 	ncs_encode_8bit(&buff, svc_uninstall->type);
 	ncs_encode_8bit(&buff, svc_uninstall->info.unbind.install_scope);
 	ncs_encode_32bit(&buff, svc_uninstall->info.unbind.server_type);
-	ncs_encode_32bit(&buff, svc_uninstall->info.unbind.server_instance_lower);
-	ncs_encode_32bit(&buff, svc_uninstall->info.unbind.server_instance_upper);
+	ncs_encode_32bit(&buff,
+			 svc_uninstall->info.unbind.server_instance_lower);
+	ncs_encode_32bit(&buff,
+			 svc_uninstall->info.unbind.server_instance_upper);
 	ncs_encode_32bit(&buff, svc_uninstall->info.unbind.node_id);
 	ncs_encode_32bit(&buff, svc_uninstall->info.unbind.process_id);
 
@@ -699,7 +774,8 @@ static void mds_mdtm_enc_svc_uninstall(MDS_MDTM_DTM_MSG * svc_uninstall, uint8_t
  * @param Send buffer, Data packet
  *
  */
-static void mds_mdtm_enc_vdest_install(MDS_MDTM_DTM_MSG * vdest_install, uint8_t *data)
+static void mds_mdtm_enc_vdest_install(MDS_MDTM_DTM_MSG *vdest_install,
+				       uint8_t *data)
 {
 	uint8_t *buff = data;
 	ncs_encode_16bit(&buff, vdest_install->size);
@@ -714,7 +790,6 @@ static void mds_mdtm_enc_vdest_install(MDS_MDTM_DTM_MSG * vdest_install, uint8_t
 	ncs_encode_32bit(&buff, vdest_install->info.bind.process_id);
 
 	return;
-
 }
 
 /**
@@ -723,7 +798,8 @@ static void mds_mdtm_enc_vdest_install(MDS_MDTM_DTM_MSG * vdest_install, uint8_t
  * @param Send buffer, Data packet
  *
  */
-static void mds_mdtm_enc_vdest_uninstall(MDS_MDTM_DTM_MSG * vdest_uninstall, uint8_t *data)
+static void mds_mdtm_enc_vdest_uninstall(MDS_MDTM_DTM_MSG *vdest_uninstall,
+					 uint8_t *data)
 {
 	uint8_t *buff = data;
 	ncs_encode_16bit(&buff, vdest_uninstall->size);
@@ -732,8 +808,10 @@ static void mds_mdtm_enc_vdest_uninstall(MDS_MDTM_DTM_MSG * vdest_uninstall, uin
 	ncs_encode_8bit(&buff, vdest_uninstall->type);
 	ncs_encode_8bit(&buff, vdest_uninstall->info.unbind.install_scope);
 	ncs_encode_32bit(&buff, vdest_uninstall->info.unbind.server_type);
-	ncs_encode_32bit(&buff, vdest_uninstall->info.unbind.server_instance_lower);
-	ncs_encode_32bit(&buff, vdest_uninstall->info.unbind.server_instance_upper);
+	ncs_encode_32bit(&buff,
+			 vdest_uninstall->info.unbind.server_instance_lower);
+	ncs_encode_32bit(&buff,
+			 vdest_uninstall->info.unbind.server_instance_upper);
 	ncs_encode_32bit(&buff, vdest_uninstall->info.unbind.node_id);
 	ncs_encode_32bit(&buff, vdest_uninstall->info.unbind.process_id);
 
@@ -746,17 +824,21 @@ static void mds_mdtm_enc_vdest_uninstall(MDS_MDTM_DTM_MSG * vdest_uninstall, uin
  * @param Send buffer, Data packet
  *
  */
-static void mds_mdtm_enc_vdest_subscribe(MDS_MDTM_DTM_MSG * vdest_subscribe, uint8_t *data)
+static void mds_mdtm_enc_vdest_subscribe(MDS_MDTM_DTM_MSG *vdest_subscribe,
+					 uint8_t *data)
 {
 	uint8_t *buff = data;
 	ncs_encode_16bit(&buff, vdest_subscribe->size);
 	ncs_encode_32bit(&buff, vdest_subscribe->mds_indentifire);
 	ncs_encode_8bit(&buff, vdest_subscribe->mds_version);
 	ncs_encode_8bit(&buff, (uint8_t)vdest_subscribe->type);
-	ncs_encode_8bit(&buff, (uint8_t)vdest_subscribe->info.subscribe.scope_type);
+	ncs_encode_8bit(&buff,
+			(uint8_t)vdest_subscribe->info.subscribe.scope_type);
 	ncs_encode_32bit(&buff, vdest_subscribe->info.subscribe.server_type);
-	ncs_encode_32bit(&buff, vdest_subscribe->info.subscribe.server_instance_lower);
-	ncs_encode_32bit(&buff, vdest_subscribe->info.subscribe.server_instance_upper);
+	ncs_encode_32bit(&buff,
+			 vdest_subscribe->info.subscribe.server_instance_lower);
+	ncs_encode_32bit(&buff,
+			 vdest_subscribe->info.subscribe.server_instance_upper);
 	ncs_encode_64bit(&buff, vdest_subscribe->info.subscribe.sub_ref_val);
 	ncs_encode_32bit(&buff, vdest_subscribe->info.subscribe.node_id);
 	ncs_encode_32bit(&buff, vdest_subscribe->info.subscribe.process_id);
@@ -770,7 +852,8 @@ static void mds_mdtm_enc_vdest_subscribe(MDS_MDTM_DTM_MSG * vdest_subscribe, uin
  * @param Send buffer, Data packet
  *
  */
-static void mds_mdtm_enc_node_subscribe(MDS_MDTM_DTM_MSG * node_subscribe, uint8_t *data)
+static void mds_mdtm_enc_node_subscribe(MDS_MDTM_DTM_MSG *node_subscribe,
+					uint8_t *data)
 {
 	uint8_t *buff = data;
 	ncs_encode_16bit(&buff, node_subscribe->size);
@@ -779,7 +862,8 @@ static void mds_mdtm_enc_node_subscribe(MDS_MDTM_DTM_MSG * node_subscribe, uint8
 	ncs_encode_8bit(&buff, node_subscribe->type);
 	ncs_encode_32bit(&buff, node_subscribe->info.node_subscribe.node_id);
 	ncs_encode_32bit(&buff, node_subscribe->info.node_subscribe.process_id);
-	ncs_encode_64bit(&buff, node_subscribe->info.node_subscribe.sub_ref_val);
+	ncs_encode_64bit(&buff,
+			 node_subscribe->info.node_subscribe.sub_ref_val);
 
 	return;
 }
@@ -790,16 +874,20 @@ static void mds_mdtm_enc_node_subscribe(MDS_MDTM_DTM_MSG * node_subscribe, uint8
  * @param Send buffer, Data packet
  *
  */
-static void mds_mdtm_enc_node_unsubscribe(MDS_MDTM_DTM_MSG * node_unsubscribe, uint8_t *data)
+static void mds_mdtm_enc_node_unsubscribe(MDS_MDTM_DTM_MSG *node_unsubscribe,
+					  uint8_t *data)
 {
 	uint8_t *buff = data;
 	ncs_encode_16bit(&buff, node_unsubscribe->size);
 	ncs_encode_32bit(&buff, node_unsubscribe->mds_indentifire);
 	ncs_encode_8bit(&buff, node_unsubscribe->mds_version);
 	ncs_encode_8bit(&buff, node_unsubscribe->type);
-	ncs_encode_32bit(&buff, node_unsubscribe->info.node_unsubscribe.node_id);
-	ncs_encode_32bit(&buff, node_unsubscribe->info.node_unsubscribe.process_id);
-	ncs_encode_64bit(&buff, node_unsubscribe->info.node_unsubscribe.sub_ref_val);
+	ncs_encode_32bit(&buff,
+			 node_unsubscribe->info.node_unsubscribe.node_id);
+	ncs_encode_32bit(&buff,
+			 node_unsubscribe->info.node_unsubscribe.process_id);
+	ncs_encode_64bit(&buff,
+			 node_unsubscribe->info.node_unsubscribe.sub_ref_val);
 
 	return;
 }

@@ -23,31 +23,34 @@
  * health checksfor the component.
  *
  * @param invocation - Designates a particular invocation.
- * @param compName       - A pointer to the name of the component 
+ * @param compName       - A pointer to the name of the component
  * whose readiness stae the AMF  is setting.
- * @param checkType      - The type of healthcheck to be executed. 
+ * @param checkType      - The type of healthcheck to be executed.
  */
-static void clmna_amf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName,
-					 SaAmfHealthcheckKeyT *checkType)
+static void clmna_amf_health_chk_callback(SaInvocationT invocation,
+					  const SaNameT *compName,
+					  SaAmfHealthcheckKeyT *checkType)
 {
 	saAmfResponse(clmna_cb->amf_hdl, invocation, SA_AIS_OK);
 }
 
 /*
- * The AMF callback function called when there is any 
+ * The AMF callback function called when there is any
  * change in the HA state.
  * @param invocation - This parameter designated a particular invocation of
- * this callback function. The invoke process return invocation when it 
+ * this callback function. The invoke process return invocation when it
  * responds to the AMF using the saAmfResponse() function.
- * @compName - A pointer to the name of the component whose readiness state 
- * the AMF is setting. 
- * @param haState - The new HA state to be assumed by the CSI identified by 
+ * @compName - A pointer to the name of the component whose readiness state
+ * the AMF is setting.
+ * @param haState - The new HA state to be assumed by the CSI identified by
  * csiName.
- * @csiDescriptor - This will indicate whether or not the CSI for 
+ * @csiDescriptor - This will indicate whether or not the CSI for
  * ativeCompName went through quiescing.
  */
 static void clmna_amf_csi_set_callback(SaInvocationT invocation,
-				      const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
+				       const SaNameT *compName,
+				       SaAmfHAStateT haState,
+				       SaAmfCSIDescriptorT csiDescriptor)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	TRACE_ENTER();
@@ -60,18 +63,19 @@ static void clmna_amf_csi_set_callback(SaInvocationT invocation,
 }
 
 /*
- * This is the callback function which will be called 
+ * This is the callback function which will be called
  * when the AMF framework needs to terminate CLMS. This does
  * all required to destroy CLMS(except to unregister from AMF)
  *
- * @invocation - This parameter designated a particular 
+ * @invocation - This parameter designated a particular
  * invocation of this callback function. The invoke process return
- * invocation when it responds to the AMF using the saAmfResponse() 
+ * invocation when it responds to the AMF using the saAmfResponse()
  * function.
  * @compName - A pointer to the name of the component whose readiness
  * state the AMF is setting.
  */
-void clmna_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
+void clmna_amf_comp_terminate_callback(SaInvocationT invocation,
+				       const SaNameT *compName)
 {
 	TRACE_ENTER();
 
@@ -86,18 +90,19 @@ void clmna_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *
 }
 
 /*
- * This callback routine is invoked by AMF during a CSI set removal operation. 
+ * This callback routine is invoked by AMF during a CSI set removal operation.
  *
- * @param invocation - This parameter designated a particular invocation of 
+ * @param invocation - This parameter designated a particular invocation of
  * this callback function. The invoke process return invocation when it
  * responds to the AMF FrameWork using the saAmfResponse() function.
- * @param compName - A pointer to the name of the component whose readiness state
- * the AMF is setting.
+ * @param compName - A pointer to the name of the component whose readiness
+ * state the AMF is setting.
  * @csiName        - A const pointer to csiName i
  * @csiFlags       - csi Flags
  */
 void clmna_amf_csi_rmv_callback(SaInvocationT invocation,
-				      const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags)
+				const SaNameT *compName, const SaNameT *csiName,
+				const SaAmfCSIFlagsT csiFlags)
 {
 	TRACE_ENTER();
 
@@ -107,11 +112,11 @@ void clmna_amf_csi_rmv_callback(SaInvocationT invocation,
 }
 
 /*
- * Function to start the health checking with AMF 
- * @param:  CLMNA_CB - Control Block  
- * @return: SaAisErrorT 
+ * Function to start the health checking with AMF
+ * @param:  CLMNA_CB - Control Block
+ * @return: SaAisErrorT
  */
-SaAisErrorT clmna_amf_healthcheck_start(CLMNA_CB * clmna_cb)
+SaAisErrorT clmna_amf_healthcheck_start(CLMNA_CB *clmna_cb)
 {
 	SaAisErrorT error;
 	SaAmfHealthcheckKeyT healthy;
@@ -119,7 +124,7 @@ SaAisErrorT clmna_amf_healthcheck_start(CLMNA_CB * clmna_cb)
 
 	TRACE_ENTER();
 
-    /** start the AMF health check **/
+	/** start the AMF health check **/
 	memset(&healthy, 0, sizeof(healthy));
 	health_key = getenv("CLMNA_ENV_HEALTHCHECK_KEY");
 
@@ -127,7 +132,8 @@ SaAisErrorT clmna_amf_healthcheck_start(CLMNA_CB * clmna_cb)
 		strcpy((char *)healthy.key, "Default");
 	else {
 		if (strlen(health_key) > SA_AMF_HEALTHCHECK_KEY_MAX) {
-			LOG_ER("amf_healthcheck_start(): Helthcheck key to long");
+			LOG_ER(
+			    "amf_healthcheck_start(): Helthcheck key to long");
 			return SA_AIS_ERR_NAME_TOO_LONG;
 		}
 		strcpy((char *)healthy.key, health_key);
@@ -135,8 +141,9 @@ SaAisErrorT clmna_amf_healthcheck_start(CLMNA_CB * clmna_cb)
 
 	healthy.keyLen = strlen((char *)healthy.key);
 
-	error = saAmfHealthcheckStart(clmna_cb->amf_hdl, &clmna_cb->comp_name, &healthy,
-				      SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
+	error = saAmfHealthcheckStart(clmna_cb->amf_hdl, &clmna_cb->comp_name,
+				      &healthy, SA_AMF_HEALTHCHECK_AMF_INVOKED,
+				      SA_AMF_COMPONENT_FAILOVER);
 
 	if (error != SA_AIS_OK)
 		LOG_ER("saAmfHealthcheckStart FAILED: %u", error);
@@ -145,13 +152,13 @@ SaAisErrorT clmna_amf_healthcheck_start(CLMNA_CB * clmna_cb)
 	return error;
 }
 
-/*  
- * Initializes and registers with AMF.  
+/*
+ * Initializes and registers with AMF.
  * @param: control block to CLMNA
  * @return : SaAisErrorT
  */
 
-SaAisErrorT clmna_amf_init(CLMNA_CB * cb)
+SaAisErrorT clmna_amf_init(CLMNA_CB *cb)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
@@ -160,14 +167,16 @@ SaAisErrorT clmna_amf_init(CLMNA_CB * cb)
 	TRACE_ENTER();
 
 	if (cb->nid_started &&
-		amf_comp_name_get_set_from_file("CLMNA_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS)
+	    amf_comp_name_get_set_from_file("CLMNA_COMP_NAME_FILE",
+					    &cb->comp_name) != NCSCC_RC_SUCCESS)
 		goto done;
 
 	/* Initialize AMF callbacks */
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 	amfCallbacks.saAmfHealthcheckCallback = clmna_amf_health_chk_callback;
 	amfCallbacks.saAmfCSISetCallback = clmna_amf_csi_set_callback;
-	amfCallbacks.saAmfComponentTerminateCallback = clmna_amf_comp_terminate_callback;
+	amfCallbacks.saAmfComponentTerminateCallback =
+	    clmna_amf_comp_terminate_callback;
 	amfCallbacks.saAmfCSIRemoveCallback = clmna_amf_csi_rmv_callback;
 
 	amf_version.releaseCode = 'B';
@@ -196,21 +205,20 @@ SaAisErrorT clmna_amf_init(CLMNA_CB * cb)
 	}
 
 	/* Register component with AMF */
-	error = saAmfComponentRegister(cb->amf_hdl, &cb->comp_name, (SaNameT *)NULL);
+	error = saAmfComponentRegister(cb->amf_hdl, &cb->comp_name,
+				       (SaNameT *)NULL);
 	if (error != SA_AIS_OK) {
-		LOG_ER("saAmfComponentRegister() FAILED: %u",error);
+		LOG_ER("saAmfComponentRegister() FAILED: %u", error);
 		goto done;
 	}
 
 	/* Start AMF healthchecks */
-	if ((error = clmna_amf_healthcheck_start(cb)) != SA_AIS_OK){
-		LOG_ER("clmna_amf_healthcheck_start() FAILED: %u",error);
+	if ((error = clmna_amf_healthcheck_start(cb)) != SA_AIS_OK) {
+		LOG_ER("clmna_amf_healthcheck_start() FAILED: %u", error);
 		goto done;
 	}
 
- done:
+done:
 	TRACE_LEAVE();
 	return error;
-
 }
-

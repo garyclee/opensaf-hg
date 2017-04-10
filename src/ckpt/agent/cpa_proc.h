@@ -20,56 +20,63 @@
 
 /* Call back Types */
 typedef enum cpa_callback_type {
-	CPA_CALLBACK_TYPE_OPEN = 1,
-	CPA_CALLBACK_TYPE_SYNC,
-	CPA_CALLBACK_TYPE_ARRIVAL_NTFY,
-	CPA_CALLBACK_TYPE_MAX = CPA_CALLBACK_TYPE_ARRIVAL_NTFY
+  CPA_CALLBACK_TYPE_OPEN = 1,
+  CPA_CALLBACK_TYPE_SYNC,
+  CPA_CALLBACK_TYPE_ARRIVAL_NTFY,
+  CPA_CALLBACK_TYPE_MAX = CPA_CALLBACK_TYPE_ARRIVAL_NTFY
 } CPA_CALLBACK_TYPE;
 
 /* Info required for Call back */
 typedef struct cpa_callback_info {
-	struct cpa_callback_info *next;	/* This is required, as this struct 
-					   is posted to mailbox */
-	CPA_CALLBACK_TYPE type;
-	SaCkptCheckpointHandleT lcl_ckpt_hdl;
-	SaInvocationT invocation;
-	SaCkptIOVectorElementT *ioVector;
-	SaUint32T num_of_elmts;
-	SaAisErrorT sa_err;
+  struct cpa_callback_info *next; /* This is required, as this struct
+                                     is posted to mailbox */
+  CPA_CALLBACK_TYPE type;
+  SaCkptCheckpointHandleT lcl_ckpt_hdl;
+  SaInvocationT invocation;
+  SaCkptIOVectorElementT *ioVector;
+  SaUint32T num_of_elmts;
+  SaAisErrorT sa_err;
 } CPA_CALLBACK_INFO;
 
 uint32_t cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt);
 uint32_t cpa_version_validate(SaVersionT *version);
-uint32_t cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
-				      *checkpointCreationAttributes,
-				      SaCkptCheckpointOpenFlagsT checkpointOpenFlags);
+uint32_t cpa_open_attr_validate(
+    const SaCkptCheckpointCreationAttributesT *checkpointCreationAttributes,
+    SaCkptCheckpointOpenFlagsT checkpointOpenFlags);
 
 uint32_t cpa_callback_ipc_init(CPA_CLIENT_NODE *client_info);
 void cpa_callback_ipc_destroy(CPA_CLIENT_NODE *client_info);
 uint32_t cpa_ckpt_finalize_proc(CPA_CB *cb, CPA_CLIENT_NODE *cl_node);
 uint32_t cpa_proc_shm_open(CPA_CB *cb, CPA_GLOBAL_CKPT_NODE *gc_node,
-				 const SaNameT *ckpt_name, SaSizeT ckpt_size);
+                           const SaNameT *ckpt_name, SaSizeT ckpt_size);
 uint32_t cpa_proc_shm_close(CPA_GLOBAL_CKPT_NODE *gc_node);
 
 uint32_t cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector,
-					      uint32_t numberOfElements, uint32_t data_access_type,
-					      SaSizeT maxSectionSize, SaUint32T *errflag, CPSV_CKPT_DATA **ckpt_data);
+                                        uint32_t numberOfElements,
+                                        uint32_t data_access_type,
+                                        SaSizeT maxSectionSize,
+                                        SaUint32T *errflag,
+                                        CPSV_CKPT_DATA **ckpt_data);
 
 void cpa_proc_free_cpsv_ckpt_data(CPSV_CKPT_DATA *ckpt_data);
 
 void cpa_proc_free_arrival_ntfy_cpsv_ckpt_data(CPSV_CKPT_DATA *ckpt_data);
 
 uint32_t cpa_proc_check_iovector(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node,
-				       const SaCkptIOVectorElementT *iovector, uint32_t num_of_elmts, uint32_t *errflag);
+                                 const SaCkptIOVectorElementT *iovector,
+                                 uint32_t num_of_elmts, uint32_t *errflag);
 
 uint32_t cpa_proc_replica_read(CPA_CB *cb, SaUint32T numberOfElements,
-				     SaCkptCheckpointHandleT gbl_ckpt_hdl,
-				     SaCkptIOVectorElementT **ioVector, CPSV_ND2A_READ_MAP *read_map,
-				     SaUint32T **erroneousVectorIndex);
+                               SaCkptCheckpointHandleT gbl_ckpt_hdl,
+                               SaCkptIOVectorElementT **ioVector,
+                               CPSV_ND2A_READ_MAP *read_map,
+                               SaUint32T **erroneousVectorIndex);
 
 uint32_t cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
-					 SaCkptIOVectorElementT *ioVector, CPSV_ND2A_READ_DATA *read_data,
-					 SaUint32T **erroneousVectorIndex, SaVersionT *version);
+                                   SaCkptIOVectorElementT *ioVector,
+                                   CPSV_ND2A_READ_DATA *read_data,
+                                   SaUint32T **erroneousVectorIndex,
+                                   SaVersionT *version);
 
 void cpa_proc_free_read_data(CPSV_ND2A_DATA_ACCESS_RSP *rmt_read_rsp);
 

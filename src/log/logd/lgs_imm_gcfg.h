@@ -25,4 +25,3 @@ void lgs_stop_gcfg_applier();
 std::string lgs_get_networkname();
 
 #endif  // LOG_LOGD_LGS_IMM_GCFG_H_
-

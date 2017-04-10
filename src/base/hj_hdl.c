@@ -41,58 +41,64 @@
 /************************************************************************
 
  H a n d l e   M a n a g e r    P o o l s
- 
-   N a m e - s p a c e  p a r t i t i o n i n g   
+
+   N a m e - s p a c e  p a r t i t i o n i n g
 
 ************************************************************************/
 
-static HM_CORE gl_hm;		/* anchor global for this primitive service */
+static HM_CORE gl_hm; /* anchor global for this primitive service */
 
 HM_POOL gl_hpool[HM_POOL_CNT] = {
-  /*-------------+----------+--------+----------------------*/
-	/*             |   name space unit |                      */
-	/* pool ID     |   min    |   max  |     approx # of hdls */
-  /*-------------+----------+--------+----------------------*/
-				/*     0     */ {0, 1},
-				/*  2.1 million hdls */
-					/*     1     */ {2, 32},
-					/* 32.5 million hdls */
-					/*     2     */ {33, 64},
-					/* 33.5 million hdls */
-					/*     3     */ {65, 96},
-					/* 33.5 million hdls */
-					/*     4     */ {97, 128},
-					/* 33.5 million hdls */
-					/*     5     */ {129, 160},
-					/* 33.5 million hdls */
-					/*     6     */ {161, 192},
-					/* 33.5 million hdls */
-					/*     7     */ {193, 224},
-					/* 33.5 million hdls */
-					/*     8     */ {225, 255}
-					/* 32.5 million hdls */
+    /*-------------+----------+--------+----------------------*/
+    /*             |   name space unit |                      */
+    /* pool ID     |   min    |   max  |     approx # of hdls */
+    /*-------------+----------+--------+----------------------*/
+    /*     0     */ {0, 1},
+    /*  2.1 million hdls */
+    /*     1     */ {2, 32},
+    /* 32.5 million hdls */
+    /*     2     */ {33, 64},
+    /* 33.5 million hdls */
+    /*     3     */ {65, 96},
+    /* 33.5 million hdls */
+    /*     4     */ {97, 128},
+    /* 33.5 million hdls */
+    /*     5     */ {129, 160},
+    /* 33.5 million hdls */
+    /*     6     */ {161, 192},
+    /* 33.5 million hdls */
+    /*     7     */ {193, 224},
+    /* 33.5 million hdls */
+    /*     8     */ {225, 255}
+    /* 32.5 million hdls */
 };
 
 /***************************************************************************
  *
- * P r i v a t e    H a n d l e   M g r    P o o l   F u n c t i o n s 
+ * P r i v a t e    H a n d l e   M g r    P o o l   F u n c t i o n s
  *
  ***************************************************************************/
 
 /* This mapping between PoolID and handle is based on the values
    as set in the gl_hpool[ ] array(just above). */
-#define m_HM_DETM_POOL_FRM_HDL(lhdl) \
-    ( ((uint32_t)(((HM_HDL*)lhdl)->idx1) < 2) ? NCSHM_POOL_LOCAL : ( (uint32_t)((uint32_t)((uint32_t)(((HM_HDL*)lhdl)->idx1) - 1)>>5) + 1 ) )
+#define m_HM_DETM_POOL_FRM_HDL(lhdl)                                           \
+	(((uint32_t)(((HM_HDL *)lhdl)->idx1) < 2)                              \
+	     ? NCSHM_POOL_LOCAL                                                \
+	     : ((uint32_t)(                                                    \
+		    (uint32_t)((uint32_t)(((HM_HDL *)lhdl)->idx1) - 1) >> 5) + \
+		1))
 
 /* Given the unitID, get the poolID. This mapping has a dependency on
    the values as set in gl_hpool[ ] array. If the array values change, either
-   create a new mapping between unitID and poolID, (or) use the function 
+   create a new mapping between unitID and poolID, (or) use the function
    hm_pool_id( )(just below). */
 #if 1
-#define m_HM_POOL_ID(unit) \
-    ( (unit < 2) ? NCSHM_POOL_LOCAL : ( (uint32_t)((((uint32_t)unit) - 1)>>5) + 1 ) )
+#define m_HM_POOL_ID(unit)                                                     \
+	((unit < 2) ? NCSHM_POOL_LOCAL                                         \
+		    : ((uint32_t)((((uint32_t)unit) - 1) >> 5) + 1))
 #else
-/* Commented out function. Use this, if mapping for the poolID and unitID changes. */
+/* Commented out function. Use this, if mapping for the poolID and unitID
+ * changes. */
 #define m_HM_POOL_ID(unit) hm_pool_id
 uint32_t hm_pool_id(uint8_t unit)
 {
@@ -102,7 +108,7 @@ uint32_t hm_pool_id(uint8_t unit)
 		if (gl_hpool[i].max >= unit)
 			return i;
 	}
-	return m_LEAP_DBG_SINK(i);	/* This can't/shouldn't happen really */
+	return m_LEAP_DBG_SINK(i); /* This can't/shouldn't happen really */
 }
 #endif
 
@@ -122,13 +128,13 @@ uint32_t hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool)
 	for (i = 0; i < HM_POOL_CNT; i++) {
 		/* force pool units to be contiguous & non-overlapping */
 
-		if (!((last_max + 1) == pool->min))	/* contiguous */
+		if (!((last_max + 1) == pool->min)) /* contiguous */
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-		if (pool->max >= 256)	/* greater than max units */
+		if (pool->max >= 256) /* greater than max units */
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-		if (pool->min > pool->max)	/* malformed range spec */
+		if (pool->min > pool->max) /* malformed range spec */
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 		last_max = pool->max;
@@ -154,20 +160,22 @@ uint32_t hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool)
    PROCEDURE NAME:   ncshm_init
 
    DESCRIPTION:      put handle manager in known start state. Most of this
-                     function proves that bitmap manipulation and size
-                     assumptions are true for this target machine since
-                     NetPlane cannot test them all in our lab.
+		     function proves that bitmap manipulation and size
+		     assumptions are true for this target machine since
+		     NetPlane cannot test them all in our lab.
 
-                     If they are NOT true, tell NetPlane (debug statements)
-                     should fire off so that analysis can take place.
+		     If they are NOT true, tell NetPlane (debug statements)
+		     should fire off so that analysis can take place.
 
 *****************************************************************************/
 uint32_t gl_im_created = 0;
 
 uint32_t ncshm_init(void)
 {
-	/* Hdl Mgr does bit-fields; here we do a few exercises up front to make */
-	/* sure YOUR target system can cope with bit-stuff we do............... */
+	/* Hdl Mgr does bit-fields; here we do a few exercises up front to make
+	 */
+	/* sure YOUR target system can cope with bit-stuff we do...............
+	 */
 	HM_HDL hb;
 	HM_HDL *p_hdl;
 	uint32_t *p_temp;
@@ -177,28 +185,29 @@ uint32_t ncshm_init(void)
 	if (gl_im_created > 1)
 		return NCSCC_RC_SUCCESS;
 
-	assert(sizeof(HM_FREE) == sizeof(HM_CELL));	/* must be same size */
+	assert(sizeof(HM_FREE) == sizeof(HM_CELL)); /* must be same size */
 
-	assert(sizeof(uint32_t) == sizeof(HM_HDL));	/* must be same size */
+	assert(sizeof(uint32_t) == sizeof(HM_HDL)); /* must be same size */
 
-	HM_HDL ha = {
-		.seq_id = 6,
-		.idx1 = 1,		/* make up a fake handle with values */
-		.idx2 = 2,
-		.idx3 = 3
-	};
+	HM_HDL ha = {.seq_id = 6,
+		     .idx1 = 1, /* make up a fake handle with values */
+		     .idx2 = 2,
+		     .idx3 = 3};
 
-	/* cast to INT PTR, to HDL PTR, deref to HDL; bit-fields still stable ? */
+	/* cast to INT PTR, to HDL PTR, deref to HDL; bit-fields still stable ?
+	 */
 
 	p_temp = (uint32_t *)(&ha);
 	p_hdl = (HM_HDL *)p_temp;
 	hb = *p_hdl;
 
-	/* are all the bitfields still in tact?? .............................. */
+	/* are all the bitfields still in tact?? ..............................
+	 */
 
-	assert(((ha.idx1 == hb.idx1) && (ha.idx2 == hb.idx2) && (ha.idx3 == hb.idx3) && (ha.seq_id == hb.seq_id)));
+	assert(((ha.idx1 == hb.idx1) && (ha.idx2 == hb.idx2) &&
+		(ha.idx3 == hb.idx3) && (ha.seq_id == hb.seq_id)));
 
-	/* Done with basic tests; now we move on to normal initialization      */
+	/* Done with basic tests; now we move on to normal initialization */
 
 	memset(&gl_hm, 0, sizeof(HM_CORE));
 	for (cnt = 0; cnt < HM_POOL_CNT; cnt++)
@@ -247,7 +256,7 @@ void ncshm_delete(void)
 	/* Memset the gl_hm data structure. */
 	memset(&gl_hm, 0, sizeof(HM_CORE));
 
-	/* ncshm_init(); */	/* put struct back in start state.. Why not?? */
+	/* ncshm_init(); */ /* put struct back in start state.. Why not?? */
 }
 
 /*****************************************************************************
@@ -255,7 +264,7 @@ void ncshm_delete(void)
    PROCEDURE NAME:   ncshm_create_hdl
 
    DESCRIPTION:      Secure a handle and bind associated client save data with
-                     it. Return the uint32_t handle that leads to saved data.
+		     it. Return the uint32_t handle that leads to saved data.
 
 *****************************************************************************/
 uint32_t ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
@@ -264,16 +273,18 @@ uint32_t ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
 	uint32_t ret = 0;
 
 	if (pool >= HM_POOL_CNT)
-		return ret;	/* Invalid handle returned. */
+		return ret; /* Invalid handle returned. */
 
 	m_NCS_LOCK(&gl_hm.lock[pool], NCS_LOCK_WRITE);
 
 	if ((free = hm_alloc_cell(pool)) != NULL) {
-		HM_CELL* cell = hm_find_cell(&free->hdl);	/* These two lines are sanity */
-		assert(((void *)free == (void *)cell));	/* checks that add no value   */
+		HM_CELL *cell =
+		    hm_find_cell(&free->hdl); /* These two lines are sanity */
+		assert(((void *)free ==
+			(void *)cell)); /* checks that add no value   */
 
 		ret = (*(uint32_t *)&free->hdl);
-		cell->data = save;	/* store user stuff and internal state */
+		cell->data = save; /* store user stuff and internal state */
 		cell->use_ct = 1;
 		cell->svc_id = id;
 		cell->busy = true;
@@ -288,12 +299,11 @@ uint32_t ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
    PROCEDURE NAME:   ncshm_declare_hdl
 
    DESCRIPTION:      On backup side, an RE declares that the handle specified
-                     should be assigned to the invoker. Hdl Mgr SHOULD NOT run
-                     into a name clash (declared name already in-use) as
-                     1 - primary & backup side agree to use same Hdl Mgr Pool ID,
-                     2 - And Pools by same ID are same shape (same name space).
-                     3 - when backup, env only gets hdls via ncshm_declare_hdl()
-                         (and never via ncshm_create_hdl()).
+		     should be assigned to the invoker. Hdl Mgr SHOULD NOT run
+		     into a name clash (declared name already in-use) as
+		     1 - primary & backup side agree to use same Hdl Mgr Pool
+ID, 2 - And Pools by same ID are same shape (same name space). 3 - when backup,
+env only gets hdls via ncshm_declare_hdl() (and never via ncshm_create_hdl()).
 
 *****************************************************************************/
 
@@ -311,11 +321,12 @@ uint32_t ncshm_declare_hdl(uint32_t uhdl, NCS_SERVICE_ID id, NCSCONTEXT save)
 
 	m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
 
-	if ((free = hm_target_cell(hdl)) != NULL) {	/* must have THIS cell */
-		cell = hm_find_cell(hdl);	/* These two lines are sanity */
-		assert(((void *)free == (void *)cell));	/* checks that add no value   */
+	if ((free = hm_target_cell(hdl)) != NULL) { /* must have THIS cell */
+		cell = hm_find_cell(hdl); /* These two lines are sanity */
+		assert(((void *)free ==
+			(void *)cell)); /* checks that add no value   */
 
-		cell->data = save;	/* store user stuff and internal state */
+		cell->data = save; /* store user stuff and internal state */
 		cell->use_ct = 1;
 		cell->svc_id = id;
 		cell->busy = true;
@@ -330,9 +341,9 @@ uint32_t ncshm_declare_hdl(uint32_t uhdl, NCS_SERVICE_ID id, NCSCONTEXT save)
 
    PROCEDURE NAME:   ncshm_destroy_hdl
 
-   DESCRIPTION:      destroy the binding between the passed handle and the 
-                     associated data. If some other thread currently is using
-                     the data, BLOCK this thread till ref-count == 1
+   DESCRIPTION:      destroy the binding between the passed handle and the
+		     associated data. If some other thread currently is using
+		     the data, BLOCK this thread till ref-count == 1
 
 *****************************************************************************/
 
@@ -350,13 +361,19 @@ NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uint32_t uhdl)
 	m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
 
 	if ((cell = hm_find_cell(hdl)) != NULL) {
-		if ((cell->seq_id == hdl->seq_id) && ((NCS_SERVICE_ID)cell->svc_id == id) && (cell->busy == true)) {
+		if ((cell->seq_id == hdl->seq_id) &&
+		    ((NCS_SERVICE_ID)cell->svc_id == id) &&
+		    (cell->busy == true)) {
 			cell->busy = false;
 			data = cell->data;
 
 			if (cell->use_ct > 1) {
-				hm_block_me(cell, (uint8_t)pool_id);	/* must unlock inside */
-				m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);	/* must lock again!!! */
+				hm_block_me(
+				    cell,
+				    (uint8_t)pool_id); /* must unlock inside */
+				m_NCS_LOCK(
+				    &gl_hm.lock[pool_id],
+				    NCS_LOCK_WRITE); /* must lock again!!! */
 			}
 			hm_free_cell(cell, hdl, true);
 		}
@@ -371,7 +388,7 @@ NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uint32_t uhdl)
    PROCEDURE NAME:   ncshm_take_hdl
 
    DESCRIPTION:      If all validation stuff is in order return the associated
-                     data that this hdl leads to.
+		     data that this hdl leads to.
 
 *****************************************************************************/
 NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uint32_t uhdl)
@@ -388,9 +405,11 @@ NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uint32_t uhdl)
 	m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
 
 	if ((cell = hm_find_cell(hdl)) != NULL) {
-		if ((cell->seq_id == hdl->seq_id) && ((NCS_SERVICE_ID)cell->svc_id == id) && (cell->busy == true)) {
+		if ((cell->seq_id == hdl->seq_id) &&
+		    ((NCS_SERVICE_ID)cell->svc_id == id) &&
+		    (cell->busy == true)) {
 			if (++cell->use_ct == 0) {
-				m_LEAP_DBG_SINK_VOID;	/* Too many takes()s!! */
+				m_LEAP_DBG_SINK_VOID; /* Too many takes()s!! */
 			}
 
 			data = cell->data;
@@ -405,8 +424,8 @@ NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uint32_t uhdl)
 
    PROCEDURE NAME:   ncshm_give_hdl
 
-   DESCRIPTION:      Inform Hdl Manager that you are done with associated 
-                     data.
+   DESCRIPTION:      Inform Hdl Manager that you are done with associated
+		     data.
 
 *****************************************************************************/
 void ncshm_give_hdl(uint32_t uhdl)
@@ -424,10 +443,12 @@ void ncshm_give_hdl(uint32_t uhdl)
 	if ((cell = hm_find_cell(hdl)) != NULL) {
 		if (cell->seq_id == hdl->seq_id) {
 			if (--cell->use_ct < 1) {
-				m_LEAP_DBG_SINK_VOID;	/* Client BUG..Too many give()s!! */
+				m_LEAP_DBG_SINK_VOID; /* Client BUG..Too many
+							 give()s!! */
 				cell->use_ct++;
 			} else {
-				if ((cell->busy == false) && (cell->use_ct == 1))
+				if ((cell->busy == false) &&
+				    (cell->use_ct == 1))
 					hm_unblock_him(cell);
 			}
 		}
@@ -477,7 +498,7 @@ HM_FREE *hm_alloc_cell(uint8_t id)
    PROCEDURE NAME:   hm_find_cell
 
    DESCRIPTION:      Given a handle, find the associated cell. This is the
-                     master lookup routine. Its fast.
+		     master lookup routine. Its fast.
 
 *****************************************************************************/
 
@@ -516,7 +537,7 @@ void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, bool recycle)
 	free->hdl.seq_id++;
 
 	if (free->hdl.seq_id == 0)
-		free->hdl.seq_id++;	/* seq_id must be non-zero always */
+		free->hdl.seq_id++; /* seq_id must be non-zero always */
 
 	pmgr = &gl_hm.pool[m_HM_POOL_ID((uint8_t)free->hdl.idx1)];
 	free->next = pmgr->free_pool;
@@ -543,7 +564,7 @@ uint32_t hm_make_free_cells(HM_PMGR *pmgr)
 	/* first time this pool has been used ?? */
 
 	if (unit == NULL) {
-		if ((unit = (HM_UNIT*) malloc(sizeof(HM_UNIT))) == NULL)
+		if ((unit = (HM_UNIT *)malloc(sizeof(HM_UNIT))) == NULL)
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 		memset(unit, 0, sizeof(HM_UNIT));
@@ -554,29 +575,29 @@ uint32_t hm_make_free_cells(HM_PMGR *pmgr)
 
 	/* Check to see if BACKUP has caused random cell banks to be created */
 
-	while (unit->cells[unit->curr] != NULL) {	/* BACKUP has been here!! */
-		/* Commenting as condition is always false and it was giving warnings */
+	while (unit->cells[unit->curr] != NULL) { /* BACKUP has been here!! */
+		/* Commenting as condition is always false and it was giving
+		 * warnings */
 		++unit->curr;
 	}
 
 	/* Now go make HM_CELL_CNT (4096) new cells */
-	if ((cells = (HM_CELLS*) malloc(sizeof(HM_CELLS))) == NULL)
+	if ((cells = (HM_CELLS *)malloc(sizeof(HM_CELLS))) == NULL)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 	memset(cells, 0, sizeof(HM_CELLS));
 
-	HM_HDL hdl = {
-		.seq_id = 0,
-		.idx1 = pmgr->curr,	/* set handle conditions */
-		.idx2 = unit->curr,
-		.idx3 = 0
-	};
+	HM_HDL hdl = {.seq_id = 0,
+		      .idx1 = pmgr->curr, /* set handle conditions */
+		      .idx2 = unit->curr,
+		      .idx3 = 0};
 
-	unit->cells[unit->curr++] = cells;	/* update curr++ for next time */
+	unit->cells[unit->curr++] = cells; /* update curr++ for next time */
 
-	for (i = 0; i < HM_CELL_CNT; i++) {	/* carve um up and put in free-po0l */
+	for (i = 0; i < HM_CELL_CNT;
+	     i++) { /* carve um up and put in free-po0l */
 		hdl.idx3 = i;
-		HM_CELL* cell = &(cells->cell[i]);
+		HM_CELL *cell = &(cells->cell[i]);
 		hm_free_cell(cell, &hdl, false);
 	}
 
@@ -588,13 +609,13 @@ uint32_t hm_make_free_cells(HM_PMGR *pmgr)
    PROCEDURE NAME:   hm_target_cell
 
    DESCRIPTION:      We MUST find the target cell available or something is
-                     not right!!!! this is used by BACKUP who declares what
-                     the handle value should be.
+		     not right!!!! this is used by BACKUP who declares what
+		     the handle value should be.
 
    NOTE..............This is used on the backup and can be slow depending on
-                     the size of the free pool. The lookup algorithm is
-                     optimized for the primary side, where performance is a
-                     more critical issue.
+		     the size of the free pool. The lookup algorithm is
+		     optimized for the primary side, where performance is a
+		     more critical issue.
 
 *****************************************************************************/
 
@@ -611,10 +632,11 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 
 	uint32_t tgt = *((uint32_t *)hdl);
 
-	pmgr = &gl_hm.pool[m_HM_POOL_ID((uint8_t)hdl->idx1)];	/* determine pool */
+	pmgr =
+	    &gl_hm.pool[m_HM_POOL_ID((uint8_t)hdl->idx1)]; /* determine pool */
 
 	if ((unit = gl_hm.unit[hdl->idx1]) == NULL) {
-		if ((unit = (HM_UNIT*)  malloc(sizeof(HM_UNIT))) == NULL) {
+		if ((unit = (HM_UNIT *)malloc(sizeof(HM_UNIT))) == NULL) {
 			m_LEAP_DBG_SINK_VOID;
 			return NULL;
 		}
@@ -624,7 +646,7 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 	}
 
 	if ((cells = unit->cells[hdl->idx2]) == NULL) {
-		if ((cells = (HM_CELLS*) malloc(sizeof(HM_CELLS))) == NULL) {
+		if ((cells = (HM_CELLS *)malloc(sizeof(HM_CELLS))) == NULL) {
 			m_LEAP_DBG_SINK_VOID;
 			return NULL;
 		}
@@ -635,9 +657,10 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 		tmp_hdl.idx2 = hdl->idx2;
 		tmp_hdl.seq_id = 0;
 
-		unit->cells[hdl->idx2] = cells;	/* put it where it goes */
+		unit->cells[hdl->idx2] = cells; /* put it where it goes */
 
-		for (i = 0; i < HM_CELL_CNT; i++) {	/* carve um up and put in free-pool */
+		for (i = 0; i < HM_CELL_CNT;
+		     i++) { /* carve um up and put in free-pool */
 			tmp_hdl.idx3 = i;
 			cell = &(cells->cell[i]);
 			hm_free_cell(cell, &tmp_hdl, false);
@@ -651,13 +674,13 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 	while (back->next != NULL) {
 		uint32_t tst = *((uint32_t *)&back->next->hdl);
 		if (tst == tgt) {
-			found = back->next;	/* found it */
-			back->next = back->next->next;	/* splice it out */
+			found = back->next;	    /* found it */
+			back->next = back->next->next; /* splice it out */
 
 			m_HM_STAT_ADD_IN_USE(pmgr->in_use);
 			m_HM_STAT_RMV_FR_Q(pmgr->in_q);
 
-			return found;	/* return it */
+			return found; /* return it */
 		}
 		back = back->next;
 	}
@@ -680,12 +703,12 @@ void hm_block_me(HM_CELL *cell, uint8_t pool_id)
 	sem_t sem;
 	m_HM_STAT_CRASH(gl_hm.woulda_crashed);
 
-	rc = sem_init(&sem, 0, 0);		/* Create a semaphor to block this thread */
+	rc = sem_init(&sem, 0, 0); /* Create a semaphor to block this thread */
 	osafassert(rc == 0);
 	cell->data = &sem;
-	m_NCS_UNLOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);	/* let others run */
+	m_NCS_UNLOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE); /* let others run */
 
-wait_again:						/* stay here till refcount == 1 */
+wait_again: /* stay here till refcount == 1 */
 	if (sem_wait(&sem) == -1) {
 		if (errno == EINTR)
 			goto wait_again;
@@ -693,7 +716,7 @@ wait_again:						/* stay here till refcount == 1 */
 			osafassert(0);
 	}
 
-	(void)sem_destroy(&sem);	/* OK, all set, continue on.... */
+	(void)sem_destroy(&sem); /* OK, all set, continue on.... */
 }
 
 /*****************************************************************************
@@ -701,12 +724,13 @@ wait_again:						/* stay here till refcount == 1 */
    PROCEDURE NAME:   hm_unblock_him
 
    DESCRIPTION:      A give()r made ref-count <= 1; unblock the destroy()er
-                     thread.
+		     thread.
 
 *****************************************************************************/
 
 void hm_unblock_him(HM_CELL *cell)
 {
-	int rc = sem_post((sem_t*)cell->data);	/* unblock that destroy thread */
+	int rc =
+	    sem_post((sem_t *)cell->data); /* unblock that destroy thread */
 	osafassert(rc == 0);
 }

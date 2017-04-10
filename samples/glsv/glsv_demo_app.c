@@ -20,10 +20,10 @@ MODULE NAME: glsv_demo_app.c  (GLSv Demo Functions)
 
   .............................................................................
   DESCRIPTION:
-  
+
     GLSv routines required for Demo Applications.
-    
-      
+
+
 ******************************************************************************/
 #include <stdio.h>
 #include <string.h>
@@ -44,28 +44,39 @@ void glsv_test_sync_app_unlock_timeout_process(void *info);
 void glsv_test_sync_master_change_process(void *info);
 void glsv_test_sync_big_app1_process(void *info);
 
-static void App1_ResourceOpenCallbackT(SaInvocationT invocation, SaLckResourceHandleT resourceId, SaAisErrorT error)
+static void App1_ResourceOpenCallbackT(SaInvocationT invocation,
+				       SaLckResourceHandleT resourceId,
+				       SaAisErrorT error)
 {
-	SaLckResourceHandleT *my_res_id = (SaLckResourceHandleT *)((long)invocation);
+	SaLckResourceHandleT *my_res_id =
+	    (SaLckResourceHandleT *)((long)invocation);
 	if (error == SA_AIS_OK) {
 		*my_res_id = resourceId;
-		printf(" App1- resource Open Callback Success - resid %llu \n", resourceId);
+		printf(" App1- resource Open Callback Success - resid %llu \n",
+		       resourceId);
 	} else
-		printf(" App1- resource Open Callback Failed - Error - %d\n", error);
-
+		printf(" App1- resource Open Callback Failed - Error - %d\n",
+		       error);
 }
 
-static void App1_LockGrantCallbackT(SaInvocationT invocation, SaLckLockStatusT lockStatus, SaAisErrorT error)
+static void App1_LockGrantCallbackT(SaInvocationT invocation,
+				    SaLckLockStatusT lockStatus,
+				    SaAisErrorT error)
 {
 	SaLckLockIdT *lock_id = (SaLckLockIdT *)((long)invocation);
 	if (error == SA_AIS_OK && lockStatus == SA_LCK_LOCK_GRANTED) {
-		printf(" App1- Lock Grant Callback Success - lockid %p\n", lock_id);
+		printf(" App1- Lock Grant Callback Success - lockid %p\n",
+		       lock_id);
 	} else
-		printf(" App1- Lock Grant Callback  Failed - status %d, error %d \n", lockStatus, error);
+		printf(
+		    " App1- Lock Grant Callback  Failed - status %d, error %d \n",
+		    lockStatus, error);
 }
 
 static void App1_LockWaiterCallbackT(SaLckWaiterSignalT invocation,
-				     SaLckLockIdT lockId, SaLckLockModeT modeHeld, SaLckLockModeT modeRequested)
+				     SaLckLockIdT lockId,
+				     SaLckLockModeT modeHeld,
+				     SaLckLockModeT modeRequested)
 {
 	printf(" App1- Lock Waiter Callback - lockid %llu ", lockId);
 	if (modeHeld == SA_LCK_PR_LOCK_MODE)
@@ -77,16 +88,15 @@ static void App1_LockWaiterCallbackT(SaLckWaiterSignalT invocation,
 		printf(" ModeRequested - Shared");
 	else
 		printf(" ModeRequested - Write");
-
 }
 
-static void App1_ResourceUnlockCallbackT(SaInvocationT invocation, SaAisErrorT error)
+static void App1_ResourceUnlockCallbackT(SaInvocationT invocation,
+					 SaAisErrorT error)
 {
 	if (error == SA_AIS_OK)
 		printf(" App1- UnLock Callback Success ");
 	else
 		printf(" App1- UnLock Callback Failed ");
-
 }
 
 /****************************************************************************
@@ -95,7 +105,7 @@ static void App1_ResourceUnlockCallbackT(SaInvocationT invocation, SaAisErrorT e
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -142,14 +152,16 @@ void glsv_test_sync_app_process(void *info)
 		printf("Failed \n");
 
 	printf("Resource Open being called ....");
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
 	if (rc == SA_AIS_OK)
 		printf("PASSED res_id = %llu\n", res_id);
 	else
 		printf("Failed \n");
 
 	printf("Resource Lock for Exclusive lock being called ....");
-	rc = saLckResourceLock(res_id, &lockid, 2, 0, 0, 10000000000ll, &status);
+	rc =
+	    saLckResourceLock(res_id, &lockid, 2, 0, 0, 10000000000ll, &status);
 	if (rc == SA_AIS_OK && status == SA_LCK_LOCK_GRANTED)
 		printf("PASSED lock_id = %llu\n", lockid);
 	else
@@ -188,7 +200,7 @@ void glsv_test_sync_app_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -250,15 +262,18 @@ void glsv_test_neagtive_handle_process(void *info)
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource open with a wrong name \n");
-	rc = saLckResourceOpen(hdl1, NULL, SA_LCK_RESOURCE_CREATE, 10000000000ll, NULL);
+	rc = saLckResourceOpen(hdl1, NULL, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, NULL);
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource open with a wrong handle \n");
-	rc = saLckResourceOpen(hdl1 + 1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
+	rc = saLckResourceOpen(hdl1 + 1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource Async open with a wrong handle \n");
-	rc = saLckResourceOpenAsync(hdl1 + 1, 100, &res_name, SA_LCK_RESOURCE_CREATE);
+	rc = saLckResourceOpenAsync(hdl1 + 1, 100, &res_name,
+				    SA_LCK_RESOURCE_CREATE);
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource Async open with a wrong name \n");
@@ -266,11 +281,13 @@ void glsv_test_neagtive_handle_process(void *info)
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource open with Zero Timeout \n");
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 0, &res_id);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 0,
+			       &res_id);
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource open with Correct handle \n");
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource Async open with InCorrect handle \n");
@@ -282,23 +299,28 @@ void glsv_test_neagtive_handle_process(void *info)
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource Lock with Incorrect lockmode \n");
-	rc = saLckResourceLock(res_id, &lockid, 4, 0, 0, 10000000000ll, &status);
+	rc =
+	    saLckResourceLock(res_id, &lockid, 4, 0, 0, 10000000000ll, &status);
 	printf("Status - %d\n", rc);
 
-	printf("\nCalling  Lock Resource Async open with InCorrect lockmode \n");
+	printf(
+	    "\nCalling  Lock Resource Async open with InCorrect lockmode \n");
 	rc = saLckResourceLockAsync(res_id, 100, &lockid, 4, 0, 0);
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource Lock with Incorrect LockFlags \n");
-	rc = saLckResourceLock(res_id, &lockid, 2, 10, 0, 10000000000ll, &status);
+	rc = saLckResourceLock(res_id, &lockid, 2, 10, 0, 10000000000ll,
+			       &status);
 	printf("Status - %d\n", rc);
 
-	printf("\nCalling  Lock Resource Async open with InCorrect LockFlags \n");
+	printf(
+	    "\nCalling  Lock Resource Async open with InCorrect LockFlags \n");
 	rc = saLckResourceLockAsync(res_id, 100, &lockid, 0, 10, 0);
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource Lock with correct parameters \n");
-	rc = saLckResourceLock(res_id, &lockid, 2, 0, 0, 10000000000ll, &status);
+	rc =
+	    saLckResourceLock(res_id, &lockid, 2, 0, 0, 10000000000ll, &status);
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Lock Resource UnLock with Incorrect handle \n");
@@ -321,7 +343,8 @@ void glsv_test_neagtive_handle_process(void *info)
 	rc = saLckFinalize(hdl1);
 	printf("Status - %d\n", rc);
 
-	printf("sorry Negative Handle App is quiting bc of mail box problem pls destroy it\n");
+	printf(
+	    "sorry Negative Handle App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -330,7 +353,7 @@ void glsv_test_neagtive_handle_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -364,14 +387,17 @@ void glsv_test_neagtive_resource_handle_process(void *info)
 
 	rc = saLckInitialize(&hdl1, &callbk, &version);
 	rc = saLckSelectionObjectGet(hdl1, &obj1);
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
 
 	printf("\nCalling  Resource Lock with a wrong resource handle \n");
-	rc = saLckResourceLock(res_id + 1, &lockid, 2, 0, 0, 10000000000ll, &status);
+	rc = saLckResourceLock(res_id + 1, &lockid, 2, 0, 0, 10000000000ll,
+			       &status);
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Resource Lock with a correct resource handle \n");
-	rc = saLckResourceLock(res_id, &lockid, 2, 0, 0, 10000000000ll, &status);
+	rc =
+	    saLckResourceLock(res_id, &lockid, 2, 0, 0, 10000000000ll, &status);
 	printf("Status - %d\n", rc);
 
 	printf("\nCalling  Resource Close with a wrong resource handle \n");
@@ -393,7 +419,7 @@ void glsv_test_neagtive_resource_handle_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -425,7 +451,8 @@ void glsv_test_sync_resource_open_app1_process(void *info)
 
 	rc = saLckInitialize(&hdl1, &callbk, &version);
 	rc = saLckSelectionObjectGet(hdl1, &obj1);
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
 }
 
 /****************************************************************************
@@ -434,7 +461,7 @@ void glsv_test_sync_resource_open_app1_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -468,13 +495,16 @@ void glsv_test_sync_app1_pre_purge_process(void *info)
 
 	rc = saLckInitialize(&hdl1, &callbk, &version);
 	rc = saLckSelectionObjectGet(hdl1, &obj1);
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
-	rc = saLckResourceLock(res_id, &lockid, 2, 0x0, 0, 10000000000ll, &status);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
+	rc = saLckResourceLock(res_id, &lockid, 2, 0x0, 0, 10000000000ll,
+			       &status);
 	sleep(10);
 	rc = saLckResourceClose(res_id);
 	rc = saLckFinalize(hdl1);
 
-	printf("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
+	printf(
+	    "sorry Sync App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -483,7 +513,7 @@ void glsv_test_sync_app1_pre_purge_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -515,12 +545,14 @@ void glsv_test_sync_app1_post_purge_process(void *info)
 
 	rc = saLckInitialize(&hdl1, &callbk, &version);
 	rc = saLckSelectionObjectGet(hdl1, &obj1);
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
 	rc = saLckLockPurge(res_id);
 	rc = saLckResourceClose(res_id);
 	rc = saLckFinalize(hdl1);
 
-	printf("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
+	printf(
+	    "sorry Sync App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -529,7 +561,7 @@ void glsv_test_sync_app1_post_purge_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -561,10 +593,12 @@ void glsv_test_sync_app_res_timeout_process(void *info)
 
 	rc = saLckInitialize(&hdl1, &callbk, &version);
 	rc = saLckSelectionObjectGet(hdl1, &obj1);
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 1000000, &res_id);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 1000000,
+			       &res_id);
 	rc = saLckFinalize(hdl1);
 
-	printf("sorry Sync resource timeout App is quiting bc of mail box problem pls destroy it\n");
+	printf(
+	    "sorry Sync resource timeout App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -573,7 +607,7 @@ void glsv_test_sync_app_res_timeout_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -607,12 +641,14 @@ void glsv_test_sync_app_lock_timeout_non_master_process(void *info)
 
 	rc = saLckInitialize(&hdl1, &callbk, &version);
 	rc = saLckSelectionObjectGet(hdl1, &obj1);
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
 	rc = saLckResourceLock(res_id, &lockid, 2, 0, 0, 1000000, &status);
 	rc = saLckResourceClose(res_id);
 	rc = saLckFinalize(hdl1);
 
-	printf("sorry lock timeout App is quiting bc of mail box problem pls destroy it\n");
+	printf(
+	    "sorry lock timeout App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -621,7 +657,7 @@ void glsv_test_sync_app_lock_timeout_non_master_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -655,15 +691,18 @@ void glsv_test_sync_app_lock_timeout_master_process(void *info)
 
 	rc = saLckInitialize(&hdl1, &callbk, &version);
 	rc = saLckSelectionObjectGet(hdl1, &obj1);
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
 	rc = saLckResourceLock(res_id, &lockid, 2, 0x0, 0, 1000000, &status);
-	printf("\n Calling the same lock again with a timeout to test the tmr failure \n");
+	printf(
+	    "\n Calling the same lock again with a timeout to test the tmr failure \n");
 	rc = saLckResourceLock(res_id, &lockid, 2, 0, 0, 1000000, &status);
 	rc = saLckResourceUnlock(lockid, 10000000000ll);
 	rc = saLckResourceClose(res_id);
 	rc = saLckFinalize(hdl1);
 
-	printf("sorry lock timeout App is quiting bc of mail box problem pls destroy it\n");
+	printf(
+	    "sorry lock timeout App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -672,7 +711,7 @@ void glsv_test_sync_app_lock_timeout_master_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -706,14 +745,17 @@ void glsv_test_sync_app_unlock_timeout_process(void *info)
 
 	rc = saLckInitialize(&hdl1, &callbk, &version);
 	rc = saLckSelectionObjectGet(hdl1, &obj1);
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
-	rc = saLckResourceLock(res_id, &lockid, 2, 0, 0, 10000000000ll, &status);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
+	rc =
+	    saLckResourceLock(res_id, &lockid, 2, 0, 0, 10000000000ll, &status);
 	sleep(10);
 	rc = saLckResourceUnlock(lockid, 1000000);
 	rc = saLckResourceClose(res_id);
 	rc = saLckFinalize(hdl1);
 
-	printf("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
+	printf(
+	    "sorry Sync App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -722,7 +764,7 @@ void glsv_test_sync_app_unlock_timeout_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -756,14 +798,17 @@ void glsv_test_sync_master_change_process(void *info)
 
 	rc = saLckInitialize(&hdl1, &callbk, &version);
 	rc = saLckSelectionObjectGet(hdl1, &obj1);
-	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id);
-	rc = saLckResourceLock(res_id, &lockid, 2, 0x0, 0, 1000000000000ll, &status);
+	rc = saLckResourceOpen(hdl1, &res_name, SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id);
+	rc = saLckResourceLock(res_id, &lockid, 2, 0x0, 0, 1000000000000ll,
+			       &status);
 	sleep(50);
 	rc = saLckResourceUnlock(lockid, 10000000000ll);
 	rc = saLckResourceClose(res_id);
 	rc = saLckFinalize(hdl1);
 
-	printf("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
+	printf(
+	    "sorry Sync App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -772,7 +817,7 @@ void glsv_test_sync_master_change_process(void *info)
  * Description   : This is the function which is given as the input to the
  *                 Application task.
  *
- * Arguments     : info  - This is the information which is passed during 
+ * Arguments     : info  - This is the information which is passed during
  *                         spawing Application task.
  *
  * Return Values : None.
@@ -826,17 +871,27 @@ void glsv_test_sync_big_app1_process(void *info)
 	rc = saLckSelectionObjectGet(hdl1, &obj1);
 	rc = saLckSelectionObjectGet(hdl2, &obj2);
 
-	rc = saLckResourceOpen(hdl1, &res_name[0], SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id[0]);
-	rc = saLckResourceOpen(hdl1, &res_name[1], SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id[1]);
-	rc = saLckResourceOpen(hdl1, &res_name[2], SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id[2]);
-	rc = saLckResourceOpen(hdl1, &res_name[3], SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id[3]);
-	rc = saLckResourceOpen(hdl1, &res_name[4], SA_LCK_RESOURCE_CREATE, 10000000000ll, &res_id[4]);
+	rc = saLckResourceOpen(hdl1, &res_name[0], SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id[0]);
+	rc = saLckResourceOpen(hdl1, &res_name[1], SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id[1]);
+	rc = saLckResourceOpen(hdl1, &res_name[2], SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id[2]);
+	rc = saLckResourceOpen(hdl1, &res_name[3], SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id[3]);
+	rc = saLckResourceOpen(hdl1, &res_name[4], SA_LCK_RESOURCE_CREATE,
+			       10000000000ll, &res_id[4]);
 
-	rc = saLckResourceLock(res_id[0], &lockid[0], 1, 0, 0, 10000000000ll, &status);
-	rc = saLckResourceLock(res_id[1], &lockid[1], 1, 0, 0, 10000000000ll, &status);
-	rc = saLckResourceLock(res_id[2], &lockid[2], 1, 0, 0, 10000000000ll, &status);
-	rc = saLckResourceLock(res_id[3], &lockid[3], 2, 0, 0, 10000000000ll, &status);
-	rc = saLckResourceLock(res_id[4], &lockid[4], 2, 0, 0, 10000000000ll, &status);
+	rc = saLckResourceLock(res_id[0], &lockid[0], 1, 0, 0, 10000000000ll,
+			       &status);
+	rc = saLckResourceLock(res_id[1], &lockid[1], 1, 0, 0, 10000000000ll,
+			       &status);
+	rc = saLckResourceLock(res_id[2], &lockid[2], 1, 0, 0, 10000000000ll,
+			       &status);
+	rc = saLckResourceLock(res_id[3], &lockid[3], 2, 0, 0, 10000000000ll,
+			       &status);
+	rc = saLckResourceLock(res_id[4], &lockid[4], 2, 0, 0, 10000000000ll,
+			       &status);
 
 	sleep(10);
 
@@ -854,5 +909,6 @@ void glsv_test_sync_big_app1_process(void *info)
 
 	rc = saLckFinalize(hdl1);
 
-	printf("sorry BIG Sync App is quiting bc of mail box problem pls destroy it\n");
+	printf(
+	    "sorry BIG Sync App is quiting bc of mail box problem pls destroy it\n");
 }

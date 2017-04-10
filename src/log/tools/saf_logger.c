@@ -52,14 +52,14 @@
 #define VENDOR_ID 193
 #define DEFAULT_MAX_FILES_ROTATED 4
 /* Try for 10 seconds before giving up on an API */
-#define TEN_SECONDS 10*1000*1000
+#define TEN_SECONDS 10 * 1000 * 1000
 /* Sleep for 100 ms before retrying an API */
-#define HUNDRED_MS 100*1000
+#define HUNDRED_MS 100 * 1000
 
 static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error);
 
-static SaLogCallbacksT logCallbacks = { 0, 0, logWriteLogCallbackT };
-static SaVersionT logVersion = { 'A', 2, 3 };
+static SaLogCallbacksT logCallbacks = {0, 0, logWriteLogCallbackT};
+static SaVersionT logVersion = {'A', 2, 3};
 
 static char *progname = "saflogger";
 static SaInvocationT cb_invocation;
@@ -72,13 +72,14 @@ static SaTimeT get_current_SaTime(void)
 
 	gettimeofday(&tv, 0);
 
-	ntfTime = ((unsigned)tv.tv_sec * 1000000000ULL) + ((unsigned)tv.tv_usec * 1000ULL);
+	ntfTime = ((unsigned)tv.tv_sec * 1000000000ULL) +
+		  ((unsigned)tv.tv_usec * 1000ULL);
 
 	return ntfTime;
 }
 
 /**
- * 
+ *
  */
 static void usage(void)
 {
@@ -89,21 +90,30 @@ static void usage(void)
 	printf("\t%s [options] [-f <FILENAME>] [message ...]\n", progname);
 
 	printf("\nDESCRIPTION\n");
-	printf("\t%s is a SAF LOG client used to write a log record into a specified log stream.\n", progname);
+	printf(
+	    "\t%s is a SAF LOG client used to write a log record into a specified log stream.\n",
+	    progname);
 
 	printf("\nOPTIONS\n");
 
 	printf("\t-h or --help                   this help\n");
 	printf("\t-l or --alarm                  write to alarm stream\n");
-	printf("\t-n or --notification           write to notification stream\n");
-	printf("\t-y or --system                 write to system stream (default)\n");
-	printf("\t-a NAME or --application=NAME  write to application stream NAME (create it if not exist)\n");
-	printf("\t-f FILENAME                    write log record to FILENAME\n");
-	printf("\t-s SEV or --severity=SEV       use severity SEV, default INFO\n");
-	printf("\t\tvalid severity names: emerg, alert, crit, error, warn, notice, info\n");
+	printf(
+	    "\t-n or --notification           write to notification stream\n");
+	printf(
+	    "\t-y or --system                 write to system stream (default)\n");
+	printf(
+	    "\t-a NAME or --application=NAME  write to application stream NAME (create it if not exist)\n");
+	printf(
+	    "\t-f FILENAME                    write log record to FILENAME\n");
+	printf(
+	    "\t-s SEV or --severity=SEV       use severity SEV, default INFO\n");
+	printf(
+	    "\t\tvalid severity names: emerg, alert, crit, error, warn, notice, info\n");
 	printf("\nNOTES\n");
 	printf("\t1) -f is only applicable for runtime app stream.\n");
-	printf("\t1) <FILENAME> length must not be longer than 255 characters.\n");
+	printf(
+	    "\t1) <FILENAME> length must not be longer than 255 characters.\n");
 
 	printf("\nEXAMPLES\n");
 	printf("\tsaflogger -a safLgStr=Test \"Hello world\"\n");
@@ -122,7 +132,7 @@ static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error)
  * @param logRecord
  * @param interval
  * @param write_count
- * 
+ *
  * @return SaAisErrorT
  */
 static SaAisErrorT write_log_record(SaLogHandleT logHandle,
@@ -142,7 +152,8 @@ static SaAisErrorT write_log_record(SaLogHandleT logHandle,
 	invocation = random();
 
 retry:
-	errorCode = saLogWriteLogAsync(logStreamHandle, invocation, SA_LOG_RECORD_WRITE_ACK, logRecord);
+	errorCode = saLogWriteLogAsync(logStreamHandle, invocation,
+				       SA_LOG_RECORD_WRITE_ACK, logRecord);
 	if (errorCode == SA_AIS_ERR_TRY_AGAIN && wait_time < TEN_SECONDS) {
 		usleep(HUNDRED_MS);
 		wait_time += HUNDRED_MS;
@@ -151,8 +162,10 @@ retry:
 
 	if (errorCode != SA_AIS_OK) {
 		if (wait_time)
-			fprintf(stderr, "Waited for %u seconds.\n", wait_time/1000000);
-		fprintf(stderr, "saLogWriteLogAsync FAILED: %s\n", saf_error(errorCode));
+			fprintf(stderr, "Waited for %u seconds.\n",
+				wait_time / 1000000);
+		fprintf(stderr, "saLogWriteLogAsync FAILED: %s\n",
+			saf_error(errorCode));
 		return errorCode;
 	}
 
@@ -171,18 +184,21 @@ poll_retry:
 	}
 
 	if (ret == 0) {
-		fprintf(stderr, "poll timeout, message %u was most likely lost\n", i);
+		fprintf(stderr,
+			"poll timeout, message %u was most likely lost\n", i);
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
 	errorCode = saLogDispatch(logHandle, SA_DISPATCH_ONE);
 	if (errorCode != SA_AIS_OK) {
-		fprintf(stderr, "saLogDispatch FAILED: %s\n", saf_error(errorCode));
+		fprintf(stderr, "saLogDispatch FAILED: %s\n",
+			saf_error(errorCode));
 		return errorCode;
 	}
 
 	if (cb_invocation != invocation) {
-		fprintf(stderr, "logWriteLogCallbackT FAILED: wrong invocation\n");
+		fprintf(stderr,
+			"logWriteLogCallbackT FAILED: wrong invocation\n");
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
@@ -200,8 +216,10 @@ poll_retry:
 
 	if (cb_error != SA_AIS_OK) {
 		if (wait_time)
-			fprintf(stderr, "Waited for %u seconds.\n", wait_time/1000000);
-		fprintf(stderr, "logWriteLogCallbackT FAILED: %s\n", saf_error(cb_error));
+			fprintf(stderr, "Waited for %u seconds.\n",
+				wait_time / 1000000);
+		fprintf(stderr, "logWriteLogCallbackT FAILED: %s\n",
+			saf_error(cb_error));
 		return cb_error;
 	}
 
@@ -245,16 +263,15 @@ int main(int argc, char *argv[])
 	SaLogRecordT logRecord;
 	SaNameT logSvcUsrName;
 	SaLogBufferT logBuffer;
-	SaNtfClassIdT notificationClassId = { 1, 2, 3 };
+	SaNtfClassIdT notificationClassId = {1, 2, 3};
 	struct option long_options[] = {
-		{"application", required_argument, 0, 'a'},
-		{"alarm", no_argument, 0, 'l'},
-		{"notification", no_argument, 0, 'n'},
-		{"system", no_argument, 0, 'y'},
-		{"severity", required_argument, 0, 's'},
-		{"help", no_argument, 0, 'h'},
-		{0, 0, 0, 0}
-	};
+	    {"application", required_argument, 0, 'a'},
+	    {"alarm", no_argument, 0, 'l'},
+	    {"notification", no_argument, 0, 'n'},
+	    {"system", no_argument, 0, 'y'},
+	    {"severity", required_argument, 0, 's'},
+	    {"help", no_argument, 0, 'h'},
+	    {0, 0, 0, 0}};
 	char hostname[_POSIX_HOST_NAME_MAX];
 	SaAisErrorT error;
 	SaLogHandleT logHandle;
@@ -282,12 +299,14 @@ int main(int argc, char *argv[])
 	osaf_extended_name_init();
 
 	char svcUserName[kOsafMaxDnLength];
-	snprintf(svcUserName, sizeof(svcUserName), "%s.%u@%s", "saflogger", getpid(), hostname);
+	snprintf(svcUserName, sizeof(svcUserName), "%s.%u@%s", "saflogger",
+		 getpid(), hostname);
 	saAisNameLend(svcUserName, &logSvcUsrName);
 
 	/* Setup default values */
 	saAisNameLend(SA_LOG_STREAM_SYSTEM, &logStreamName);
-	logRecord.logTimeStamp = SA_TIME_UNKNOWN;	/* LOG service should supply timestamp */
+	logRecord.logTimeStamp =
+	    SA_TIME_UNKNOWN; /* LOG service should supply timestamp */
 	logRecord.logHdrType = SA_LOG_GENERIC_HEADER;
 	logRecord.logHeader.genericHdr.notificationClassId = NULL;
 	logRecord.logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO;
@@ -297,7 +316,8 @@ int main(int argc, char *argv[])
 	appLogFileCreateAttributes.maxLogFileSize = DEFAULT_APP_LOG_FILE_SIZE;
 	appLogFileCreateAttributes.maxLogRecordSize = DEFAULT_APP_LOG_REC_SIZE;
 	appLogFileCreateAttributes.haProperty = SA_TRUE;
-	appLogFileCreateAttributes.logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE;
+	appLogFileCreateAttributes.logFileFullAction =
+	    SA_LOG_FILE_FULL_ACTION_ROTATE;
 	appLogFileCreateAttributes.maxFilesRotated = DEFAULT_MAX_FILES_ROTATED;
 	/* Use built-in log file format in log server for app stream */
 	appLogFileCreateAttributes.logFileFmt = NULL;
@@ -314,7 +334,8 @@ int main(int argc, char *argv[])
 			logRecord.logHdrType = SA_LOG_NTF_HEADER;
 			break;
 		case 'n':
-			saAisNameLend(SA_LOG_STREAM_NOTIFICATION, &logStreamName);
+			saAisNameLend(SA_LOG_STREAM_NOTIFICATION,
+				      &logStreamName);
 			logRecord.logHdrType = SA_LOG_NTF_HEADER;
 			break;
 		case 'y':
@@ -328,25 +349,31 @@ int main(int argc, char *argv[])
 			if (strstr(optarg, "safLgStr"))
 				strncpy(tmpDn, optarg, sizeof(tmpDn) - 1);
 			else
-				snprintf(tmpDn, sizeof(tmpDn), "safLgStr=%s", optarg);
+				snprintf(tmpDn, sizeof(tmpDn), "safLgStr=%s",
+					 optarg);
 
 			if (strlen(tmpDn) > kOsafMaxDnLength) {
-				fprintf(stderr, "Application stream DN is so long (%zu). Max: %d \n",
-					strlen(optarg), kOsafMaxDnLength);
+				fprintf(
+				    stderr,
+				    "Application stream DN is so long (%zu). Max: %d \n",
+				    strlen(optarg), kOsafMaxDnLength);
 				fprintf(stderr, "Shut down app. \n");
 				exit(EXIT_FAILURE);
 			}
 			saAisNameLend(tmpDn, &logStreamName);
 			is_appstream = true;
 			if (f_opt == false)
-				appLogFileCreateAttributes.logFileName = strdup(optarg);
+				appLogFileCreateAttributes.logFileName =
+				    strdup(optarg);
 			break;
 		case 'f':
 			if (f_opt == true) {
-				fprintf(stderr, "More than one option -f are given.\n");
-				fprintf(stderr, "Try saflogger -h for more information.\n");
+				fprintf(stderr,
+					"More than one option -f are given.\n");
+				fprintf(
+				    stderr,
+				    "Try saflogger -h for more information.\n");
 				exit(EXIT_FAILURE);
-
 			}
 			if (appLogFileCreateAttributes.logFileName != NULL)
 				free(appLogFileCreateAttributes.logFileName);
@@ -355,7 +382,8 @@ int main(int argc, char *argv[])
 			f_opt = true;
 			break;
 		case 's':
-			logRecord.logHeader.genericHdr.logSeverity = get_severity(optarg);
+			logRecord.logHeader.genericHdr.logSeverity =
+			    get_severity(optarg);
 			break;
 		case 'h':
 			usage();
@@ -363,48 +391,55 @@ int main(int argc, char *argv[])
 			break;
 		case '?':
 		default:
-			fprintf(stderr, "Try saflogger -h for more information.\n");
+			fprintf(stderr,
+				"Try saflogger -h for more information.\n");
 			exit(EXIT_FAILURE);
 			break;
 		}
 	}
 
 	if (f_opt == true && is_appstream == false) {
-		fprintf(stderr, "Note: -f is only applicaple for app stream.\n");
+		fprintf(stderr,
+			"Note: -f is only applicaple for app stream.\n");
 		fprintf(stderr, "Try saflogger -h for more information.\n");
 		exit(EXIT_FAILURE);
 	}
 
-	if (appLogFileCreateAttributes.logFileName != NULL && is_appstream == true) {
+	if (appLogFileCreateAttributes.logFileName != NULL &&
+	    is_appstream == true) {
 		size_t len = 0;
-		if ((len = strlen(appLogFileCreateAttributes.logFileName)) > 255) {
-			fprintf(stderr, "FILENAME is too long (%zu) (max: 255 characters).\n", len);
-			fprintf(stderr, "Try saflogger -h for more information.\n");
+		if ((len = strlen(appLogFileCreateAttributes.logFileName)) >
+		    255) {
+			fprintf(
+			    stderr,
+			    "FILENAME is too long (%zu) (max: 255 characters).\n",
+			    len);
+			fprintf(stderr,
+				"Try saflogger -h for more information.\n");
 			exit(EXIT_FAILURE);
 		}
 	}
 
 	if (optind >= argc) {
 		/* No body of log record */
-	}
-	else if (optind == argc - 1) {
+	} else if (optind == argc - 1) {
 		/* Create body of log record */
 		int sz;
 		char *logBuf = NULL;
 		sz = strlen(argv[optind]);
-		logBuf = malloc(sz + 64);	/* add space for index/id in periodic writes */
+		logBuf = malloc(
+		    sz + 64); /* add space for index/id in periodic writes */
 		strcpy(logBuf, argv[optind]);
 		logBuffer.logBufSize = sz;
 		logBuffer.logBuf = (SaUint8T *)logBuf;
 		logRecord.logBuffer = &logBuffer;
-	}
-	else {
+	} else {
 		fprintf(stderr, "Invalid argument.\n");
-		fprintf(stderr, "Enclose message in quotation marks \"\" e.g. \"");
-		while (optind < argc)
-		{
+		fprintf(stderr,
+			"Enclose message in quotation marks \"\" e.g. \"");
+		while (optind < argc) {
 			fprintf(stderr, "%s", argv[optind++]);
-			if (optind < argc) 
+			if (optind < argc)
 				fprintf(stderr, " ");
 			else
 				fprintf(stderr, "\"\n");
@@ -415,14 +450,15 @@ int main(int argc, char *argv[])
 
 	if (logRecord.logHdrType == SA_LOG_NTF_HEADER) {
 		/* Setup some valid values */
-		logRecord.logHeader.ntfHdr.notificationId = SA_NTF_IDENTIFIER_UNUSED;
+		logRecord.logHeader.ntfHdr.notificationId =
+		    SA_NTF_IDENTIFIER_UNUSED;
 		logRecord.logHeader.ntfHdr.eventType = SA_NTF_ALARM_PROCESSING;
 		logRecord.logHeader.ntfHdr.notificationObject = &logSvcUsrName;
 		logRecord.logHeader.ntfHdr.notifyingObject = &logSvcUsrName;
-		logRecord.logHeader.ntfHdr.notificationClassId = &notificationClassId;
+		logRecord.logHeader.ntfHdr.notificationClassId =
+		    &notificationClassId;
 		logRecord.logHeader.ntfHdr.eventTime = get_current_SaTime();
 	}
-
 
 	wait_time = 0;
 	error = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
@@ -434,14 +470,17 @@ int main(int argc, char *argv[])
 
 	if (error != SA_AIS_OK) {
 		if (wait_time)
-			fprintf(stderr, "Waited for %u seconds.\n", wait_time/1000000);
-		fprintf(stderr, "saLogInitialize FAILED: %s\n", saf_error(error));
+			fprintf(stderr, "Waited for %u seconds.\n",
+				wait_time / 1000000);
+		fprintf(stderr, "saLogInitialize FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
 	error = saLogSelectionObjectGet(logHandle, &selectionObject);
 	if (error != SA_AIS_OK) {
-		printf("saLogSelectionObjectGet FAILED: %s\n", saf_error(error));
+		printf("saLogSelectionObjectGet FAILED: %s\n",
+		       saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
@@ -450,34 +489,41 @@ int main(int argc, char *argv[])
 	 * attributes to fail */
 	wait_time = 0;
 	error = saLogStreamOpen_2(logHandle, &logStreamName, NULL, 0,
-			SA_TIME_ONE_SECOND, &logStreamHandle);
+				  SA_TIME_ONE_SECOND, &logStreamHandle);
 	while (error == SA_AIS_ERR_TRY_AGAIN && wait_time < TEN_SECONDS) {
 		usleep(HUNDRED_MS);
 		wait_time += HUNDRED_MS;
 		error = saLogStreamOpen_2(logHandle, &logStreamName, NULL, 0,
-				SA_TIME_ONE_SECOND, &logStreamHandle);
+					  SA_TIME_ONE_SECOND, &logStreamHandle);
 	}
 
 	if (error == SA_AIS_ERR_NOT_EXIST) {
 		wait_time = 0;
-		error = saLogStreamOpen_2(logHandle, &logStreamName, logFileCreateAttributes,
-				logStreamOpenFlags, SA_TIME_ONE_SECOND, &logStreamHandle);
-		while (error == SA_AIS_ERR_TRY_AGAIN && wait_time < TEN_SECONDS) {
+		error = saLogStreamOpen_2(
+		    logHandle, &logStreamName, logFileCreateAttributes,
+		    logStreamOpenFlags, SA_TIME_ONE_SECOND, &logStreamHandle);
+		while (error == SA_AIS_ERR_TRY_AGAIN &&
+		       wait_time < TEN_SECONDS) {
 			usleep(HUNDRED_MS);
 			wait_time += HUNDRED_MS;
-			error = saLogStreamOpen_2(logHandle, &logStreamName, logFileCreateAttributes,
-				logStreamOpenFlags, SA_TIME_ONE_SECOND, &logStreamHandle);
+			error = saLogStreamOpen_2(
+			    logHandle, &logStreamName, logFileCreateAttributes,
+			    logStreamOpenFlags, SA_TIME_ONE_SECOND,
+			    &logStreamHandle);
 		}
 	}
 
 	if (error != SA_AIS_OK) {
 		if (wait_time)
-			fprintf(stderr, "Waited for %u seconds.\n", wait_time/1000000);
-		fprintf(stderr, "saLogStreamOpen_2 FAILED: %s\n", saf_error(error));
+			fprintf(stderr, "Waited for %u seconds.\n",
+				wait_time / 1000000);
+		fprintf(stderr, "saLogStreamOpen_2 FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
-	if (write_log_record(logHandle, logStreamHandle, selectionObject, &logRecord) != SA_AIS_OK) {
+	if (write_log_record(logHandle, logStreamHandle, selectionObject,
+			     &logRecord) != SA_AIS_OK) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -491,8 +537,10 @@ int main(int argc, char *argv[])
 
 	if (SA_AIS_OK != error) {
 		if (wait_time)
-			fprintf(stderr, "Waited for %u seconds.\n", wait_time/1000000);
-		fprintf(stderr, "saLogStreamClose FAILED: %s\n", saf_error(error));
+			fprintf(stderr, "Waited for %u seconds.\n",
+				wait_time / 1000000);
+		fprintf(stderr, "saLogStreamClose FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
@@ -506,11 +554,11 @@ int main(int argc, char *argv[])
 
 	if (SA_AIS_OK != error) {
 		if (wait_time)
-			fprintf(stderr, "Waited for %u seconds.\n", wait_time/1000000);
+			fprintf(stderr, "Waited for %u seconds.\n",
+				wait_time / 1000000);
 		fprintf(stderr, "saLogFinalize FAILED: %s\n", saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
 	exit(EXIT_SUCCESS);
 }
-

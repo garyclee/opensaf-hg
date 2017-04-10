@@ -49,16 +49,17 @@ void saLogMisc_71(void)
 
 	snprintf(command, 512, "logtestfr");
 	rc = system(command);
-	
+
 	rc_validate(WEXITSTATUS(rc), 0);
 }
 
-/* 
+/*
  * Test suite 7
  * Miscellaneous tests that does not fit in any of the other test suites
  */
-__attribute__ ((constructor)) static void saMiscLogTest_constructor(void)
+__attribute__((constructor)) static void saMiscLogTest_constructor(void)
 {
 	test_suite_add(7, "LOG Miscellaneous tests");
-	test_case_add(7, saLogMisc_71, "Log file rotation if file names truncated");
+	test_case_add(7, saLogMisc_71,
+		      "Log file rotation if file names truncated");
 }

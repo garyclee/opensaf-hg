@@ -25,8 +25,7 @@
 #include "plm/common/plms_scale.h"
 #include "plm/common/plms.h"
 
-extern "C" SaUint32T
-plms_scale(const PLMS_PLMC_EVT *evt) {
+extern "C" SaUint32T plms_scale(const PLMS_PLMC_EVT *evt) {
   TRACE_ENTER();
 
   SaUint32T rc(NCSCC_RC_SUCCESS);
@@ -54,7 +53,7 @@ plms_scale(const PLMS_PLMC_EVT *evt) {
       // requests
       PlmsScaleThread::Node node;
       node.eeName = std::string(
-        reinterpret_cast<const char *>(evt->ee_id.value), evt->ee_id.length);
+          reinterpret_cast<const char *>(evt->ee_id.value), evt->ee_id.length);
 
       TRACE("adding node %s to thread", node.eeName.c_str());
 
@@ -72,9 +71,8 @@ plms_scale(const PLMS_PLMC_EVT *evt) {
   return rc;
 }
 
-PlmsScaleThread::PlmsScaleThread(const std::string& outFile)
-  : std::thread(_main, this),
-    scaleOutFile(outFile) {
+PlmsScaleThread::PlmsScaleThread(const std::string &outFile)
+    : std::thread(_main, this), scaleOutFile(outFile) {
   TRACE_ENTER();
   TRACE_LEAVE();
 }
@@ -84,15 +82,13 @@ PlmsScaleThread::~PlmsScaleThread(void) {
   TRACE_LEAVE();
 }
 
-void
-PlmsScaleThread::main(void) {
+void PlmsScaleThread::main(void) {
   TRACE_ENTER2("Scale thread starting");
 
   while (true) {
     std::unique_lock<std::mutex> lk(nodeListMutex);
 
-    while (nodeList.empty())
-      nodeListCv.wait(lk);
+    while (nodeList.empty()) nodeListCv.wait(lk);
 
     int argc(1);
     char **argv(new char *[nodeList.size() + argc + 1]);
@@ -100,9 +96,7 @@ PlmsScaleThread::main(void) {
     snprintf(argv[0], scaleOutFile.length() + 1, "%s", scaleOutFile.c_str());
 
     // call the scale script with the EEs that are trying to come in
-    for (NodeList::iterator it(nodeList.begin());
-         it != nodeList.end();
-         ++it) {
+    for (NodeList::iterator it(nodeList.begin()); it != nodeList.end(); ++it) {
       argv[argc] = new char[it->eeName.length() + 1];
       snprintf(argv[argc++], it->eeName.length() + 1, "%s", it->eeName.c_str());
     }
@@ -112,8 +106,7 @@ PlmsScaleThread::main(void) {
 
     executeScaleScript(argc, argv);
 
-    for (int i(argc); i >= 0; i--)
-      delete[] argv[i];
+    for (int i(argc); i >= 0; i--) delete[] argv[i];
 
     delete[] argv;
 
@@ -123,8 +116,7 @@ PlmsScaleThread::main(void) {
   TRACE_LEAVE2("Scale thread exiting");
 }
 
-void
-PlmsScaleThread::executeScaleScript(int argc, char **argv) {
+void PlmsScaleThread::executeScaleScript(int argc, char **argv) {
   TRACE_ENTER();
 
   LOG_IN("executing scale script for %i nodes", argc - 1);
@@ -147,25 +139,23 @@ PlmsScaleThread::executeScaleScript(int argc, char **argv) {
         if (WEXITSTATUS(status) == 123) {
           LOG_ER("Scale out script %s could not be executed", argv[0]);
         } else {
-          LOG_ER("Scale out script %s failed with exit code %d",
-                 argv[0],
+          LOG_ER("Scale out script %s failed with exit code %d", argv[0],
                  WEXITSTATUS(status));
         }
       } else {
         LOG_IN("Scale out script %s exited successfully", argv[0]);
       }
     } else {
-      LOG_ER("Scale out script %s failed in waitpid(%i): %s",
-             argv[0],
-             wait_pid,
+      LOG_ER("Scale out script %s failed in waitpid(%i): %s", argv[0], wait_pid,
              strerror(errno));
     }
   } else if (pid == 0) {
     // child
-    static char scaleOutPathEnv[] = "PATH=/usr/local/sbin:/usr/local/bin:"
-      "/usr/sbin:/usr/bin:/sbin:/bin";
+    static char scaleOutPathEnv[] =
+        "PATH=/usr/local/sbin:/usr/local/bin:"
+        "/usr/sbin:/usr/bin:/sbin:/bin";
 
-    char *env[] = { scaleOutPathEnv, 0 };
+    char *env[] = {scaleOutPathEnv, 0};
 
     const int nofile(1024);
 
@@ -173,20 +163,17 @@ PlmsScaleThread::executeScaleScript(int argc, char **argv) {
 
     if (execve(argv[0], argv, env) < 0)
       LOG_ER("error executing plms_scale_out script: %s: %i",
-             scaleOutFile.c_str(),
-             errno);
+             scaleOutFile.c_str(), errno);
     _Exit(123);
   } else {
-    LOG_ER("unable to fork plms_scale_out script: %s: %i",
-           scaleOutFile.c_str(),
+    LOG_ER("unable to fork plms_scale_out script: %s: %i", scaleOutFile.c_str(),
            errno);
   }
 
   TRACE_LEAVE();
 }
 
-void
-PlmsScaleThread::add(const Node node) {
+void PlmsScaleThread::add(const Node node) {
   TRACE_ENTER();
 
   std::lock_guard<std::mutex> guard(nodeListMutex);

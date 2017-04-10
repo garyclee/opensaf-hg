@@ -34,25 +34,19 @@
 
 // Define a few constants that are missing in the LSB compiler
 #ifndef MSG_DONTWAIT
-enum {
-	MSG_DONTWAIT = 0x40
-};
+enum { MSG_DONTWAIT = 0x40 };
 #define MSG_DONTWAIT MSG_DONTWAIT
 #endif
 #ifndef SOCK_CLOEXEC
-enum {
-	SOCK_CLOEXEC = 0x80000
-};
+enum { SOCK_CLOEXEC = 0x80000 };
 #define SOCK_CLOEXEC SOCK_CLOEXEC
 #endif
 #ifndef SOCK_NONBLOCK
-enum {
-	SOCK_NONBLOCK = 0x800
-};
+enum { SOCK_NONBLOCK = 0x800 };
 #define SOCK_NONBLOCK SOCK_NONBLOCK
 #endif
 #ifndef sigev_notify_function
-#define sigev_notify_function   _sigev_un._sigev_thread._function
+#define sigev_notify_function _sigev_un._sigev_thread._function
 #endif
 #ifndef sigev_notify_attributes
 #define sigev_notify_attributes _sigev_un._sigev_thread._attribute
@@ -86,10 +80,10 @@ struct Timer {
 	/*
 	 *  Next timer in the linked list pointed to by the variable timer_list.
 	 */
-	struct Timer* next_timer;
+	struct Timer *next_timer;
 };
 
-static struct Timer* FindTimer(int read_socket);
+static struct Timer *FindTimer(int read_socket);
 static void EventHandler(union sigval value);
 
 /*
@@ -103,7 +97,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
  *  structures. The member next_timer in the Timer structure points to the next
  *  Timer in the list.
  */
-static struct Timer* timer_list = NULL;
+static struct Timer *timer_list = NULL;
 
 /*
  *  Next seqence number to be used when allocating a new timer. The sequence
@@ -117,11 +111,12 @@ static int next_sequence_no = 2124226019;
  * Return a pointer to the timer whose read socket (the socket we return to the
  * user) equals @a read_socket.
  */
-static struct Timer* FindTimer(int read_socket)
+static struct Timer *FindTimer(int read_socket)
 {
-	struct Timer* timer;
+	struct Timer *timer;
 	for (timer = timer_list; timer != NULL; timer = timer->next_timer) {
-		if (timer->read_socket == read_socket) return timer;
+		if (timer->read_socket == read_socket)
+			return timer;
 	}
 	// Not found
 	osaf_abort(read_socket);
@@ -137,7 +132,7 @@ static struct Timer* FindTimer(int read_socket)
 static void EventHandler(union sigval value)
 {
 	osaf_mutex_lock_ordie(&mutex);
-	struct Timer* timer = timer_list;
+	struct Timer *timer = timer_list;
 	while (timer != NULL && timer->sequence_no != value.sival_int) {
 		timer = timer->next_timer;
 	}
@@ -145,11 +140,12 @@ static void EventHandler(union sigval value)
 		uint64_t expirations = 1;
 		ssize_t result;
 		do {
-			result = send(timer->write_socket,
-				      &expirations, sizeof(expirations),
+			result = send(timer->write_socket, &expirations,
+				      sizeof(expirations),
 				      MSG_DONTWAIT | MSG_NOSIGNAL);
 		} while (result == -1 && errno == EINTR);
-		if (result != sizeof(expirations)) osaf_abort(result);
+		if (result != sizeof(expirations))
+			osaf_abort(result);
 	}
 	osaf_mutex_unlock_ordie(&mutex);
 }
@@ -158,7 +154,7 @@ int osaf_timerfd_create(clockid_t clock_id, int flags)
 {
 	// Validate input parameters, abort on error
 	if ((clock_id != CLOCK_REALTIME && clock_id != CLOCK_MONOTONIC) ||
-	    (flags & ~(int) (OSAF_TFD_NONBLOCK | OSAF_TFD_CLOEXEC)) != 0) {
+	    (flags & ~(int)(OSAF_TFD_NONBLOCK | OSAF_TFD_CLOEXEC)) != 0) {
 		osaf_abort(flags);
 	}
 
@@ -171,10 +167,12 @@ int osaf_timerfd_create(clockid_t clock_id, int flags)
 	}
 
 	int sfd[2];
-	if (socketpair(AF_UNIX, sockflags, 0, sfd) != 0) osaf_abort(0);
+	if (socketpair(AF_UNIX, sockflags, 0, sfd) != 0)
+		osaf_abort(0);
 
-	struct Timer* timer = (struct Timer*) malloc(sizeof(struct Timer));
-	if (timer == NULL) osaf_abort(0);
+	struct Timer *timer = (struct Timer *)malloc(sizeof(struct Timer));
+	if (timer == NULL)
+		osaf_abort(0);
 	osaf_mutex_lock_ordie(&mutex);
 	timer->sequence_no = next_sequence_no++;
 	osaf_mutex_unlock_ordie(&mutex);
@@ -190,11 +188,13 @@ int osaf_timerfd_create(clockid_t clock_id, int flags)
 	int result;
 	for (;;) {
 		result = timer_create(clock_id, &event, &timer->timer_id);
-		if (result != -1 || errno != EAGAIN) break;
-		static const struct timespec sleep_time = { 0, 10000000 };
+		if (result != -1 || errno != EAGAIN)
+			break;
+		static const struct timespec sleep_time = {0, 10000000};
 		osaf_nanosleep(&sleep_time);
 	}
-	if (result != 0) osaf_abort(clock_id);
+	if (result != 0)
+		osaf_abort(clock_id);
 
 	osaf_mutex_lock_ordie(&mutex);
 	timer->next_timer = timer_list;
@@ -203,52 +203,53 @@ int osaf_timerfd_create(clockid_t clock_id, int flags)
 	return sfd[0];
 }
 
-void osaf_timerfd_settime(int ufd, int flags,
-			  const struct itimerspec* utmr,
-			  struct itimerspec* otmr)
+void osaf_timerfd_settime(int ufd, int flags, const struct itimerspec *utmr,
+			  struct itimerspec *otmr)
 {
 	if ((flags != 0 && flags != OSAF_TFD_TIMER_ABSTIME) ||
-	    utmr->it_interval.tv_sec != 0 ||
-	    utmr->it_interval.tv_nsec != 0) {
+	    utmr->it_interval.tv_sec != 0 || utmr->it_interval.tv_nsec != 0) {
 		osaf_abort(flags);
 	}
 
 	osaf_mutex_lock_ordie(&mutex);
-	struct Timer* timer = FindTimer(ufd);
+	struct Timer *timer = FindTimer(ufd);
 	for (;;) {
 		uint64_t expirations;
-		if (recv(timer->read_socket, &expirations,
-			 sizeof(expirations), MSG_DONTWAIT) < 0) {
-			if (errno == EINTR) continue;
-			if (errno == EAGAIN || errno == EWOULDBLOCK) break;
+		if (recv(timer->read_socket, &expirations, sizeof(expirations),
+			 MSG_DONTWAIT) < 0) {
+			if (errno == EINTR)
+				continue;
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				break;
 			osaf_abort(timer->read_socket);
 		}
 	}
 	if (timer_settime(timer->timer_id,
 			  flags == OSAF_TFD_TIMER_ABSTIME ? TIMER_ABSTIME : 0,
-			  utmr,
-			  otmr) != 0) {
+			  utmr, otmr) != 0) {
 		osaf_abort(flags);
 	}
 	osaf_mutex_unlock_ordie(&mutex);
 }
 
-void osaf_timerfd_gettime(int ufd, struct itimerspec* otmr)
+void osaf_timerfd_gettime(int ufd, struct itimerspec *otmr)
 {
 	osaf_mutex_lock_ordie(&mutex);
-	struct Timer* timer = FindTimer(ufd);
-	if (timer_gettime(timer->timer_id, otmr) != 0) osaf_abort(ufd);
+	struct Timer *timer = FindTimer(ufd);
+	if (timer_gettime(timer->timer_id, otmr) != 0)
+		osaf_abort(ufd);
 	osaf_mutex_unlock_ordie(&mutex);
 }
 
 void osaf_timerfd_close(int ufd)
 {
 	osaf_mutex_lock_ordie(&mutex);
-	struct Timer** prev = &timer_list;
-	struct Timer* timer;
+	struct Timer **prev = &timer_list;
+	struct Timer *timer;
 	for (;;) {
 		timer = *prev;
-		if (timer == NULL) osaf_abort(ufd);
+		if (timer == NULL)
+			osaf_abort(ufd);
 		if (timer->read_socket == ufd) {
 			*prev = timer->next_timer;
 			break;

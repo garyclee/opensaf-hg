@@ -25,7 +25,7 @@
 
 #include "mqnd.h"
 
-/* 
+/*
   DESCRIPTION: MQND AMF callback routines.
 
   FUNCTIONS INCLUDED in this module:
@@ -37,41 +37,47 @@
 #include "mqnd.h"
 #include "osaf/configmake.h"
 
-static void mqnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName,
+static void mqnd_saf_health_chk_callback(SaInvocationT invocation,
+					 const SaNameT *compName,
 					 SaAmfHealthcheckKeyT *checkType);
 static void mqnd_amf_csi_rmv_callback(SaInvocationT invocation,
-				      const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags);
+				      const SaNameT *compName,
+				      const SaNameT *csiName,
+				      SaAmfCSIFlagsT csiFlags);
 
-static void mqnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
+static void mqnd_amf_comp_terminate_callback(SaInvocationT invocation,
+					     const SaNameT *compName);
 
 static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
 				      const SaNameT *compName,
-				      SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor);
+				      SaAmfHAStateT haState,
+				      SaAmfCSIDescriptorT csiDescriptor);
 
 static const char *term_state_file = PKGPIDDIR "/osafmsgnd_termstate";
 /****************************************************************************
  * Name          : mqnd_saf_health_chk_callback
  *
- * Description   : This function SAF callback function which will be called 
+ * Description   : This function SAF callback function which will be called
  *                 when the AMF framework needs to health for the component.
  *
- * Arguments     : invocation     - This parameter designated a particular 
+ * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Availability Management 
- *                                  FrameWork using the saAmfResponse() 
+ *                                  invoke process return invocation when it
+ *                                  responds to the Availability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
- *                 checkType      - The type of healthcheck to be executed. 
+ *                 checkType      - The type of healthcheck to be executed.
  *
  * Return Values : None
  *
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
-static void
-mqnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
+static void mqnd_saf_health_chk_callback(SaInvocationT invocation,
+					 const SaNameT *compName,
+					 SaAmfHealthcheckKeyT *checkType)
 {
 	MQND_CB *mqnd_cb;
 	SaAisErrorT error = SA_AIS_OK;
@@ -87,8 +93,11 @@ mqnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, 
 		rc = NCSCC_RC_FAILURE;
 		return;
 	}
-	if ((rc = saAmfResponse(mqnd_cb->amf_hdl, invocation, error)) != SA_AIS_OK)
-		LOG_ER("saAmfResponse: Response From AMF Failed with return code %u", rc);
+	if ((rc = saAmfResponse(mqnd_cb->amf_hdl, invocation, error)) !=
+	    SA_AIS_OK)
+		LOG_ER(
+		    "saAmfResponse: Response From AMF Failed with return code %u",
+		    rc);
 	/* giveup the handle */
 	ncshm_give_hdl(cb_hdl);
 	TRACE_LEAVE();
@@ -98,7 +107,7 @@ mqnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, 
 /****************************************************************************
  * Name          : mqnd_amf_init
  *
- * Description   : GLD initializes AMF for involking process and registers 
+ * Description   : GLD initializes AMF for involking process and registers
  *                 the various callback functions.
  *
  * Arguments     : mqnd_cb  - Ifsv control block pointer.
@@ -119,7 +128,8 @@ uint32_t mqnd_amf_init(MQND_CB *mqnd_cb)
 
 	amfCallbacks.saAmfHealthcheckCallback = mqnd_saf_health_chk_callback;
 	amfCallbacks.saAmfCSISetCallback = mqnd_amf_CSI_set_callback;
-	amfCallbacks.saAmfComponentTerminateCallback = mqnd_amf_comp_terminate_callback;
+	amfCallbacks.saAmfComponentTerminateCallback =
+	    mqnd_amf_comp_terminate_callback;
 	amfCallbacks.saAmfCSIRemoveCallback = mqnd_amf_csi_rmv_callback;
 
 	m_MQSV_GET_AMF_VER(amf_version);
@@ -186,7 +196,9 @@ uint32_t mqnd_amf_register(MQND_CB *mqnd_cb)
 	}
 	TRACE_1("saAmfComponentNameGet Successfull");
 
-	if ((error = saAmfComponentRegister(mqnd_cb->amf_hdl, &mqnd_cb->comp_name, (SaNameT *)NULL)) == SA_AIS_OK) {
+	if ((error =
+		 saAmfComponentRegister(mqnd_cb->amf_hdl, &mqnd_cb->comp_name,
+					(SaNameT *)NULL)) == SA_AIS_OK) {
 		TRACE_1("saAmfComponentRegister Success");
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
@@ -212,7 +224,9 @@ uint32_t mqnd_amf_deregister(MQND_CB *mqnd_cb)
 	SaAisErrorT error;
 	TRACE_ENTER();
 
-	if ((error = saAmfComponentUnregister(mqnd_cb->amf_hdl, &mqnd_cb->comp_name, (SaNameT *)NULL)) == SA_AIS_OK) {
+	if ((error =
+		 saAmfComponentUnregister(mqnd_cb->amf_hdl, &mqnd_cb->comp_name,
+					  (SaNameT *)NULL)) == SA_AIS_OK) {
 		TRACE_1("saAmfComponentUnregister Successfull");
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
@@ -222,7 +236,8 @@ uint32_t mqnd_amf_deregister(MQND_CB *mqnd_cb)
 	}
 }
 
-static void mqnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
+static void mqnd_amf_comp_terminate_callback(SaInvocationT invocation,
+					     const SaNameT *compName)
 {
 	MQND_CB *mqnd_cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
@@ -241,11 +256,11 @@ static void mqnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaN
 
 	fd = open(term_state_file, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 
-	if (fd >=0)
+	if (fd >= 0)
 		(void)close(fd);
 	else
-		LOG_NO("cannot create termstate file %s: %s",
-					term_state_file, strerror(errno));
+		LOG_NO("cannot create termstate file %s: %s", term_state_file,
+		       strerror(errno));
 
 	saAmfResponse(mqnd_cb->amf_hdl, invocation, saErr);
 	LOG_ER("Amf Terminate Callback called");
@@ -259,7 +274,9 @@ static void mqnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaN
 }
 
 static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
-				      const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
+				      const SaNameT *compName,
+				      SaAmfHAStateT haState,
+				      SaAmfCSIDescriptorT csiDescriptor)
 {
 	MQND_CB *mqnd_cb;
 	SaAisErrorT saErr = SA_AIS_OK;
@@ -276,7 +293,7 @@ static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
 	}
 
 	if (mqnd_cb) {
-		mqnd_cb->ha_state = haState;	/* Set the HA State */
+		mqnd_cb->ha_state = haState; /* Set the HA State */
 	}
 	TRACE_1("Amf CSI set Call back called with new state as %d", haState);
 
@@ -288,8 +305,10 @@ static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
 			mqnd_cb->mqa_timer.uarg = mqnd_cb->cb_hdl;
 			mqnd_cb->mqa_timer.is_active = false;
 			mqnd_cb->mqa_timer.tmr_id = 0;
-			/*Starting the timer When this timer expired CPSV initialization is done */
-			mqnd_tmr_start(&mqnd_cb->mqa_timer, (unsigned)MQND_MQA_EXPIRY_TIMER);
+			/*Starting the timer When this timer expired CPSV
+			 * initialization is done */
+			mqnd_tmr_start(&mqnd_cb->mqa_timer,
+				       (unsigned)MQND_MQA_EXPIRY_TIMER);
 			TRACE_1("MQA timer Started");
 		}
 	}
@@ -302,9 +321,10 @@ static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
 	return;
 }
 
-static void
-mqnd_amf_csi_rmv_callback(SaInvocationT invocation,
-			  const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
+static void mqnd_amf_csi_rmv_callback(SaInvocationT invocation,
+				      const SaNameT *compName,
+				      const SaNameT *csiName,
+				      SaAmfCSIFlagsT csiFlags)
 {
 	MQND_CB *mqnd_cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;

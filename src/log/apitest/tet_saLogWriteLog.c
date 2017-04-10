@@ -35,4 +35,3 @@ void saLogWriteLog_01(void)
 done:
 	logFinalize();
 }
-

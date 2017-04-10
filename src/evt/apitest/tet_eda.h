@@ -23,20 +23,18 @@
 
 #define gl_red 0
 
-#define WHILE_TRY_AGAIN(rc) while((rc==SA_AIS_ERR_TRY_AGAIN)\
-                                  ||(rc==SA_AIS_ERR_TIMEOUT))
+#define WHILE_TRY_AGAIN(rc) \
+  while ((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_TIMEOUT))
 
 #define RETRY_SLEEP sleep(3)
 #define MAX_NUM_TRY_AGAINS 12
 #define DISPATCH_SLEEP() sleep_for_dispatch()
 
-
-int gl_act; 
-int gl_tNode1, gl_tNode2, gl_tNode3, gl_node_id, gl_jCount,
-  gl_allocatedNumber, gl_patternLength, gl_tCount,gl_tCase,gl_iteration,
-  gl_listNumber,gl_error,subCount,gl_err,gl_cbk,iCmpCount,tempDataSize,
-  gl_hide;
-char *gl_saf_msg,*tempData;
+int gl_act;
+int gl_tNode1, gl_tNode2, gl_tNode3, gl_node_id, gl_jCount, gl_allocatedNumber,
+    gl_patternLength, gl_tCount, gl_tCase, gl_iteration, gl_listNumber,
+    gl_error, subCount, gl_err, gl_cbk, iCmpCount, tempDataSize, gl_hide;
+char *gl_saf_msg, *tempData;
 char gl_eventData[20];
 NCSCONTEXT gl_t_handle;
 SaEvtHandleT gl_evtHandle, gl_threadEvtHandle;
@@ -44,7 +42,7 @@ SaVersionT gl_version;
 SaAisErrorT gl_rc;
 SaSelectionObjectT gl_selObject;
 SaDispatchFlagsT gl_dispatchFlags;
-SaNameT gl_channelName,gl_publisherName;
+SaNameT gl_channelName, gl_publisherName;
 SaEvtChannelOpenFlagsT gl_channelOpenFlags;
 SaTimeT gl_timeout, gl_retentionTime, gl_publishTime;
 SaEvtChannelHandleT gl_channelHandle;
@@ -59,36 +57,33 @@ SaEvtSubscriptionIdT gl_subscriptionId, gl_dupSubscriptionId;
 SaEvtEventPatternT gl_pattern[2];
 SaEvtEventFilterT gl_filter[1];
 SaEvtCallbacksT gl_evtCallbacks;
-void EvtOpenCallback(SaInvocationT invocationCallback, 
+void EvtOpenCallback(SaInvocationT invocationCallback,
                      SaEvtChannelHandleT asyncChannelHandle, SaAisErrorT error);
-void EvtDeliverCallback(SaEvtSubscriptionIdT subscriptionId, 
-                        SaEvtEventHandleT deliverEventHandle, 
+void EvtDeliverCallback(SaEvtSubscriptionIdT subscriptionId,
+                        SaEvtEventHandleT deliverEventHandle,
                         SaSizeT eventDataSize);
 
-void b03EvtDeliverCallback(SaEvtSubscriptionIdT subscriptionId, 
-                        SaEvtEventHandleT deliverEventHandle, 
-                        SaSizeT eventDataSize);
-struct gl_list
-{
+void b03EvtDeliverCallback(SaEvtSubscriptionIdT subscriptionId,
+                           SaEvtEventHandleT deliverEventHandle,
+                           SaSizeT eventDataSize);
+struct gl_list {
   int data;
   char *gl_eventData;
 };
 
-NCSCONTEXT eda_thread_handle,subscription_handle;
+NCSCONTEXT eda_thread_handle, subscription_handle;
 #define TET_EDSV_NODE1 3
 /*******String Constants*******/
 const char *gl_saf_error[32];
 
-typedef enum 
-  {
-    EDSV_TEST=1,
-    EDSV_API_TEST,
-    EDSV_FUNC_TEST,
-    EDSV_CLM_TEST,
-  }EDSV_TEST_LIST;
+typedef enum {
+  EDSV_TEST = 1,
+  EDSV_API_TEST,
+  EDSV_FUNC_TEST,
+  EDSV_CLM_TEST,
+} EDSV_TEST_LIST;
 
-typedef struct gl_variables
-{
+typedef struct gl_variables {
   int tCase;
   int iteration;
   int listNumber;
@@ -98,36 +93,36 @@ typedef struct gl_variables
   SaSizeT eventDataSize;
   SaEvtEventFilterArrayT filterArray;
   SaEvtSubscriptionIdT subscriptionId;
-}gl_edsv_defs;
+} gl_edsv_defs;
 
 void tet_saEvtInitialize(SaEvtHandleT *);
-void tet_saEvtSelectionObjectGet(SaEvtHandleT *,SaSelectionObjectT *);
+void tet_saEvtSelectionObjectGet(SaEvtHandleT *, SaSelectionObjectT *);
 void tet_saEvtDispatch(SaEvtHandleT *);
 void tet_saEvtFinalize(SaEvtHandleT *);
 
-void tet_saEvtChannelOpen(SaEvtHandleT *,SaEvtChannelHandleT *);
+void tet_saEvtChannelOpen(SaEvtHandleT *, SaEvtChannelHandleT *);
 void tet_saEvtChannelOpenAsync(SaEvtHandleT *);
 void tet_saEvtChannelClose(SaEvtChannelHandleT *);
 void tet_saEvtChannelUnlink(SaEvtHandleT *);
 
-void tet_saEvtEventAllocate(SaEvtChannelHandleT *,SaEvtEventHandleT *);
+void tet_saEvtEventAllocate(SaEvtChannelHandleT *, SaEvtEventHandleT *);
 void tet_saEvtEventFree(SaEvtEventHandleT *);
 void tet_saEvtEventAttributesSet(SaEvtEventHandleT *);
 void tet_saEvtEventAttributesGet(SaEvtEventHandleT *);
 void tet_saEvtEventDataGet(SaEvtEventHandleT *);
 void tet_saEvtEventPublish(SaEvtEventHandleT *, SaEvtEventIdT *);
-void tet_saEvtEventSubscribe(SaEvtChannelHandleT *,SaEvtSubscriptionIdT *);
+void tet_saEvtEventSubscribe(SaEvtChannelHandleT *, SaEvtSubscriptionIdT *);
 void tet_saEvtEventUnsubscribe(SaEvtChannelHandleT *);
-void tet_saEvtEventRetentionTimeClear(SaEvtChannelHandleT *,SaEvtEventIdT *);
+void tet_saEvtEventRetentionTimeClear(SaEvtChannelHandleT *, SaEvtEventIdT *);
 
-void result(char *,SaAisErrorT);
-void resultSuccess(char *,SaAisErrorT);
+void result(char *, SaAisErrorT);
+void resultSuccess(char *, SaAisErrorT);
 uint32_t tet_create_task(NCS_OS_CB);
 
 void tet_run_edsv_app(void);
 void gl_defs(void);
 
-void select_call(void);      
+void select_call(void);
 
 void var_initialize(void);
 void eda_selection_thread(void);
@@ -261,75 +256,73 @@ void tet_EventUnsubscribe_EventPublish(void);
 void tet_EventAttributesGet_LessPatternsNumber(void);
 void tet_Simple_Test(void);
 /** Miscellenious Functions **/
-void    tet_ChannelOpen_before_Initialize(void);
-void    tet_ChannelOpen_after_Finalize(void);
-void    tet_ChannelOpenAsync_before_Initialize(void);
-void    tet_ChannelOpenAsync_after_Finalize(void);
-void    tet_Subscribe_before_ChannelOpen(void);
-void    tet_Subscribe_after_ChannelClose(void);
-void    tet_Subscribe_after_ChannelUnlink(void);
-void    tet_Subscribe_after_Finalize(void);
-void    tet_Allocate_before_ChannelOpen(void);
-void    tet_Allocate_after_ChannelClose(void);
-void    tet_Allocate_after_ChannelUnlink(void);
-void    tet_Allocate_after_Finalize(void);
-void    tet_Allocate_check_DefaultValues(void);
-void    tet_AttributesSet_before_Allocate(void);
-void    tet_AttributesSet_after_EventFree(void);
-void    tet_AttributesSet_after_ChannelClose(void);
-void    tet_AttributesSet_after_ChannelUnlink(void);
-void    tet_AttributesSet_after_Finalize(void);
-void    tet_Publish_before_Allocate(void);
-void    tet_Publish_after_EventFree(void);
-void    tet_Publish_after_ChannelClose(void);
-void    tet_Publish_after_ChannelUnlink(void);
-void    tet_Publish_after_Finalize(void);
-void    tet_SelectionObject_before_Initialize(void);
-void    tet_SelectionObject_after_Finalize(void);
-void    tet_Dispatch_before_Initialize(void);
-void    tet_Dispatch_after_Finalize(void);
-void    tet_AttributesGet_before_Allocate(void);
-void    tet_AttributesGet_after_EventFree(void);
-void    tet_AttributesGet_after_ChannelClose(void);
-void    tet_AttributesGet_after_ChannelUnlink(void);
-void    tet_AttributesGet_after_Finalize(void);
-void    tet_Unsubscribe_before_ChannelOpen(void);
-void    tet_Unsubscribe_after_ChannelClose(void);
-void    tet_Unsubscribe_after_ChannelUnlink(void);
-void    tet_Unsubscribe_after_Finalize(void);
-void    tet_RetentionTimeClear_before_ChannelOpen(void);
-void    tet_RetentionTimeClear_after_ChannelClose(void);
-void    tet_RetentionTimeClear_after_ChannelUnlink(void);
-void    tet_RetentionTimeClear_after_Finalize(void);
-void    tet_EventFree_before_Allocate(void);
-void    tet_EventFree_after_ChannelClose(void);
-void    tet_EventFree_after_ChannelUnlink(void);
-void    tet_EventFree_after_Finalize(void);
-void    tet_ChannelClose_before_ChannelOpen(void);
-void    tet_ChannelClose_after_ChannelClose(void);
-void    tet_ChannelClose_after_ChannelUnlink(void);
-void    tet_ChannelClose_after_Finalize(void);
-void    tet_ChannelUnlink_before_ChannelOpen(void);
-void    tet_ChannelUnlink_after_Finalize(void); 
-void    tet_Finalize_after_Finalize(void);
-void    tet_ChannelOpen_after_ChannelUnlink(void);
-void    tet_ChannelOpen_after_ChannelClose(void);
-void    tet_ChannelOpenAsync_after_ChannelClose(void);
-void    tet_ChannelOpenAsync_after_ChannelUnlink(void);
-void    tet_EventSubscribe_after_ChannelUnlink(void);
+void tet_ChannelOpen_before_Initialize(void);
+void tet_ChannelOpen_after_Finalize(void);
+void tet_ChannelOpenAsync_before_Initialize(void);
+void tet_ChannelOpenAsync_after_Finalize(void);
+void tet_Subscribe_before_ChannelOpen(void);
+void tet_Subscribe_after_ChannelClose(void);
+void tet_Subscribe_after_ChannelUnlink(void);
+void tet_Subscribe_after_Finalize(void);
+void tet_Allocate_before_ChannelOpen(void);
+void tet_Allocate_after_ChannelClose(void);
+void tet_Allocate_after_ChannelUnlink(void);
+void tet_Allocate_after_Finalize(void);
+void tet_Allocate_check_DefaultValues(void);
+void tet_AttributesSet_before_Allocate(void);
+void tet_AttributesSet_after_EventFree(void);
+void tet_AttributesSet_after_ChannelClose(void);
+void tet_AttributesSet_after_ChannelUnlink(void);
+void tet_AttributesSet_after_Finalize(void);
+void tet_Publish_before_Allocate(void);
+void tet_Publish_after_EventFree(void);
+void tet_Publish_after_ChannelClose(void);
+void tet_Publish_after_ChannelUnlink(void);
+void tet_Publish_after_Finalize(void);
+void tet_SelectionObject_before_Initialize(void);
+void tet_SelectionObject_after_Finalize(void);
+void tet_Dispatch_before_Initialize(void);
+void tet_Dispatch_after_Finalize(void);
+void tet_AttributesGet_before_Allocate(void);
+void tet_AttributesGet_after_EventFree(void);
+void tet_AttributesGet_after_ChannelClose(void);
+void tet_AttributesGet_after_ChannelUnlink(void);
+void tet_AttributesGet_after_Finalize(void);
+void tet_Unsubscribe_before_ChannelOpen(void);
+void tet_Unsubscribe_after_ChannelClose(void);
+void tet_Unsubscribe_after_ChannelUnlink(void);
+void tet_Unsubscribe_after_Finalize(void);
+void tet_RetentionTimeClear_before_ChannelOpen(void);
+void tet_RetentionTimeClear_after_ChannelClose(void);
+void tet_RetentionTimeClear_after_ChannelUnlink(void);
+void tet_RetentionTimeClear_after_Finalize(void);
+void tet_EventFree_before_Allocate(void);
+void tet_EventFree_after_ChannelClose(void);
+void tet_EventFree_after_ChannelUnlink(void);
+void tet_EventFree_after_Finalize(void);
+void tet_ChannelClose_before_ChannelOpen(void);
+void tet_ChannelClose_after_ChannelClose(void);
+void tet_ChannelClose_after_ChannelUnlink(void);
+void tet_ChannelClose_after_Finalize(void);
+void tet_ChannelUnlink_before_ChannelOpen(void);
+void tet_ChannelUnlink_after_Finalize(void);
+void tet_Finalize_after_Finalize(void);
+void tet_ChannelOpen_after_ChannelUnlink(void);
+void tet_ChannelOpen_after_ChannelClose(void);
+void tet_ChannelOpenAsync_after_ChannelClose(void);
+void tet_ChannelOpenAsync_after_ChannelUnlink(void);
+void tet_EventSubscribe_after_ChannelUnlink(void);
 #if 0
 void    tet_AttributesGet_NoMemory(void);
 void    tet_DataGet_struct(void);
 #endif
-void    tet_MultiChannelOpen(void);
-void    tet_DataGet_without_Memory(void);
+void tet_MultiChannelOpen(void);
+void tet_DataGet_without_Memory(void);
 #if 0
 void    tet_EventFree_ChannelClose(void);
 void    tet_ChannelOpen_ChannelUnlink(void);
 #endif
-struct gl_edsv
-{
-};
+struct gl_edsv {};
 void sleep_for_dispatch(void);
 void tet_saEvtInitializeCases(int iOption);
 void tet_Initialize(void);
@@ -391,7 +384,7 @@ void tet_RetentionTimeClear_Thread(void);
 void tet_stressTest(void);
 void gl_defs(void);
 void tet_run_edsv_app(void);
-void tet_ChannelOpen_SingleEvtHandle(void);  
+void tet_ChannelOpen_SingleEvtHandle(void);
 void tet_run_edsv_dist_cases(void);
 void tet_ChannelOpen_SingleEvtHandle_SamePatterns(void);
 void tet_ChannelOpen_SingleEvtHandle_DifferentPatterns(void);
@@ -495,7 +488,7 @@ void tet_ChannelOpenAsync_after_ChannelUnlink(void);
 void tet_EventSubscribe_after_ChannelUnlink(void);
 void tet_MultiChannelOpen(void);
 void tet_DataGet_without_Memory(void);
-void eda_selection_thread (void);
+void eda_selection_thread(void);
 void var_initialize(void);
 void AttributesGet_Thread(void);
 void tet_PatternFree_ReceivedEvent(void);

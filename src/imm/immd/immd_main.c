@@ -56,7 +56,8 @@ IMMD_CB *immd_cb = &_immd_cb;
  * @param cb_info
  * @param error_code
  */
-static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info,
+		   PCSRDA_RETURN_CODE error_code)
 {
 	uint32_t rc;
 	IMMSV_EVT *evt;
@@ -73,7 +74,8 @@ static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE
 	evt->info.immd.type = IMMD_EVT_RDA_CB;
 	evt->info.immd.info.rda_info.io_role = cb_info->info.io_role;
 
-	rc = ncs_ipc_send(&immd_cb->mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
+	rc = ncs_ipc_send(&immd_cb->mbx, (NCS_IPC_MSG *)evt,
+			  MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS)
 		LOG_ER("IPC send failed %d", rc);
 
@@ -85,7 +87,7 @@ done:
  * USR1 signal is used when AMF wants instantiate us as a
  * component. Wake up the main thread so it can register with
  * AMF.
- * 
+ *
  * @param i_sig_num
  */
 static void sigusr1_handler(int sig)
@@ -101,7 +103,7 @@ static void sigusr1_handler(int sig)
 
 /**
  * Initialize immd
- * 
+ *
  * @return uns32
  */
 static uint32_t immd_initialize(void)
@@ -151,7 +153,8 @@ static uint32_t immd_initialize(void)
 
 	/* Create a selection object */
 	if (immd_cb->nid_started &&
-		(rc = ncs_sel_obj_create(&immd_cb->usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+	    (rc = ncs_sel_obj_create(&immd_cb->usr1_sel_obj)) !=
+		NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
@@ -161,7 +164,7 @@ static uint32_t immd_initialize(void)
 	 * The signal is sent from our script when AMF does instantiate.
 	 */
 	if (immd_cb->nid_started &&
-		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+	    signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 failed: %s", strerror(errno));
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -169,13 +172,13 @@ static uint32_t immd_initialize(void)
 
 	/* If AMF started register immediately */
 	if (!immd_cb->nid_started &&
-		(rc = immd_amf_init(immd_cb)) != NCSCC_RC_SUCCESS) {
+	    (rc = immd_amf_init(immd_cb)) != NCSCC_RC_SUCCESS) {
 		goto done;
 	}
 
 	if ((rc = initialize_for_assignment(immd_cb, immd_cb->ha_state)) !=
-		NCSCC_RC_SUCCESS) {
-		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned)rc);
 		goto done;
 	}
 
@@ -184,7 +187,7 @@ static uint32_t immd_initialize(void)
 
 done:
 	if (immd_cb->nid_started &&
-		nid_notify("IMMD", rc, NULL) != NCSCC_RC_SUCCESS) {
+	    nid_notify("IMMD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		rc = NCSCC_RC_FAILURE;
 	}
@@ -195,19 +198,23 @@ done:
 
 uint32_t initialize_for_assignment(IMMD_CB *cb, SaAmfHAStateT ha_state)
 {
-	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	TRACE_ENTER2("ha_state = %d", (int)ha_state);
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) goto done;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED)
+		goto done;
 	cb->ha_state = ha_state;
 
-	if(cb->mScAbsenceAllowed && cb->ha_state == SA_AMF_HA_ACTIVE) {
+	if (cb->mScAbsenceAllowed && cb->ha_state == SA_AMF_HA_ACTIVE) {
 		/* Create the sel-obj before initializing MDS.
-		 * This way, we can avoid an extra 'veteran_sync_awaited' variable in IMMD_CB */
-		if ((rc = m_NCS_LOCK_INIT(&immd_cb->veteran_sync_lock)) != NCSCC_RC_SUCCESS) {
+		 * This way, we can avoid an extra 'veteran_sync_awaited'
+		 * variable in IMMD_CB */
+		if ((rc = m_NCS_LOCK_INIT(&immd_cb->veteran_sync_lock)) !=
+		    NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to get veteran_sync_lock lock");
 			goto done;
 		}
-		if ((rc = m_NCS_SEL_OBJ_CREATE(&immd_cb->veteran_sync_sel)) != NCSCC_RC_SUCCESS) {
+		if ((rc = m_NCS_SEL_OBJ_CREATE(&immd_cb->veteran_sync_sel)) !=
+		    NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to create veteran_sync_sel sel_obj");
 			goto done;
 		}
@@ -233,15 +240,20 @@ uint32_t initialize_for_assignment(IMMD_CB *cb, SaAmfHAStateT ha_state)
 
 	if (cb->mScAbsenceAllowed && cb->ha_state == SA_AMF_HA_ACTIVE) {
 		/* If this IMMD has active role, wait for veteran payloads.
-		 * Give up after mScAbsenceVeteranMaxWait if there's no veteran payloads. */
+		 * Give up after mScAbsenceVeteranMaxWait if there's no veteran
+		 * payloads. */
 		uint32_t timeout_sec = immd_cb->mScAbsenceVeteranMaxWait;
 		int sel_obj = m_GET_FD_FROM_SEL_OBJ(immd_cb->veteran_sync_sel);
-		LOG_NO("Waiting %u seconds to allow IMMND MDS attachments to get processed.", timeout_sec);
+		LOG_NO(
+		    "Waiting %u seconds to allow IMMND MDS attachments to get processed.",
+		    timeout_sec);
 
 		if (osaf_poll_one_fd(sel_obj, timeout_sec * 1000) != 1) {
-			TRACE("osaf_poll_one_fd on veteran_sync_sel failed or timed out");
+			TRACE(
+			    "osaf_poll_one_fd on veteran_sync_sel failed or timed out");
 		} else {
-			LOG_NO("Received intro message from veteran payload, stop waiting");
+			LOG_NO(
+			    "Received intro message from veteran payload, stop waiting");
 		}
 
 		m_NCS_LOCK(&immd_cb->veteran_sync_lock, NCS_LOCK_WRITE);
@@ -258,7 +270,7 @@ done:
  * The main routine for the IMM director daemon.
  * @param argc
  * @param argv
- * 
+ *
  * @return int
  */
 int main(int argc, char *argv[])
@@ -267,9 +279,10 @@ int main(int argc, char *argv[])
 	NCS_SEL_OBJ mbx_fd;
 	struct pollfd fds[4];
 	const int peerMaxWaitMin = 5; /*5 sec*/
-	const char * peerWaitStr = getenv("IMMSV_2PBE_PEER_SC_MAX_WAIT");
-	const char * absentScStr = getenv("IMMSV_SC_ABSENCE_ALLOWED");
-	const char * veteranWaitStr = getenv("IMMSV_SC_ABSENCE_VETERAN_MAX_WAIT");
+	const char *peerWaitStr = getenv("IMMSV_2PBE_PEER_SC_MAX_WAIT");
+	const char *absentScStr = getenv("IMMSV_SC_ABSENCE_ALLOWED");
+	const char *veteranWaitStr =
+	    getenv("IMMSV_SC_ABSENCE_VETERAN_MAX_WAIT");
 	int32_t timeout = (-1);
 	int32_t total_wait = (-1);
 	int64_t start_time = 0LL;
@@ -279,31 +292,38 @@ int main(int argc, char *argv[])
 
 	daemonize(argc, argv);
 
-	if(absentScStr) {
+	if (absentScStr) {
 		scAbsenceAllowed = atoi(absentScStr);
-		if(!scAbsenceAllowed) {
-			LOG_WA("SC_ABSENCE_ALLOWED malconfigured: '%s'", absentScStr);
+		if (!scAbsenceAllowed) {
+			LOG_WA("SC_ABSENCE_ALLOWED malconfigured: '%s'",
+			       absentScStr);
 		}
 	}
 
 	if (veteranWaitStr) {
 		immd_cb->mScAbsenceVeteranMaxWait = atoi(veteranWaitStr);
-		if(!immd_cb->mScAbsenceVeteranMaxWait) {
-			LOG_WA("IMMSV_SC_ABSENCE_VETERAN_MAX_WAIT malconfigured: '%s'", veteranWaitStr);
+		if (!immd_cb->mScAbsenceVeteranMaxWait) {
+			LOG_WA(
+			    "IMMSV_SC_ABSENCE_VETERAN_MAX_WAIT malconfigured: '%s'",
+			    veteranWaitStr);
 		}
 	} else {
-		immd_cb->mScAbsenceVeteranMaxWait = 3; /* Default is 3 seconds */
+		immd_cb->mScAbsenceVeteranMaxWait =
+		    3; /* Default is 3 seconds */
 	}
 
-	if(peerWaitStr) {
+	if (peerWaitStr) {
 		int32_t peerMaxWait = atoi(peerWaitStr);
-		if(peerMaxWait < peerMaxWaitMin) {
-			LOG_WA("IMMSV_PEER_SC_MAX_WAIT has value (%d) less than %u, "
-				"Correcting to %u", peerMaxWait, peerMaxWaitMin,
-				peerMaxWaitMin);
+		if (peerMaxWait < peerMaxWaitMin) {
+			LOG_WA(
+			    "IMMSV_PEER_SC_MAX_WAIT has value (%d) less than %u, "
+			    "Correcting to %u",
+			    peerMaxWait, peerMaxWaitMin, peerMaxWaitMin);
 			peerMaxWait = peerMaxWaitMin;
 		}
-		LOG_NO("2PBE configured with IMMSV_PEER_SC_MAX_WAIT: %d seconds", peerMaxWait);
+		LOG_NO(
+		    "2PBE configured with IMMSV_PEER_SC_MAX_WAIT: %d seconds",
+		    peerMaxWait);
 
 		total_wait = peerMaxWait * 1000;
 		timeout = total_wait;
@@ -311,8 +331,9 @@ int main(int argc, char *argv[])
 
 		immd_cb->mIs2Pbe = true; /* Redundant PBE */
 
-		if(scAbsenceAllowed) {
-			LOG_ER("SC_ABSENCE_ALLOWED  is *incompatible* with 2PBE - 2PBE overrides");
+		if (scAbsenceAllowed) {
+			LOG_ER(
+			    "SC_ABSENCE_ALLOWED  is *incompatible* with 2PBE - 2PBE overrides");
 			scAbsenceAllowed = 0;
 		}
 	}
@@ -324,9 +345,10 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
-	if(scAbsenceAllowed) {
-		LOG_NO("******* SC_ABSENCE_ALLOWED (Headless Hydra) is configured: %u ***********",
-			scAbsenceAllowed);
+	if (scAbsenceAllowed) {
+		LOG_NO(
+		    "******* SC_ABSENCE_ALLOWED (Headless Hydra) is configured: %u ***********",
+		    scAbsenceAllowed);
 	}
 
 	daemon_sigterm_install(&term_fd);
@@ -337,8 +359,8 @@ int main(int argc, char *argv[])
 	/* Set up all file descriptors to listen to */
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
-	fds[FD_AMF].fd = immd_cb->nid_started ?
-		immd_cb->usr1_sel_obj.rmv_obj : immd_cb->amf_sel_obj;
+	fds[FD_AMF].fd = immd_cb->nid_started ? immd_cb->usr1_sel_obj.rmv_obj
+					      : immd_cb->amf_sel_obj;
 	fds[FD_AMF].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
@@ -373,14 +395,17 @@ int main(int argc, char *argv[])
 
 		if (fds[FD_AMF].revents & POLLIN) {
 			if (immd_cb->amf_hdl != 0) {
-				error = saAmfDispatch(immd_cb->amf_hdl, SA_DISPATCH_ALL);
+				error = saAmfDispatch(immd_cb->amf_hdl,
+						      SA_DISPATCH_ALL);
 				if (error != SA_AIS_OK) {
-					LOG_ER("saAmfDispatch failed: %u", error);
+					LOG_ER("saAmfDispatch failed: %u",
+					       error);
 					break;
 				}
 			} else {
 				TRACE("SIGUSR1 event rec");
-				ncs_sel_obj_rmv_ind(&immd_cb->usr1_sel_obj, true, true);
+				ncs_sel_obj_rmv_ind(&immd_cb->usr1_sel_obj,
+						    true, true);
 				ncs_sel_obj_destroy(&immd_cb->usr1_sel_obj);
 
 				if (immd_amf_init(immd_cb) != NCSCC_RC_SUCCESS)
@@ -391,40 +416,57 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if(timeout > 0) {
-			if(immd_cb->m2PbeCanLoad) {
+		if (timeout > 0) {
+			if (immd_cb->m2PbeCanLoad) {
 				/* Peer immnd has been resolved. */
 				timeout = (-1);
 			} else {
-				/* Otherwise decrement timeout by time consumed. */
-				uint32_t passed_time = (uint32_t) (m_NCS_GET_TIME_MS - start_time);
-				if(passed_time < total_wait) {
+				/* Otherwise decrement timeout by time consumed.
+				 */
+				uint32_t passed_time =
+				    (uint32_t)(m_NCS_GET_TIME_MS - start_time);
+				if (passed_time < total_wait) {
 					timeout = total_wait - passed_time;
-					if(print_at_secs <= (passed_time/1000)) {
-						LOG_NO("2PBE wait. Passed time:%u new timeout: %d msecs", passed_time, timeout);
+					if (print_at_secs <=
+					    (passed_time / 1000)) {
+						LOG_NO(
+						    "2PBE wait. Passed time:%u new timeout: %d msecs",
+						    passed_time, timeout);
 						print_at_secs++;
 					}
-				} else if(!(immd_cb->m2PbeExtraWait) && immd_cb->is_loc_immnd_up && immd_cb->is_rem_immnd_up) {
-					/* We prolong the wait at most once and only if both SCs have been introduced,
-					   but loading arbitration has obviously not been completed yet.
-					   This is to avoid the second SC joining late, starting preloading and regular
-					   loading then starting before the second preloading has replied.
+				} else if (!(immd_cb->m2PbeExtraWait) &&
+					   immd_cb->is_loc_immnd_up &&
+					   immd_cb->is_rem_immnd_up) {
+					/* We prolong the wait at most once and
+					   only if both SCs have been
+					   introduced, but loading arbitration
+					   has obviously not been completed yet.
+					   This is to avoid the second SC
+					   joining late, starting preloading and
+					   regular loading then starting before
+					   the second preloading has replied.
 					*/
 
-					immd_cb->m2PbeExtraWait = true; 
+					immd_cb->m2PbeExtraWait = true;
 					total_wait = 2 * 1000;
 					timeout = total_wait;
 					start_time = m_NCS_GET_TIME_MS;
 				} else {
-					LOG_WA("2PBE TIMEOUT WAITING FOR PEER, POSSIBLE REWIND OF IMM STATE.");
+					LOG_WA(
+					    "2PBE TIMEOUT WAITING FOR PEER, POSSIBLE REWIND OF IMM STATE.");
 					TRACE("Passed time:%u", passed_time);
 					timeout = (-1);
 					start_time = 0LL;
-					immd_cb->m2PbeCanLoad=true;
-					if (!(immd_cb->immnd_coord) && (immd_cb->ha_state == SA_AMF_HA_ACTIVE)) {
-						LOG_NO("Electing coord, my HA-STATE:%u", immd_cb->ha_state);
+					immd_cb->m2PbeCanLoad = true;
+					if (!(immd_cb->immnd_coord) &&
+					    (immd_cb->ha_state ==
+					     SA_AMF_HA_ACTIVE)) {
+						LOG_NO(
+						    "Electing coord, my HA-STATE:%u",
+						    immd_cb->ha_state);
 						/* Will tell standby also */
-						immd_proc_arbitrate_2pbe_preload(immd_cb);
+						immd_proc_arbitrate_2pbe_preload(
+						    immd_cb);
 					}
 				}
 			}

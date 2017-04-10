@@ -18,7 +18,7 @@
 #ifndef LOG_AGENT_LGA_STATE_H_
 #define LOG_AGENT_LGA_STATE_H_
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -33,7 +33,6 @@ void lga_recovery2_unlock(void);
 
 void set_lga_state(lga_state_t state);
 bool is_lga_state(lga_state_t state);
-
 
 /**
  * Protect critical areas AIS functions handling global client data so that
@@ -56,9 +55,8 @@ static inline void recovery2_unlock(bool *is_locked) {
   }
 }
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
 #endif  // LOG_AGENT_LGA_STATE_H_
-

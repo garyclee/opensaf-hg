@@ -61,8 +61,8 @@
 
 /* JNU_ThrowByName is declared in the header file jni_util.h, which is not
    distributed in OpenJDK. Is it a private function? */
-JNIEXPORT void JNICALL
-JNU_ThrowByName(JNIEnv *env, const char *name, const char *msg);
+JNIEXPORT void JNICALL JNU_ThrowByName(JNIEnv *env, const char *name,
+				       const char *msg);
 
 /**************************************************************************
  * Constants
@@ -127,24 +127,23 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved)
 	//
 	cachedJVM = jvm;
 
-//   Workaround for warnings like "warning: dereferencing type-punned
-//   pointer will break strict-aliasing rules" is to force an indirection
-//   by casting to void*.
-//   Solution found here:
-//   http://mail.opensolaris.org/pipermail/tools-gcc/2005-August/000048.html
+	//   Workaround for warnings like "warning: dereferencing type-punned
+	//   pointer will break strict-aliasing rules" is to force an
+	//   indirection by casting to void*. Solution found here:
+	//   http://mail.opensolaris.org/pipermail/tools-gcc/2005-August/000048.html
 	if ((*jvm)->GetEnv(jvm, (void **)(void *)&_jniEnv, JNI_VERSION_1_2)) {
-		return JNI_ERR;	// JNI version not supported
+		return JNI_ERR; // JNI version not supported
 	}
 	_TRACE2("NATIVE: Caching jvm pointer %p \n", (void *)cachedJVM);
 
 	// Initialize ais package
 	// ais.Version initialization
 	if (!JNU_Version_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.TrackFlags initialization
 	if (!JNU_TrackFlags_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	/* ais.CallbackResponse initialization */
 	if (!JNU_CallbackResponse_initIDs_OK(_jniEnv)) {
@@ -152,40 +151,40 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved)
 	}
 	// ais.Handle initialization
 	if (!JNU_Handle_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// Initialize ais.clm package
 	// ais.clm.ClmHandle initialization
 	if (!JNU_ClmHandle_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.clm.ClusterMembershipManager initialization
 	if (!JNU_ClusterMembershipManager_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.clm.ClusterNode initialization
 	if (!JNU_ClusterNode_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.clm.NodeAddress initialization
 	if (!JNU_NodeAddress_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.clm.NodeAddressIPv4 initialization
 	if (!JNU_NodeAddressIPv4_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.clm.NodeAddressIPv6 initialization
 	if (!JNU_NodeAddressIPv6_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.clm.ClusterNotificationBuffer initialization
 	if (!JNU_ClusterNotificationBuffer_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.clm.ClusterNotification initialization
 	if (!JNU_ClusterNotification_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// TODO Attila Sragli: commented out until CKPT will be finished
 	// Initialize ais.ckpt package
@@ -209,9 +208,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved)
 	  if ( ! JNU_SectionIterationHandle_initIDs_OK( _jniEnv ) ) {
 	  return JNI_ERR; // EXIT POINT! Exception pending...
 	  }
-	  // ais.ckpt.SectionIterationHandle$SectionSelectionFlags initialization
-	  if ( ! JNU_SectionSelectionFlags_initIDs_OK( _jniEnv ) ) {
-	  return JNI_ERR; // EXIT POINT! Exception pending...
+	  // ais.ckpt.SectionIterationHandle$SectionSelectionFlags
+	  initialization if ( ! JNU_SectionSelectionFlags_initIDs_OK( _jniEnv )
+	  ) { return JNI_ERR; // EXIT POINT! Exception pending...
 	  }
 	  // ais.ckpt.SCheckpointCreationAttributes initialization
 	  if ( ! JNU_SCheckpointCreationAttributes_initIDs_OK( _jniEnv ) ) {
@@ -241,78 +240,79 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved)
 	// Initialize ais.amf package
 	// ais.amf.AmfHandle initialization
 	if (!JNU_AmfHandle_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.ComponentRegistry initialization
 	if (!JNU_ComponentRegistry_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.CsiManager initialization
 	if (!JNU_CsiManager_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.ErrorReporting initialization
 	if (!JNU_ErrorReporting_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.Healthcheck initialization
 	if (!JNU_Healthcheck_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.Healthcheck$HealthcheckInvocation initialization
 	if (!JNU_HealthcheckInvocation_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.ProtectionGroupManager initialization
 	if (!JNU_ProtectionGroupManager_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.ProtectionGroupNotification initialization
 	if (!JNU_ProtectionGroupNotification_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.ProtectionGroupMember initialization
 	if (!JNU_ProtectionGroupMember_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
-	// ais.amf.ProtectionGroupNotification$ProtectionGroupChanges initialization
+	// ais.amf.ProtectionGroupNotification$ProtectionGroupChanges
+	// initialization
 	if (!JNU_ProtectionGroupChanges_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	if (!JNU_ProcessMonitoring_initIDs_OK(_jniEnv)) {
 		return JNI_ERR;
 	}
 	// ais.amf.CsiDescriptor initialization
 	if (!JNU_CsiDescriptor_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.CsiActiveDescriptor initialization
 	if (!JNU_CsiActiveDescriptor_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.CsiActiveDescriptor$TransitionDescriptor initialization
 	if (!JNU_TransitionDescriptor_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.CsiStandbyDescriptor initialization
 	if (!JNU_CsiStandbyDescriptor_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.HaState initialization
 	if (!JNU_HaState_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.CsiDescriptor$CsiFlags initialization
 	if (!JNU_CsiFlags_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.CsiAttribute initialization
 	if (!JNU_CsiAttribute_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 	// ais.amf.RecommendedRecovery initialization
 	if (!JNU_RecommendedRecovery_initIDs_OK(_jniEnv)) {
-		return JNI_ERR;	// EXIT POINT! Exception pending...
+		return JNI_ERR; // EXIT POINT! Exception pending...
 	}
 
 	return JNI_VERSION_1_2;
@@ -338,7 +338,7 @@ jstring JNU_NewStringNative(JNIEnv *env, const char *str)
 
 	// BODY
 	if ((*env)->EnsureLocalCapacity(env, 2) < 0) {
-		return NULL;	/* out of memory error */
+		return NULL; /* out of memory error */
 	}
 
 	len = strlen(str);
@@ -349,10 +349,9 @@ jstring JNU_NewStringNative(JNIEnv *env, const char *str)
 		jmethodID MID_String_init;
 
 		Class_java_lang_String =
-			(*env)->FindClass(env, "java/lang/String");
-		MID_String_init =
-			(*env)->GetMethodID(env, Class_java_lang_String, "<init>",
-					    "([B)V");
+		    (*env)->FindClass(env, "java/lang/String");
+		MID_String_init = (*env)->GetMethodID(
+		    env, Class_java_lang_String, "<init>", "([B)V");
 		(*env)->SetByteArrayRegion(env, bytes, 0, len, (jbyte *)str);
 		result = (*env)->NewObject(env, Class_java_lang_String,
 					   MID_String_init, bytes);
@@ -378,21 +377,20 @@ char *JNU_GetStringNativeChars(JNIEnv *env, jstring jstr)
 	// VARIABLES
 	char *result = 0;
 
-	//JNI
+	// JNI
 	jbyteArray bytes = 0;
 	jthrowable exc;
 	jclass Class_java_lang_String;
 	jmethodID MID_String_getBytes;
 
-	//BODY
+	// BODY
 	if ((*env)->EnsureLocalCapacity(env, 2) < 0) {
-		return 0;	/* out of memory error */
+		return 0; /* out of memory error */
 	}
 
 	Class_java_lang_String = (*env)->FindClass(env, "java/lang/String");
-	MID_String_getBytes =
-		(*env)->GetMethodID(env, Class_java_lang_String, "getBytes",
-				    "()[B");
+	MID_String_getBytes = (*env)->GetMethodID(env, Class_java_lang_String,
+						  "getBytes", "()[B");
 
 	bytes = (*env)->CallObjectMethod(env, jstr, MID_String_getBytes);
 	exc = (*env)->ExceptionOccurred(env);
@@ -410,7 +408,7 @@ char *JNU_GetStringNativeChars(JNIEnv *env, jstring jstr)
 		}
 
 		(*env)->GetByteArrayRegion(env, bytes, 0, len, (jbyte *)result);
-		result[len] = 0;	/* NULL-terminate */
+		result[len] = 0; /* NULL-terminate */
 	} else {
 		(*env)->DeleteLocalRef(env, exc);
 	}
@@ -472,8 +470,8 @@ void JNU_ExceptionDescribeDoNotClear(JNIEnv *jniEnv)
  *                  SaNameT parameter.
  * INTERFACE:
  *   parameters:
- * 		saNamePtr [in]
- * 			The SaName to be stringified
+ *		saNamePtr [in]
+ *			The SaName to be stringified
  *   returns:     the newly created String
  * NOTE:
  *************************************************************************/
@@ -498,26 +496,26 @@ jstring JNU_newStringFromSaNameT(JNIEnv *jniEnv, const SaNameT *saNamePtr)
  *                the specified SaNameT parameter.
  * INTERFACE:
  *   parameters:
- * 		fromStr [in]
- * 			- the source Java string.
- * 			If null, then *toSaNamePtrPtr will be set to NULL and JNI_TRUE is returned
- *          If longer than SA_MAX_NAME_LENGTH, AisInvalidParamException is thrown.
- *      toSaNamePtrPtr [in/out]
- * 			- a pointer to a pointer to the SaNameT structure into which
- * 			the content of the source Java string is copied.
+ *		fromStr [in]
+ *			- the source Java string.
+ *			If null, then *toSaNamePtrPtr will be set to NULL and
+ *JNI_TRUE is returned If longer than SA_MAX_NAME_LENGTH,
+ *AisInvalidParamException is thrown. toSaNamePtrPtr [in/out] - a
+ *pointer to a pointer to the SaNameT structure into which the content of the
+ *source Java string is copied.
  *
  *   returns:		JNI_TRUE if the copy operation succeeded.
- * 					If JNI_FALSE, then there is a pending Java exception.
- * NOTE:
+ *					If JNI_FALSE, then there is a pending Java
+ *exception. NOTE:
  *************************************************************************/
-jboolean JNU_copyFromStringToSaNameT(JNIEnv *jniEnv,
-				     jstring fromStr, SaNameT **toSaNamePtrPtr)
+jboolean JNU_copyFromStringToSaNameT(JNIEnv *jniEnv, jstring fromStr,
+				     SaNameT **toSaNamePtrPtr)
 {
 	// VARIABLES
 	jsize _strLen;
 
 	// BODY
-	//assert( fromStr != NULL );
+	// assert( fromStr != NULL );
 	assert(toSaNamePtrPtr != NULL);
 	assert(*toSaNamePtrPtr != NULL);
 	_TRACE2("NATIVE: Executing JNU_copyFromStringToSaNameT(...)\n");
@@ -531,22 +529,19 @@ jboolean JNU_copyFromStringToSaNameT(JNIEnv *jniEnv,
 	_strLen = (*jniEnv)->GetStringUTFLength(jniEnv, fromStr);
 	if (_strLen > SA_MAX_NAME_LENGTH) {
 		_TRACE2("NATIVE ERROR: fromStr is too long %d\n", _strLen);
-		JNU_throwNewByName(jniEnv,
-				   "ais/AisInvalidParamException",
+		JNU_throwNewByName(jniEnv, "ais/AisInvalidParamException",
 				   AIS_ERR_INVALID_PARAM_MSG);
 		return JNI_FALSE;
 	}
 	// copy string content
 	(*toSaNamePtrPtr)->length = (SaUint16T)_strLen;
-	(*jniEnv)->GetStringUTFRegion(jniEnv,
-				      fromStr,
-				      (jsize)0,
-				      (*jniEnv)->GetStringLength(jniEnv,
-								 fromStr),
-				      (char *)(*toSaNamePtrPtr)->value);
+	(*jniEnv)->GetStringUTFRegion(
+	    jniEnv, fromStr, (jsize)0,
+	    (*jniEnv)->GetStringLength(jniEnv, fromStr),
+	    (char *)(*toSaNamePtrPtr)->value);
 	assert((*jniEnv)->ExceptionCheck(jniEnv) == JNI_FALSE);
-	_TRACE2
-		("NATIVE: JNU_copyFromStringToSaNameT(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: JNU_copyFromStringToSaNameT(...) returning normally\n");
 	return JNI_TRUE;
 }
 
@@ -557,19 +552,17 @@ jboolean JNU_copyFromStringToSaNameT(JNIEnv *jniEnv,
  *                the specified SaNameT parameter.
  * INTERFACE:
  *   parameters:
- * 		fromStr [in]
- * 			- the source Java string. It must not be null.
- *          If longer than SA_MAX_NAME_LENGTH, AisInvalidParamException is thrown.
- *      toSaNamePtr [in/out]
- * 			- a pointer to the SaNameT structure into which
- * 			the content of the source Java string is copied.
+ *		fromStr [in]
+ *			- the source Java string. It must not be null.
+ *          If longer than SA_MAX_NAME_LENGTH, AisInvalidParamException is
+ *thrown. toSaNamePtr [in/out] - a pointer to the SaNameT structure into which
+ *			the content of the source Java string is copied.
  *
  *   returns:		JNI_TRUE if the copy operation succeeded.
- * 					If JNI_FALSE, then there is a pending Java exception.
- * NOTE:
+ *					If JNI_FALSE, then there is a pending Java
+ *exception. NOTE:
  *************************************************************************/
-jboolean JNU_copyFromStringToSaNameT_NotNull(JNIEnv *jniEnv,
-					     jstring fromStr,
+jboolean JNU_copyFromStringToSaNameT_NotNull(JNIEnv *jniEnv, jstring fromStr,
 					     SaNameT *toSaNamePtr)
 {
 	// VARIABLES
@@ -583,22 +576,19 @@ jboolean JNU_copyFromStringToSaNameT_NotNull(JNIEnv *jniEnv,
 	_strLen = (*jniEnv)->GetStringUTFLength(jniEnv, fromStr);
 	if (_strLen > SA_MAX_NAME_LENGTH) {
 		_TRACE2("NATIVE ERROR: fromStr is too long %d\n", _strLen);
-		JNU_throwNewByName(jniEnv,
-				   "ais/AisInvalidParamException",
+		JNU_throwNewByName(jniEnv, "ais/AisInvalidParamException",
 				   AIS_ERR_INVALID_PARAM_MSG);
 		return JNI_FALSE;
 	}
 	// copy string content
 	toSaNamePtr->length = (SaUint16T)_strLen;
-	(*jniEnv)->GetStringUTFRegion(jniEnv,
-				      fromStr,
-				      (jsize)0,
-				      (*jniEnv)->GetStringLength(jniEnv,
-								 fromStr),
-				      (char *)toSaNamePtr->value);
+	(*jniEnv)->GetStringUTFRegion(
+	    jniEnv, fromStr, (jsize)0,
+	    (*jniEnv)->GetStringLength(jniEnv, fromStr),
+	    (char *)toSaNamePtr->value);
 	assert((*jniEnv)->ExceptionCheck(jniEnv) == JNI_FALSE);
-	_TRACE2
-		("NATIVE: JNU_copyFromStringToSaNameT(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: JNU_copyFromStringToSaNameT(...) returning normally\n");
 	return JNI_TRUE;
 }
 
@@ -612,16 +602,16 @@ jboolean JNU_copyFromStringToSaNameT_NotNull(JNIEnv *jniEnv,
  *   returns:     the newly created String
  * NOTE:
  *************************************************************************/
-jstring JNU_newStringFromSaNodeAddressT(JNIEnv *jniEnv,
-					const SaClmNodeAddressT
-					*saClmNodeAddressPtr)
+jstring
+JNU_newStringFromSaNodeAddressT(JNIEnv *jniEnv,
+				const SaClmNodeAddressT *saClmNodeAddressPtr)
 {
 	// BODY
 	assert(saClmNodeAddressPtr != NULL);
 	assert(saClmNodeAddressPtr->length <= SA_CLM_MAX_ADDRESS_LENGTH);
 
-	_TRACE2
-		("NATIVE: Executing JNU_newStringFromSaNodeAddressT(...) MODIFIED \n");
+	_TRACE2(
+	    "NATIVE: Executing JNU_newStringFromSaNodeAddressT(...) MODIFIED \n");
 	_TRACE2("NATIVE: saClmNodeAddress = %p ; saClmNodeAddress.length: %d\n",
 		saClmNodeAddressPtr, saClmNodeAddressPtr->length);
 
@@ -648,43 +638,42 @@ jstring JNU_newStringFromSaNodeAddressT(JNIEnv *jniEnv,
  *       -> A zero length java byte array is allowed, in which case
  *          the native buffer will be set to NULL
  *************************************************************************/
-jboolean JNU_jByteArray_link(JNIEnv *jniEnv,
-			     jbyteArray byteArray,
+jboolean JNU_jByteArray_link(JNIEnv *jniEnv, jbyteArray byteArray,
 			     SaSizeT *saSizePtr, void **saBufferPtr)
 {
 	// VARIABLES
 	jsize _len;
-	// BODY
+// BODY
 #ifndef NDEBUG
 	assert(byteArray != NULL);
 	assert(saSizePtr != NULL);
 	assert(saBufferPtr != NULL);
 	_TRACE2("NATIVE: Executing JNU_jByteArray_link(...)\n");
-#endif				// NDEBUG
+#endif // NDEBUG
 	// length
 	_len = (*jniEnv)->GetArrayLength(jniEnv, byteArray);
 	*saSizePtr = (SaSizeT)_len;
 	// id
 	if (_len == 0) {
-		// we allow byteArray length to be 0 at this level!
+// we allow byteArray length to be 0 at this level!
 #ifndef NDEBUG
 		_TRACE2("NATIVE WARNING: _len is NULL\n");
-#endif				// NDEBUG
+#endif // NDEBUG
 		*saBufferPtr = NULL;
 	} else {
-		*saBufferPtr = (void *)
-			(*jniEnv)->GetByteArrayElements(jniEnv, byteArray, NULL);
+		*saBufferPtr = (void *)(*jniEnv)->GetByteArrayElements(
+		    jniEnv, byteArray, NULL);
 		if (*saBufferPtr == NULL) {
 #ifndef NDEBUG
 			_TRACE2("NATIVE ERROR: *saBufferPtr is NULL\n");
-#endif				// NDEBUG
-			return JNI_FALSE;	// OutOfMemoryError thrown already...
+#endif					  // NDEBUG
+			return JNI_FALSE; // OutOfMemoryError thrown already...
 		}
 	}
 
 #ifndef NDEBUG
 	_TRACE2("NATIVE: JNU_jByteArray_link(...) returning normally\n");
-#endif				// NDEBUG
+#endif // NDEBUG
 	return JNI_TRUE;
 }
 
@@ -698,17 +687,17 @@ jboolean JNU_jByteArray_link(JNIEnv *jniEnv,
  *************************************************************************/
 void JNU_jByteArray_unlink(JNIEnv *jniEnv, jbyteArray byteArray, void *saBuffer)
 {
-	// BODY
+// BODY
 #ifndef NDEBUG
 	assert(byteArray != NULL);
 	assert(saBuffer != NULL);
 	_TRACE2("NATIVE: Executing JNU_jByteArray_unlink(...)\n");
-#endif				// NDEBUG
+#endif // NDEBUG
 	(*jniEnv)->ReleaseByteArrayElements(jniEnv, byteArray, saBuffer, 0);
 
 #ifndef NDEBUG
 	_TRACE2("NATIVE: JNU_jByteArray_unlink(...) returning normally\n");
-#endif				// NDEBUG
+#endif // NDEBUG
 	return;
 }
 
@@ -718,11 +707,11 @@ void JNU_jByteArray_unlink(JNIEnv *jniEnv, jbyteArray byteArray, void *saBuffer)
  * OVERVIEW:
  * INTERFACE:
  *   parameters:  TODO
- *   returns:     JNI_OK if a valid jniEnv pointer was returned, a negative value otherwise
- * NOTE: -> no exception is thrown!
+ *   returns:     JNI_OK if a valid jniEnv pointer was returned, a negative
+ *value otherwise NOTE: -> no exception is thrown!
  *************************************************************************/
 jint JNU_GetEnvForCallback(JavaVM *vmPtr, JNIEnv **envPtrPtr)
-//jint JNU_GetEnvForCallback( JavaVM* vmPtr, void** envPtrPtr )
+// jint JNU_GetEnvForCallback( JavaVM* vmPtr, void** envPtrPtr )
 {
 
 	// VARIABLES
@@ -733,8 +722,8 @@ jint JNU_GetEnvForCallback(JavaVM *vmPtr, JNIEnv **envPtrPtr)
 	_TRACE2("NATIVE: Executing JNU_GetEnvForCallback(%p,...)\n",
 		(void *)vmPtr);
 	// get context
-	_status = (*cachedJVM)->GetEnv(vmPtr,
-				       (void **)envPtrPtr, JNI_VERSION_1_2);
+	_status =
+	    (*cachedJVM)->GetEnv(vmPtr, (void **)envPtrPtr, JNI_VERSION_1_2);
 	if (_status != JNI_OK) {
 		// TODO error handling
 		_TRACE2("NATIVE ERROR: _status by GetEnv() is %d\n", _status);
@@ -757,25 +746,25 @@ jclass JNU_GetGlobalClassRef(JNIEnv *jniEnv, const char *className)
 	jclass _cls;
 	jclass _globalCls;
 
-	// BODY
+// BODY
 #ifndef NDEBUG
 	_TRACE2("NATIVE: Executing JNU_GetGlobalClassRef(...,%s)\n", className);
-#endif				// NDEBUG
+#endif // NDEBUG
 	_cls = (*jniEnv)->FindClass(jniEnv, className);
 	if (_cls == NULL) {
 #ifndef NDEBUG
 		_TRACE2("NATIVE ERROR: FindClass() returned NULL!\n");
 		JNU_ExceptionDescribeDoNotClear(jniEnv);
-#endif				// NDEBUG
-		return NULL;	// EXIT POINT! Exception pending...
+#endif			     // NDEBUG
+		return NULL; // EXIT POINT! Exception pending...
 	}
 	_globalCls = (*jniEnv)->NewGlobalRef(jniEnv, _cls);
 	if (_globalCls == NULL) {
 #ifndef NDEBUG
 		_TRACE2("NATIVE ERROR: NewGlobalRef() returned NULL\n");
 		JNU_ExceptionDescribeDoNotClear(jniEnv);
-#endif				// NDEBUG
-		return NULL;	// EXIT POINT! Exception pending...
+#endif			     // NDEBUG
+		return NULL; // EXIT POINT! Exception pending...
 	}
 	return _globalCls;
 }

@@ -39,5 +39,4 @@ extern SaClmCallbacksT clmCallbacks_1;
 extern SaSelectionObjectT selectionObject;
 extern SaNameT node_name;
 
-
 #endif  // CLM_APITEST_CLMTEST_H_

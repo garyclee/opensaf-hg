@@ -35,257 +35,203 @@ void ntfsvtools_exitIfFalse(const char *file, unsigned int line, int expression)
 }
 
 unsigned int gl_apiTolerance = 900; // in seconds
-unsigned int gl_apiRetry = 3; // in seconds
+unsigned int gl_apiRetry = 3;       // in seconds
 static const char *sa_probable_cause_list[] = {
-	"SA_NTF_ADAPTER_ERROR",
-	"SA_NTF_APPLICATION_SUBSYSTEM_FAILURE",
-	"SA_NTF_BANDWIDTH_REDUCED",
-	"SA_NTF_CALL_ESTABLISHMENT_ERROR",
-	"SA_NTF_COMMUNICATIONS_PROTOCOL_ERROR",
-	"SA_NTF_COMMUNICATIONS_SUBSYSTEM_FAILURE",
-	"SA_NTF_CONFIGURATION_OR_CUSTOMIZATION_ERROR",
-	"SA_NTF_CONGESTION",
-	"SA_NTF_CORRUPT_DATA",
-	"SA_NTF_CPU_CYCLES_LIMIT_EXCEEDED",
-	"SA_NTF_DATASET_OR_MODEM_ERROR",
-	"SA_NTF_DEGRADED_SIGNAL",
-	"SA_NTF_D_T_E",
-	"SA_NTF_ENCLOSURE_DOOR_OPEN",
-	"SA_NTF_EQUIPMENT_MALFUNCTION",
-	"SA_NTF_EXCESSIVE_VIBRATION",
-	"SA_NTF_FILE_ERROR",
-	"SA_NTF_FIRE_DETECTED",
-	"SA_NTF_FLOOD_DETECTED",
-	"SA_NTF_FRAMING_ERROR",
-	"SA_NTF_HEATING_OR_VENTILATION_OR_COOLING_SYSTEM_PROBLEM",
-	"SA_NTF_HUMIDITY_UNACCEPTABLE",
-	"SA_NTF_INPUT_OUTPUT_DEVICE_ERROR",
-	"SA_NTF_INPUT_DEVICE_ERROR",
-	"SA_NTF_L_A_N_ERROR",
-	"SA_NTF_LEAK_DETECTED",
-	"SA_NTF_LOCAL_NODE_TRANSMISSION_ERROR",
-	"SA_NTF_LOSS_OF_FRAME",
-	"SA_NTF_LOSS_OF_SIGNAL",
-	"SA_NTF_MATERIAL_SUPPLY_EXHAUSTED",
-	"SA_NTF_MULTIPLEXER_PROBLEM",
-	"SA_NTF_OUT_OF_MEMORY",
-	"SA_NTF_OUTPUT_DEVICE_ERROR",
-	"SA_NTF_PERFORMANCE_DEGRADED",
-	"SA_NTF_POWER_PROBLEM",
-	"SA_NTF_PRESSURE_UNACCEPTABLE",
-	"SA_NTF_PROCESSOR_PROBLEM",
-	"SA_NTF_PUMP_FAILURE",
-	"SA_NTF_QUEUE_SIZE_EXCEEDED",
-	"SA_NTF_RECEIVE_FAILURE",
-	"SA_NTF_RECEIVER_FAILURE",
-	"SA_NTF_REMOTE_NODE_TRANSMISSION_ERROR",
-	"SA_NTF_RESOURCE_AT_OR_NEARING_CAPACITY",
-	"SA_NTF_RESPONSE_TIME_EXCESSIVE",
-	"SA_NTF_RETRANSMISSION_RATE_EXCESSIVE",
-	"SA_NTF_SOFTWARE_ERROR",
-	"SA_NTF_SOFTWARE_PROGRAM_ABNORMALLY_TERMINATED",
-	"SA_NTF_SOFTWARE_PROGRAM_ERROR",
-	"SA_NTF_STORAGE_CAPACITY_PROBLEM",
-	"SA_NTF_TEMPERATURE_UNACCEPTABLE",
-	"SA_NTF_THRESHOLD_CROSSED",
-	"SA_NTF_TIMING_PROBLEM",
-	"SA_NTF_TOXIC_LEAK_DETECTED",
-	"SA_NTF_TRANSMIT_FAILURE",
-	"SA_NTF_TRANSMITTER_FAILURE",
-	"SA_NTF_UNDERLYING_RESOURCE_UNAVAILABLE",
-	"SA_NTF_VERSION_MISMATCH",
-	"SA_NTF_AUTHENTICATION_FAILURE",
-	"SA_NTF_BREACH_OF_CONFIDENTIALITY",
-	"SA_NTF_CABLE_TAMPER",
-	"SA_NTF_DELAYED_INFORMATION",
-	"SA_NTF_DENIAL_OF_SERVICE",
-	"SA_NTF_DUPLICATE_INFORMATION",
-	"SA_NTF_INFORMATION_MISSING",
-	"SA_NTF_INFORMATION_MODIFICATION_DETECTED",
-	"SA_NTF_INFORMATION_OUT_OF_SEQUENCE",
-	"SA_NTF_INTRUSION_DETECTION",
-	"SA_NTF_KEY_EXPIRED",
-	"SA_NTF_NON_REPUDIATION_FAILURE",
-	"SA_NTF_OUT_OF_HOURS_ACTIVITY",
-	"SA_NTF_OUT_OF_SERVICE",
-	"SA_NTF_PROCEDURAL_ERROR",
-	"SA_NTF_UNAUTHORIZED_ACCESS_ATTEMPT",
-	"SA_NTF_UNEXPECTED_INFORMATION",
-	"SA_NTF_UNSPECIFIED_REASON",
+    "SA_NTF_ADAPTER_ERROR",
+    "SA_NTF_APPLICATION_SUBSYSTEM_FAILURE",
+    "SA_NTF_BANDWIDTH_REDUCED",
+    "SA_NTF_CALL_ESTABLISHMENT_ERROR",
+    "SA_NTF_COMMUNICATIONS_PROTOCOL_ERROR",
+    "SA_NTF_COMMUNICATIONS_SUBSYSTEM_FAILURE",
+    "SA_NTF_CONFIGURATION_OR_CUSTOMIZATION_ERROR",
+    "SA_NTF_CONGESTION",
+    "SA_NTF_CORRUPT_DATA",
+    "SA_NTF_CPU_CYCLES_LIMIT_EXCEEDED",
+    "SA_NTF_DATASET_OR_MODEM_ERROR",
+    "SA_NTF_DEGRADED_SIGNAL",
+    "SA_NTF_D_T_E",
+    "SA_NTF_ENCLOSURE_DOOR_OPEN",
+    "SA_NTF_EQUIPMENT_MALFUNCTION",
+    "SA_NTF_EXCESSIVE_VIBRATION",
+    "SA_NTF_FILE_ERROR",
+    "SA_NTF_FIRE_DETECTED",
+    "SA_NTF_FLOOD_DETECTED",
+    "SA_NTF_FRAMING_ERROR",
+    "SA_NTF_HEATING_OR_VENTILATION_OR_COOLING_SYSTEM_PROBLEM",
+    "SA_NTF_HUMIDITY_UNACCEPTABLE",
+    "SA_NTF_INPUT_OUTPUT_DEVICE_ERROR",
+    "SA_NTF_INPUT_DEVICE_ERROR",
+    "SA_NTF_L_A_N_ERROR",
+    "SA_NTF_LEAK_DETECTED",
+    "SA_NTF_LOCAL_NODE_TRANSMISSION_ERROR",
+    "SA_NTF_LOSS_OF_FRAME",
+    "SA_NTF_LOSS_OF_SIGNAL",
+    "SA_NTF_MATERIAL_SUPPLY_EXHAUSTED",
+    "SA_NTF_MULTIPLEXER_PROBLEM",
+    "SA_NTF_OUT_OF_MEMORY",
+    "SA_NTF_OUTPUT_DEVICE_ERROR",
+    "SA_NTF_PERFORMANCE_DEGRADED",
+    "SA_NTF_POWER_PROBLEM",
+    "SA_NTF_PRESSURE_UNACCEPTABLE",
+    "SA_NTF_PROCESSOR_PROBLEM",
+    "SA_NTF_PUMP_FAILURE",
+    "SA_NTF_QUEUE_SIZE_EXCEEDED",
+    "SA_NTF_RECEIVE_FAILURE",
+    "SA_NTF_RECEIVER_FAILURE",
+    "SA_NTF_REMOTE_NODE_TRANSMISSION_ERROR",
+    "SA_NTF_RESOURCE_AT_OR_NEARING_CAPACITY",
+    "SA_NTF_RESPONSE_TIME_EXCESSIVE",
+    "SA_NTF_RETRANSMISSION_RATE_EXCESSIVE",
+    "SA_NTF_SOFTWARE_ERROR",
+    "SA_NTF_SOFTWARE_PROGRAM_ABNORMALLY_TERMINATED",
+    "SA_NTF_SOFTWARE_PROGRAM_ERROR",
+    "SA_NTF_STORAGE_CAPACITY_PROBLEM",
+    "SA_NTF_TEMPERATURE_UNACCEPTABLE",
+    "SA_NTF_THRESHOLD_CROSSED",
+    "SA_NTF_TIMING_PROBLEM",
+    "SA_NTF_TOXIC_LEAK_DETECTED",
+    "SA_NTF_TRANSMIT_FAILURE",
+    "SA_NTF_TRANSMITTER_FAILURE",
+    "SA_NTF_UNDERLYING_RESOURCE_UNAVAILABLE",
+    "SA_NTF_VERSION_MISMATCH",
+    "SA_NTF_AUTHENTICATION_FAILURE",
+    "SA_NTF_BREACH_OF_CONFIDENTIALITY",
+    "SA_NTF_CABLE_TAMPER",
+    "SA_NTF_DELAYED_INFORMATION",
+    "SA_NTF_DENIAL_OF_SERVICE",
+    "SA_NTF_DUPLICATE_INFORMATION",
+    "SA_NTF_INFORMATION_MISSING",
+    "SA_NTF_INFORMATION_MODIFICATION_DETECTED",
+    "SA_NTF_INFORMATION_OUT_OF_SEQUENCE",
+    "SA_NTF_INTRUSION_DETECTION",
+    "SA_NTF_KEY_EXPIRED",
+    "SA_NTF_NON_REPUDIATION_FAILURE",
+    "SA_NTF_OUT_OF_HOURS_ACTIVITY",
+    "SA_NTF_OUT_OF_SERVICE",
+    "SA_NTF_PROCEDURAL_ERROR",
+    "SA_NTF_UNAUTHORIZED_ACCESS_ATTEMPT",
+    "SA_NTF_UNEXPECTED_INFORMATION",
+    "SA_NTF_UNSPECIFIED_REASON",
 };
 
 static const char *sa_severity_list[] = {
-	"SA_NTF_SEVERITY_CLEARED",
-	"SA_NTF_SEVERITY_INDETERMINATE",
-	"SA_NTF_SEVERITY_WARNING",
-	"SA_NTF_SEVERITY_MINOR",
-	"SA_NTF_SEVERITY_MAJOR",
-	"SA_NTF_SEVERITY_CRITICAL",
+    "SA_NTF_SEVERITY_CLEARED", "SA_NTF_SEVERITY_INDETERMINATE",
+    "SA_NTF_SEVERITY_WARNING", "SA_NTF_SEVERITY_MINOR",
+    "SA_NTF_SEVERITY_MAJOR",   "SA_NTF_SEVERITY_CRITICAL",
 };
 
 static const char *sa_attribute_type_list[] = {
-    "SA_NTF_VALUE_UINT8",
-    "SA_NTF_VALUE_INT8",
-    "SA_NTF_VALUE_UINT16",
-    "SA_NTF_VALUE_INT16",
-    "SA_NTF_VALUE_UINT32",
-    "SA_NTF_VALUE_INT32",
-    "SA_NTF_VALUE_FLOAT",
-    "SA_NTF_VALUE_UINT64",
-    "SA_NTF_VALUE_INT64",
-    "SA_NTF_VALUE_DOUBLE",
-    "SA_NTF_VALUE_LDAP_NAME",
-    "SA_NTF_VALUE_STRING",
-    "SA_NTF_VALUE_IPADDRESS",
-    "SA_NTF_VALUE_BINARY",
-    "SA_NTF_VALUE_ARRAY"
-};
+    "SA_NTF_VALUE_UINT8",     "SA_NTF_VALUE_INT8",      "SA_NTF_VALUE_UINT16",
+    "SA_NTF_VALUE_INT16",     "SA_NTF_VALUE_UINT32",    "SA_NTF_VALUE_INT32",
+    "SA_NTF_VALUE_FLOAT",     "SA_NTF_VALUE_UINT64",    "SA_NTF_VALUE_INT64",
+    "SA_NTF_VALUE_DOUBLE",    "SA_NTF_VALUE_LDAP_NAME", "SA_NTF_VALUE_STRING",
+    "SA_NTF_VALUE_IPADDRESS", "SA_NTF_VALUE_BINARY",    "SA_NTF_VALUE_ARRAY"};
 
 static const char *sa_alarm_event_type_list[] = {
-	"SA_NTF_ALARM_NOTIFICATIONS_START",
-	"SA_NTF_ALARM_COMMUNICATION",
-	"SA_NTF_ALARM_QOS",
-	"SA_NTF_ALARM_PROCESSING",
-	"SA_NTF_ALARM_EQUIPMENT",
-	"SA_NTF_ALARM_ENVIRONMENT",
+    "SA_NTF_ALARM_NOTIFICATIONS_START",
+    "SA_NTF_ALARM_COMMUNICATION",
+    "SA_NTF_ALARM_QOS",
+    "SA_NTF_ALARM_PROCESSING",
+    "SA_NTF_ALARM_EQUIPMENT",
+    "SA_NTF_ALARM_ENVIRONMENT",
 };
 
 static const char *sa_state_change_event_type_list[] = {
-	"SA_NTF_STATE_CHANGE_NOTIFICATIONS_START",
-	"SA_NTF_OBJECT_STATE_CHANGE",
+    "SA_NTF_STATE_CHANGE_NOTIFICATIONS_START", "SA_NTF_OBJECT_STATE_CHANGE",
 };
 
 static const char *sa_object_create_delete_event_type_list[] = {
-	"SA_NTF_OBJECT_NOTIFICATIONS_START",
-	"SA_NTF_OBJECT_CREATION",
-	"SA_NTF_OBJECT_DELETION",
+    "SA_NTF_OBJECT_NOTIFICATIONS_START", "SA_NTF_OBJECT_CREATION",
+    "SA_NTF_OBJECT_DELETION",
 };
 
 static const char *sa_attribute_change_event_type_list[] = {
-	"SA_NTF_ATTRIBUTE_NOTIFICATIONS_START",
-	"SA_NTF_ATTRIBUTE_ADDED",
-	"SA_NTF_ATTRIBUTE_REMOVED",
-	"SA_NTF_ATTRIBUTE_CHANGED",
-	"SA_NTF_ATTRIBUTE_RESET",
+    "SA_NTF_ATTRIBUTE_NOTIFICATIONS_START",
+    "SA_NTF_ATTRIBUTE_ADDED",
+    "SA_NTF_ATTRIBUTE_REMOVED",
+    "SA_NTF_ATTRIBUTE_CHANGED",
+    "SA_NTF_ATTRIBUTE_RESET",
 };
 
 static const char *sa_security_alarm_event_type_list[] = {
-	"SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START",
-	"SA_NTF_INTEGRITY_VIOLATION",
-	"SA_NTF_OPERATION_VIOLATION",
-	"SA_NTF_PHYSICAL_VIOLATION",
-	"SA_NTF_SECURITY_SERVICE_VIOLATION",
-	"SA_NTF_TIME_VIOLATION",
+    "SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START",
+    "SA_NTF_INTEGRITY_VIOLATION",
+    "SA_NTF_OPERATION_VIOLATION",
+    "SA_NTF_PHYSICAL_VIOLATION",
+    "SA_NTF_SECURITY_SERVICE_VIOLATION",
+    "SA_NTF_TIME_VIOLATION",
 };
 
 static const char *sa_miscellaneous_event_type_list[] = {
-	"SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START",
-	"SA_NTF_APPLICATION_EVENT",
-	"SA_NTF_ADMIN_OPERATION_START",
-	"SA_NTF_ADMIN_OPERATION_END",
-	"SA_NTF_CONFIG_UPDATE_START",
-	"SA_NTF_CONFIG_UPDATE_END",
-	"SA_NTF_ERROR_REPORT",
-	"SA_NTF_ERROR_CLEAR",
-	"SA_NTF_HPI_EVENT_RESOURCE",
-	"SA_NTF_HPI_EVENT_SENSOR",
-	"SA_NTF_HPI_EVENT_WATCHDOG",
-	"SA_NTF_HPI_EVENT_DIMI",
-	"SA_NTF_HPI_EVENT_FUMI",
-	"SA_NTF_HPI_EVENT_OTHER",
+    "SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START",
+    "SA_NTF_APPLICATION_EVENT",
+    "SA_NTF_ADMIN_OPERATION_START",
+    "SA_NTF_ADMIN_OPERATION_END",
+    "SA_NTF_CONFIG_UPDATE_START",
+    "SA_NTF_CONFIG_UPDATE_END",
+    "SA_NTF_ERROR_REPORT",
+    "SA_NTF_ERROR_CLEAR",
+    "SA_NTF_HPI_EVENT_RESOURCE",
+    "SA_NTF_HPI_EVENT_SENSOR",
+    "SA_NTF_HPI_EVENT_WATCHDOG",
+    "SA_NTF_HPI_EVENT_DIMI",
+    "SA_NTF_HPI_EVENT_FUMI",
+    "SA_NTF_HPI_EVENT_OTHER",
 };
 
 static const char *sa_source_indicator_list[] = {
-	"SA_NTF_OBJECT_OPERATION",	/* previous error in saNtf.h */
-	"SA_NTF_OBJECT_OPERATION",
-	"SA_NTF_MANAGEMENT_OPERATION",
-	"SA_NTF_UNKNOWN_OPERATION",
+    "SA_NTF_OBJECT_OPERATION", /* previous error in saNtf.h */
+    "SA_NTF_OBJECT_OPERATION", "SA_NTF_MANAGEMENT_OPERATION",
+    "SA_NTF_UNKNOWN_OPERATION",
 };
 
 static const char *sa_services_list[] = {
-	"",
-	"SA_SVC_HPI",
-	"SA_SVC_AMF",
-	"SA_SVC_CLM",
-	"SA_SVC_CKPT",
-	"SA_SVC_EVT",
-	"SA_SVC_MSG",
-	"SA_SVC_LCK",
-	"SA_SVC_IMM",
-	"SA_SCV_LOG",
-	"SA_SVC_NTF",
-	"SA_SVC_NAM",
-	"SA_SVC_TMR",
-	"SA_SVC_SMF",
-	"SA_SVC_SEC",
-	"SA_SVC_PLM"
-};
+    "",		  "SA_SVC_HPI", "SA_SVC_AMF", "SA_SVC_CLM", "SA_SVC_CKPT",
+    "SA_SVC_EVT", "SA_SVC_MSG", "SA_SVC_LCK", "SA_SVC_IMM", "SA_SCV_LOG",
+    "SA_SVC_NTF", "SA_SVC_NAM", "SA_SVC_TMR", "SA_SVC_SMF", "SA_SVC_SEC",
+    "SA_SVC_PLM"};
 
-static const char *sa_amf_state_list[] = {
-	"",
-	"SA_AMF_READINESS_STATE",
-	"SA_AMF_HA_STATE",
-	"SA_AMF_PRESENCE_STATE",
-	"SA_AMF_OP_STATE",
-	"SA_AMF_ADMIN_STATE",
-	"SA_AMF_ASSIGNMENT_STATE",
-	"SA_AMF_PROXY_STATUS",
-	"SA_AMF_HA_READINESS_STATE"
-};
+static const char *sa_amf_state_list[] = {"",
+					  "SA_AMF_READINESS_STATE",
+					  "SA_AMF_HA_STATE",
+					  "SA_AMF_PRESENCE_STATE",
+					  "SA_AMF_OP_STATE",
+					  "SA_AMF_ADMIN_STATE",
+					  "SA_AMF_ASSIGNMENT_STATE",
+					  "SA_AMF_PROXY_STATUS",
+					  "SA_AMF_HA_READINESS_STATE"};
 
 static const char *sa_amf_pres_state_list[] = {
-	"",
-	"SA_AMF_PRESENCE_UNINSTANTIATED",
-	"SA_AMF_PRESENCE_INSTANTIATING",
-	"SA_AMF_PRESENCE_INSTANTIATED",
-	"SA_AMF_PRESENCE_TERMINATING",
-	"SA_AMF_PRESENCE_RESTARTING",
-	"SA_AMF_PRESENCE_INSTANTIATION_FAILED",
-	"SA_AMF_PRESENCE_TERMINATION_FAILED"
-};
+    "",
+    "SA_AMF_PRESENCE_UNINSTANTIATED",
+    "SA_AMF_PRESENCE_INSTANTIATING",
+    "SA_AMF_PRESENCE_INSTANTIATED",
+    "SA_AMF_PRESENCE_TERMINATING",
+    "SA_AMF_PRESENCE_RESTARTING",
+    "SA_AMF_PRESENCE_INSTANTIATION_FAILED",
+    "SA_AMF_PRESENCE_TERMINATION_FAILED"};
 
-static const char *sa_amf_op_state_list[] = {
-	"",
-	"SA_AMF_OPERATIONAL_ENABLED",
-	"SA_AMF_OPERATIONAL_DISABLED"
-};
+static const char *sa_amf_op_state_list[] = {"", "SA_AMF_OPERATIONAL_ENABLED",
+					     "SA_AMF_OPERATIONAL_DISABLED"};
 
 static const char *sa_amf_ha_state_list[] = {
-	"",
-	"SA_AMF_HA_ACTIVE",
-	"SA_AMF_HA_STANDBY",
-	"SA_AMF_HA_QUIESCED",
-	"SA_AMF_HA_QUIESCING"
-};
+    "", "SA_AMF_HA_ACTIVE", "SA_AMF_HA_STANDBY", "SA_AMF_HA_QUIESCED",
+    "SA_AMF_HA_QUIESCING"};
 
 static const char *sa_amf_adm_state_list[] = {
-	"",
-	"SA_AMF_ADMIN_UNLOCKED",
-	"SA_AMF_ADMIN_LOCKED",
-	"SA_AMF_ADMIN_LOCKED_INSTANTIATION",
-	"SA_AMF_ADMIN_SHUTTING_DOWN"
-};
+    "", "SA_AMF_ADMIN_UNLOCKED", "SA_AMF_ADMIN_LOCKED",
+    "SA_AMF_ADMIN_LOCKED_INSTANTIATION", "SA_AMF_ADMIN_SHUTTING_DOWN"};
 
 static const char *sa_amf_ass_state_list[] = {
-	"",
-	"SA_AMF_ASSIGNMENT_UNASSIGNED",
-	"SA_AMF_ASSIGNMENT_FULLY_ASSIGNED",
-	"SA_AMF_ASSIGNMENT_PARTIALLY_ASSIGNED"
-};
+    "", "SA_AMF_ASSIGNMENT_UNASSIGNED", "SA_AMF_ASSIGNMENT_FULLY_ASSIGNED",
+    "SA_AMF_ASSIGNMENT_PARTIALLY_ASSIGNED"};
 
-static const char *sa_clm_state_list[] = {
-	"",
-	"SA_CLM_CLUSTER_CHANGE_STATUS",
-	"SA_CLM_ADMIN_STATE"
-};
+static const char *sa_clm_state_list[] = {"", "SA_CLM_CLUSTER_CHANGE_STATUS",
+					  "SA_CLM_ADMIN_STATE"};
 
 static const char *sa_clm_change_state_list[] = {
-	"",
-	"SA_CLM_NODE_NO_CHANGE",
-	"SA_CLM_NODE_JOINED",
-	"SA_CLM_NODE_LEFT",
-	"SA_CLM_NODE_RECONFIGURED"
-};
+    "", "SA_CLM_NODE_NO_CHANGE", "SA_CLM_NODE_JOINED", "SA_CLM_NODE_LEFT",
+    "SA_CLM_NODE_RECONFIGURED"};
 
 char *error_output(SaAisErrorT result)
 {
@@ -323,7 +269,7 @@ static void print_probable_cause(SaNtfProbableCauseT input)
 }
 
 static void print_event_type(SaNtfEventTypeT input,
-		      SaNtfNotificationTypeT notificationType)
+			     SaNtfNotificationTypeT notificationType)
 {
 	int listIndex;
 
@@ -336,18 +282,20 @@ static void print_event_type(SaNtfEventTypeT input,
 				      SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START);
 			EXIT_IF_FALSE(input <= SA_NTF_HPI_EVENT_OTHER);
 
-			printf("%s\n", (char *)
-			       sa_miscellaneous_event_type_list[listIndex]);
-		} else if (input >= (int)
-			   SA_NTF_STATE_CHANGE_NOTIFICATIONS_START) {
+			printf("%s\n",
+			       (char *)
+				   sa_miscellaneous_event_type_list[listIndex]);
+		} else if (input >=
+			   (int)SA_NTF_STATE_CHANGE_NOTIFICATIONS_START) {
 			listIndex = (int)input - (int)SA_NTF_TYPE_STATE_CHANGE;
 
 			EXIT_IF_FALSE(input >=
 				      SA_NTF_STATE_CHANGE_NOTIFICATIONS_START);
 			EXIT_IF_FALSE(input <= SA_NTF_OBJECT_STATE_CHANGE);
 
-			printf("%s\n", (char *)
-			       sa_state_change_event_type_list[listIndex]);
+			printf(
+			    "%s\n",
+			    (char *)sa_state_change_event_type_list[listIndex]);
 		}
 		break;
 
@@ -355,8 +303,8 @@ static void print_event_type(SaNtfEventTypeT input,
 		if (input >= (int)SA_NTF_ALARM_NOTIFICATIONS_START) {
 			listIndex = (int)input - (int)SA_NTF_TYPE_ALARM;
 
-			EXIT_IF_FALSE
-				(input >= SA_NTF_ALARM_NOTIFICATIONS_START);
+			EXIT_IF_FALSE(input >=
+				      SA_NTF_ALARM_NOTIFICATIONS_START);
 			EXIT_IF_FALSE(input <= SA_NTF_ALARM_ENVIRONMENT);
 
 			printf("%s\n",
@@ -367,43 +315,47 @@ static void print_event_type(SaNtfEventTypeT input,
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
 		if (input >= (int)SA_NTF_OBJECT_NOTIFICATIONS_START) {
 			listIndex =
-			     (int)input - (int)SA_NTF_TYPE_OBJECT_CREATE_DELETE;
+			    (int)input - (int)SA_NTF_TYPE_OBJECT_CREATE_DELETE;
 
-			EXIT_IF_FALSE
-				(input >= SA_NTF_OBJECT_NOTIFICATIONS_START);
+			EXIT_IF_FALSE(input >=
+				      SA_NTF_OBJECT_NOTIFICATIONS_START);
 			EXIT_IF_FALSE(input <= SA_NTF_OBJECT_DELETION);
 
-			printf("%s\n", (char *)
-			       sa_object_create_delete_event_type_list
-			       [listIndex]);
+			printf("%s\n",
+			       (char *)sa_object_create_delete_event_type_list
+				   [listIndex]);
 		}
 		break;
 
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
 		if (input >= (int)SA_NTF_ATTRIBUTE_NOTIFICATIONS_START) {
-			listIndex = (int)input -
-			    (int)SA_NTF_TYPE_ATTRIBUTE_CHANGE;
+			listIndex =
+			    (int)input - (int)SA_NTF_TYPE_ATTRIBUTE_CHANGE;
 
 			EXIT_IF_FALSE(input >=
 				      SA_NTF_ATTRIBUTE_NOTIFICATIONS_START);
 			EXIT_IF_FALSE(input <= SA_NTF_ATTRIBUTE_RESET);
 
-			printf("%s\n", (char *)
-			       sa_attribute_change_event_type_list[listIndex]);
+			printf(
+			    "%s\n",
+			    (char *)
+				sa_attribute_change_event_type_list[listIndex]);
 		}
 		break;
 
 	case SA_NTF_TYPE_SECURITY_ALARM:
 		if (input >= (int)SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START) {
-			listIndex = (int)input -
-			    (int)SA_NTF_TYPE_SECURITY_ALARM;
+			listIndex =
+			    (int)input - (int)SA_NTF_TYPE_SECURITY_ALARM;
 
-			EXIT_IF_FALSE(input >=
-				      SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START);
+			EXIT_IF_FALSE(
+			    input >= SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START);
 			EXIT_IF_FALSE(input <= SA_NTF_TIME_VIOLATION);
 
-			printf("%s\n", (char *)
-			       sa_security_alarm_event_type_list[listIndex]);
+			printf(
+			    "%s\n",
+			    (char *)
+				sa_security_alarm_event_type_list[listIndex]);
 		}
 		break;
 
@@ -414,8 +366,8 @@ static void print_event_type(SaNtfEventTypeT input,
 	}
 }
 
-static void print_change_states(SaNtfClassIdT * notificationClassId,
-				SaNtfStateChangeT * input)
+static void print_change_states(SaNtfClassIdT *notificationClassId,
+				SaNtfStateChangeT *input)
 {
 	if ((notificationClassId->vendorId == SA_NTF_VENDOR_ID_SAF) &&
 	    (notificationClassId->majorId == SA_SVC_AMF)) {
@@ -476,9 +428,9 @@ static void print_change_states(SaNtfClassIdT * notificationClassId,
 		switch (input->stateId) {
 		case SA_CLM_CLUSTER_CHANGE_STATUS:
 			if (input->oldStatePresent)
-				printf("Old State: %s\n",
-				       sa_clm_change_state_list[input->
-								oldState]);
+				printf(
+				    "Old State: %s\n",
+				    sa_clm_change_state_list[input->oldState]);
 			printf("New State: %s\n",
 			       sa_clm_change_state_list[input->newState]);
 			break;
@@ -503,15 +455,15 @@ static void print_change_states(SaNtfClassIdT * notificationClassId,
 }
 
 static void print_attribute_value(SaNtfNotificationHandleT notificationHandle,
-		SaNtfValueTypeT attributeType,
-		SaNtfValueT *attributeValue)
+				  SaNtfValueTypeT attributeType,
+				  SaNtfValueT *attributeValue)
 {
 	SaStringT str_ptr;
 	SaUint16T data_size;
 	const SaUint16T max_size = 20;
 	SaAisErrorT rc;
 	SaUint8T *bin_ptr;
-	char* tmp_str;
+	char *tmp_str;
 	int i;
 
 	switch ((int)attributeType) {
@@ -522,7 +474,7 @@ static void print_attribute_value(SaNtfNotificationHandleT notificationHandle,
 		printf(" Attribute Value: %u\n", attributeValue->uint32Val);
 		break;
 	case SA_NTF_VALUE_INT64:
-		printf(" Attribute Value: %llu\n",attributeValue->int64Val);
+		printf(" Attribute Value: %llu\n", attributeValue->int64Val);
 		break;
 	case SA_NTF_VALUE_UINT64:
 		printf(" Attribute Value: %llu\n", attributeValue->uint64Val);
@@ -535,77 +487,78 @@ static void print_attribute_value(SaNtfNotificationHandleT notificationHandle,
 		break;
 	case SA_NTF_VALUE_LDAP_NAME:
 	case SA_NTF_VALUE_STRING:
-		rc = saNtfPtrValGet(notificationHandle,
-					attributeValue,
-					(void **)&str_ptr,
-					&data_size);
+		rc = saNtfPtrValGet(notificationHandle, attributeValue,
+				    (void **)&str_ptr, &data_size);
 		if (rc == SA_AIS_OK) {
-			tmp_str = (char*) malloc(data_size + 1);
+			tmp_str = (char *)malloc(data_size + 1);
 			memcpy(tmp_str, str_ptr, data_size);
 			tmp_str[data_size] = '\0';
 			printf(" Attribute Value: \"%s\"\n", tmp_str);
 			free(tmp_str);
 		} else
-			fprintf(stderr, "saNtfPtrValGet Error "
-				"%d\n", rc);
+			fprintf(stderr,
+				"saNtfPtrValGet Error "
+				"%d\n",
+				rc);
 		break;
 	case SA_NTF_VALUE_BINARY:
-		rc = saNtfPtrValGet(notificationHandle,
-					attributeValue,
-					(void **)&bin_ptr,
-					&data_size);
+		rc = saNtfPtrValGet(notificationHandle, attributeValue,
+				    (void **)&bin_ptr, &data_size);
 		if (rc == SA_AIS_OK) {
 			printf(" Attribute Value:\n ");
-			for (i=0; i<data_size; i++) {
-				printf("0x%02x ",bin_ptr[i]);
-				if (((i+1) % max_size == 0) &&
-					(i < (data_size - 1)))
+			for (i = 0; i < data_size; i++) {
+				printf("0x%02x ", bin_ptr[i]);
+				if (((i + 1) % max_size == 0) &&
+				    (i < (data_size - 1)))
 					printf("\n ");
 			}
 			printf("\n");
 		} else
-			fprintf(stderr, "saNtfPtrValGet Error "
-				"%d\n", rc);
+			fprintf(stderr,
+				"saNtfPtrValGet Error "
+				"%d\n",
+				rc);
 		break;
 
 	default:
 		printf("Printing of attribute type %d not supported\n",
-				(int)attributeType);
+		       (int)attributeType);
 	}
 }
 
 static void print_object_attributes(SaNtfNotificationHandleT notificationHandle,
-		SaNtfAttributeT * input)
+				    SaNtfAttributeT *input)
 {
 	printf("- Attribute ID: %d -\n", (int)input->attributeId);
-	printf(" Attribute Type: (%d) %s\n",(int)input->attributeType,
-			sa_attribute_type_list[(int)input->attributeType]);
+	printf(" Attribute Type: (%d) %s\n", (int)input->attributeType,
+	       sa_attribute_type_list[(int)input->attributeType]);
 
 	print_attribute_value(notificationHandle, input->attributeType,
-			&input->attributeValue);
+			      &input->attributeValue);
 }
 
-static void print_changed_attributes(SaNtfNotificationHandleT notificationHandle,
-		SaNtfAttributeChangeT * input)
+static void
+print_changed_attributes(SaNtfNotificationHandleT notificationHandle,
+			 SaNtfAttributeChangeT *input)
 {
 	printf("- Attribute ID: %d -\n", input->attributeId);
 
-	printf(" Attribute Type: (%d) %s\n",(int)input->attributeType,
-			sa_attribute_type_list[(int)input->attributeType]);
+	printf(" Attribute Type: (%d) %s\n", (int)input->attributeType,
+	       sa_attribute_type_list[(int)input->attributeType]);
 	if (input->oldAttributePresent == SA_TRUE) {
 		printf(" Old Attribute Present: Yes\n");
 		printf(" Old Attribute: \n");
 		print_attribute_value(notificationHandle, input->attributeType,
-		&input->oldAttributeValue);
+				      &input->oldAttributeValue);
 	} else {
 		printf(" Old Attribute Present: No\n");
 	}
 
 	print_attribute_value(notificationHandle, input->attributeType,
-		&input->newAttributeValue);
+			      &input->newAttributeValue);
 }
 
-static void print_security_alarm_types(SaNtfSecurityAlarmNotificationT * input)
+static void print_security_alarm_types(SaNtfSecurityAlarmNotificationT *input)
 {
 	printf("Security Alarm Detector Type: %d\n",
 	       input->securityAlarmDetector->valueType);
@@ -632,9 +585,9 @@ static void print_source_indicator(SaNtfSourceIndicatorT input)
 
 /* end help functions for printouts */
 
-static void print_header(const SaNtfNotificationHeaderT * notificationHeader,
-		  SaNtfSubscriptionIdT subscriptionId,
-		  SaNtfNotificationTypeT notificationType)
+static void print_header(const SaNtfNotificationHeaderT *notificationHeader,
+			 SaNtfSubscriptionIdT subscriptionId,
+			 SaNtfNotificationTypeT notificationType)
 {
 	static char time[32];
 	if (verbose) {
@@ -649,25 +602,27 @@ static void print_header(const SaNtfNotificationHeaderT * notificationHeader,
 
 	if (verbose)
 		printf("notificationObject.length = %zu\n",
-				strlen(saAisNameBorrow(notificationHeader->notificationObject)));
+		       strlen(saAisNameBorrow(
+			   notificationHeader->notificationObject)));
 
 	printf("notificationObject = \"%s\"\n",
-			saAisNameBorrow(notificationHeader->notificationObject));
-	
+	       saAisNameBorrow(notificationHeader->notificationObject));
+
 	if (verbose)
 		printf("notifyingObject.length = %zu\n",
-				strlen(saAisNameBorrow(notificationHeader->notifyingObject)));
+		       strlen(saAisNameBorrow(
+			   notificationHeader->notifyingObject)));
 
 	printf("notifyingObject = \"%s\"\n",
-			saAisNameBorrow(notificationHeader->notifyingObject));
+	       saAisNameBorrow(notificationHeader->notifyingObject));
 
 	/* Notification Class ID in compact dot notation */
 	if (notificationHeader->notificationClassId->vendorId ==
 	    SA_NTF_VENDOR_ID_SAF) {
 		printf("notificationClassId = SA_NTF_VENDOR_ID_SAF.%s.%u "
 		       "(0x%x)\n",
-		       sa_services_list[notificationHeader->
-					notificationClassId->majorId],
+		       sa_services_list[notificationHeader->notificationClassId
+					    ->majorId],
 		       notificationHeader->notificationClassId->minorId,
 		       notificationHeader->notificationClassId->minorId);
 	} else {
@@ -678,16 +633,19 @@ static void print_header(const SaNtfNotificationHeaderT * notificationHeader,
 		       notificationHeader->notificationClassId->minorId);
 	}
 
-	if (verbose) { 
-		time_t time_in_secs = *notificationHeader->eventTime/SA_TIME_ONE_SECOND;
+	if (verbose) {
+		time_t time_in_secs =
+		    *notificationHeader->eventTime / SA_TIME_ONE_SECOND;
 		/*Print time in human readable form also .*/
-		(void)strftime(time, sizeof(time), "%a %b %d %T %Z %Y", localtime(&time_in_secs));	
-		printf("eventTime = %lld (%s)\n",*notificationHeader->eventTime, time);
+		(void)strftime(time, sizeof(time), "%a %b %d %T %Z %Y",
+			       localtime(&time_in_secs));
+		printf("eventTime = %lld (%s)\n",
+		       *notificationHeader->eventTime, time);
 	}
 
 	if (verbose)
 		printf("lengthAdditionalText = %u\n",
-				notificationHeader->lengthAdditionalText);
+		       notificationHeader->lengthAdditionalText);
 
 	if (notificationHeader->lengthAdditionalText > 0)
 		printf("additionalText = \"%s\"\n",
@@ -695,7 +653,7 @@ static void print_header(const SaNtfNotificationHeaderT * notificationHeader,
 }
 
 void print_additional_info(SaNtfNotificationHandleT notificationHandle,
-			   const SaNtfNotificationHeaderT * notificationHeader)
+			   const SaNtfNotificationHeaderT *notificationHeader)
 {
 	int i;
 	char *dataPtr;
@@ -705,42 +663,52 @@ void print_additional_info(SaNtfNotificationHandleT notificationHandle,
 	SaAisErrorT rc;
 
 	if (notificationHeader->additionalInfo != NULL) {
-		for (i=0; i<notificationHeader->numAdditionalInfo; i++) {
-			printf("- additionalInfo: %d -\n",i);
-			printf(" infoId = %u\n",notificationHeader->additionalInfo[i].infoId);
-			printf(" infoType = %u\n",notificationHeader->additionalInfo[i].infoType);
+		for (i = 0; i < notificationHeader->numAdditionalInfo; i++) {
+			printf("- additionalInfo: %d -\n", i);
+			printf(" infoId = %u\n",
+			       notificationHeader->additionalInfo[i].infoId);
+			printf(" infoType = %u\n",
+			       notificationHeader->additionalInfo[i].infoType);
 
-			switch (notificationHeader->additionalInfo[i].infoType) {
+			switch (
+			    notificationHeader->additionalInfo[i].infoType) {
 			case SA_NTF_VALUE_LDAP_NAME:
-				rc = saNtfPtrValGet(notificationHandle,
-							&notificationHeader->
-							additionalInfo[i].infoValue,
-							(void **)&dataPtr,
-							&dataSize);
+				rc = saNtfPtrValGet(
+				    notificationHandle,
+				    &notificationHeader->additionalInfo[i]
+					 .infoValue,
+				    (void **)&dataPtr, &dataSize);
 				if (rc == SA_AIS_OK) {
 					size_t strLength = dataSize - 2;
-					char *newStr = (char*)malloc(strLength + 1);
+					char *newStr =
+					    (char *)malloc(strLength + 1);
 					memcpy(newStr, dataPtr + 2, strLength);
 					newStr[strLength] = '\0';
 					saAisNameLend(newStr, &name);
-					printf(" infoValue = \"%s\"\n", saAisNameBorrow(&name));
+					printf(" infoValue = \"%s\"\n",
+					       saAisNameBorrow(&name));
 					free(newStr);
 				} else
-					fprintf(stderr, "saNtfPtrValGet Error "
-						"%d\n", rc);
+					fprintf(stderr,
+						"saNtfPtrValGet Error "
+						"%d\n",
+						rc);
 				break;
 
 			case SA_NTF_VALUE_STRING:
-				rc = saNtfPtrValGet(notificationHandle,
-							&notificationHeader->
-							additionalInfo[i].infoValue,
-							(void **)&info_value_str,
-							&dataSize);
+				rc = saNtfPtrValGet(
+				    notificationHandle,
+				    &notificationHeader->additionalInfo[i]
+					 .infoValue,
+				    (void **)&info_value_str, &dataSize);
 				if (rc == SA_AIS_OK) {
-					printf(" infoValue = \"%s\"\n",info_value_str);
+					printf(" infoValue = \"%s\"\n",
+					       info_value_str);
 				} else
-					fprintf(stderr, "saNtfPtrValGet Error "
-						"%d\n", rc);
+					fprintf(stderr,
+						"saNtfPtrValGet Error "
+						"%d\n",
+						rc);
 				break;
 
 			default:
@@ -756,7 +724,7 @@ static char *event_time(SaTimeT eventTime)
 	time_t time_in_secs;
 	static char time_str[32];
 
-	time_in_secs = (eventTime / (SaTimeT) SA_TIME_ONE_SECOND);
+	time_in_secs = (eventTime / (SaTimeT)SA_TIME_ONE_SECOND);
 	(void)strftime(time_str, sizeof(time_str), "%b %e %k:%M:%S",
 		       localtime(&time_in_secs));
 
@@ -764,7 +732,7 @@ static char *event_time(SaTimeT eventTime)
 }
 
 void saNtfNotificationCallback(SaNtfSubscriptionIdT subscriptionId,
-			       const SaNtfNotificationsT * notification)
+			       const SaNtfNotificationsT *notification)
 {
 	SaInt32T i;
 	SaNtfNotificationHandleT notificationHandle;
@@ -773,160 +741,155 @@ void saNtfNotificationCallback(SaNtfSubscriptionIdT subscriptionId,
 
 	switch (notification->notificationType) {
 	case SA_NTF_TYPE_ALARM:
-		notificationHandle = notification->
-		    notification.alarmNotification.notificationHandle;
-		notificationHeader = &notification->
-		    notification.alarmNotification.notificationHeader;
+		notificationHandle = notification->notification
+					 .alarmNotification.notificationHandle;
+		notificationHeader = &notification->notification
+					  .alarmNotification.notificationHeader;
 		printf("===  %s - Alarm  ===\n",
 		       event_time(*notificationHeader->eventTime));
 		print_header(notificationHeader, subscriptionId,
 			     notification->notificationType);
 		print_additional_info(notificationHandle, notificationHeader);
-		print_probable_cause(*
-				     (notification->notification.
-				      alarmNotification.probableCause));
-		print_perceived_severity(*
-					 (notification->notification.
-					  alarmNotification.
-					  perceivedSeverity));
+		print_probable_cause(*(notification->notification
+					   .alarmNotification.probableCause));
+		print_perceived_severity(
+		    *(notification->notification.alarmNotification
+			  .perceivedSeverity));
 		break;
 
 	case SA_NTF_TYPE_STATE_CHANGE:
 		notificationHandle =
-		    notification->notification.stateChangeNotification.
-		    notificationHandle;
+		    notification->notification.stateChangeNotification
+			.notificationHandle;
 		notificationHeader =
-		    &notification->notification.stateChangeNotification.
-		    notificationHeader;
+		    &notification->notification.stateChangeNotification
+			 .notificationHeader;
 		printf("===  %s - State Change  ===\n",
 		       event_time(*notificationHeader->eventTime));
 		print_header(notificationHeader, subscriptionId,
 			     notification->notificationType);
 		print_additional_info(notificationHandle, notificationHeader);
-		print_source_indicator(*
-				       (notification->notification.
-					stateChangeNotification.
-					sourceIndicator));
+		print_source_indicator(
+		    *(notification->notification.stateChangeNotification
+			  .sourceIndicator));
 
 		if (verbose)
 			printf("Num of StateChanges: %d\n",
-			       notification->notification.
-			       stateChangeNotification.numStateChanges);
+			       notification->notification
+				   .stateChangeNotification.numStateChanges);
 
 		/* Changed states */
-		for (i = 0;
-		     i <
-		     notification->notification.stateChangeNotification.
-		     numStateChanges; i++) {
-			print_change_states(notificationHeader->
-					    notificationClassId,
-					    &notification->notification.
-					    stateChangeNotification.
-					    changedStates[i]);
+		for (i = 0; i < notification->notification
+				    .stateChangeNotification.numStateChanges;
+		     i++) {
+			print_change_states(
+			    notificationHeader->notificationClassId,
+			    &notification->notification.stateChangeNotification
+				 .changedStates[i]);
 		}
 		break;
 
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
 		notificationHandle =
-		    notification->notification.objectCreateDeleteNotification.
-		    notificationHandle;
+		    notification->notification.objectCreateDeleteNotification
+			.notificationHandle;
 		notificationHeader =
-		    &notification->notification.objectCreateDeleteNotification.
-		    notificationHeader;
+		    &notification->notification.objectCreateDeleteNotification
+			 .notificationHeader;
 		printf("===  %s - Object Create/Delete  ===\n",
 		       event_time(*notificationHeader->eventTime));
 		print_header(notificationHeader, subscriptionId,
 			     notification->notificationType);
-		print_source_indicator(*
-				       (notification->notification.
-					objectCreateDeleteNotification.
-					sourceIndicator));
+		print_source_indicator(
+		    *(notification->notification.objectCreateDeleteNotification
+			  .sourceIndicator));
 
 		/* Additional info */
-		numAdditionalInfo = notification->notification.
-				objectCreateDeleteNotification.
-				notificationHeader.numAdditionalInfo;
+		numAdditionalInfo =
+		    notification->notification.objectCreateDeleteNotification
+			.notificationHeader.numAdditionalInfo;
 		if (numAdditionalInfo > 0) {
-			printf("\nnumAdditionalInfo: %d\n",numAdditionalInfo);
-			print_additional_info(notificationHandle, notificationHeader);
+			printf("\nnumAdditionalInfo: %d\n", numAdditionalInfo);
+			print_additional_info(notificationHandle,
+					      notificationHeader);
 		}
 
 		/* Object Attributes */
 		printf("\nnumAttributes: %d\n",
-		       notification->notification.
-		       objectCreateDeleteNotification.numAttributes);
+		       notification->notification.objectCreateDeleteNotification
+			   .numAttributes);
 		for (i = 0;
-		     i <
-		     notification->notification.objectCreateDeleteNotification.
-		     numAttributes; i++) {
-			print_object_attributes(notificationHandle,
-					&notification->notification.
-						objectCreateDeleteNotification.
-						objectAttributes[i]);
+		     i < notification->notification
+			     .objectCreateDeleteNotification.numAttributes;
+		     i++) {
+			print_object_attributes(
+			    notificationHandle,
+			    &notification->notification
+				 .objectCreateDeleteNotification
+				 .objectAttributes[i]);
 		}
 		break;
 
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
 		notificationHandle =
-		    notification->notification.attributeChangeNotification.
-		    notificationHandle;
+		    notification->notification.attributeChangeNotification
+			.notificationHandle;
 		notificationHeader =
-		    &notification->notification.attributeChangeNotification.
-		    notificationHeader;
+		    &notification->notification.attributeChangeNotification
+			 .notificationHeader;
 		printf("===  %s - Attribute Change  ===\n",
 		       event_time(*notificationHeader->eventTime));
 		print_header(notificationHeader, subscriptionId,
 			     notification->notificationType);
-		print_source_indicator(*
-				       (notification->notification.
-					attributeChangeNotification.
-					sourceIndicator));
+		print_source_indicator(
+		    *(notification->notification.attributeChangeNotification
+			  .sourceIndicator));
 
 		/* Additional info */
-		numAdditionalInfo = notification->notification.
-				objectCreateDeleteNotification.
-				notificationHeader.numAdditionalInfo;
+		numAdditionalInfo =
+		    notification->notification.objectCreateDeleteNotification
+			.notificationHeader.numAdditionalInfo;
 		if (numAdditionalInfo > 0) {
-			printf("\nnumAdditionalInfo: %d\n",numAdditionalInfo);
-			print_additional_info(notificationHandle, notificationHeader);
+			printf("\nnumAdditionalInfo: %d\n", numAdditionalInfo);
+			print_additional_info(notificationHandle,
+					      notificationHeader);
 		}
 
 		printf("\nnumAttributes: %d\n",
-		       notification->notification.attributeChangeNotification.
-		       numAttributes);
+		       notification->notification.attributeChangeNotification
+			   .numAttributes);
 
 		/* Changed Attributes */
-		for (i = 0;
-		     i <
-		     notification->notification.attributeChangeNotification.
-		     numAttributes; i++) {
-			print_changed_attributes(notificationHandle,
-					&notification->notification.
-						 attributeChangeNotification.
-						 changedAttributes[i]);
+		for (i = 0; i < notification->notification
+				    .attributeChangeNotification.numAttributes;
+		     i++) {
+			print_changed_attributes(
+			    notificationHandle,
+			    &notification->notification
+				 .attributeChangeNotification
+				 .changedAttributes[i]);
 		}
 		break;
 
 	case SA_NTF_TYPE_SECURITY_ALARM:
 		notificationHandle =
-		    notification->notification.securityAlarmNotification.
-		    notificationHandle;
+		    notification->notification.securityAlarmNotification
+			.notificationHandle;
 		notificationHeader =
-		    &notification->notification.securityAlarmNotification.
-		    notificationHeader;
+		    &notification->notification.securityAlarmNotification
+			 .notificationHeader;
 		printf("===  %s - Security Alarm  ===\n",
 		       event_time(*notificationHeader->eventTime));
 		print_header(notificationHeader, subscriptionId,
 			     notification->notificationType);
-		print_probable_cause(*
-				     (notification->notification.
-				      securityAlarmNotification.probableCause));
-		print_severity(*
-			       (notification->notification.
-				securityAlarmNotification.severity));
-		print_security_alarm_types((SaNtfSecurityAlarmNotificationT *) &
-					   notification->notification.
-					   securityAlarmNotification);
+		print_probable_cause(
+		    *(notification->notification.securityAlarmNotification
+			  .probableCause));
+		print_severity(*(notification->notification
+				     .securityAlarmNotification.severity));
+		print_security_alarm_types(
+		    (SaNtfSecurityAlarmNotificationT *)&notification
+			->notification.securityAlarmNotification);
 
 		break;
 
@@ -938,28 +901,29 @@ void saNtfNotificationCallback(SaNtfSubscriptionIdT subscriptionId,
 
 	switch (notification->notificationType) {
 	case SA_NTF_TYPE_ALARM:
-		saNtfNotificationFree(notification->notification.
-				      alarmNotification.notificationHandle);
+		saNtfNotificationFree(
+		    notification->notification.alarmNotification
+			.notificationHandle);
 		break;
 	case SA_NTF_TYPE_SECURITY_ALARM:
-		saNtfNotificationFree(notification->notification.
-				      securityAlarmNotification.
-				      notificationHandle);
+		saNtfNotificationFree(
+		    notification->notification.securityAlarmNotification
+			.notificationHandle);
 		break;
 	case SA_NTF_TYPE_STATE_CHANGE:
-		saNtfNotificationFree(notification->notification.
-				      stateChangeNotification.
-				      notificationHandle);
+		saNtfNotificationFree(
+		    notification->notification.stateChangeNotification
+			.notificationHandle);
 		break;
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
-		saNtfNotificationFree(notification->notification.
-				      objectCreateDeleteNotification.
-				      notificationHandle);
+		saNtfNotificationFree(
+		    notification->notification.objectCreateDeleteNotification
+			.notificationHandle);
 		break;
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
-		saNtfNotificationFree(notification->notification.
-				      attributeChangeNotification.
-				      notificationHandle);
+		saNtfNotificationFree(
+		    notification->notification.attributeChangeNotification
+			.notificationHandle);
 		break;
 
 	default:
@@ -968,18 +932,17 @@ void saNtfNotificationCallback(SaNtfSubscriptionIdT subscriptionId,
 	}
 	printf("\n");
 	if (fflush(NULL) != 0)
-		syslog(LOG_ERR,"fflush() failed %s:",strerror(errno));
-		
+		syslog(LOG_ERR, "fflush() failed %s:", strerror(errno));
 }
 
 int get_long_digit(char *str, long *val)
 {
 	char *endptr;
-	errno = 0;		/* To distinguish success/failure after call */
+	errno = 0; /* To distinguish success/failure after call */
 	*val = strtol(str, &endptr, 0);
 	/* Check for various possible errors */
-	if ((errno == ERANGE && (*val == LONG_MAX || *val == LONG_MIN))
-	    || (errno != 0 && *val == 0)) {
+	if ((errno == ERANGE && (*val == LONG_MAX || *val == LONG_MIN)) ||
+	    (errno != 0 && *val == 0)) {
 		perror("strtol");
 		return 0;
 	}
@@ -987,13 +950,13 @@ int get_long_digit(char *str, long *val)
 		fprintf(stderr, "No digits were found\n");
 		return 0;
 	}
-	if (*endptr != '\0')	/* other chars than digits */
+	if (*endptr != '\0') /* other chars than digits */
 		return 0;
 	return 1;
 }
 
 /* used by ntfread and ntfsend */
-void getVendorId(SaNtfClassIdT * notificationClassId)
+void getVendorId(SaNtfClassIdT *notificationClassId)
 {
 	long val;
 	char *p = strdup(optarg);
@@ -1005,19 +968,19 @@ void getVendorId(SaNtfClassIdT * notificationClassId)
 		exit(EXIT_FAILURE);
 	}
 	if (get_long_digit(vendorId, &val)) {
-		notificationClassId->vendorId = (SaUint32T) val;
+		notificationClassId->vendorId = (SaUint32T)val;
 	} else {
 		fprintf(stderr, "notificationClassId vendorId wrong format\n");
 		exit(EXIT_FAILURE);
 	}
 	if (get_long_digit(majorId, &val) && (0 <= val && val <= USHRT_MAX)) {
-		notificationClassId->majorId = (SaUint16T) val;
+		notificationClassId->majorId = (SaUint16T)val;
 	} else {
 		fprintf(stderr, "notificationClassId majorId wrong format\n");
 		exit(EXIT_FAILURE);
 	}
 	if (get_long_digit(minorId, &val) && (0 <= val && val <= USHRT_MAX)) {
-		notificationClassId->minorId = (SaUint16T) val;
+		notificationClassId->minorId = (SaUint16T)val;
 	} else {
 		fprintf(stderr, "notificationClassId minorId wrong format\n");
 		exit(EXIT_FAILURE);
@@ -1029,20 +992,20 @@ void getVendorId(SaNtfClassIdT * notificationClassId)
  * @brief         Converts string to long long and also validates if string
  *                contains numeric characters or not.
  *
- * @param [in]    char * (ptr to string)r.  
- * @param [out]   long long * (to set log long value).  
- * 
- * @Return        0: if validation fails. 
+ * @param [in]    char * (ptr to string)r.
+ * @param [out]   long long * (to set log long value).
+ *
+ * @Return        0: if validation fails.
  *		  1: if validation passes.
  */
 
 int get_long_long_digit(char *str, long long *val)
 {
 	char *endptr;
-	errno = 0;	
+	errno = 0;
 	*val = strtoll(str, &endptr, 0);
 
-	if ((errno == ERANGE ) || (errno != 0 && *val == 0)) {
+	if ((errno == ERANGE) || (errno != 0 && *val == 0)) {
 		perror("strtoll");
 		return 0;
 	}
@@ -1050,89 +1013,89 @@ int get_long_long_digit(char *str, long long *val)
 		fprintf(stderr, "No digits were found\n");
 		return 0;
 	}
-	if (*endptr != '\0')	/* other chars than digits */
+	if (*endptr != '\0') /* other chars than digits */
 		return 0;
 	return 1;
 }
 
-
 /**
- * @brief         Verify value of evenType is correct for notificationType. 
+ * @brief         Verify value of evenType is correct for notificationType.
  *
- * @param [in]    char * (ptr to string)r.  
- * 
- * @Return        0: event can be sent with the notificationType. 
+ * @param [in]    char * (ptr to string)r.
+ *
+ * @Return        0: event can be sent with the notificationType.
  *		  1: event can be sent with the notificationType.
  */
 
 bool validate_nType_eType(SaNtfNotificationTypeT nType, SaNtfEventTypeT eType)
 {
-	switch(nType) {
-	case SA_NTF_TYPE_OBJECT_CREATE_DELETE :
-			return ((eType >= SA_NTF_OBJECT_NOTIFICATIONS_START) &&
-					(eType <= SA_NTF_OBJECT_DELETION));
+	switch (nType) {
+	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
+		return ((eType >= SA_NTF_OBJECT_NOTIFICATIONS_START) &&
+			(eType <= SA_NTF_OBJECT_DELETION));
 		break;
-	case SA_NTF_TYPE_ATTRIBUTE_CHANGE :
-			return ((eType >= SA_NTF_ATTRIBUTE_NOTIFICATIONS_START) &&
-					(eType <= SA_NTF_ATTRIBUTE_RESET));
+	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
+		return ((eType >= SA_NTF_ATTRIBUTE_NOTIFICATIONS_START) &&
+			(eType <= SA_NTF_ATTRIBUTE_RESET));
 		break;
-	case SA_NTF_TYPE_STATE_CHANGE :
-			return (((eType >= SA_NTF_STATE_CHANGE_NOTIFICATIONS_START) &&
-					(eType <= SA_NTF_OBJECT_STATE_CHANGE)) ||
-					((eType >= SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START) &&
-					(eType <= SA_NTF_HPI_EVENT_OTHER)));
+	case SA_NTF_TYPE_STATE_CHANGE:
+		return (((eType >= SA_NTF_STATE_CHANGE_NOTIFICATIONS_START) &&
+			 (eType <= SA_NTF_OBJECT_STATE_CHANGE)) ||
+			((eType >= SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START) &&
+			 (eType <= SA_NTF_HPI_EVENT_OTHER)));
 		break;
 	case SA_NTF_TYPE_ALARM:
-			return ((eType >= SA_NTF_ALARM_NOTIFICATIONS_START) &&
-					(eType <= SA_NTF_ALARM_ENVIRONMENT));
+		return ((eType >= SA_NTF_ALARM_NOTIFICATIONS_START) &&
+			(eType <= SA_NTF_ALARM_ENVIRONMENT));
 		break;
 	case SA_NTF_TYPE_SECURITY_ALARM:
-			return ((eType >= SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START) &&
-					(eType <= SA_NTF_TIME_VIOLATION));
+		return ((eType >= SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START) &&
+			(eType <= SA_NTF_TIME_VIOLATION));
 		break;
-	default :
+	default:
 		return false;
 	}
 }
 
 /**
- * @brief         set notificationType for evenType. 
+ * @brief         set notificationType for evenType.
  *
- * @param [in]    ptr to SaNtfEventTypeT.  
- * @param [out]   value is set in ptr to SaNtfNotificationTypeT.  
- * 
+ * @param [in]    ptr to SaNtfEventTypeT.
+ * @param [out]   value is set in ptr to SaNtfNotificationTypeT.
+ *
  */
 
 void set_nType_for_eType(SaNtfNotificationTypeT *nType, SaNtfEventTypeT *eType)
 {
 	if ((*eType >= SA_NTF_OBJECT_NOTIFICATIONS_START) &&
-			(*eType <= SA_NTF_OBJECT_DELETION)) 
+	    (*eType <= SA_NTF_OBJECT_DELETION))
 		*nType = SA_NTF_TYPE_OBJECT_CREATE_DELETE;
-		
+
 	if ((*eType >= SA_NTF_ATTRIBUTE_NOTIFICATIONS_START) &&
-			(*eType <= SA_NTF_ATTRIBUTE_RESET))
+	    (*eType <= SA_NTF_ATTRIBUTE_RESET))
 		*nType = SA_NTF_TYPE_ATTRIBUTE_CHANGE;
 
 	if (((*eType >= SA_NTF_STATE_CHANGE_NOTIFICATIONS_START) &&
-				(*eType <= SA_NTF_OBJECT_STATE_CHANGE)) ||
-			((*eType >= SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START) &&
-			 (*eType <= SA_NTF_HPI_EVENT_OTHER)))
+	     (*eType <= SA_NTF_OBJECT_STATE_CHANGE)) ||
+	    ((*eType >= SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START) &&
+	     (*eType <= SA_NTF_HPI_EVENT_OTHER)))
 		*nType = SA_NTF_TYPE_STATE_CHANGE;
 
 	if ((*eType >= SA_NTF_ALARM_NOTIFICATIONS_START) &&
-			(*eType <= SA_NTF_ALARM_ENVIRONMENT))
+	    (*eType <= SA_NTF_ALARM_ENVIRONMENT))
 		*nType = SA_NTF_TYPE_ALARM;
 
 	if ((*eType >= SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START) &&
-			(*eType <= SA_NTF_TIME_VIOLATION))
+	    (*eType <= SA_NTF_TIME_VIOLATION))
 		*nType = SA_NTF_TYPE_SECURITY_ALARM;
-
 }
 
 /**
  * @brief wrapper of saNtfInitialize
  */
-SaAisErrorT ntftool_saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfCallbacks, SaVersionT *version)
+SaAisErrorT ntftool_saNtfInitialize(SaNtfHandleT *ntfHandle,
+				    const SaNtfCallbacksT *ntfCallbacks,
+				    SaVersionT *version)
 {
 	int curRetryTime = 0;
 	SaAisErrorT rc;
@@ -1151,7 +1114,8 @@ SaAisErrorT ntftool_saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallback
 /**
  * @brief wrapper of saNtfDispatch
  */
-SaAisErrorT ntftool_saNtfDispatch(SaNtfHandleT ntfHandle, SaDispatchFlagsT dispatchFlags)
+SaAisErrorT ntftool_saNtfDispatch(SaNtfHandleT ntfHandle,
+				  SaDispatchFlagsT dispatchFlags)
 {
 	int curRetryTime = 0;
 	SaAisErrorT rc;
@@ -1170,7 +1134,8 @@ SaAisErrorT ntftool_saNtfDispatch(SaNtfHandleT ntfHandle, SaDispatchFlagsT dispa
 /**
  * @brief wrapper of saNtfNotificationSend
  */
-SaAisErrorT ntftool_saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
+SaAisErrorT
+ntftool_saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 {
 	int curRetryTime = 0;
 	SaAisErrorT rc;
@@ -1189,13 +1154,15 @@ SaAisErrorT ntftool_saNtfNotificationSend(SaNtfNotificationHandleT notificationH
 /**
  * @brief wrapper of saNtfNotificationSubscribe
  */
-SaAisErrorT ntftool_saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
-				       SaNtfSubscriptionIdT subscriptionId)
+SaAisErrorT ntftool_saNtfNotificationSubscribe(
+    const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+    SaNtfSubscriptionIdT subscriptionId)
 {
 	int curRetryTime = 0;
 	SaAisErrorT rc;
 	do {
-		rc = saNtfNotificationSubscribe(notificationFilterHandles, subscriptionId);
+		rc = saNtfNotificationSubscribe(notificationFilterHandles,
+						subscriptionId);
 		if (rc == SA_AIS_ERR_TRY_AGAIN) {
 			sleep(gl_apiRetry);
 			curRetryTime += gl_apiRetry;
@@ -1209,7 +1176,8 @@ SaAisErrorT ntftool_saNtfNotificationSubscribe(const SaNtfNotificationTypeFilter
 /**
  * @brief wrapper of saNtfNotificationUnsubscribe
  */
-SaAisErrorT ntftool_saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
+SaAisErrorT
+ntftool_saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 {
 	int curRetryTime = 0;
 	SaAisErrorT rc;
@@ -1228,14 +1196,16 @@ SaAisErrorT ntftool_saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscripti
 /**
  * @brief wrapper of saNtfNotificationReadIntialize
  */
-SaAisErrorT ntftool_saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
-					    const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
-					    SaNtfReadHandleT *readHandle)
+SaAisErrorT ntftool_saNtfNotificationReadInitialize(
+    SaNtfSearchCriteriaT searchCriteria,
+    const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+    SaNtfReadHandleT *readHandle)
 {
 	int curRetryTime = 0;
 	SaAisErrorT rc;
 	do {
-		rc = saNtfNotificationReadInitialize(searchCriteria, notificationFilterHandles, readHandle);
+		rc = saNtfNotificationReadInitialize(
+		    searchCriteria, notificationFilterHandles, readHandle);
 		if (rc == SA_AIS_ERR_TRY_AGAIN) {
 			sleep(gl_apiRetry);
 			curRetryTime += gl_apiRetry;
@@ -1249,13 +1219,16 @@ SaAisErrorT ntftool_saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchC
 /**
  * @brief wrapper of saNtfNotificationReadNext
  */
-SaAisErrorT ntftool_saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
-				      SaNtfSearchDirectionT searchDirection, SaNtfNotificationsT *notification)
+SaAisErrorT
+ntftool_saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
+				  SaNtfSearchDirectionT searchDirection,
+				  SaNtfNotificationsT *notification)
 {
 	int curRetryTime = 0;
 	SaAisErrorT rc;
 	do {
-		rc = saNtfNotificationReadNext(readHandle, searchDirection, notification);
+		rc = saNtfNotificationReadNext(readHandle, searchDirection,
+					       notification);
 		if (rc == SA_AIS_ERR_TRY_AGAIN) {
 			sleep(gl_apiRetry);
 			curRetryTime += gl_apiRetry;

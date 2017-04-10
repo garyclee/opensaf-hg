@@ -22,7 +22,7 @@
   DESCRIPTION:
 
   This file lists EDP(EDU program) definitions for AVND-AVA data structures.
-  
+
 ******************************************************************************
 */
 
@@ -32,17 +32,16 @@
 #include "base/ncs_edu_pub.h"
 #include "base/ncs_saf_edu.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
-uint32_t avsv_edp_nda_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+
+uint32_t avsv_edp_nda_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                          uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                          EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                           uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                           EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #ifdef __cplusplus
 }

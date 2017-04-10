@@ -22,12 +22,10 @@
 
 namespace base {
 
-UnixClientSocket::UnixClientSocket(const std::string& path) :
-    UnixSocket{path} {
-}
+UnixClientSocket::UnixClientSocket(const std::string& path)
+    : UnixSocket{path} {}
 
-UnixClientSocket::~UnixClientSocket() {
-}
+UnixClientSocket::~UnixClientSocket() {}
 
 bool UnixClientSocket::OpenHook(int sock) {
   int result;

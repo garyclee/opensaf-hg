@@ -26,7 +26,7 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-  
+
 
 ******************************************************************************
 */
@@ -39,26 +39,29 @@
 uint32_t gl_ava_hdl = 0;
 
 /****************************************************************************
-  Name	  : saAmfInitialize
- 
+  Name    : saAmfInitialize
+
   Description   : This function initializes the AMF for the invoking process
-		  and registers the various callback functions.
- 
+                  and registers the various callback functions.
+
   Arguments     : o_hdl    - ptr to the AMF handle
-		  reg_cbks - ptr to a SaAmfCallbacksT structure
-		  io_ver   - Version of the AMF implementation being used 
-			     by the invoking process.
- 
+                  reg_cbks - ptr to a SaAmfCallbacksT structure
+                  io_ver   - Version of the AMF implementation being used
+                             by the invoking process.
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfInitialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg_cbks, SaVersionT *io_ver)
-{
-	return AmfAgent::Initialize(o_hdl, reg_cbks, io_ver);
+SaAisErrorT saAmfInitialize(SaAmfHandleT *o_hdl,
+                            const SaAmfCallbacksT *reg_cbks,
+                            SaVersionT *io_ver) {
+  return AmfAgent::Initialize(o_hdl, reg_cbks, io_ver);
 }
 
-SaAisErrorT AmfAgent::Initialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg_cbks, SaVersionT *io_ver) {
+SaAisErrorT AmfAgent::Initialize(SaAmfHandleT *o_hdl,
+                                 const SaAmfCallbacksT *reg_cbks,
+                                 SaVersionT *io_ver) {
   AVA_CB *cb = 0;
   AVA_HDL_DB *hdl_db = 0;
   AVA_HDL_REC *hdl_rec = 0;
@@ -67,14 +70,16 @@ SaAisErrorT AmfAgent::Initialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg
   TRACE_ENTER();
 
   if (!o_hdl || !io_ver) {
-    TRACE_LEAVE2("NULL arguments being passed: SaAmfHandleT and SaVersionT arguments should be non NULL");
+    TRACE_LEAVE2(
+        "NULL arguments being passed: SaAmfHandleT and SaVersionT arguments should be non NULL");
     return SA_AIS_ERR_INVALID_PARAM;
   }
 
   /* validate the version */
   if (!m_AVA_VER_IS_VALID(io_ver)) {
-    TRACE_2("Invalid AMF version specified, supported version is: ReleaseCode = 'B', \
-						majorVersion = 0x01, minorVersion = 0x01");
+    TRACE_2(
+        "Invalid AMF version specified, supported version is: ReleaseCode = 'B', \
+                                                majorVersion = 0x01, minorVersion = 0x01");
     rc = SA_AIS_ERR_VERSION;
   }
 
@@ -83,8 +88,7 @@ SaAisErrorT AmfAgent::Initialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg
   io_ver->majorVersion = 1;
   io_ver->minorVersion = 1;
 
-  if (SA_AIS_OK != rc)
-    goto done;
+  if (SA_AIS_OK != rc) goto done;
 
   /* Initialize the environment */
   if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
@@ -108,7 +112,6 @@ SaAisErrorT AmfAgent::Initialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg
   /* acquire cb write lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
 
-
   /* set version used by client/application */
   cb->version.releaseCode = io_ver->releaseCode;
   cb->version.majorVersion = io_ver->majorVersion;
@@ -126,7 +129,8 @@ SaAisErrorT AmfAgent::Initialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg
     goto done;
   }
 
-  /* Initialize the ipc mailbox for the client for processing pending callbacks */
+  /* Initialize the ipc mailbox for the client for processing pending callbacks
+   */
   if (NCSCC_RC_SUCCESS != ava_callback_ipc_init(hdl_rec)) {
     rc = SA_AIS_ERR_LIBRARY;
     goto done;
@@ -140,8 +144,7 @@ SaAisErrorT AmfAgent::Initialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg
 
 done:
   /* free the hdl rec if there's some error */
-  if (hdl_rec && SA_AIS_OK != rc)
-    ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
+  if (hdl_rec && SA_AIS_OK != rc) ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
 
   /* release cb read lock and return handle */
   if (cb) {
@@ -159,24 +162,25 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfSelectionObjectGet
- 
-  Description   : This function creates & returns the operating system handle 
-		  associated with the AMF Handle.
- 
+  Name    : saAmfSelectionObjectGet
+
+  Description   : This function creates & returns the operating system handle
+                  associated with the AMF Handle.
+
   Arguments     : hdl       - AMF handle      - AMF handle
-		  o_sel_obj - ptr to the selection object
- 
+                  o_sel_obj - ptr to the selection object
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfSelectionObjectGet(SaAmfHandleT hdl, SaSelectionObjectT *o_sel_obj)
-{
-	return AmfAgent::SelectionObjectGet(hdl, o_sel_obj);
+SaAisErrorT saAmfSelectionObjectGet(SaAmfHandleT hdl,
+                                    SaSelectionObjectT *o_sel_obj) {
+  return AmfAgent::SelectionObjectGet(hdl, o_sel_obj);
 }
 
-SaAisErrorT AmfAgent::SelectionObjectGet(SaAmfHandleT hdl, SaSelectionObjectT *o_sel_obj) {
+SaAisErrorT AmfAgent::SelectionObjectGet(SaAmfHandleT hdl,
+                                         SaSelectionObjectT *o_sel_obj) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   SaAisErrorT rc = SA_AIS_OK;
@@ -189,8 +193,8 @@ SaAisErrorT AmfAgent::SelectionObjectGet(SaAmfHandleT hdl, SaSelectionObjectT *o
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -203,14 +207,14 @@ SaAisErrorT AmfAgent::SelectionObjectGet(SaAmfHandleT hdl, SaSelectionObjectT *o
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* everything's fine.. pass the sel obj to the appl */
-  *o_sel_obj = (SaSelectionObjectT)
-      m_GET_FD_FROM_SEL_OBJ(m_NCS_IPC_GET_SEL_OBJ(&hdl_rec->callbk_mbx));
+  *o_sel_obj = (SaSelectionObjectT)m_GET_FD_FROM_SEL_OBJ(
+      m_NCS_IPC_GET_SEL_OBJ(&hdl_rec->callbk_mbx));
 
 done:
   /* release cb read lock and return handles */
@@ -218,30 +222,28 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   TRACE_LEAVE2("rc:%u", rc);
   return rc;
 }
 
 /****************************************************************************
-  Name	  : saAmfDispatch
- 
+  Name    : saAmfDispatch
+
   Description   : This function invokes, in the context of the calling thread,
-		  the next pending callback for the AMF handle.
- 
+                  the next pending callback for the AMF handle.
+
   Arguments     : hdl   - AMF handle
-		  flags - flags that specify the callback execution behavior
-		  of the saAmfDispatch() function,
- 
+                  flags - flags that specify the callback execution behavior
+                  of the saAmfDispatch() function,
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfDispatch(SaAmfHandleT hdl, SaDispatchFlagsT flags)
-{
-	return AmfAgent::Dispatch(hdl, flags);
+SaAisErrorT saAmfDispatch(SaAmfHandleT hdl, SaDispatchFlagsT flags) {
+  return AmfAgent::Dispatch(hdl, flags);
 }
 
 SaAisErrorT AmfAgent::Dispatch(SaAmfHandleT hdl, SaDispatchFlagsT flags) {
@@ -258,8 +260,8 @@ SaAisErrorT AmfAgent::Dispatch(SaAmfHandleT hdl, SaDispatchFlagsT flags) {
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -272,7 +274,7 @@ SaAisErrorT AmfAgent::Dispatch(SaAmfHandleT hdl, SaDispatchFlagsT flags) {
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -295,8 +297,7 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* see if we are still in any dispact context */
   if (pend_dis == 0)
@@ -312,21 +313,18 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfFinalize
- 
-  Description   : This function closes the association, represented by the 
-		  AMF handle, between the invoking process and the AMF.
- 
+  Name    : saAmfFinalize
+
+  Description   : This function closes the association, represented by the
+                  AMF handle, between the invoking process and the AMF.
+
   Arguments     : hdl - AMF handle
- 
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfFinalize(SaAmfHandleT hdl)
-{
-	return AmfAgent::Finalize(hdl);
-}
+SaAisErrorT saAmfFinalize(SaAmfHandleT hdl) { return AmfAgent::Finalize(hdl); }
 
 SaAisErrorT AmfAgent::Finalize(SaAmfHandleT hdl) {
   AVA_CB *cb = 0;
@@ -334,12 +332,12 @@ SaAisErrorT AmfAgent::Finalize(SaAmfHandleT hdl) {
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
   SaAisErrorT rc = SA_AIS_OK;
-  bool agent_flag = false;	/* flag = false, we should not call agent shutdown */
+  bool agent_flag = false; /* flag = false, we should not call agent shutdown */
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -353,7 +351,7 @@ SaAisErrorT AmfAgent::Finalize(SaAmfHandleT hdl) {
   m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
 
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -375,8 +373,7 @@ SaAisErrorT AmfAgent::Finalize(SaAmfHandleT hdl) {
   if (NCSCC_RC_SUCCESS == rc) {
     ncshm_give_hdl(hdl);
     ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
-  }
-  else {
+  } else {
     rc = SA_AIS_ERR_TRY_AGAIN;
     goto done;
   }
@@ -393,8 +390,7 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request message */
   avsv_nda_ava_msg_content_free(&msg);
@@ -411,24 +407,26 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfComponentRegister
- 
+  Name    : saAmfComponentRegister
+
   Description   : This function registers the component with the AMF.
- 
-  Arguments     : hdl	     - AMF handle
-		  comp_name       - ptr to the comp name
-		  proxy_comp_name - ptr to the proxy comp name
- 
+
+  Arguments     : hdl        - AMF handle
+                  comp_name       - ptr to the comp name
+                  proxy_comp_name - ptr to the proxy comp name
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_name, const SaNameT *proxy_comp_name)
-{
-	return AmfAgent::ComponentRegister(hdl, comp_name, proxy_comp_name);
+SaAisErrorT saAmfComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_name,
+                                   const SaNameT *proxy_comp_name) {
+  return AmfAgent::ComponentRegister(hdl, comp_name, proxy_comp_name);
 }
 
-SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_name, const SaNameT *proxy_comp_name) {
+SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl,
+                                        const SaNameT *comp_name,
+                                        const SaNameT *proxy_comp_name) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -438,19 +436,20 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
-    (proxy_comp_name && !ava_sanamet_is_valid(proxy_comp_name))) {
+      (proxy_comp_name && !ava_sanamet_is_valid(proxy_comp_name))) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
   /* retrieve AvA CB */
-  if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl)) || !m_AVA_FLAG_IS_COMP_NAME(cb)) {
+  if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl)) ||
+      !m_AVA_FLAG_IS_COMP_NAME(cb)) {
     TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
     rc = SA_AIS_ERR_LIBRARY;
     goto done;
@@ -458,7 +457,7 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -467,8 +466,10 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
     SaConstStringT env_comp_name = getenv("SA_AMF_COMPONENT_NAME");
     if (env_comp_name) {
       if (strlen(env_comp_name) > kOsafMaxDnLength) {
-        TRACE_2("Length of SA_AMF_COMPONENT_NAME exceeds "
-            "kOsafMaxDnLength(%d) bytes", kOsafMaxDnLength);
+        TRACE_2(
+            "Length of SA_AMF_COMPONENT_NAME exceeds "
+            "kOsafMaxDnLength(%d) bytes",
+            kOsafMaxDnLength);
         rc = SA_AIS_ERR_INVALID_PARAM;
         goto done;
       } else {
@@ -482,36 +483,36 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
       goto done;
     }
   }
-  if (cb)
-    ncshm_give_hdl(gl_ava_hdl);
+  if (cb) ncshm_give_hdl(gl_ava_hdl);
 
   /* non-proxied, component Length part of component name should be OK */
   if (!proxy_comp_name && (osaf_extended_name_length(comp_name) !=
-            osaf_extended_name_length(&cb->comp_name))) {
+                           osaf_extended_name_length(&cb->comp_name))) {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
   /* proxy component, Length part of proxy component name should be Ok */
   if (proxy_comp_name && (osaf_extended_name_length(proxy_comp_name) !=
-            osaf_extended_name_length(&cb->comp_name))) {
+                          osaf_extended_name_length(&cb->comp_name))) {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
   /* non-proxied component should not forge its name while registering */
   if (!proxy_comp_name && strncmp(osaf_extended_name_borrow(comp_name),
-                  osaf_extended_name_borrow(&cb->comp_name),
-                  osaf_extended_name_length(comp_name))) {
+                                  osaf_extended_name_borrow(&cb->comp_name),
+                                  osaf_extended_name_length(comp_name))) {
     rc = SA_AIS_ERR_BAD_OPERATION;
     goto done;
   }
 
   /* proxy component should not forge its name while registering its proxied */
   if (proxy_comp_name && strncmp(osaf_extended_name_borrow(proxy_comp_name),
-                    osaf_extended_name_borrow(&cb->comp_name),
-                    osaf_extended_name_length(proxy_comp_name))) {
-    TRACE("proxy component should not forge its name while registering its proxied");
+                                 osaf_extended_name_borrow(&cb->comp_name),
+                                 osaf_extended_name_length(proxy_comp_name))) {
+    TRACE(
+        "proxy component should not forge its name while registering its proxied");
     rc = SA_AIS_ERR_BAD_OPERATION;
     goto done;
   }
@@ -523,21 +524,25 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
     goto done;
   }
 
-  /* For B.04.02 init, check OsafCsiAttributeChangeCallbackT was supplied during saAmfInitialize_o4 */
-  if ((cb->version.releaseCode == 'B') &&
-    (cb->version.majorVersion == 0x04) && (cb->version.minorVersion == 0x02) &&
-    (hdl_rec->reg_cbk.osafCsiAttributeChangeCallback == NULL)) {
-    TRACE("Required osafCsiAttributeChangeCallback was not specified in saAmfInitialize_o4");
+  /* For B.04.02 init, check OsafCsiAttributeChangeCallbackT was supplied during
+   * saAmfInitialize_o4 */
+  if ((cb->version.releaseCode == 'B') && (cb->version.majorVersion == 0x04) &&
+      (cb->version.minorVersion == 0x02) &&
+      (hdl_rec->reg_cbk.osafCsiAttributeChangeCallback == NULL)) {
+    TRACE(
+        "Required osafCsiAttributeChangeCallback was not specified in saAmfInitialize_o4");
     rc = SA_AIS_ERR_INIT;
     goto done;
   }
 
   /* populate & send the register message */
   if (proxy_comp_name)
-    osaf_extended_name_lend(osaf_extended_name_borrow(proxy_comp_name),  &pcomp_name);
+    osaf_extended_name_lend(osaf_extended_name_borrow(proxy_comp_name),
+                            &pcomp_name);
   else
     memset(&pcomp_name, 0, sizeof(SaNameT));
-  ava_fill_comp_reg_msg(&msg, cb->ava_dest, hdl, *comp_name, pcomp_name, &cb->version);
+  ava_fill_comp_reg_msg(&msg, cb->ava_dest, hdl, *comp_name, pcomp_name,
+                        &cb->version);
 
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
@@ -549,10 +554,11 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
   else if (NCSCC_RC_REQ_TIMOUT == rc)
     rc = SA_AIS_ERR_TIMEOUT;
 
-  /* TODO: msg_resp should include info regarding comp category.
-   * Then check supplied callbacks (different req depending on comp cat, check spec)
-   * during init and send SA_AIS_ERR_UNAIVALABLE if not the correct callbacks are supplied.
-   */
+/* TODO: msg_resp should include info regarding comp category.
+ * Then check supplied callbacks (different req depending on comp cat, check
+ * spec) during init and send SA_AIS_ERR_UNAIVALABLE if not the correct
+ * callbacks are supplied.
+ */
 
 done:
   /* release cb read lock and return handles */
@@ -560,12 +566,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -573,24 +577,26 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfComponentUnregister
- 
+  Name    : saAmfComponentUnregister
+
   Description   : This function unregisters the component with the AMF.
- 
-  Arguments     : hdl	     - AMF handle
-		  comp_name       - ptr to the comp name
-		  proxy_comp_name - ptr to the proxy comp name
- 
+
+  Arguments     : hdl        - AMF handle
+                  comp_name       - ptr to the comp name
+                  proxy_comp_name - ptr to the proxy comp name
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_name, const SaNameT *proxy_comp_name)
-{
-	return AmfAgent::ComponentUnregister(hdl, comp_name, proxy_comp_name);
+SaAisErrorT saAmfComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_name,
+                                     const SaNameT *proxy_comp_name) {
+  return AmfAgent::ComponentUnregister(hdl, comp_name, proxy_comp_name);
 }
 
-SaAisErrorT AmfAgent::ComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_name, const SaNameT *proxy_comp_name) {
+SaAisErrorT AmfAgent::ComponentUnregister(SaAmfHandleT hdl,
+                                          const SaNameT *comp_name,
+                                          const SaNameT *proxy_comp_name) {
   AVSV_NDA_AVA_MSG msg = {};
   AVSV_NDA_AVA_MSG *msg_rsp = 0;
   AVA_CB *cb = 0;
@@ -600,19 +606,20 @@ SaAisErrorT AmfAgent::ComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
-    (proxy_comp_name && !ava_sanamet_is_valid(proxy_comp_name))) {
+      (proxy_comp_name && !ava_sanamet_is_valid(proxy_comp_name))) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
   /* retrieve AvA CB */
-  if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl)) || !m_AVA_FLAG_IS_COMP_NAME(cb)) {
+  if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl)) ||
+      !m_AVA_FLAG_IS_COMP_NAME(cb)) {
     TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
     rc = SA_AIS_ERR_LIBRARY;
     goto done;
@@ -622,51 +629,54 @@ SaAisErrorT AmfAgent::ComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
   /* Version is previously set in in initialize function */
   if (ava_B4_ver_used(cb)) {
-	  TRACE_2("Invalid AMF version, B 4.1");
-	  rc = SA_AIS_ERR_VERSION;
-	  goto done;
+    TRACE_2("Invalid AMF version, B 4.1");
+    rc = SA_AIS_ERR_VERSION;
+    goto done;
   }
 
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* non-proxied, component Length part of component name should be OK */
   if (!proxy_comp_name && (osaf_extended_name_length(comp_name) !=
-            osaf_extended_name_length(&cb->comp_name))) {
+                           osaf_extended_name_length(&cb->comp_name))) {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
   /* proxy component, Length part of proxy component name should be Ok */
   if (proxy_comp_name && (osaf_extended_name_length(proxy_comp_name) !=
-            osaf_extended_name_length(&cb->comp_name))) {
+                          osaf_extended_name_length(&cb->comp_name))) {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
   /* non-proxied component should not forge its name while registering */
   if (!proxy_comp_name && strncmp(osaf_extended_name_borrow(comp_name),
-                  osaf_extended_name_borrow(&cb->comp_name),
-                  osaf_extended_name_length(comp_name))) {
-    TRACE("non-proxied component should not forge its name while unregistering");
+                                  osaf_extended_name_borrow(&cb->comp_name),
+                                  osaf_extended_name_length(comp_name))) {
+    TRACE(
+        "non-proxied component should not forge its name while unregistering");
     rc = SA_AIS_ERR_BAD_OPERATION;
     goto done;
   }
 
   /* proxy component should not forge its name while unregistering proxied */
   if (proxy_comp_name && strncmp(osaf_extended_name_borrow(proxy_comp_name),
-                    osaf_extended_name_borrow(&cb->comp_name),
-                    osaf_extended_name_length(proxy_comp_name))) {
-    TRACE("proxy component should not forge its name while unregistering proxied");
+                                 osaf_extended_name_borrow(&cb->comp_name),
+                                 osaf_extended_name_length(proxy_comp_name))) {
+    TRACE(
+        "proxy component should not forge its name while unregistering proxied");
     rc = SA_AIS_ERR_BAD_OPERATION;
     goto done;
   }
 
   /* populate & send the unregister message */
   if (proxy_comp_name)
-    osaf_extended_name_lend(osaf_extended_name_borrow(proxy_comp_name),  &pcomp_name);
+    osaf_extended_name_lend(osaf_extended_name_borrow(proxy_comp_name),
+                            &pcomp_name);
   else
     memset(&pcomp_name, 0, sizeof(SaNameT));
   ava_fill_comp_unreg_msg(&msg, cb->ava_dest, hdl, *comp_name, pcomp_name);
@@ -686,12 +696,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -699,36 +707,35 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfHealthcheckStart
- 
-  Description   : This function allows a process (as part of a comp) to start
-		  a specific configured healthcheck.
- 
-  Arguments     : hdl	 - AMF handle
-		  comp_name   - ptr to the comp name
-		  hc_key      - ptr to the healthcheck type
-		  inv	 - indicates whether the healthcheck is
-				AMF initiated / comp initiated
-		  rec_rcvr    - recommended recovery
+  Name    : saAmfHealthcheckStart
 
- 
+  Description   : This function allows a process (as part of a comp) to start
+                  a specific configured healthcheck.
+
+  Arguments     : hdl    - AMF handle
+                  comp_name   - ptr to the comp name
+                  hc_key      - ptr to the healthcheck type
+                  inv    - indicates whether the healthcheck is
+                                AMF initiated / comp initiated
+                  rec_rcvr    - recommended recovery
+
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfHealthcheckStart(SaAmfHandleT hdl,
-				  const SaNameT *comp_name,
-				  const SaAmfHealthcheckKeyT *hc_key,
-				  SaAmfHealthcheckInvocationT inv, SaAmfRecommendedRecoveryT rec_rcvr)
-{
-	return AmfAgent::HealthcheckStart(hdl, comp_name, hc_key, inv, rec_rcvr);
+SaAisErrorT saAmfHealthcheckStart(SaAmfHandleT hdl, const SaNameT *comp_name,
+                                  const SaAmfHealthcheckKeyT *hc_key,
+                                  SaAmfHealthcheckInvocationT inv,
+                                  SaAmfRecommendedRecoveryT rec_rcvr) {
+  return AmfAgent::HealthcheckStart(hdl, comp_name, hc_key, inv, rec_rcvr);
 }
 
 SaAisErrorT AmfAgent::HealthcheckStart(SaAmfHandleT hdl,
                                        const SaNameT *comp_name,
                                        const SaAmfHealthcheckKeyT *hc_key,
-                                       SaAmfHealthcheckInvocationT inv, SaAmfRecommendedRecoveryT rec_rcvr) {
-
+                                       SaAmfHealthcheckInvocationT inv,
+                                       SaAmfRecommendedRecoveryT rec_rcvr) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -737,20 +744,22 @@ SaAisErrorT AmfAgent::HealthcheckStart(SaAmfHandleT hdl,
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   /* verify input inv  */
-  if((SA_AMF_HEALTHCHECK_AMF_INVOKED != inv) && (SA_AMF_HEALTHCHECK_COMPONENT_INVOKED != inv)) {
-    TRACE_LEAVE2("Incorrect argument specified for SaAmfHealthcheckInvocationT");
+  if ((SA_AMF_HEALTHCHECK_AMF_INVOKED != inv) &&
+      (SA_AMF_HEALTHCHECK_COMPONENT_INVOKED != inv)) {
+    TRACE_LEAVE2(
+        "Incorrect argument specified for SaAmfHealthcheckInvocationT");
     return SA_AIS_ERR_INVALID_PARAM;
   }
 
-  if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
-      !hc_key || !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX)) {
+  if (!comp_name || !ava_sanamet_is_valid(comp_name) || !hc_key ||
+      !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX)) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -763,36 +772,42 @@ SaAisErrorT AmfAgent::HealthcheckStart(SaAmfHandleT hdl,
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* input validation of Recomended recovery */
-  if(ava_B4_ver_used(cb)) {
-    if (rec_rcvr < SA_AMF_NO_RECOMMENDATION || rec_rcvr > SA_AMF_CONTAINER_RESTART) {
-      TRACE_LEAVE2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
-      rc =  SA_AIS_ERR_ACCESS;
+  if (ava_B4_ver_used(cb)) {
+    if (rec_rcvr < SA_AMF_NO_RECOMMENDATION ||
+        rec_rcvr > SA_AMF_CONTAINER_RESTART) {
+      TRACE_LEAVE2(
+          "Incorrect argument specified for SaAmfRecommendedRecoveryT");
+      rc = SA_AIS_ERR_ACCESS;
       goto done;
     }
-  }
-  else {
-    if (rec_rcvr < SA_AMF_NO_RECOMMENDATION || rec_rcvr > SA_AMF_CLUSTER_RESET) {
-      TRACE_LEAVE2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
-      rc =  SA_AIS_ERR_INVALID_PARAM;
+  } else {
+    if (rec_rcvr < SA_AMF_NO_RECOMMENDATION ||
+        rec_rcvr > SA_AMF_CLUSTER_RESET) {
+      TRACE_LEAVE2(
+          "Incorrect argument specified for SaAmfRecommendedRecoveryT");
+      rc = SA_AIS_ERR_INVALID_PARAM;
       goto done;
     }
   }
 
-  /* check if hc cbk was supplied during saAmfInitialize (for AMF invoked healthcheck) */
-  if ((SA_AMF_HEALTHCHECK_AMF_INVOKED == inv) && (!m_AVA_HDL_IS_HC_CBK_PRESENT(hdl_rec))) {
+  /* check if hc cbk was supplied during saAmfInitialize (for AMF invoked
+   * healthcheck) */
+  if ((SA_AMF_HEALTHCHECK_AMF_INVOKED == inv) &&
+      (!m_AVA_HDL_IS_HC_CBK_PRESENT(hdl_rec))) {
     rc = SA_AIS_ERR_INIT;
     TRACE("Required callbacks are not registered during saAmfInitialize");
     goto done;
   }
 
   /* populate & send the healthcheck start message */
-  ava_fill_hc_start_msg(&msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key, inv, rec_rcvr);
+  ava_fill_hc_start_msg(&msg, cb->ava_dest, hdl, *comp_name, cb->comp_name,
+                        *hc_key, inv, rec_rcvr);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -809,12 +824,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -822,25 +835,27 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfHealthcheckStop
- 
+  Name    : saAmfHealthcheckStop
+
   Description   : This function allows a process to stop an already started
-		  healthcheck.
- 
+                  healthcheck.
+
   Arguments     : hdl       - AMF handle
-		  comp_name - ptr to the comp name
-		  hc_key    - ptr to the healthcheck type
- 
+                  comp_name - ptr to the comp name
+                  hc_key    - ptr to the healthcheck type
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfHealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name, const SaAmfHealthcheckKeyT *hc_key)
-{
-	return AmfAgent::HealthcheckStop(hdl, comp_name, hc_key);
+SaAisErrorT saAmfHealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name,
+                                 const SaAmfHealthcheckKeyT *hc_key) {
+  return AmfAgent::HealthcheckStop(hdl, comp_name, hc_key);
 }
 
-SaAisErrorT AmfAgent::HealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name, const SaAmfHealthcheckKeyT *hc_key) {
+SaAisErrorT AmfAgent::HealthcheckStop(SaAmfHandleT hdl,
+                                      const SaNameT *comp_name,
+                                      const SaAmfHealthcheckKeyT *hc_key) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -848,15 +863,15 @@ SaAisErrorT AmfAgent::HealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
-      !hc_key || !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX)) {
+  if (!comp_name || !ava_sanamet_is_valid(comp_name) || !hc_key ||
+      !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX)) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -868,14 +883,15 @@ SaAisErrorT AmfAgent::HealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name
   }
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
-    /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  /* retrieve hdl rec */
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* populate & send the healthcheck stop message */
-  ava_fill_hc_stop_msg(&msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key);
+  ava_fill_hc_stop_msg(&msg, cb->ava_dest, hdl, *comp_name, cb->comp_name,
+                       *hc_key);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -892,12 +908,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -905,30 +919,30 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfHealthcheckConfirm
- 
-  Description   : This function allows a process (as part of a component) to 
-		  inform the AMF that it has performed the healthcheck.
- 
-  Arguments     : hdl       - AMF handle
-		  comp_name - ptr to the comp name
-		  hc_key    - ptr to the healthcheck type
-		  hc_result - healthcheck result
- 
-  Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
-******************************************************************************/
-SaAisErrorT saAmfHealthcheckConfirm(SaAmfHandleT hdl,
-				    const SaNameT *comp_name, const SaAmfHealthcheckKeyT *hc_key, SaAisErrorT hc_result)
-{
-	return AmfAgent::HealthcheckConfirm(hdl, comp_name, hc_key, hc_result);
+  Name    : saAmfHealthcheckConfirm
 
+  Description   : This function allows a process (as part of a component) to
+                  inform the AMF that it has performed the healthcheck.
+
+  Arguments     : hdl       - AMF handle
+                  comp_name - ptr to the comp name
+                  hc_key    - ptr to the healthcheck type
+                  hc_result - healthcheck result
+
+  Return Values : Refer to SAI-AIS specification for various return values.
+
+  Notes  : None.
+******************************************************************************/
+SaAisErrorT saAmfHealthcheckConfirm(SaAmfHandleT hdl, const SaNameT *comp_name,
+                                    const SaAmfHealthcheckKeyT *hc_key,
+                                    SaAisErrorT hc_result) {
+  return AmfAgent::HealthcheckConfirm(hdl, comp_name, hc_key, hc_result);
 }
 
 SaAisErrorT AmfAgent::HealthcheckConfirm(SaAmfHandleT hdl,
-                                         const SaNameT *comp_name, const SaAmfHealthcheckKeyT *hc_key, SaAisErrorT hc_result) {
-
+                                         const SaNameT *comp_name,
+                                         const SaAmfHealthcheckKeyT *hc_key,
+                                         SaAisErrorT hc_result) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -936,16 +950,16 @@ SaAisErrorT AmfAgent::HealthcheckConfirm(SaAmfHandleT hdl,
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
-      !hc_key || !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX) ||
+  if (!comp_name || !ava_sanamet_is_valid(comp_name) || !hc_key ||
+      !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX) ||
       !m_AVA_AMF_RESP_ERR_CODE_IS_VALID(hc_result)) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -958,13 +972,14 @@ SaAisErrorT AmfAgent::HealthcheckConfirm(SaAmfHandleT hdl,
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* populate & send the healthcheck confirm message */
-  ava_fill_hc_confirm_msg(&msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key, hc_result);
+  ava_fill_hc_confirm_msg(&msg, cb->ava_dest, hdl, *comp_name, cb->comp_name,
+                          *hc_key, hc_result);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -981,12 +996,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -994,36 +1007,35 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfPmStart
- 
-  Description   : This function allows a process (as part of a comp) to start
-		  Passive Monitoring.
- 
-  Arguments     : hdl	    - AMF handle
-		  comp_name      - ptr to the comp name
-		  processId      - Identifier of a process to be monitored 
-		  desc_TreeDepth - Depth of the tree of descendents of the process
-		  pmErr	  - Specifies the type of process errors to monitor
-		  rec_Recovery   - recommended recovery
+  Name    : saAmfPmStart
 
- 
+  Description   : This function allows a process (as part of a comp) to start
+                  Passive Monitoring.
+
+  Arguments     : hdl       - AMF handle
+                  comp_name      - ptr to the comp name
+                  processId      - Identifier of a process to be monitored
+                  desc_TreeDepth - Depth of the tree of descendents of the
+process pmErr   - Specifies the type of process errors to monitor rec_Recovery
+- recommended recovery
+
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfPmStart(SaAmfHandleT hdl,
-			 const SaNameT *comp_name,
-			 SaUint64T processId,
-			 SaInt32T desc_TreeDepth, SaAmfPmErrorsT pmErr, SaAmfRecommendedRecoveryT rec_Recovery)
-{
-	return AmfAgent::PmStart(hdl, comp_name, processId, desc_TreeDepth, pmErr, rec_Recovery);
+SaAisErrorT saAmfPmStart(SaAmfHandleT hdl, const SaNameT *comp_name,
+                         SaUint64T processId, SaInt32T desc_TreeDepth,
+                         SaAmfPmErrorsT pmErr,
+                         SaAmfRecommendedRecoveryT rec_Recovery) {
+  return AmfAgent::PmStart(hdl, comp_name, processId, desc_TreeDepth, pmErr,
+                           rec_Recovery);
 }
 
-SaAisErrorT AmfAgent::PmStart(SaAmfHandleT hdl,
-                              const SaNameT *comp_name,
-                              SaUint64T processId,
-                              SaInt32T desc_TreeDepth, SaAmfPmErrorsT pmErr, SaAmfRecommendedRecoveryT rec_Recovery) {
-
+SaAisErrorT AmfAgent::PmStart(SaAmfHandleT hdl, const SaNameT *comp_name,
+                              SaUint64T processId, SaInt32T desc_TreeDepth,
+                              SaAmfPmErrorsT pmErr,
+                              SaAmfRecommendedRecoveryT rec_Recovery) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -1049,7 +1061,8 @@ SaAisErrorT AmfAgent::PmStart(SaAmfHandleT hdl,
     if ((pmErr == SA_AMF_PM_ABNORMAL_END) ||
         (pmErr == (SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END)) ||
         (pmErr == (SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END)) ||
-        (pmErr == (SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END))) {
+        (pmErr == (SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT |
+                   SA_AMF_PM_ABNORMAL_END))) {
       TRACE_LEAVE2("Unsupported argument specified for SaAmfPmErrorsT ");
       return SA_AIS_ERR_NOT_SUPPORTED;
     } else {
@@ -1059,7 +1072,8 @@ SaAisErrorT AmfAgent::PmStart(SaAmfHandleT hdl,
   }
 
   /* input validation of Recomended recovery */
-  if (rec_Recovery < SA_AMF_NO_RECOMMENDATION || rec_Recovery > SA_AMF_CONTAINER_RESTART) {
+  if (rec_Recovery < SA_AMF_NO_RECOMMENDATION ||
+      rec_Recovery > SA_AMF_CONTAINER_RESTART) {
     TRACE_LEAVE2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -1071,8 +1085,8 @@ SaAisErrorT AmfAgent::PmStart(SaAmfHandleT hdl,
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1085,13 +1099,14 @@ SaAisErrorT AmfAgent::PmStart(SaAmfHandleT hdl,
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* populate & send the passive monitor start message */
-  ava_fill_pm_start_msg(&msg, cb->ava_dest, hdl, *comp_name, processId, desc_TreeDepth, pmErr, rec_Recovery);
+  ava_fill_pm_start_msg(&msg, cb->ava_dest, hdl, *comp_name, processId,
+                        desc_TreeDepth, pmErr, rec_Recovery);
 
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
@@ -1109,12 +1124,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -1122,33 +1135,31 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfPmStop
- 
+  Name    : saAmfPmStop
+
   Description   : This function allows a process to stop an already started
-		  passive monitor.
- 
-  Arguments     : hdl	- AMF handle
-		  comp_name  - ptr to the comp name
-		  stopQual   - Qualifies which processes should stop being monitored 
-		  processId  - Identifier of a process to be monitored
-		  pmErr      - type of process errors that the Availability 
-				  Management Framework should stop monitoring
+                  passive monitor.
+
+  Arguments     : hdl   - AMF handle
+                  comp_name  - ptr to the comp name
+                  stopQual   - Qualifies which processes should stop being
+monitored processId  - Identifier of a process to be monitored pmErr      - type
+of process errors that the Availability Management Framework should stop
+monitoring
 
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfPmStop(SaAmfHandleT hdl,
-			const SaNameT *comp_name,
-			SaAmfPmStopQualifierT stopQual, SaInt64T processId, SaAmfPmErrorsT pmErr)
-{
-	return AmfAgent::PmStop(hdl, comp_name, stopQual, processId, pmErr);
+SaAisErrorT saAmfPmStop(SaAmfHandleT hdl, const SaNameT *comp_name,
+                        SaAmfPmStopQualifierT stopQual, SaInt64T processId,
+                        SaAmfPmErrorsT pmErr) {
+  return AmfAgent::PmStop(hdl, comp_name, stopQual, processId, pmErr);
 }
 
-SaAisErrorT AmfAgent::PmStop(SaAmfHandleT hdl,
-                             const SaNameT *comp_name,
-                             SaAmfPmStopQualifierT stopQual, SaInt64T processId, SaAmfPmErrorsT pmErr) {
-
+SaAisErrorT AmfAgent::PmStop(SaAmfHandleT hdl, const SaNameT *comp_name,
+                             SaAmfPmStopQualifierT stopQual, SaInt64T processId,
+                             SaAmfPmErrorsT pmErr) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -1163,8 +1174,9 @@ SaAisErrorT AmfAgent::PmStop(SaAmfHandleT hdl,
   }
 
   /* input validation of StopQualifier */
-  if (stopQual != SA_AMF_PM_PROC && stopQual != SA_AMF_PM_PROC_AND_DESCENDENTS
-      && stopQual != SA_AMF_PM_ALL_PROCESSES) {
+  if (stopQual != SA_AMF_PM_PROC &&
+      stopQual != SA_AMF_PM_PROC_AND_DESCENDENTS &&
+      stopQual != SA_AMF_PM_ALL_PROCESSES) {
     TRACE_LEAVE2("Incorrect argument specified for SaAmfPmStopQualifierT");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -1175,7 +1187,8 @@ SaAisErrorT AmfAgent::PmStop(SaAmfHandleT hdl,
     if ((pmErr == SA_AMF_PM_ABNORMAL_END) ||
         (pmErr == (SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END)) ||
         (pmErr == (SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END)) ||
-        (pmErr == (SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END))) {
+        (pmErr == (SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT |
+                   SA_AMF_PM_ABNORMAL_END))) {
       TRACE_LEAVE2("Unsupported argument specified for SaAmfPmErrorsT ");
       return SA_AIS_ERR_NOT_SUPPORTED;
     } else {
@@ -1191,8 +1204,8 @@ SaAisErrorT AmfAgent::PmStop(SaAmfHandleT hdl,
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1204,14 +1217,15 @@ SaAisErrorT AmfAgent::PmStop(SaAmfHandleT hdl,
   }
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
-    /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  /* retrieve hdl rec */
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* populate & send the Passive Monitoring stop message */
-  ava_fill_pm_stop_msg(&msg, cb->ava_dest, hdl, *comp_name, stopQual, processId, pmErr);
+  ava_fill_pm_stop_msg(&msg, cb->ava_dest, hdl, *comp_name, stopQual, processId,
+                       pmErr);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -1228,12 +1242,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -1241,21 +1253,20 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfComponentNameGet
- 
+  Name    : saAmfComponentNameGet
+
   Description   : This function returns the name of the component to which the
-		  process belongs.
- 
-  Arguments     : hdl	 - AMF handle
-		  o_comp_name - ptr to the comp name
- 
+                  process belongs.
+
+  Arguments     : hdl    - AMF handle
+                  o_comp_name - ptr to the comp name
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name)
-{
-	return AmfAgent::ComponentNameGet(hdl, o_comp_name);
+SaAisErrorT saAmfComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name) {
+  return AmfAgent::ComponentNameGet(hdl, o_comp_name);
 }
 
 SaAisErrorT AmfAgent::ComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name) {
@@ -1270,8 +1281,8 @@ SaAisErrorT AmfAgent::ComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name) {
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1284,7 +1295,7 @@ SaAisErrorT AmfAgent::ComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name) {
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1293,7 +1304,7 @@ SaAisErrorT AmfAgent::ComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name) {
   if (m_AVA_FLAG_IS_COMP_NAME(cb)) {
     /* reuse longDn in @cb->comp_name if any */
     osaf_extended_name_lend(osaf_extended_name_borrow(&cb->comp_name),
-              o_comp_name);
+                            o_comp_name);
   } else {
     TRACE_2("component name does not exist");
     rc = SA_AIS_ERR_NOT_EXIST;
@@ -1305,34 +1316,34 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   TRACE_LEAVE2("rc:%u", rc);
   return rc;
 }
 
 /****************************************************************************
-  Name	  : saAmfCSIQuiescingComplete
- 
+  Name    : saAmfCSIQuiescingComplete
+
   Description   : This functions allows a component to inform the AMF that it
-		  has successfully completed its ongoing work and is now idle.
- 
+                  has successfully completed its ongoing work and is now idle.
+
   Arguments     : hdl   - AMF handle
-		  inv   - invocation value (used to match the corresponding 
-			  callback)
-		  error - status of the operation
- 
+                  inv   - invocation value (used to match the corresponding
+                          callback)
+                  error - status of the operation
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfCSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT error)
-{
-	return AmfAgent::CSIQuiescingComplete(hdl, inv, error);
+SaAisErrorT saAmfCSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv,
+                                      SaAisErrorT error) {
+  return AmfAgent::CSIQuiescingComplete(hdl, inv, error);
 }
 
-SaAisErrorT AmfAgent::CSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT error) {
+SaAisErrorT AmfAgent::CSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv,
+                                           SaAisErrorT error) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -1347,13 +1358,14 @@ SaAisErrorT AmfAgent::CSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, 
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
   /* retrieve AvA CB */
-  if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl)) || !m_AVA_FLAG_IS_COMP_NAME(cb)) {
+  if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl)) ||
+      !m_AVA_FLAG_IS_COMP_NAME(cb)) {
     TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
     rc = SA_AIS_ERR_LIBRARY;
     goto done;
@@ -1361,7 +1373,7 @@ SaAisErrorT AmfAgent::CSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, 
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1378,7 +1390,7 @@ SaAisErrorT AmfAgent::CSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, 
   m_AVA_HDL_PEND_RESP_GET(list_resp, rec, inv);
   if (!rec) {
     TRACE_2("Pending Response record not found");
-    if(ava_B4_ver_used(cb))
+    if (ava_B4_ver_used(cb))
       rc = SA_AIS_ERR_NOT_EXIST;
     else
       rc = SA_AIS_ERR_INVALID_PARAM;
@@ -1387,20 +1399,23 @@ SaAisErrorT AmfAgent::CSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, 
   }
 
   /* This API should only be called after a quiescing callback from AMF */
-  if (rec->cbk_info->type != AVSV_AMF_CSI_SET || rec->cbk_info->param.csi_set.ha != SA_AMF_HA_QUIESCING) {
-    TRACE_2("This API should only be called after a quiescing callback from AMF");
+  if (rec->cbk_info->type != AVSV_AMF_CSI_SET ||
+      rec->cbk_info->param.csi_set.ha != SA_AMF_HA_QUIESCING) {
+    TRACE_2(
+        "This API should only be called after a quiescing callback from AMF");
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
   /* populate & send the 'Quiescing Complete' message */
-  ava_fill_csi_quiescing_complete_msg(&msg, cb->ava_dest, hdl, inv, error, cb->comp_name);
+  ava_fill_csi_quiescing_complete_msg(&msg, cb->ava_dest, hdl, inv, error,
+                                      cb->comp_name);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, 0));
-  if (NCSCC_RC_SUCCESS != rc)
-    rc = SA_AIS_ERR_TRY_AGAIN;
+  if (NCSCC_RC_SUCCESS != rc) rc = SA_AIS_ERR_TRY_AGAIN;
 
   /* if we are done with this rec, free it */
-  if ((rec->cbk_info->type == AVSV_AMF_CSI_SET) && !m_AVA_HDL_IS_CBK_REC_IN_DISPATCH(rec)) {
+  if ((rec->cbk_info->type == AVSV_AMF_CSI_SET) &&
+      !m_AVA_HDL_IS_CBK_REC_IN_DISPATCH(rec)) {
     m_AVA_HDL_PEND_RESP_POP(list_resp, rec, inv);
     ava_hdl_cbk_rec_del(rec);
   } else {
@@ -1413,8 +1428,7 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the message */
   avsv_nda_ava_msg_content_free(&msg);
@@ -1424,26 +1438,27 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfHAStateGet
- 
-  Description   : This function returns the HA state of the CSI assigned to 
-		  the component.
- 
+  Name    : saAmfHAStateGet
+
+  Description   : This function returns the HA state of the CSI assigned to
+                  the component.
+
   Arguments     : hdl       - AMF handle
-		  comp_name - ptr to the comp name
-		  csi_name  - ptr to the CSI name
-		  o_ha      - ptr to the CSI HA state
- 
+                  comp_name - ptr to the comp name
+                  csi_name  - ptr to the CSI name
+                  o_ha      - ptr to the CSI HA state
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfHAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, const SaNameT *csi_name, SaAmfHAStateT *o_ha)
-{
-	return AmfAgent::HAStateGet(hdl, comp_name, csi_name, o_ha);
+SaAisErrorT saAmfHAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name,
+                            const SaNameT *csi_name, SaAmfHAStateT *o_ha) {
+  return AmfAgent::HAStateGet(hdl, comp_name, csi_name, o_ha);
 }
 
-SaAisErrorT AmfAgent::HAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, const SaNameT *csi_name, SaAmfHAStateT *o_ha) {
+SaAisErrorT AmfAgent::HAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name,
+                                 const SaNameT *csi_name, SaAmfHAStateT *o_ha) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -1451,15 +1466,15 @@ SaAisErrorT AmfAgent::HAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, con
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
-      !csi_name || !ava_sanamet_is_valid(csi_name) || !o_ha) {
+  if (!comp_name || !ava_sanamet_is_valid(comp_name) || !csi_name ||
+      !ava_sanamet_is_valid(csi_name) || !o_ha) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1471,8 +1486,8 @@ SaAisErrorT AmfAgent::HAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, con
   }
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
-    /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  /* retrieve hdl rec */
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1490,8 +1505,7 @@ SaAisErrorT AmfAgent::HAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, con
     rc = SA_AIS_ERR_TIMEOUT;
 
   /* return the ha state */
-  if (SA_AIS_OK == rc)
-    *o_ha = msg_rsp->info.api_resp_info.param.ha_get.ha;
+  if (SA_AIS_OK == rc) *o_ha = msg_rsp->info.api_resp_info.param.ha_get.ha;
 
 done:
   /* release cb read lock and return handles */
@@ -1499,12 +1513,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -1512,34 +1524,32 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfProtectionGroupTrack
- 
+  Name    : saAmfProtectionGroupTrack
+
   Description   : This fuction requests the AMF to start tracking the changes
-		  in the PG associated with the specified CSI.
- 
+                  in the PG associated with the specified CSI.
+
   Arguments     : hdl       - AMF handle
-		  csi_name  - ptr to the CSI name
-		  flags     - flag that determines when the PG callback is 
-			      called
-		  buf       - ptr to the linear buffer provided by the 
-			      application
-		  num       - buffer size
- 
+                  csi_name  - ptr to the CSI name
+                  flags     - flag that determines when the PG callback is
+                              called
+                  buf       - ptr to the linear buffer provided by the
+                              application
+                  num       - buffer size
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
-				      const SaNameT *csi_name,
-				      SaUint8T flags, SaAmfProtectionGroupNotificationBufferT *buf)
-{
-	return AmfAgent::ProtectionGroupTrack(hdl, csi_name, flags, buf);
+SaAisErrorT saAmfProtectionGroupTrack(
+    SaAmfHandleT hdl, const SaNameT *csi_name, SaUint8T flags,
+    SaAmfProtectionGroupNotificationBufferT *buf) {
+  return AmfAgent::ProtectionGroupTrack(hdl, csi_name, flags, buf);
 }
 
-SaAisErrorT AmfAgent::ProtectionGroupTrack(SaAmfHandleT hdl,
-                                           const SaNameT *csi_name,
-                                           SaUint8T flags, SaAmfProtectionGroupNotificationBufferT *buf) {
-
+SaAisErrorT AmfAgent::ProtectionGroupTrack(
+    SaAmfHandleT hdl, const SaNameT *csi_name, SaUint8T flags,
+    SaAmfProtectionGroupNotificationBufferT *buf) {
   SaAmfProtectionGroupNotificationBufferT *rsp_buf = 0;
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
@@ -1560,8 +1570,8 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack(SaAmfHandleT hdl,
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1574,18 +1584,20 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack(SaAmfHandleT hdl,
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
-  /* check if pg cbk was supplied during saAmfInitialize (for change-only & change track) 
-     and
-     check if track flag is TRACK_CURRENT and neither buffer nor callback is provided */
+  /* check if pg cbk was supplied during saAmfInitialize (for change-only &
+     change track) and check if track flag is TRACK_CURRENT and neither buffer
+     nor callback is provided */
   if ((((flags & SA_TRACK_CHANGES) || (flags & SA_TRACK_CHANGES_ONLY)) &&
        (!m_AVA_HDL_IS_PG_CBK_PRESENT(hdl_rec))) ||
-      ((flags & SA_TRACK_CURRENT) && (!buf) && (!m_AVA_HDL_IS_PG_CBK_PRESENT(hdl_rec)))) {
-    TRACE_2("PG tracking callback for CHANGES-ONLY and CHANGES was not registered during saAmfInitialize");
+      ((flags & SA_TRACK_CURRENT) && (!buf) &&
+       (!m_AVA_HDL_IS_PG_CBK_PRESENT(hdl_rec)))) {
+    TRACE_2(
+        "PG tracking callback for CHANGES-ONLY and CHANGES was not registered during saAmfInitialize");
     rc = SA_AIS_ERR_INIT;
     goto done;
   }
@@ -1593,7 +1605,8 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack(SaAmfHandleT hdl,
   /* validate the notify buffer */
   if ((flags & SA_TRACK_CURRENT) && buf && buf->notification) {
     if (!buf->numberOfItems) {
-      TRACE_2("numberOfItems should not be zero when passing non NULL notification");
+      TRACE_2(
+          "numberOfItems should not be zero when passing non NULL notification");
       rc = SA_AIS_ERR_INVALID_PARAM;
       goto done;
     }
@@ -1603,10 +1616,10 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack(SaAmfHandleT hdl,
   /* Check whether we have to allocate the memory */
   if ((flags & SA_TRACK_CURRENT) && buf) {
     if (buf->notification == NULL) {
-      /* This means that we have to allocate the memory. In this case we will ignore buf->numberOfItems */
+      /* This means that we have to allocate the memory. In this case we will
+       * ignore buf->numberOfItems */
       is_syn = true;
       create_memory = true;
-
     }
   }
 
@@ -1621,8 +1634,7 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack(SaAmfHandleT hdl,
 
       /* get the err code */
       rc = msg_rsp->info.cbk_info->param.pg_track.err;
-      if (SA_AIS_OK != rc)
-        goto done;
+      if (SA_AIS_OK != rc) goto done;
 
       /* get the notify buffer from the resp msg */
       rsp_buf = &msg_rsp->info.cbk_info->param.pg_track.buf;
@@ -1631,39 +1643,42 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack(SaAmfHandleT hdl,
         if (rsp_buf->numberOfItems <= buf->numberOfItems) {
           /* user supplied buffer is sufficient.. copy all the members */
           memcpy(buf->notification, rsp_buf->notification,
-                 rsp_buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
+                 rsp_buf->numberOfItems *
+                     sizeof(SaAmfProtectionGroupNotificationT));
           buf->numberOfItems = rsp_buf->numberOfItems;
 
         } else {
           /* user supplied buffer isnt sufficient.. copy whatever is possible */
-          memcpy(buf->notification, rsp_buf->notification,
-                 buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
+          memcpy(
+              buf->notification, rsp_buf->notification,
+              buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
           rc = SA_AIS_ERR_NO_SPACE;
           buf->numberOfItems = rsp_buf->numberOfItems;
-
         }
-      } else {	/* if(create_memory == false) */
+      } else { /* if(create_memory == false) */
 
-        /* create_momory is true, so let us create the memory for the Use, User has to free it. */
+        /* create_momory is true, so let us create the memory for the Use, User
+         * has to free it. */
         buf->numberOfItems = rsp_buf->numberOfItems;
         if (buf->numberOfItems != 0) {
-          buf->notification =
-              static_cast<SaAmfProtectionGroupNotificationT*>(malloc(buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT)));
+          buf->notification = static_cast<SaAmfProtectionGroupNotificationT *>(
+              malloc(buf->numberOfItems *
+                     sizeof(SaAmfProtectionGroupNotificationT)));
           if (buf->notification != NULL) {
-            memcpy(buf->notification, rsp_buf->notification,
-                   buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
+            memcpy(
+                buf->notification, rsp_buf->notification,
+                buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
 
           } else {
             rc = SA_AIS_ERR_NO_MEMORY;
             buf->numberOfItems = 0;
           }
-        } else {	/* if(buf->numberOfItems != 0) */
+        } else { /* if(buf->numberOfItems != 0) */
 
           /* buf->numberOfItems is zero. Nothing to be done. */
-
         }
 
-      }	/* else of if(create_memory == false) */
+      } /* else of if(create_memory == false) */
     } else {
       /* => it's a regular resp msg */
       osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -1681,12 +1696,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -1694,24 +1707,25 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfProtectionGroupTrackStop
- 
+  Name    : saAmfProtectionGroupTrackStop
+
   Description   : This fuction requests the AMF to stop tracking the changes
-		  in the PG associated with the CSI.
- 
+                  in the PG associated with the CSI.
+
   Arguments     : hdl       - AMF handle
-		  csi_name  - ptr to the CSI name
- 
+                  csi_name  - ptr to the CSI name
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfProtectionGroupTrackStop(SaAmfHandleT hdl, const SaNameT *csi_name)
-{
-	return AmfAgent::ProtectionGroupTrackStop(hdl, csi_name);
+SaAisErrorT saAmfProtectionGroupTrackStop(SaAmfHandleT hdl,
+                                          const SaNameT *csi_name) {
+  return AmfAgent::ProtectionGroupTrackStop(hdl, csi_name);
 }
 
-SaAisErrorT AmfAgent::ProtectionGroupTrackStop(SaAmfHandleT hdl, const SaNameT *csi_name) {
+SaAisErrorT AmfAgent::ProtectionGroupTrackStop(SaAmfHandleT hdl,
+                                               const SaNameT *csi_name) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -1725,8 +1739,8 @@ SaAisErrorT AmfAgent::ProtectionGroupTrackStop(SaAmfHandleT hdl, const SaNameT *
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1739,7 +1753,7 @@ SaAisErrorT AmfAgent::ProtectionGroupTrackStop(SaAmfHandleT hdl, const SaNameT *
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1762,12 +1776,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -1775,32 +1787,34 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfComponentErrorReport
- 
+  Name    : saAmfComponentErrorReport
+
   Description   : This function reports an error and a recovery recommendation
-		  to the AMF.
- 
+                  to the AMF.
+
   Arguments     : hdl       - AMF handle
-		  err_comp - ptr to the erroneous comp name
-		  err_time - error detection time
-		  rec_rcvr - recommended recovery
-		  ntf_id   - notification identifier sent to SysMan
- 
+                  err_comp - ptr to the erroneous comp name
+                  err_time - error detection time
+                  rec_rcvr - recommended recovery
+                  ntf_id   - notification identifier sent to SysMan
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : Notification Identifier is currently not used.
+
+  Notes  : Notification Identifier is currently not used.
 ******************************************************************************/
-SaAisErrorT saAmfComponentErrorReport(SaAmfHandleT hdl,
-				      const SaNameT *err_comp,
-				      SaTimeT err_time, SaAmfRecommendedRecoveryT rec_rcvr, SaNtfIdentifierT ntf_id)
-{
-	return AmfAgent::ComponentErrorReport(hdl, err_comp, err_time, rec_rcvr, ntf_id);
+SaAisErrorT saAmfComponentErrorReport(SaAmfHandleT hdl, const SaNameT *err_comp,
+                                      SaTimeT err_time,
+                                      SaAmfRecommendedRecoveryT rec_rcvr,
+                                      SaNtfIdentifierT ntf_id) {
+  return AmfAgent::ComponentErrorReport(hdl, err_comp, err_time, rec_rcvr,
+                                        ntf_id);
 }
 
 SaAisErrorT AmfAgent::ComponentErrorReport(SaAmfHandleT hdl,
                                            const SaNameT *err_comp,
-                                           SaTimeT err_time, SaAmfRecommendedRecoveryT rec_rcvr, SaNtfIdentifierT ntf_id) {
-
+                                           SaTimeT err_time,
+                                           SaAmfRecommendedRecoveryT rec_rcvr,
+                                           SaNtfIdentifierT ntf_id) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -1815,8 +1829,8 @@ SaAisErrorT AmfAgent::ComponentErrorReport(SaAmfHandleT hdl,
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1828,9 +1842,11 @@ SaAisErrorT AmfAgent::ComponentErrorReport(SaAmfHandleT hdl,
   }
 
   /* validate the recommended recovery */
-  if((cb->version.releaseCode == 'B') && (cb->version.majorVersion == 0x01)){
-    if(rec_rcvr < SA_AMF_NO_RECOMMENDATION || rec_rcvr > SA_AMF_CLUSTER_RESET) {
-      TRACE_LEAVE2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
+  if ((cb->version.releaseCode == 'B') && (cb->version.majorVersion == 0x01)) {
+    if (rec_rcvr < SA_AMF_NO_RECOMMENDATION ||
+        rec_rcvr > SA_AMF_CLUSTER_RESET) {
+      TRACE_LEAVE2(
+          "Incorrect argument specified for SaAmfRecommendedRecoveryT");
       return SA_AIS_ERR_INVALID_PARAM;
     }
   }
@@ -1839,13 +1855,14 @@ SaAisErrorT AmfAgent::ComponentErrorReport(SaAmfHandleT hdl,
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
 
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* populate & send the 'error report' message */
-  ava_fill_error_report_msg(&msg, cb->ava_dest, hdl, *err_comp, err_time, rec_rcvr);
+  ava_fill_error_report_msg(&msg, cb->ava_dest, hdl, *err_comp, err_time,
+                            rec_rcvr);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -1862,12 +1879,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -1875,25 +1890,27 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfComponentErrorClear
- 
-  Description   : This function clears the previous errors reported about 
-		  the component.
- 
+  Name    : saAmfComponentErrorClear
+
+  Description   : This function clears the previous errors reported about
+                  the component.
+
   Arguments     : hdl       - AMF handle
-		  comp_name - ptr to the comp name
-		  ntf_id    - notification identifier sent to SysMan
- 
+                  comp_name - ptr to the comp name
+                  ntf_id    - notification identifier sent to SysMan
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : Notification Identifier is currently not used.
+
+  Notes  : Notification Identifier is currently not used.
 ******************************************************************************/
-SaAisErrorT saAmfComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_name, SaNtfIdentifierT ntf_id)
-{
-	return AmfAgent::ComponentErrorClear(hdl, comp_name, ntf_id);
+SaAisErrorT saAmfComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_name,
+                                     SaNtfIdentifierT ntf_id) {
+  return AmfAgent::ComponentErrorClear(hdl, comp_name, ntf_id);
 }
 
-SaAisErrorT AmfAgent::ComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_name, SaNtfIdentifierT ntf_id) {
+SaAisErrorT AmfAgent::ComponentErrorClear(SaAmfHandleT hdl,
+                                          const SaNameT *comp_name,
+                                          SaNtfIdentifierT ntf_id) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -1907,8 +1924,8 @@ SaAisErrorT AmfAgent::ComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_
   }
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1920,8 +1937,8 @@ SaAisErrorT AmfAgent::ComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_
   }
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
-    /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  /* retrieve hdl rec */
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -1944,12 +1961,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -1957,25 +1972,27 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfResponse
- 
-  Description   : The component responds to the AMF with the result of its 
-		  execution of a particular AMF request.
- 
+  Name    : saAmfResponse
+
+  Description   : The component responds to the AMF with the result of its
+                  execution of a particular AMF request.
+
   Arguments     : hdl   - AMF handle
-		  inv   - invocation value (used to match the corresponding 
-			  callback)
-		  error - status of the operation
- 
+                  inv   - invocation value (used to match the corresponding
+                          callback)
+                  error - status of the operation
+
   Return Values : Refer to SAI-AIS specification for various return values.
- 
-  Notes	 : None.
+
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfResponse(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT error) {
-	return AmfAgent::Response(hdl, inv, error);
+SaAisErrorT saAmfResponse(SaAmfHandleT hdl, SaInvocationT inv,
+                          SaAisErrorT error) {
+  return AmfAgent::Response(hdl, inv, error);
 }
 
-SaAisErrorT AmfAgent::Response(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT error) {
+SaAisErrorT AmfAgent::Response(SaAmfHandleT hdl, SaInvocationT inv,
+                               SaAisErrorT error) {
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
@@ -1998,7 +2015,7 @@ SaAisErrorT AmfAgent::Response(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT 
     goto done;
   }
   /* retrieve AvA CB */
-  if (!(cb = (AVA_CB *) ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+  if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
     TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
     rc = SA_AIS_ERR_LIBRARY;
     goto done;
@@ -2006,7 +2023,7 @@ SaAisErrorT AmfAgent::Response(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT 
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
   /* retrieve hdl rec */
-  if (!(hdl_rec = (AVA_HDL_REC *) ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -2022,12 +2039,12 @@ SaAisErrorT AmfAgent::Response(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT 
   /* get the pending response rec from list */
   m_AVA_HDL_PEND_RESP_GET(list_resp, rec, inv);
   if (!rec) {
-	  TRACE_2("No pending response records found for this handle");
-	  if (ava_B4_ver_used(cb))
-		  rc = SA_AIS_ERR_NOT_EXIST;
-	  else
-		  rc = SA_AIS_ERR_INVALID_PARAM;
-	  goto done;
+    TRACE_2("No pending response records found for this handle");
+    if (ava_B4_ver_used(cb))
+      rc = SA_AIS_ERR_NOT_EXIST;
+    else
+      rc = SA_AIS_ERR_INVALID_PARAM;
+    goto done;
   }
 
   /* populate & send the 'AMF response' message */
@@ -2062,17 +2079,20 @@ SaAisErrorT AmfAgent::Response(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT 
   }
 
   /* if we are done with this rec, free it */
-  if ((rec->cbk_info->type != AVSV_AMF_PG_TRACK) && !m_AVA_HDL_IS_CBK_REC_IN_DISPATCH(rec)) {
+  if ((rec->cbk_info->type != AVSV_AMF_PG_TRACK) &&
+      !m_AVA_HDL_IS_CBK_REC_IN_DISPATCH(rec)) {
     /* In case of Quiescing callback dont free the rec,
        free it after app makes a QuiescingComplete */
-    if (rec->cbk_info->type == AVSV_AMF_CSI_SET && rec->cbk_info->param.csi_set.ha == SA_AMF_HA_QUIESCING)
+    if (rec->cbk_info->type == AVSV_AMF_CSI_SET &&
+        rec->cbk_info->param.csi_set.ha == SA_AMF_HA_QUIESCING)
       goto done;
     TRACE("Freeing the callback info recordRecord");
     m_AVA_HDL_PEND_RESP_POP(list_resp, rec, inv);
     ava_hdl_cbk_rec_del(rec);
   } else {
     /* In case of Quiescing callback dont set the response done */
-    if (rec->cbk_info->type == AVSV_AMF_CSI_SET && rec->cbk_info->param.csi_set.ha == SA_AMF_HA_QUIESCING)
+    if (rec->cbk_info->type == AVSV_AMF_CSI_SET &&
+        rec->cbk_info->param.csi_set.ha == SA_AMF_HA_QUIESCING)
       goto done;
 
     TRACE("Callback resonse completed");
@@ -2085,44 +2105,44 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_READ);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
   return rc;
 }
 
-
 /******************
  * AMF-B04.01 API *
  ******************/
 
 /****************************************************************************
-  Name	  : saAmfInitialize_4
+  Name    : saAmfInitialize_4
 
   Description   : This function initializes the AMF for the invoking process
-		  and registers the various callback functions.
+                  and registers the various callback functions.
 
   Arguments     : o_hdl    - ptr to the AMF handle
-		  reg_cbks - ptr to a SaAmfCallbacksT structure
-		  io_ver   - Version of the AMF implementation being used
-			     by the invoking process.
+                  reg_cbks - ptr to a SaAmfCallbacksT structure
+                  io_ver   - Version of the AMF implementation being used
+                             by the invoking process.
 
   Return Values : Refer to SAI-AIS specification for various return values.
 
-  Notes	 : None.
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfInitialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 *reg_cbks, SaVersionT *io_ver)
-{
-	return AmfAgent::Initialize_4(o_hdl, reg_cbks, io_ver);
+SaAisErrorT saAmfInitialize_4(SaAmfHandleT *o_hdl,
+                              const SaAmfCallbacksT_4 *reg_cbks,
+                              SaVersionT *io_ver) {
+  return AmfAgent::Initialize_4(o_hdl, reg_cbks, io_ver);
 }
 
-SaAisErrorT AmfAgent::Initialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 *reg_cbks, SaVersionT *io_ver) {
+SaAisErrorT AmfAgent::Initialize_4(SaAmfHandleT *o_hdl,
+                                   const SaAmfCallbacksT_4 *reg_cbks,
+                                   SaVersionT *io_ver) {
   AVA_CB *cb = 0;
   AVA_HDL_DB *hdl_db = 0;
   AVA_HDL_REC *hdl_rec = 0;
@@ -2130,18 +2150,21 @@ SaAisErrorT AmfAgent::Initialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 
   OsafAmfCallbacksT osaf_cbks;
   TRACE_ENTER();
 
-  /* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check cluster membership, if node is not a member answer back with
+   * SA_AIS_ERR_UNAVAILABLE */
 
   if (!o_hdl || !io_ver) {
-    TRACE_2("NULL arguments being passed: SaAmfHandleT and SaVersionT arguments should be non NULL");
+    TRACE_2(
+        "NULL arguments being passed: SaAmfHandleT and SaVersionT arguments should be non NULL");
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
   /* validate the version */
-  if((io_ver->releaseCode != 'B') || (io_ver->majorVersion != 0x04)) {
-    TRACE_2("Invalid AMF version specified, supported version is: ReleaseCode = 'B', \
-						majorVersion = 0x04, minorVersion = 0x01");
+  if ((io_ver->releaseCode != 'B') || (io_ver->majorVersion != 0x04)) {
+    TRACE_2(
+        "Invalid AMF version specified, supported version is: ReleaseCode = 'B', \
+                                                majorVersion = 0x04, minorVersion = 0x01");
     rc = SA_AIS_ERR_VERSION;
   }
 
@@ -2150,8 +2173,7 @@ SaAisErrorT AmfAgent::Initialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 
   io_ver->majorVersion = 4;
   io_ver->minorVersion = 1;
 
-  if (SA_AIS_OK != rc)
-    goto done;
+  if (SA_AIS_OK != rc) goto done;
 
   /* Initialize the environment */
   if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
@@ -2186,10 +2208,11 @@ SaAisErrorT AmfAgent::Initialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 
 
   /* create the hdl record & store the callbacks */
 
-  /* TODO: This cast will remove possibilities for container comp callbacks(last two in SaAmfCallbacksT_4 struct).
-   * But on the other hand they are not supported in ava_hdl_cbk_rec_prc, message from avnd.SaAmfCallbacksT
-   * should be replaced with SaAmfCallbacksT_4 everywhere in ava when SaAmfCallbacksT_4 messages are supported
-   * from avnd.
+  /* TODO: This cast will remove possibilities for container comp callbacks(last
+   * two in SaAmfCallbacksT_4 struct). But on the other hand they are not
+   * supported in ava_hdl_cbk_rec_prc, message from avnd.SaAmfCallbacksT should
+   * be replaced with SaAmfCallbacksT_4 everywhere in ava when SaAmfCallbacksT_4
+   * messages are supported from avnd.
    */
   if ((reg_cbks != NULL) &&
       ((reg_cbks->saAmfContainedComponentCleanupCallback != 0) ||
@@ -2208,7 +2231,8 @@ SaAisErrorT AmfAgent::Initialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 
     goto done;
   }
 
-  /* Initialize the ipc mailbox for the client for processing pending callbacks */
+  /* Initialize the ipc mailbox for the client for processing pending callbacks
+   */
   if (NCSCC_RC_SUCCESS != ava_callback_ipc_init(hdl_rec)) {
     rc = SA_AIS_ERR_LIBRARY;
     goto done;
@@ -2222,8 +2246,7 @@ SaAisErrorT AmfAgent::Initialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 
 
 done:
   /* free the hdl rec if there's some error */
-  if (hdl_rec && SA_AIS_OK != rc)
-    ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
+  if (hdl_rec && SA_AIS_OK != rc) ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
 
   /* release cb read lock and return handle */
   if (cb) {
@@ -2241,65 +2264,72 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfPmStart_3
+  Name    : saAmfPmStart_3
 
   Description   : This function allows a process (as part of a comp) to start
-		  Passive Monitoring.
+                  Passive Monitoring.
 
-  Arguments     : hdl	    	  - AMF handle
-		   comp_name      - ptr to the comp name
-		   processId      - Identifier of a process to be monitored
-		   desc_TreeDepth - Depth of the tree of descendents of the process
-		   pmErr	  - Specifies the type of process errors to monitor
-		   rec_Recovery   - recommended recovery
+  Arguments     : hdl             - AMF handle
+                   comp_name      - ptr to the comp name
+                   processId      - Identifier of a process to be monitored
+                   desc_TreeDepth - Depth of the tree of descendents of the
+process pmErr          - Specifies the type of process errors to monitor
+                   rec_Recovery   - recommended recovery
 
 
   Return Values : Refer to SAI-AIS specification for various return values.
 
-  Notes	 : None.
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfPmStart_3(SaAmfHandleT hdl,
-			 const SaNameT *comp_name,
-			 SaInt64T processId,
-			 SaInt32T desc_TreeDepth, SaAmfPmErrorsT pmErr, SaAmfRecommendedRecoveryT rec_Recovery)
-{
-	return AmfAgent::PmStart_3(hdl, comp_name, processId, desc_TreeDepth, pmErr, rec_Recovery);
+SaAisErrorT saAmfPmStart_3(SaAmfHandleT hdl, const SaNameT *comp_name,
+                           SaInt64T processId, SaInt32T desc_TreeDepth,
+                           SaAmfPmErrorsT pmErr,
+                           SaAmfRecommendedRecoveryT rec_Recovery) {
+  return AmfAgent::PmStart_3(hdl, comp_name, processId, desc_TreeDepth, pmErr,
+                             rec_Recovery);
 }
 
-SaAisErrorT AmfAgent::PmStart_3(SaAmfHandleT hdl,
-                                const SaNameT *comp_name,
-                                SaInt64T processId,
-                                SaInt32T desc_TreeDepth, SaAmfPmErrorsT pmErr, SaAmfRecommendedRecoveryT rec_Recovery) {
+SaAisErrorT AmfAgent::PmStart_3(SaAmfHandleT hdl, const SaNameT *comp_name,
+                                SaInt64T processId, SaInt32T desc_TreeDepth,
+                                SaAmfPmErrorsT pmErr,
+                                SaAmfRecommendedRecoveryT rec_Recovery) {
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   /* Version is previously set in in initialize function */
-  if(!ava_B4_ver_used(0)) {
-    TRACE_2("Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
-            "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
+  if (!ava_B4_ver_used(0)) {
+    TRACE_2(
+        "Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
+        "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
     rc = SA_AIS_ERR_VERSION;
     goto done;
   }
 
   /* input validation of Recomended recovery */
-  if (rec_Recovery < SA_AMF_NO_RECOMMENDATION || rec_Recovery > SA_AMF_CONTAINER_RESTART) {
+  if (rec_Recovery < SA_AMF_NO_RECOMMENDATION ||
+      rec_Recovery > SA_AMF_CONTAINER_RESTART) {
     TRACE_2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
     rc = SA_AIS_ERR_ACCESS;
     goto done;
   }
 
-  /* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
-  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If not: SA_AIS_ERR_UNAVAILABLE */
-  /* TODO: check if comp_name exists in AMF configuration, if not: SA_AIS_ERR_NOT_EXIST */
-  /* TODO: check if process id is executing on local node. if not: SA_AIS_ERR_NOT_EXIST */
+  /* TODO: check cluster membership, if node is not a member answer back with
+   * SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If
+   * not: SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check if comp_name exists in AMF configuration, if not:
+   * SA_AIS_ERR_NOT_EXIST */
+  /* TODO: check if process id is executing on local node. if not:
+   * SA_AIS_ERR_NOT_EXIST */
 
   /* invalid process ID */
-  if( processId <= 0) {
+  if (processId <= 0) {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
-  rc = saAmfPmStart(hdl, comp_name, processId, desc_TreeDepth, pmErr, rec_Recovery);
+  rc = saAmfPmStart(hdl, comp_name, processId, desc_TreeDepth, pmErr,
+                    rec_Recovery);
 
 done:
   TRACE_LEAVE2("rc:%u", rc);
@@ -2307,62 +2337,60 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfHAReadinessStateSet
+  Name    : saAmfHAReadinessStateSet
 
-  Description	: This function sets the HA state of the pre-instantiable
-		  component identified by the component and CSI names.
+  Description   : This function sets the HA state of the pre-instantiable
+                  component identified by the component and CSI names.
 
-  Arguments	: hdl		- AMF handle
-		  comp_name	- ptr to the comp name
-		  csi_name	- ptr to the csi_name
-		  ha_state	- HA state to set
-		  corr_ids	- pointer to Notification correlation identifiers.
+  Arguments     : hdl           - AMF handle
+                  comp_name     - ptr to the comp name
+                  csi_name      - ptr to the csi_name
+                  ha_state      - HA state to set
+                  corr_ids      - pointer to Notification correlation
+identifiers.
 
   Return Values : Refer to SAI-AIS specification for various return values.
 
-  Notes	 : None.
+  Notes  : None.
 ******************************************************************************/
 
-SaAisErrorT saAmfHAReadinessStateSet(SaAmfHandleT hdl,
-					const SaNameT *comp_name,
-					const SaNameT *csi_name,
-					SaAmfHAReadinessStateT ha_state,
-					SaNtfCorrelationIdsT *corr_ids)
-{
-	TRACE_2("Not implemented yet");
+SaAisErrorT saAmfHAReadinessStateSet(SaAmfHandleT hdl, const SaNameT *comp_name,
+                                     const SaNameT *csi_name,
+                                     SaAmfHAReadinessStateT ha_state,
+                                     SaNtfCorrelationIdsT *corr_ids) {
+  TRACE_2("Not implemented yet");
 
-	return SA_AIS_ERR_NOT_SUPPORTED;
+  return SA_AIS_ERR_NOT_SUPPORTED;
 }
 
 /****************************************************************************
-  Name	  : saAmfProtectionGroupTrack_4
+  Name    : saAmfProtectionGroupTrack_4
 
   Description   : This fuction requests the AMF to start tracking the changes
-		  in the PG associated with the specified CSI.
+                  in the PG associated with the specified CSI.
 
   Arguments     : hdl       - AMF handle
-		   csi_name  - ptr to the CSI name
-		   flags     - flag that determines when the PG callback is
-			      called
-		   buf       - ptr to the linear buffer provided by the
-			      application
+                   csi_name  - ptr to the CSI name
+                   flags     - flag that determines when the PG callback is
+                              called
+                   buf       - ptr to the linear buffer provided by the
+                              application
 
   Return Values : Refer to SAI-AIS specification for various return values.
 
-  Notes	 : None.
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfProtectionGroupTrack_4(SaAmfHandleT hdl,
-				      const SaNameT *csi_name,
-				      SaUint8T flags, SaAmfProtectionGroupNotificationBufferT_4 *buf)
+SaAisErrorT saAmfProtectionGroupTrack_4(
+    SaAmfHandleT hdl, const SaNameT *csi_name, SaUint8T flags,
+    SaAmfProtectionGroupNotificationBufferT_4 *buf)
 
 {
-	return AmfAgent::ProtectionGroupTrack_4(hdl, csi_name, flags, buf);
+  return AmfAgent::ProtectionGroupTrack_4(hdl, csi_name, flags, buf);
 }
 
-SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
-                                             const SaNameT *csi_name,
-                                             SaUint8T flags, SaAmfProtectionGroupNotificationBufferT_4 *buf) {
-
+SaAisErrorT AmfAgent::ProtectionGroupTrack_4(
+    SaAmfHandleT hdl, const SaNameT *csi_name, SaUint8T flags,
+    SaAmfProtectionGroupNotificationBufferT_4 *buf) {
   SaAmfProtectionGroupNotificationBufferT *rsp_buf = 0;
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
@@ -2376,8 +2404,8 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -2390,22 +2418,26 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
   /* retrieve hdl rec */
-  if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
+  if (!(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* Version is previously set in in initialize function */
-  if(!ava_B4_ver_used(cb)) {
-    TRACE_2("Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
-            "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
+  if (!ava_B4_ver_used(cb)) {
+    TRACE_2(
+        "Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
+        "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
     rc = SA_AIS_ERR_VERSION;
     goto done;
   }
 
-  /* TODO: check if csiName exists in AMF configuration. If not, SA_AIS_ERR_NOT_EXIST */
-  /* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
-  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If not: SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check if csiName exists in AMF configuration. If not,
+   * SA_AIS_ERR_NOT_EXIST */
+  /* TODO: check cluster membership, if node is not a member answer back with
+   * SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If
+   * not: SA_AIS_ERR_UNAVAILABLE */
 
   if (!csi_name || !ava_sanamet_is_valid(csi_name)) {
     TRACE_LEAVE2("Incorrect arguments");
@@ -2419,13 +2451,15 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
     goto done;
   }
 
-  /* check if pg cbk was supplied during saAmfInitialize (for change-only & change track)
-     and
-     check if track flag is TRACK_CURRENT and neither buffer nor callback is provided */
+  /* check if pg cbk was supplied during saAmfInitialize (for change-only &
+     change track) and check if track flag is TRACK_CURRENT and neither buffer
+     nor callback is provided */
   if ((((flags & SA_TRACK_CHANGES) || (flags & SA_TRACK_CHANGES_ONLY)) &&
        (!hdl_rec->reg_cbk.saAmfProtectionGroupTrackCallback_4)) ||
-      ((flags & SA_TRACK_CURRENT) && (!buf) && (!hdl_rec->reg_cbk.saAmfProtectionGroupTrackCallback_4))) {
-    TRACE_2("PG tracking callback for CHANGES-ONLY and CHANGES was not registered during saAmfInitialize");
+      ((flags & SA_TRACK_CURRENT) && (!buf) &&
+       (!hdl_rec->reg_cbk.saAmfProtectionGroupTrackCallback_4))) {
+    TRACE_2(
+        "PG tracking callback for CHANGES-ONLY and CHANGES was not registered during saAmfInitialize");
     rc = SA_AIS_ERR_INIT;
     goto done;
   }
@@ -2433,7 +2467,8 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
   /* validate the notify buffer */
   if ((flags & SA_TRACK_CURRENT) && buf && buf->notification) {
     if (!buf->numberOfItems) {
-      TRACE_2("numberOfItems should not be zero when passing non NULL notification");
+      TRACE_2(
+          "numberOfItems should not be zero when passing non NULL notification");
       rc = SA_AIS_ERR_INVALID_PARAM;
       goto done;
     }
@@ -2443,10 +2478,10 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
   /* Check whether we have to allocate the memory */
   if ((flags & SA_TRACK_CURRENT) && buf) {
     if (buf->notification == NULL) {
-      /* This means that we have to allocate the memory. In this case we will ignore buf->numberOfItems */
+      /* This means that we have to allocate the memory. In this case we will
+       * ignore buf->numberOfItems */
       is_syn = true;
       create_memory = true;
-
     }
   }
 
@@ -2461,8 +2496,7 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
 
       /* get the err code */
       rc = msg_rsp->info.cbk_info->param.pg_track.err;
-      if (SA_AIS_OK != rc)
-        goto done;
+      if (SA_AIS_OK != rc) goto done;
 
       /* get the notify buffer from the resp msg */
       rsp_buf = &msg_rsp->info.cbk_info->param.pg_track.buf;
@@ -2471,44 +2505,50 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
         if (rsp_buf->numberOfItems <= buf->numberOfItems) {
           /* user supplied buffer is sufficient.. copy all the members */
           ava_cpy_protection_group_ntf(buf->notification, rsp_buf->notification,
-                                       rsp_buf->numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
+                                       rsp_buf->numberOfItems,
+                                       SA_AMF_HARS_READY_FOR_ASSIGNMENT);
 
           buf->numberOfItems = rsp_buf->numberOfItems;
         } else {
           /* user supplied buffer isnt sufficient.. copy whatever is possible */
           ava_cpy_protection_group_ntf(buf->notification, rsp_buf->notification,
-                                       buf->numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
+                                       buf->numberOfItems,
+                                       SA_AMF_HARS_READY_FOR_ASSIGNMENT);
           rc = SA_AIS_ERR_NO_SPACE;
-		  buf->numberOfItems = rsp_buf->numberOfItems;
+          buf->numberOfItems = rsp_buf->numberOfItems;
         }
-      } else {	/* if(create_memory == false) */
+      } else { /* if(create_memory == false) */
 
-        /* create_momory is true, so let us create the memory for the Use, User has to free it. */
+        /* create_momory is true, so let us create the memory for the Use, User
+         * has to free it. */
         buf->numberOfItems = rsp_buf->numberOfItems;
         if (buf->numberOfItems != 0) {
-            /*
-             * NOTE: This buf->notification is allocated by Agent, it's
-             * added sentinel element at the end so that it helps
-             * to free LongDn in saAmfProtectionGroupNotificationFree_4
-             * Sentinel element has @.change = 0
-             */
+          /*
+           * NOTE: This buf->notification is allocated by Agent, it's
+           * added sentinel element at the end so that it helps
+           * to free LongDn in saAmfProtectionGroupNotificationFree_4
+           * Sentinel element has @.change = 0
+           */
           buf->notification =
-              static_cast<SaAmfProtectionGroupNotificationT_4*>(malloc((buf->numberOfItems + 1) * sizeof(SaAmfProtectionGroupNotificationT_4)));
+              static_cast<SaAmfProtectionGroupNotificationT_4 *>(
+                  malloc((buf->numberOfItems + 1) *
+                         sizeof(SaAmfProtectionGroupNotificationT_4)));
           if (buf->notification != NULL) {
-            ava_cpy_protection_group_ntf(buf->notification, rsp_buf->notification,
-                                         buf->numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
-            buf->notification[buf->numberOfItems].change = static_cast<SaAmfProtectionGroupChangesT>(0);
+            ava_cpy_protection_group_ntf(
+                buf->notification, rsp_buf->notification, buf->numberOfItems,
+                SA_AMF_HARS_READY_FOR_ASSIGNMENT);
+            buf->notification[buf->numberOfItems].change =
+                static_cast<SaAmfProtectionGroupChangesT>(0);
           } else {
             rc = SA_AIS_ERR_NO_MEMORY;
             buf->numberOfItems = 0;
           }
-        } else {	/* if(buf->numberOfItems != 0) */
+        } else { /* if(buf->numberOfItems != 0) */
 
           /* buf->numberOfItems is zero. Nothing to be done. */
-
         }
 
-      }	/* else of if(create_memory == false) */
+      } /* else of if(create_memory == false) */
     } else {
       /* => it's a regular resp msg */
       osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -2526,12 +2566,10 @@ done:
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
     ncshm_give_hdl(gl_ava_hdl);
   }
-  if (hdl_rec)
-    ncshm_give_hdl(hdl);
+  if (hdl_rec) ncshm_give_hdl(hdl);
 
   /* free the contents of the request/response message */
-  if (msg_rsp)
-    avsv_nda_ava_msg_free(msg_rsp);
+  if (msg_rsp) avsv_nda_ava_msg_free(msg_rsp);
   avsv_nda_ava_msg_content_free(&msg);
 
   TRACE_LEAVE2("rc:%u", rc);
@@ -2539,33 +2577,34 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfProtectionGroupNotificationFree_4
+  Name    : saAmfProtectionGroupNotificationFree_4
 
   Description   : This function frees the memory to which notification points
-		   and which was allocated by the AMF previously in
-		   saAmfProtectionGroupTrack_4() function.
+                   and which was allocated by the AMF previously in
+                   saAmfProtectionGroupTrack_4() function.
 
-  Arguments     : hdl		- AMF handle
-		   notification	- pointer to memory that was previously allocated
-				by AMF and is to be released.
+  Arguments     : hdl           - AMF handle
+                   notification - pointer to memory that was previously
+allocated by AMF and is to be released.
 
   Return Values : Refer to SAI-AIS specification for various return values.
 
-  Notes	 : None.
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfProtectionGroupNotificationFree_4(SaAmfHandleT hdl, SaAmfProtectionGroupNotificationT_4 *notification)
-{
-	return AmfAgent::ProtectionGroupNotificationFree_4(hdl, notification);
+SaAisErrorT saAmfProtectionGroupNotificationFree_4(
+    SaAmfHandleT hdl, SaAmfProtectionGroupNotificationT_4 *notification) {
+  return AmfAgent::ProtectionGroupNotificationFree_4(hdl, notification);
 }
 
-SaAisErrorT AmfAgent::ProtectionGroupNotificationFree_4(SaAmfHandleT hdl, SaAmfProtectionGroupNotificationT_4 *notification) {
+SaAisErrorT AmfAgent::ProtectionGroupNotificationFree_4(
+    SaAmfHandleT hdl, SaAmfProtectionGroupNotificationT_4 *notification) {
   AVA_CB *cb = 0;
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   /* Verifying the input Handle & global handle */
-  if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
-    TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
+  if (!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
+    TRACE_2("Invalid SaAmfHandle passed by component: %llx", hdl);
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
@@ -2579,27 +2618,29 @@ SaAisErrorT AmfAgent::ProtectionGroupNotificationFree_4(SaAmfHandleT hdl, SaAmfP
   m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
 
   /* Version is previously set in in initialize function */
-  if(!ava_B4_ver_used(cb)) {
-    TRACE_2("Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
-            "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
+  if (!ava_B4_ver_used(cb)) {
+    TRACE_2(
+        "Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
+        "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
     rc = SA_AIS_ERR_VERSION;
     goto done;
   }
 
-  /* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
-  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If not: SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check cluster membership, if node is not a member answer back with
+   * SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If
+   * not: SA_AIS_ERR_UNAVAILABLE */
 
   /* free memory */
-  if(notification) {
+  if (notification) {
     // Free LongDn until reach sentinel element
     int i = 0;
     while (notification[i].change != 0) {
-        osaf_extended_name_free(&notification[i].member.compName);
-        i++;
+      osaf_extended_name_free(&notification[i].member.compName);
+      i++;
     }
     free(notification);
-  }
-  else
+  } else
     rc = SA_AIS_ERR_INVALID_PARAM;
 
 done:
@@ -2613,68 +2654,78 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfComponentErrorReport_4
+  Name    : saAmfComponentErrorReport_4
 
   Description   : This function reports an error and a recovery recommendation
-		  to the AMF.
+                  to the AMF.
 
   Arguments     : hdl       - AMF handle
-		   err_comp - ptr to the erroneous comp name
-		   err_time - error detection time
-		   rec_rcvr - recommended recovery
-		   corr_ids - pointer to Notification correlation identifiers.
+                   err_comp - ptr to the erroneous comp name
+                   err_time - error detection time
+                   rec_rcvr - recommended recovery
+                   corr_ids - pointer to Notification correlation identifiers.
 
   Return Values : Refer to SAI-AIS specification for various return values.
 
-  Notes	 : Notification Identifier is currently not used.
+  Notes  : Notification Identifier is currently not used.
 ******************************************************************************/
 SaAisErrorT saAmfComponentErrorReport_4(SaAmfHandleT hdl,
-				      const SaNameT *err_comp,
-				      SaTimeT err_time, SaAmfRecommendedRecoveryT rec_rcvr, SaNtfCorrelationIdsT *corr_ids)
-{
-	return AmfAgent::ComponentErrorReport_4(hdl, err_comp, err_time, rec_rcvr, corr_ids);
+                                        const SaNameT *err_comp,
+                                        SaTimeT err_time,
+                                        SaAmfRecommendedRecoveryT rec_rcvr,
+                                        SaNtfCorrelationIdsT *corr_ids) {
+  return AmfAgent::ComponentErrorReport_4(hdl, err_comp, err_time, rec_rcvr,
+                                          corr_ids);
 }
 
 SaAisErrorT AmfAgent::ComponentErrorReport_4(SaAmfHandleT hdl,
                                              const SaNameT *err_comp,
-                                             SaTimeT err_time, SaAmfRecommendedRecoveryT rec_rcvr, SaNtfCorrelationIdsT *corr_ids) {
-
+                                             SaTimeT err_time,
+                                             SaAmfRecommendedRecoveryT rec_rcvr,
+                                             SaNtfCorrelationIdsT *corr_ids) {
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   /* Version is previously set in in initialize function */
-  if(!ava_B4_ver_used(0)) {
-    TRACE_2("Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
-            "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
+  if (!ava_B4_ver_used(0)) {
+    TRACE_2(
+        "Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
+        "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
     rc = SA_AIS_ERR_VERSION;
     goto done;
   }
 
   /* input validation of Recomended recovery */
-  if (rec_rcvr < SA_AMF_NO_RECOMMENDATION || rec_rcvr > SA_AMF_CONTAINER_RESTART) {
+  if (rec_rcvr < SA_AMF_NO_RECOMMENDATION ||
+      rec_rcvr > SA_AMF_CONTAINER_RESTART) {
     TRACE_2("Incorrect argument specified for SaAmfRecommendedRecoveryT");
     rc = SA_AIS_ERR_ACCESS;
     goto done;
   }
 
-  /* TODO: check if comp name exists in AMF conf otherwise => SA_AIS_ERR_NOT_EXIST */
-  /* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
-  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If not: SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check if comp name exists in AMF conf otherwise =>
+   * SA_AIS_ERR_NOT_EXIST */
+  /* TODO: check cluster membership, if node is not a member answer back with
+   * SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If
+   * not: SA_AIS_ERR_UNAVAILABLE */
 
-  if(corr_ids != NULL) {
+  if (corr_ids != NULL) {
     /* Support for SaNtfCorrelationIdsT is not yet implemented */
-    if(!((corr_ids->rootCorrelationId == SA_NTF_IDENTIFIER_UNUSED) && (corr_ids->parentCorrelationId == SA_NTF_IDENTIFIER_UNUSED))) {
-      TRACE_2("Value other then SA_NTF_IDENTIFIER_UNUSED for SaNtfIdentifierT and SaNtfIdentifierT is not yet supported");
+    if (!((corr_ids->rootCorrelationId == SA_NTF_IDENTIFIER_UNUSED) &&
+          (corr_ids->parentCorrelationId == SA_NTF_IDENTIFIER_UNUSED))) {
+      TRACE_2(
+          "Value other then SA_NTF_IDENTIFIER_UNUSED for SaNtfIdentifierT and SaNtfIdentifierT is not yet supported");
       rc = SA_AIS_ERR_NOT_SUPPORTED;
       goto done;
     }
-  }
-  else {
+  } else {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
-  rc = saAmfComponentErrorReport(hdl, err_comp, err_time, rec_rcvr, corr_ids->notificationId);
+  rc = saAmfComponentErrorReport(hdl, err_comp, err_time, rec_rcvr,
+                                 corr_ids->notificationId);
 
 done:
   TRACE_LEAVE2("rc:%u", rc);
@@ -2682,71 +2733,79 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfCorrelationIdsGet
+  Name    : saAmfCorrelationIdsGet
 
-  Description	: This function is used in order to generate a notification.
+  Description   : This function is used in order to generate a notification.
 
-  Arguments	: hdl		- AMF handle
-		  inv		- invocation value (used to match the corresponding
-		  corr_ids	- pointer to Notification correlation identifiers.
+  Arguments     : hdl           - AMF handle
+                  inv           - invocation value (used to match the
+corresponding corr_ids      - pointer to Notification correlation identifiers.
 
   Return Values : Refer to SAI-AIS specification for various return values.
 
-  Notes	 : None.
+  Notes  : None.
 ******************************************************************************/
 
-SaAisErrorT saAmfCorrelationIdsGet(SaAmfHandleT hdl, SaInvocationT inv, SaNtfCorrelationIdsT *corr_ids)
-{
-	TRACE_2("Not implemented yet");
+SaAisErrorT saAmfCorrelationIdsGet(SaAmfHandleT hdl, SaInvocationT inv,
+                                   SaNtfCorrelationIdsT *corr_ids) {
+  TRACE_2("Not implemented yet");
 
-	return SA_AIS_ERR_NOT_SUPPORTED;
+  return SA_AIS_ERR_NOT_SUPPORTED;
 }
 
 /****************************************************************************
-  Name	  : saAmfComponentErrorClear_4
+  Name    : saAmfComponentErrorClear_4
 
   Description   : This function clears the previous errors reported about
-		  the component.
+                  the component.
 
   Arguments     : hdl       - AMF handle
-		   comp_name - ptr to the comp name
-		   corr_ids - pointer to Notification correlation identifiers.
+                   comp_name - ptr to the comp name
+                   corr_ids - pointer to Notification correlation identifiers.
 
   Return Values : Refer to SAI-AIS specification for various return values.
 
-  Notes	 : Notification Identifier is currently not used.
+  Notes  : Notification Identifier is currently not used.
 ******************************************************************************/
-SaAisErrorT saAmfComponentErrorClear_4(SaAmfHandleT hdl, const SaNameT *comp_name, SaNtfCorrelationIdsT *corr_ids)
-{
-	return AmfAgent::ComponentErrorClear_4(hdl, comp_name, corr_ids);
+SaAisErrorT saAmfComponentErrorClear_4(SaAmfHandleT hdl,
+                                       const SaNameT *comp_name,
+                                       SaNtfCorrelationIdsT *corr_ids) {
+  return AmfAgent::ComponentErrorClear_4(hdl, comp_name, corr_ids);
 }
 
-SaAisErrorT AmfAgent::ComponentErrorClear_4(SaAmfHandleT hdl, const SaNameT *comp_name, SaNtfCorrelationIdsT *corr_ids) {
+SaAisErrorT AmfAgent::ComponentErrorClear_4(SaAmfHandleT hdl,
+                                            const SaNameT *comp_name,
+                                            SaNtfCorrelationIdsT *corr_ids) {
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   /* Version is previously set in in initialize function */
-  if(!ava_B4_ver_used(0)) {
-    TRACE_2("Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
-            "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
+  if (!ava_B4_ver_used(0)) {
+    TRACE_2(
+        "Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
+        "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
     rc = SA_AIS_ERR_VERSION;
     goto done;
   }
 
-  /* TODO: check if comp name exists in AMF conf otherwise => SA_AIS_ERR_NOT_EXIST */
+  /* TODO: check if comp name exists in AMF conf otherwise =>
+   * SA_AIS_ERR_NOT_EXIST */
   /* TODO: check if op state enabled, no effect => SA_AIS_ERR_NO_OP */
-  /* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
-  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If not: SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check cluster membership, if node is not a member answer back with
+   * SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If
+   * not: SA_AIS_ERR_UNAVAILABLE */
 
-  if(corr_ids != NULL) {
+  if (corr_ids != NULL) {
     /* Support for SaNtfCorrelationIdsT is not yet implemented */
-    if(!((corr_ids->rootCorrelationId == SA_NTF_IDENTIFIER_UNUSED) && (corr_ids->parentCorrelationId == SA_NTF_IDENTIFIER_UNUSED))) {
-      TRACE_2("Value other then SA_NTF_IDENTIFIER_UNUSED for SaNtfIdentifierT and SaNtfIdentifierT is not yet supported");
+    if (!((corr_ids->rootCorrelationId == SA_NTF_IDENTIFIER_UNUSED) &&
+          (corr_ids->parentCorrelationId == SA_NTF_IDENTIFIER_UNUSED))) {
+      TRACE_2(
+          "Value other then SA_NTF_IDENTIFIER_UNUSED for SaNtfIdentifierT and SaNtfIdentifierT is not yet supported");
       rc = SA_AIS_ERR_NOT_SUPPORTED;
       goto done;
     }
-  }
-  else {
+  } else {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
@@ -2759,51 +2818,58 @@ done:
 }
 
 /****************************************************************************
-  Name	  : saAmfResponse_4
+  Name    : saAmfResponse_4
 
   Description   : The component responds to the AMF with the result of its
-		  execution of a particular AMF request.
+                  execution of a particular AMF request.
 
   Arguments     : hdl   - AMF handle
-		   inv   - invocation value (used to match the corresponding
-			  callback)
-		   corr_ids - pointer to Notification correlation identifiers.
-		   error - status of the operation
+                   inv   - invocation value (used to match the corresponding
+                          callback)
+                   corr_ids - pointer to Notification correlation identifiers.
+                   error - status of the operation
 
   Return Values : Refer to SAI-AIS specification for various return values.
 
-  Notes	 : None.
+  Notes  : None.
 ******************************************************************************/
-SaAisErrorT saAmfResponse_4(SaAmfHandleT hdl, SaInvocationT inv, SaNtfCorrelationIdsT *corr_ids, SaAisErrorT error)
-{
-	return AmfAgent::Response_4(hdl, inv, corr_ids, error);
+SaAisErrorT saAmfResponse_4(SaAmfHandleT hdl, SaInvocationT inv,
+                            SaNtfCorrelationIdsT *corr_ids, SaAisErrorT error) {
+  return AmfAgent::Response_4(hdl, inv, corr_ids, error);
 }
 
-SaAisErrorT AmfAgent::Response_4(SaAmfHandleT hdl, SaInvocationT inv, SaNtfCorrelationIdsT *corr_ids, SaAisErrorT error) {
+SaAisErrorT AmfAgent::Response_4(SaAmfHandleT hdl, SaInvocationT inv,
+                                 SaNtfCorrelationIdsT *corr_ids,
+                                 SaAisErrorT error) {
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   /* Version is previously set in in initialize function */
-  if(!ava_B4_ver_used(0)) {
-    TRACE_2("Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
-            "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
+  if (!ava_B4_ver_used(0)) {
+    TRACE_2(
+        "Invalid AMF version, set correct AMF version using saAmfInitialize_4. "
+        "Required version is: ReleaseCode = 'B', majorVersion = 0x04");
     rc = SA_AIS_ERR_VERSION;
     goto done;
   }
 
-  /* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
-  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If not: SA_AIS_ERR_UNAVAILABLE */
-  /* TODO: check if invocation belong to an existing callback with outstanding response => SA_AIS_ERR_NOT_EXIST */
+  /* TODO: check cluster membership, if node is not a member answer back with
+   * SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check if handle is "old", due to node rejoin as member in cluster. If
+   * not: SA_AIS_ERR_UNAVAILABLE */
+  /* TODO: check if invocation belong to an existing callback with outstanding
+   * response => SA_AIS_ERR_NOT_EXIST */
 
   /* corr_ids should always be NULL if response is not reporting an error. */
-  if( (error == SA_AIS_OK) && (corr_ids != NULL)) {
+  if ((error == SA_AIS_OK) && (corr_ids != NULL)) {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
-  }
-  else if(corr_ids != NULL) {
+  } else if (corr_ids != NULL) {
     /* Support for SaNtfCorrelationIdsT is not yet implemented */
-    if(!((corr_ids->rootCorrelationId == SA_NTF_IDENTIFIER_UNUSED) && (corr_ids->parentCorrelationId == SA_NTF_IDENTIFIER_UNUSED))) {
-      TRACE_2("Value other then SA_NTF_IDENTIFIER_UNUSED for SaNtfIdentifierT and SaNtfIdentifierT is not yet supported");
+    if (!((corr_ids->rootCorrelationId == SA_NTF_IDENTIFIER_UNUSED) &&
+          (corr_ids->parentCorrelationId == SA_NTF_IDENTIFIER_UNUSED))) {
+      TRACE_2(
+          "Value other then SA_NTF_IDENTIFIER_UNUSED for SaNtfIdentifierT and SaNtfIdentifierT is not yet supported");
       rc = SA_AIS_ERR_NOT_SUPPORTED;
       goto done;
     }
@@ -2821,10 +2887,10 @@ done:
 }
 
 /**
- * @brief: Implements new version of saAmfInitialize to enable application to 
- *	   register for new callback OsafCsiAttributeChangeCallbackT along with 
- *         old ones. This version of initialize API implements saAmfInitialize_o4()
- *	   with SAF version updated to B.04.02.
+ * @brief: Implements new version of saAmfInitialize to enable application to
+ *         register for new callback OsafCsiAttributeChangeCallbackT along with
+ *         old ones. This version of initialize API implements
+ * saAmfInitialize_o4() with SAF version updated to B.04.02.
  *
  * @param  o_hdl (ptr to SaAmfHandleT).
  * @param  reg_cbks (ptr to SaAmfCallbacksT_o4)
@@ -2832,8 +2898,9 @@ done:
  *
  * Return Values : Refer to SAI-AIS specification for various return values.
  */
-SaAisErrorT saAmfInitialize_o4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_o4 *reg_cbks, SaVersionT *io_ver)
-{
+SaAisErrorT saAmfInitialize_o4(SaAmfHandleT *o_hdl,
+                               const SaAmfCallbacksT_o4 *reg_cbks,
+                               SaVersionT *io_ver) {
   AVA_CB *cb = 0;
   AVA_HDL_DB *hdl_db = 0;
   AVA_HDL_REC *hdl_rec = 0;
@@ -2842,14 +2909,17 @@ SaAisErrorT saAmfInitialize_o4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_o4 *re
   TRACE_ENTER();
 
   if (!o_hdl || !io_ver) {
-    TRACE_2("NULL arguments being passed: SaAmfHandleT and SaVersionT arguments should be non NULL");
+    TRACE_2(
+        "NULL arguments being passed: SaAmfHandleT and SaVersionT arguments should be non NULL");
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
-  if((io_ver->releaseCode != 'B') || (io_ver->majorVersion != 0x04) || (io_ver->minorVersion != 0x02)) {
-    TRACE_2("Invalid AMF version specified, supported version is: ReleaseCode = 'B', \
-						majorVersion = 0x04, minorVersion = 0x02");
+  if ((io_ver->releaseCode != 'B') || (io_ver->majorVersion != 0x04) ||
+      (io_ver->minorVersion != 0x02)) {
+    TRACE_2(
+        "Invalid AMF version specified, supported version is: ReleaseCode = 'B', \
+                                                majorVersion = 0x04, minorVersion = 0x02");
     rc = SA_AIS_ERR_VERSION;
   }
 
@@ -2857,8 +2927,7 @@ SaAisErrorT saAmfInitialize_o4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_o4 *re
   io_ver->majorVersion = 4;
   io_ver->minorVersion = 2;
 
-  if (SA_AIS_OK != rc)
-    goto done;
+  if (SA_AIS_OK != rc) goto done;
 
   /* Initialize the environment */
   if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
@@ -2898,14 +2967,15 @@ SaAisErrorT saAmfInitialize_o4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_o4 *re
 
   memset(&osaf_cbks, 0, sizeof(OsafAmfCallbacksT));
   if (reg_cbks != NULL)
-	  amf_copy_from_SaAmfCallbacksT_o4_to_OsafAmfCallbacksT(&osaf_cbks, reg_cbks);
+    amf_copy_from_SaAmfCallbacksT_o4_to_OsafAmfCallbacksT(&osaf_cbks, reg_cbks);
   /* create the hdl record & store the callbacks */
   if (!(hdl_rec = ava_hdl_rec_add(cb, hdl_db, &osaf_cbks))) {
     rc = SA_AIS_ERR_NO_MEMORY;
     goto done;
   }
 
-  /* Initialize the ipc mailbox for the client for processing pending callbacks */
+  /* Initialize the ipc mailbox for the client for processing pending callbacks
+   */
   if (NCSCC_RC_SUCCESS != ava_callback_ipc_init(hdl_rec)) {
     rc = SA_AIS_ERR_LIBRARY;
     goto done;
@@ -2918,8 +2988,7 @@ SaAisErrorT saAmfInitialize_o4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_o4 *re
   }
 
 done:
-  if (hdl_rec && SA_AIS_OK != rc)
-    ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
+  if (hdl_rec && SA_AIS_OK != rc) ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
 
   if (cb) {
     m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);

@@ -24,15 +24,16 @@
   DESCRIPTION: GLD events received and send related routines.
 
   FUNCTIONS INCLUDED in this module:
-  
+
 ******************************************************************************/
 static SaLckResourceIdT gld_gen_rsc_id(GLSV_GLD_CB *gld_cb);
-GLSV_GLD_RSC_INFO *gld_find_rsc_by_id(GLSV_GLD_CB *gld_cb, SaLckResourceIdT rsc_id);
+GLSV_GLD_RSC_INFO *gld_find_rsc_by_id(GLSV_GLD_CB *gld_cb,
+				      SaLckResourceIdT rsc_id);
 
 /****************************************************************************
  * Name          : gld_gen_rsc_id
  *
- * Description   : This is function is invoked generate a unique 32 bit 
+ * Description   : This is function is invoked generate a unique 32 bit
  *                 resource id. This is done by simply incrementing uint32_t bit
  *                 number till we arrive at a id that has not been assinged
  *
@@ -46,7 +47,8 @@ static SaLckResourceIdT gld_gen_rsc_id(GLSV_GLD_CB *gld_cb)
 {
 	SaLckResourceIdT gen_rsc_id = gld_cb->nxt_rsc_id;
 
-	while (ncs_patricia_tree_get(&gld_cb->rsc_info_id, (uint8_t *)&gen_rsc_id) != NULL) {
+	while (ncs_patricia_tree_get(&gld_cb->rsc_info_id,
+				     (uint8_t *)&gen_rsc_id) != NULL) {
 		if (gen_rsc_id == 0xffffffff)
 			gen_rsc_id = 210;
 		else
@@ -69,13 +71,14 @@ static SaLckResourceIdT gld_gen_rsc_id(GLSV_GLD_CB *gld_cb)
  *                 by its name.
  *
  * Arguments     : gld_cb        - control block
-                   rsc_name      - Resource that is being referred to
+		   rsc_name      - Resource that is being referred to
   *
  * Return Values : Pointer to the rsc details
  *
  * Notes         : None.
  *****************************************************************************/
-GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckResourceIdT rsc_id, SaAisErrorT *error)
+GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name,
+				    SaLckResourceIdT rsc_id, SaAisErrorT *error)
 {
 	GLSV_GLD_RSC_INFO *rsc_info;
 	GLSV_GLD_RSC_MAP_INFO *rsc_map_info;
@@ -91,7 +94,8 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 	memcpy(&rsc_info->lck_name, rsc_name, sizeof(SaNameT));
 	memset(&creation_time, '\0', sizeof(SaTimeT));
 	rsc_info->saf_rsc_no_of_users = 1;
-	rsc_info->saf_rsc_creation_time = m_GET_TIME_STAMP(creation_time) * SA_TIME_ONE_SECOND;
+	rsc_info->saf_rsc_creation_time =
+	    m_GET_TIME_STAMP(creation_time) * SA_TIME_ONE_SECOND;
 
 	if (rsc_id)
 		rsc_info->rsc_id = rsc_id;
@@ -105,7 +109,8 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 	}
 	/* Add this node to the global resource id tree */
 	rsc_info->pat_node.key_info = (uint8_t *)&rsc_info->rsc_id;
-	if (ncs_patricia_tree_add(&gld_cb->rsc_info_id, &rsc_info->pat_node) != NCSCC_RC_SUCCESS) {
+	if (ncs_patricia_tree_add(&gld_cb->rsc_info_id, &rsc_info->pat_node) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree add failed");
 		m_MMGR_FREE_GLSV_GLD_RSC_INFO(rsc_info);
 		*error = SA_AIS_ERR_NO_MEMORY;
@@ -116,7 +121,9 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 	if (rsc_map_info == NULL) {
 		LOG_CR("Rsc info alloc failed: Error %s", strerror(errno));
 		assert(0);
-		if (ncs_patricia_tree_del(&gld_cb->rsc_info_id, (NCS_PATRICIA_NODE *)rsc_info) != NCSCC_RC_SUCCESS) {
+		if (ncs_patricia_tree_del(&gld_cb->rsc_info_id,
+					  (NCS_PATRICIA_NODE *)rsc_info) !=
+		    NCSCC_RC_SUCCESS) {
 			LOG_ER("Patricia tree del failed");
 			return NULL;
 		}
@@ -126,13 +133,18 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 	}
 	memset(rsc_map_info, '\0', sizeof(GLSV_GLD_RSC_MAP_INFO));
 	memcpy(&rsc_map_info->rsc_name, rsc_name, sizeof(SaNameT));
-	rsc_map_info->rsc_name.length = m_NCS_OS_HTONS(rsc_map_info->rsc_name.length);
+	rsc_map_info->rsc_name.length =
+	    m_NCS_OS_HTONS(rsc_map_info->rsc_name.length);
 
 	rsc_map_info->rsc_id = rsc_info->rsc_id;
 	rsc_map_info->pat_node.key_info = (uint8_t *)&rsc_map_info->rsc_name;
-	if (ncs_patricia_tree_add(&gld_cb->rsc_map_info, &rsc_map_info->pat_node) != NCSCC_RC_SUCCESS) {
+	if (ncs_patricia_tree_add(&gld_cb->rsc_map_info,
+				  &rsc_map_info->pat_node) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree add failed");
-		if (ncs_patricia_tree_del(&gld_cb->rsc_info_id, (NCS_PATRICIA_NODE *)rsc_info) != NCSCC_RC_SUCCESS) {
+		if (ncs_patricia_tree_del(&gld_cb->rsc_info_id,
+					  (NCS_PATRICIA_NODE *)rsc_info) !=
+		    NCSCC_RC_SUCCESS) {
 			LOG_ER("Patricia tree del failed");
 			m_MMGR_FREE_GLSV_GLD_RSC_MAP_INFO(rsc_map_info);
 			return NULL;
@@ -145,17 +157,21 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
 
 	/*Add the imm runtime object */
 	if (gld_cb->ha_state == SA_AMF_HA_ACTIVE)
-		err =
-		    create_runtime_object((char *)rsc_name->value, rsc_info->saf_rsc_creation_time,
-					  gld_cb->immOiHandle);
+		err = create_runtime_object((char *)rsc_name->value,
+					    rsc_info->saf_rsc_creation_time,
+					    gld_cb->immOiHandle);
 
 	if (err != SA_AIS_OK) {
 		LOG_ER("create_runtime_object failed %u\n", err);
-		if (ncs_patricia_tree_del(&gld_cb->rsc_map_info, (NCS_PATRICIA_NODE *)rsc_map_info) != NCSCC_RC_SUCCESS) {
+		if (ncs_patricia_tree_del(&gld_cb->rsc_map_info,
+					  (NCS_PATRICIA_NODE *)rsc_map_info) !=
+		    NCSCC_RC_SUCCESS) {
 			LOG_ER("Patricia tree del failed");
 			return NULL;
 		}
-		if (ncs_patricia_tree_del(&gld_cb->rsc_info_id, (NCS_PATRICIA_NODE *)rsc_info) != NCSCC_RC_SUCCESS) {
+		if (ncs_patricia_tree_del(&gld_cb->rsc_info_id,
+					  (NCS_PATRICIA_NODE *)rsc_info) !=
+		    NCSCC_RC_SUCCESS) {
 			LOG_ER("Patricia tree del failed");
 			return NULL;
 		}
@@ -180,12 +196,13 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLc
  *                 by its id.
  *
  * Arguments     : gld_cb        - control block
-  *
+ *
  * Return Values : Pointer to the rsc details
  *
  * Notes         : None.
  *****************************************************************************/
-GLSV_GLD_RSC_INFO *gld_find_rsc_by_id(GLSV_GLD_CB *gld_cb, SaLckResourceIdT rsc_id)
+GLSV_GLD_RSC_INFO *gld_find_rsc_by_id(GLSV_GLD_CB *gld_cb,
+				      SaLckResourceIdT rsc_id)
 {
 	GLSV_GLD_RSC_INFO *rsc_info;
 
@@ -210,15 +227,16 @@ GLSV_GLD_RSC_INFO *gld_find_rsc_by_id(GLSV_GLD_CB *gld_cb, SaLckResourceIdT rsc_
  *                 by its name.
  *
  * Arguments     : gld_cb        - control block
-                   rsc_name      - Resource that is being referred to
+		   rsc_name      - Resource that is being referred to
   *
  * Return Values : Pointer to the rsc details
  *
  * Notes         : None.
  *****************************************************************************/
-GLSV_GLD_RSC_INFO *gld_find_add_rsc_name(GLSV_GLD_CB *gld_cb,
-					 SaNameT *rsc_name,
-					 SaLckResourceIdT rsc_id, SaLckResourceOpenFlagsT flag, SaAisErrorT *error)
+GLSV_GLD_RSC_INFO *gld_find_add_rsc_name(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name,
+					 SaLckResourceIdT rsc_id,
+					 SaLckResourceOpenFlagsT flag,
+					 SaAisErrorT *error)
 {
 	GLSV_GLD_RSC_INFO *rsc_info;
 	SaAisErrorT ret_error;
@@ -233,17 +251,20 @@ GLSV_GLD_RSC_INFO *gld_find_add_rsc_name(GLSV_GLD_CB *gld_cb,
 		rsc_info = rsc_info->next;
 	}
 	if (gld_cb->ha_state == SA_AMF_HA_ACTIVE) {
-		if (rsc_info == NULL && ((flag & SA_LCK_RESOURCE_CREATE) != SA_LCK_RESOURCE_CREATE)) {
+		if (rsc_info == NULL && ((flag & SA_LCK_RESOURCE_CREATE) !=
+					 SA_LCK_RESOURCE_CREATE)) {
 			*error = SA_AIS_ERR_NOT_EXIST;
 			return NULL;
 		}
 	}
 
 	if (rsc_info != NULL) {
-		rsc_info->saf_rsc_no_of_users = rsc_info->saf_rsc_no_of_users + 1;
+		rsc_info->saf_rsc_no_of_users =
+		    rsc_info->saf_rsc_no_of_users + 1;
 		return rsc_info;
 	} else {
-		rsc_info = gld_add_rsc_info(gld_cb, rsc_name, rsc_id, &ret_error);
+		rsc_info =
+		    gld_add_rsc_info(gld_cb, rsc_name, rsc_id, &ret_error);
 		*error = ret_error;
 		return rsc_info;
 	}
@@ -289,25 +310,31 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info)
 	memcpy(&immObj_name, &rsc_info->lck_name, sizeof(SaNameT));
 	/* delete imm runtime object */
 	if (gld_cb->ha_state == SA_AMF_HA_ACTIVE) {
-		if (immutil_saImmOiRtObjectDelete(gld_cb->immOiHandle, &immObj_name) != SA_AIS_OK) {
-			LOG_ER("Deleting run time object %s FAILED", lck_name.value);
+		if (immutil_saImmOiRtObjectDelete(gld_cb->immOiHandle,
+						  &immObj_name) != SA_AIS_OK) {
+			LOG_ER("Deleting run time object %s FAILED",
+			       lck_name.value);
 			return;
 		}
 	}
-	rsc_map_info = (GLSV_GLD_RSC_MAP_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_map_info, (uint8_t *)(uint8_t *)&lck_name);
+	rsc_map_info = (GLSV_GLD_RSC_MAP_INFO *)ncs_patricia_tree_get(
+	    &gld_cb->rsc_map_info, (uint8_t *)(uint8_t *)&lck_name);
 	if (rsc_map_info) {
-		if (ncs_patricia_tree_del(&gld_cb->rsc_map_info, (NCS_PATRICIA_NODE *)rsc_map_info) != NCSCC_RC_SUCCESS) {
+		if (ncs_patricia_tree_del(&gld_cb->rsc_map_info,
+					  (NCS_PATRICIA_NODE *)rsc_map_info) !=
+		    NCSCC_RC_SUCCESS) {
 			LOG_ER("Patricia tree del failed");
 			return;
 		}
 		m_MMGR_FREE_GLSV_GLD_RSC_MAP_INFO(rsc_map_info);
-
 	}
 	if (rsc_info->reelection_timer.tmr_id != TMR_T_NULL)
 		gld_stop_tmr(&rsc_info->reelection_timer);
 
 	/* Delete this node from the global resource tree */
-	if (ncs_patricia_tree_del(&gld_cb->rsc_info_id, (NCS_PATRICIA_NODE *)rsc_info) != NCSCC_RC_SUCCESS) {
+	if (ncs_patricia_tree_del(&gld_cb->rsc_info_id,
+				  (NCS_PATRICIA_NODE *)rsc_info) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree del failed");
 	}
 
@@ -316,7 +343,7 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info)
 }
 
 /****************************************************************************
- * Name          :  gld_snd_master_status 
+ * Name          :  gld_snd_master_status
  *
  * Description   : This function broadcasts new mastership information for a
  *                 resource
@@ -328,7 +355,8 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info)
  *
  * Notes         : None.
  *****************************************************************************/
-void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uint32_t status)
+void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
+			   uint32_t status)
 {
 	GLSV_GLND_EVT glnd_evt;
 	NCSMDS_INFO snd_mds;
@@ -339,17 +367,20 @@ void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uin
 
 	if (rsc_info->node_list == NULL) {
 		LOG_ER("error in designating new master: rsc_id %u",
-				   rsc_info->rsc_id);
+		       rsc_info->rsc_id);
 		return;
 	}
 
 	/* Send the details to the glnd */
 	memset(&glnd_evt, 0, sizeof(GLSV_GLND_EVT));
 	glnd_evt.type = GLSV_GLND_EVT_RSC_NEW_MASTER;
-	glnd_evt.info.new_master_info.rsc_id = rsc_info->rsc_id;;
-	glnd_evt.info.new_master_info.master_dest_id = rsc_info->node_list->dest_id;
+	glnd_evt.info.new_master_info.rsc_id = rsc_info->rsc_id;
+	;
+	glnd_evt.info.new_master_info.master_dest_id =
+	    rsc_info->node_list->dest_id;
 	glnd_evt.info.new_master_info.orphan = rsc_info->can_orphan;
-	glnd_evt.info.new_master_info.orphan_lck_mode = rsc_info->orphan_lck_mode;
+	glnd_evt.info.new_master_info.orphan_lck_mode =
+	    rsc_info->orphan_lck_mode;
 	glnd_evt.info.new_master_info.status = status;
 
 	snd_mds.i_mds_hdl = gld_cb->mds_handle;
@@ -372,7 +403,7 @@ void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uin
 /****************************************************************************
  * Name          : gld_rsc_rmv_node_ref
  *
- * Description   : This function is invoked when a node stops referring to a 
+ * Description   : This function is invoked when a node stops referring to a
  *                 resource. The function will also check if the master for this
  *                 resource is getting modified, if so it will generate an event
  *                 indicating the new master
@@ -386,7 +417,8 @@ void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uin
  * Notes         : None.
  *****************************************************************************/
 void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
-			  GLSV_GLD_GLND_RSC_REF *glnd_rsc, GLSV_GLD_GLND_DETAILS *node_details, bool orphan_flag)
+			  GLSV_GLD_GLND_RSC_REF *glnd_rsc,
+			  GLSV_GLD_GLND_DETAILS *node_details, bool orphan_flag)
 {
 	GLSV_NODE_LIST **node_list, *free_node_list = NULL;
 	bool chg_master = false;
@@ -409,7 +441,7 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
 
 	if (*node_list == NULL) {
 		LOG_ER("Incorrect state: rsc_id %u node_id %u",
-				   rsc_info->rsc_id, node_details->node_id);
+		       rsc_info->rsc_id, node_details->node_id);
 	} else {
 		*node_list = (*node_list)->next;
 		m_MMGR_FREE_GLSV_NODE_LIST(free_node_list);
@@ -419,12 +451,19 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
 		rsc_info->can_orphan = false;
 	}
 
-	if (ncs_patricia_tree_del(&node_details->rsc_info_tree, (NCS_PATRICIA_NODE *)glnd_rsc) != NCSCC_RC_SUCCESS) {
+	if (ncs_patricia_tree_del(&node_details->rsc_info_tree,
+				  (NCS_PATRICIA_NODE *)glnd_rsc) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree del failed");
 	}
 
 	if (rsc_info->node_list != NULL && rsc_info->can_orphan == false)
-		glnd_rsc->rsc_info->saf_rsc_no_of_users = glnd_rsc->rsc_info->saf_rsc_no_of_users + 1;	/* In the purge flow we need to increment the number of users beacuse we have already decremented it in finalize flow and again decremented in purge flow which amounts to double decrement */
+		glnd_rsc->rsc_info->saf_rsc_no_of_users =
+		    glnd_rsc->rsc_info->saf_rsc_no_of_users +
+		    1; /* In the purge flow we need to increment the number of
+			  users beacuse we have already decremented it in
+			  finalize flow and again decremented in purge flow
+			  which amounts to double decrement */
 
 	m_MMGR_FREE_GLSV_GLD_GLND_RSC_REF(glnd_rsc);
 
@@ -435,9 +474,11 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
 		rsc_info->reelection_timer.resource_id = rsc_info->rsc_id;
 		/* Start GLSV_GLD_GLND_RESTART_TIMEOUT timer */
 		gld_start_tmr(gld_cb, &rsc_info->reelection_timer,
-			      GLD_TMR_RES_REELECTION_WAIT, GLSV_GLND_MASTER_REELECTION_WAIT_TIME, 0);
+			      GLD_TMR_RES_REELECTION_WAIT,
+			      GLSV_GLND_MASTER_REELECTION_WAIT_TIME, 0);
 
-		gld_snd_master_status(gld_cb, rsc_info, GLND_RESOURCE_ELECTION_IN_PROGESS);
+		gld_snd_master_status(gld_cb, rsc_info,
+				      GLND_RESOURCE_ELECTION_IN_PROGESS);
 	}
 	return;
 }
@@ -456,12 +497,14 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
  *
  * Notes         : None.
  *****************************************************************************/
-void gld_rsc_add_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_details, GLSV_GLD_RSC_INFO *rsc_info)
+void gld_rsc_add_node_ref(GLSV_GLD_CB *gld_cb,
+			  GLSV_GLD_GLND_DETAILS *node_details,
+			  GLSV_GLD_RSC_INFO *rsc_info)
 {
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc;
 	/* Dont do anything if we are already referring to this resource */
-	if (ncs_patricia_tree_get(&node_details->rsc_info_tree, (uint8_t *)&rsc_info->rsc_id)
-	    != NULL)
+	if (ncs_patricia_tree_get(&node_details->rsc_info_tree,
+				  (uint8_t *)&rsc_info->rsc_id) != NULL)
 		return;
 
 	glnd_rsc = m_MMGR_ALLOC_GLSV_GLD_GLND_RSC_REF;
@@ -474,8 +517,8 @@ void gld_rsc_add_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_detai
 	glnd_rsc->rsc_id = rsc_info->rsc_id;
 	glnd_rsc->rsc_info = rsc_info;
 	glnd_rsc->pat_node.key_info = (uint8_t *)&glnd_rsc->rsc_id;
-	if (ncs_patricia_tree_add(&node_details->rsc_info_tree, &glnd_rsc->pat_node)
-	    != NCSCC_RC_SUCCESS) {
+	if (ncs_patricia_tree_add(&node_details->rsc_info_tree,
+				  &glnd_rsc->pat_node) != NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree add failed");
 		m_MMGR_FREE_GLSV_GLD_GLND_DETAILS(node_details);
 		return;

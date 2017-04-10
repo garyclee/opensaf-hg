@@ -28,7 +28,7 @@
 #include "base/osaf_extended_name.h"
 
 /* Number of seconds per an hour/minute */
-#define SECOND_PER_HOUR  3600L
+#define SECOND_PER_HOUR 3600L
 #define SECOND_PER_MINUTE 60L
 #define SA_TIME_OFFSET 1000LL
 
@@ -71,9 +71,10 @@ static SaInt32T checkFieldSize(SaStringT inputString, SaUint16T *numOfDigits) {
  *
  * @return SaBoolT
  */
-static SaBoolT validateComToken(SaStringT fmtExpPtr,
-                                SaUint16T *fmtExpPtrOffset,
-                                SaUint32T *tokenFlags, SaBoolT *twelveHourModeFlag, logStreamTypeT logStreamType) {
+static SaBoolT validateComToken(SaStringT fmtExpPtr, SaUint16T *fmtExpPtrOffset,
+                                SaUint32T *tokenFlags,
+                                SaBoolT *twelveHourModeFlag,
+                                logStreamTypeT logStreamType) {
   SaBoolT tokenOk = SA_TRUE;
   SaInt32T fieldSize = 0;
   SaUint16T fieldSizeOffset = 0;
@@ -84,7 +85,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_LR_ID_LETTER:
       shiftOffset = (int)C_LR_ID_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -93,7 +94,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_LR_TIME_STAMP_LETTER:
       shiftOffset = (int)C_LR_TIME_STAMP_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -102,7 +103,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_TIME_STAMP_HOUR_LETTER:
       shiftOffset = (int)C_TIME_STAMP_HOUR_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -111,7 +112,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_TIME_STAMP_MINUTE_LETTER:
       shiftOffset = (int)C_TIME_STAMP_MINUTE_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -120,7 +121,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_TIME_STAMP_SECOND_LETTER:
       shiftOffset = (int)C_TIME_STAMP_SECOND_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -129,7 +130,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_TIME_STAMP_12_24_MODE_LETTER:
       shiftOffset = (int)C_TIME_STAMP_12_24_MODE_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -139,7 +140,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_TIME_STAMP_MONTH_LETTER:
       shiftOffset = (int)C_TIME_STAMP_MONTH_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -148,7 +149,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_TIME_STAMP_MON_LETTER:
       shiftOffset = (int)C_TIME_STAMP_MON_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -157,7 +158,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_TIME_STAMP_DAY_LETTER:
       shiftOffset = (int)C_TIME_STAMP_DAY_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -166,7 +167,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_TIME_STAMP_DAYN_LETTER:
       shiftOffset = (int)C_TIME_STAMP_DAYN_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -175,7 +176,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_TIME_STAMP_YEAR_LETTER:
       shiftOffset = (int)C_TIME_STAMP_YEAR_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -184,25 +185,25 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_TIME_STAMP_FULL_YEAR_LETTER:
       shiftOffset = (int)C_TIME_STAMP_FULL_YEAR_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
       break;
 
     case C_TIME_MILLISECOND_LETTER:
-      shiftOffset = (int) C_TIME_MILLISECOND_SHIFT_OFFSET;
+      shiftOffset = (int)C_TIME_MILLISECOND_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
       break;
 
     case C_TIME_TIMEZONE_LETTER:
-      shiftOffset = (int) C_TIME_TIMEZONE_SHIFT_OFFSET;
+      shiftOffset = (int)C_TIME_TIMEZONE_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -211,7 +212,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_NOTIFICATION_CLASS_ID_LETTER:
       shiftOffset = (int)C_NOTIFICATION_CLASS_ID_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -220,7 +221,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_LR_TRUNCATION_INFO_LETTER:
       shiftOffset = (int)C_LR_TRUNCATION_INFO_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -229,7 +230,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_LR_STRING_BODY_LETTER:
       shiftOffset = (int)C_LR_STRING_BODY_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -243,7 +244,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_LR_HEX_CHAR_BODY_LETTER:
       shiftOffset = (int)C_LR_HEX_CHAR_BODY_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -262,7 +263,7 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_NETWORK_NAME_LETTER:
       shiftOffset = static_cast<int>(C_NETWORK_NAME_OFFSET);
       if ((*tokenFlags >> shiftOffset) & 1) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -271,13 +272,13 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
     case C_NODE_NAME_LETTER:
       shiftOffset = static_cast<int>(C_NODE_NAME_OFFSET);
       if ((*tokenFlags >> shiftOffset) & 1) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
       break;
 
-    default:                /* Non valid token letter */
+    default: /* Non valid token letter */
       *fmtExpPtrOffset = 1;
       tokenOk = SA_FALSE;
       break;
@@ -295,8 +296,9 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
  *
  * @return SaBoolT
  */
-static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
-                                SaUint16T *fmtExpPtrOffset, SaUint32T *tokenFlags, SaBoolT *twelveHourModeFlag) {
+static SaBoolT validateNtfToken(SaStringT fmtExpPtr, SaUint16T *fmtExpPtrOffset,
+                                SaUint32T *tokenFlags,
+                                SaBoolT *twelveHourModeFlag) {
   SaBoolT tokenOk = SA_TRUE;
   SaInt32T fieldSize = 0;
   SaUint16T fieldSizeOffset;
@@ -307,7 +309,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_NOTIFICATION_ID_LETTER:
       shiftOffset = (int)N_NOTIFICATION_ID_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -316,7 +318,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_LETTER:
       shiftOffset = (int)N_EVENT_TIME_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -325,7 +327,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_HOUR_LETTER:
       shiftOffset = (int)N_EVENT_TIME_HOUR_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -334,7 +336,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_MINUTE_LETTER:
       shiftOffset = (int)N_EVENT_TIME_MINUTE_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -342,7 +344,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_SECOND_LETTER:
       shiftOffset = (int)N_EVENT_TIME_SECOND_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -351,7 +353,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_12_24_MODE_LETTER:
       shiftOffset = (int)N_EVENT_TIME_12_24_MODE_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -361,7 +363,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_MONTH_LETTER:
       shiftOffset = (int)N_EVENT_TIME_MONTH_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -370,7 +372,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_MON_LETTER:
       shiftOffset = (int)N_EVENT_TIME_MON_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -379,7 +381,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_DAY_LETTER:
       shiftOffset = (int)N_EVENT_TIME_DAY_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -388,7 +390,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_DAYN_LETTER:
       shiftOffset = (int)N_EVENT_TIME_DAYN_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -397,7 +399,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_YEAR_LETTER:
       shiftOffset = (int)N_EVENT_TIME_YEAR_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -406,25 +408,25 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TIME_FULL_YEAR_LETTER:
       shiftOffset = (int)N_EVENT_TIME_FULL_YEAR_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
       break;
 
     case N_EVENT_TIME_MILLISECOND_LETTER:
-      shiftOffset = (int) N_EVENT_TIME_MILLISECOND_SHIFT_OFFSET;
+      shiftOffset = (int)N_EVENT_TIME_MILLISECOND_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
       break;
 
     case N_EVENT_TIME_TIMEZONE_LETTER:
-      shiftOffset = (int) N_EVENT_TIME_TIMEZONE_SHIFT_OFFSET;
+      shiftOffset = (int)N_EVENT_TIME_TIMEZONE_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -433,7 +435,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_EVENT_TYPE_LETTER:
       shiftOffset = (int)N_EVENT_TYPE_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -447,7 +449,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_NOTIFICATION_OBJECT_LETTER:
       shiftOffset = (int)N_NOTIFICATION_OBJECT_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -461,7 +463,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
     case N_NOTIFYING_OBJECT_LETTER:
       shiftOffset = (int)N_NOTIFYING_OBJECT_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -472,7 +474,7 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
       *fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
       break;
 
-    default:                /* Non valid token letter */
+    default: /* Non valid token letter */
       *fmtExpPtrOffset = 1;
       tokenOk = SA_FALSE;
       break;
@@ -489,7 +491,8 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
  *
  * @return SaBoolT
  */
-static SaBoolT validateSysToken(SaStringT fmtExpPtr, SaUint16T *fmtExpPtrOffset, SaUint32T *tokenFlags) {
+static SaBoolT validateSysToken(SaStringT fmtExpPtr, SaUint16T *fmtExpPtrOffset,
+                                SaUint32T *tokenFlags) {
   SaBoolT tokenOk = SA_TRUE;
   SaInt32T fieldSize = 0;
   SaUint16T fieldSizeOffset = 0;
@@ -500,7 +503,7 @@ static SaBoolT validateSysToken(SaStringT fmtExpPtr, SaUint16T *fmtExpPtrOffset,
     case S_SEVERITY_ID_LETTER:
       shiftOffset = (int)S_SEVERITY_ID_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -509,7 +512,7 @@ static SaBoolT validateSysToken(SaStringT fmtExpPtr, SaUint16T *fmtExpPtrOffset,
     case S_LOGGER_NAME_LETTER:
       shiftOffset = (int)S_LOGGER_NAME_SHIFT_OFFSET;
       if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
-        tokenOk = SA_FALSE;     /* Same token used two times */
+        tokenOk = SA_FALSE; /* Same token used two times */
       } else {
         *tokenFlags = (*tokenFlags | (1 << shiftOffset));
       }
@@ -520,7 +523,7 @@ static SaBoolT validateSysToken(SaStringT fmtExpPtr, SaUint16T *fmtExpPtrOffset,
       *fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
       break;
 
-    default:                /* Non valid token letter */
+    default: /* Non valid token letter */
       *fmtExpPtrOffset = 1;
       tokenOk = SA_FALSE;
       break;
@@ -542,16 +545,13 @@ static SaBoolT validateSysToken(SaStringT fmtExpPtr, SaUint16T *fmtExpPtrOffset,
  *
  * @return SaStringT
  */
-static int extractCommonField(char *dest, size_t dest_size,
-                              SaStringT fmtExpPtr,
+static int extractCommonField(char *dest, size_t dest_size, SaStringT fmtExpPtr,
                               SaUint16T *fmtExpPtrOffset,
-                              SaInt32T *truncationLetterPos,
-                              SaInt32T inputPos,
+                              SaInt32T *truncationLetterPos, SaInt32T inputPos,
                               SaUint32T logRecordIdCounter,
                               const SaBoolT *twelveHourModeFlag,
                               const struct tm *timeStampData,
-                              const SaLogRecordT *logRecord,
-                              SaUint16T rec_size,
+                              const SaLogRecordT *logRecord, SaUint16T rec_size,
                               char *node_name) {
   SaInt32T fieldSize;
   size_t stringSize, i;
@@ -571,13 +571,15 @@ static int extractCommonField(char *dest, size_t dest_size,
 
     case C_LR_TIME_STAMP_LETTER:
       stringSize = 19 * sizeof(char);
-      characters = snprintf(dest, dest_size, "%#016llx", logRecord->logTimeStamp);
+      characters =
+          snprintf(dest, dest_size, "%#016llx", logRecord->logTimeStamp);
       break;
 
     case C_TIME_STAMP_HOUR_LETTER:
       stringSize = 3 * sizeof(char);
       if (*twelveHourModeFlag == SA_TRUE) {
-        characters = snprintf(dest, dest_size, "%02d", (timeStampData->tm_hour % 12));
+        characters =
+            snprintf(dest, dest_size, "%02d", (timeStampData->tm_hour % 12));
       } else {
         characters = snprintf(dest, dest_size, "%02d", timeStampData->tm_hour);
       }
@@ -604,7 +606,8 @@ static int extractCommonField(char *dest, size_t dest_size,
 
     case C_TIME_STAMP_MONTH_LETTER:
       stringSize = 3 * sizeof(char);
-      characters = snprintf(dest, dest_size, "%02d", (timeStampData->tm_mon + 1));
+      characters =
+          snprintf(dest, dest_size, "%02d", (timeStampData->tm_mon + 1));
       break;
 
     case C_TIME_STAMP_MON_LETTER:
@@ -727,27 +730,31 @@ static int extractCommonField(char *dest, size_t dest_size,
     case C_TIME_TIMEZONE_LETTER:
       stringSize = 6 * sizeof(char);
       /* Get timezone offset from localtime to UTC time */
-      gmtOffset = (timeStampData->tm_gmtoff / SECOND_PER_HOUR) * 100 +
+      gmtOffset =
+          (timeStampData->tm_gmtoff / SECOND_PER_HOUR) * 100 +
           (timeStampData->tm_gmtoff % SECOND_PER_HOUR) / SECOND_PER_MINUTE;
 
       uGmtOffset = (gmtOffset >= 0) ? (gmtOffset) : (gmtOffset * -1);
-      characters = snprintf(dest, dest_size, "%c%04ld", gmtOffset >= 0 ? '+' : '-', uGmtOffset);
+      characters = snprintf(dest, dest_size, "%c%04ld",
+                            gmtOffset >= 0 ? '+' : '-', uGmtOffset);
       break;
 
     case C_NOTIFICATION_CLASS_ID_LETTER:
       stringSize = 30 * sizeof(char);
       if (logRecord->logHdrType == SA_LOG_GENERIC_HEADER) {
-        characters = snprintf(dest, dest_size,
-                              "NCI[0x%#08x,0x%#04x,0x%#04x]",
-                              (unsigned int)logRecord->logHeader.genericHdr.notificationClassId->
-                              vendorId, logRecord->logHeader.genericHdr.notificationClassId->majorId,
-                              logRecord->logHeader.genericHdr.notificationClassId->minorId);
+        characters = snprintf(
+            dest, dest_size, "NCI[0x%#08x,0x%#04x,0x%#04x]",
+            (unsigned int)
+                logRecord->logHeader.genericHdr.notificationClassId->vendorId,
+            logRecord->logHeader.genericHdr.notificationClassId->majorId,
+            logRecord->logHeader.genericHdr.notificationClassId->minorId);
       } else
-        characters = snprintf(dest, dest_size,
-                              "NCI[0x%08x,0x%04x,0x%04x]",
-                              (unsigned int)logRecord->logHeader.ntfHdr.notificationClassId->vendorId,
-                              logRecord->logHeader.ntfHdr.notificationClassId->majorId,
-                              logRecord->logHeader.ntfHdr.notificationClassId->minorId);
+        characters = snprintf(
+            dest, dest_size, "NCI[0x%08x,0x%04x,0x%04x]",
+            (unsigned int)
+                logRecord->logHeader.ntfHdr.notificationClassId->vendorId,
+            logRecord->logHeader.ntfHdr.notificationClassId->majorId,
+            logRecord->logHeader.ntfHdr.notificationClassId->minorId);
 
       break;
 
@@ -758,21 +765,21 @@ static int extractCommonField(char *dest, size_t dest_size,
       if ((inputPos + 1) == rec_size)
         *truncationLetterPos = inputPos - 1;
       else
-        *truncationLetterPos = inputPos;        /* The position of the truncation
-                                                   character in the log record */
+        *truncationLetterPos = inputPos; /* The position of the truncation
+                                            character in the log record */
       break;
 
     case C_LR_STRING_BODY_LETTER:
       fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
       stringSize = logRecord->logBuffer->logBufSize + 1;
-      if (fieldSize == 0) {   /* Copy whole body */
-        if (stringSize > dest_size)
-          stringSize = dest_size;
-        characters = snprintf(dest, stringSize, "%s", (SaStringT)logRecord->logBuffer->logBuf);
-      } else {        /* Truncate or pad the body with blanks until fieldSize */
-        characters = snprintf(dest, dest_size,
-                              "%*.*s",
-                              (int)-fieldSize, (int)fieldSize, (SaStringT)logRecord->logBuffer->logBuf);
+      if (fieldSize == 0) { /* Copy whole body */
+        if (stringSize > dest_size) stringSize = dest_size;
+        characters = snprintf(dest, stringSize, "%s",
+                              (SaStringT)logRecord->logBuffer->logBuf);
+      } else { /* Truncate or pad the body with blanks until fieldSize */
+        characters =
+            snprintf(dest, dest_size, "%*.*s", (int)-fieldSize, (int)fieldSize,
+                     (SaStringT)logRecord->logBuffer->logBuf);
       }
 
       *fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
@@ -783,30 +790,32 @@ static int extractCommonField(char *dest, size_t dest_size,
       fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
       hex_string = static_cast<char *>(malloc(2 * stringSize + 1));
 
-      if (hex_string == NULL){
+      if (hex_string == NULL) {
         osafassert(0);
       }
 
       hex_string_ptr = hex_string;
 
       for (i = 0; i < stringSize; i++) {
-        int no_ch = sprintf(hex_string_ptr, "%x", (int)logRecord->logBuffer->logBuf[i]);
+        int no_ch =
+            sprintf(hex_string_ptr, "%x", (int)logRecord->logBuffer->logBuf[i]);
         hex_string_ptr = hex_string_ptr + no_ch;
       }
       *hex_string_ptr = '\0';
 
       if (fieldSize == 0) {
-
         characters = snprintf(dest, dest_size, "%s", hex_string);
       } else {
-        characters = snprintf(dest, dest_size, "%*.*s", (int)fieldSize, (int)fieldSize, hex_string);
+        characters = snprintf(dest, dest_size, "%*.*s", (int)fieldSize,
+                              (int)fieldSize, hex_string);
       }
       *fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
       free(hex_string);
       break;
 
     case C_NETWORK_NAME_LETTER:
-      characters = snprintf(dest, dest_size, "%s", lgs_get_networkname().c_str());
+      characters =
+          snprintf(dest, dest_size, "%s", lgs_get_networkname().c_str());
       stringSize = characters;
       break;
 
@@ -821,11 +830,9 @@ static int extractCommonField(char *dest, size_t dest_size,
   }
 
   /* Error */
-  if (characters == -1)
-    characters = 0;
+  if (characters == -1) characters = 0;
 
-  if (characters > static_cast<int>(dest_size))
-    characters = dest_size;
+  if (characters > static_cast<int>(dest_size)) characters = dest_size;
 
   return characters;
 }
@@ -843,7 +850,8 @@ static int extractCommonField(char *dest, size_t dest_size,
 static int extractNotificationField(char *dest, size_t dest_size,
                                     SaStringT fmtExpPtr,
                                     SaUint16T *fmtExpPtrOffset,
-                                    const SaBoolT *twelveHourModeFlag, const SaLogRecordT *logRecord) {
+                                    const SaBoolT *twelveHourModeFlag,
+                                    const SaLogRecordT *logRecord) {
   struct tm *eventTimeData;
   SaTimeT totalTime, ms;
   SaInt32T fieldSize;
@@ -854,7 +862,8 @@ static int extractNotificationField(char *dest, size_t dest_size,
   *fmtExpPtrOffset = DEFAULT_FMT_EXP_PTR_OFFSET;
 
   /* Convert event time into */
-  totalTime = (logRecord->logHeader.ntfHdr.eventTime / (SaTimeT)SA_TIME_ONE_SECOND);
+  totalTime =
+      (logRecord->logHeader.ntfHdr.eventTime / (SaTimeT)SA_TIME_ONE_SECOND);
 
   /* Split timestamp in timeStampData */
   struct tm tm_info;
@@ -863,16 +872,19 @@ static int extractNotificationField(char *dest, size_t dest_size,
 
   switch (*fmtExpPtr++) {
     case N_NOTIFICATION_ID_LETTER:
-      characters = snprintf(dest, dest_size, "0x%#016llx", logRecord->logHeader.ntfHdr.notificationId);
+      characters = snprintf(dest, dest_size, "0x%#016llx",
+                            logRecord->logHeader.ntfHdr.notificationId);
       break;
 
     case N_EVENT_TIME_LETTER:
-      characters = snprintf(dest, dest_size, "%#016llx", logRecord->logHeader.ntfHdr.eventTime);
+      characters = snprintf(dest, dest_size, "%#016llx",
+                            logRecord->logHeader.ntfHdr.eventTime);
       break;
 
     case N_EVENT_TIME_HOUR_LETTER:
       if (*twelveHourModeFlag == SA_TRUE) {
-        characters = snprintf(dest, dest_size, "%02d", (eventTimeData->tm_hour % 12));
+        characters =
+            snprintf(dest, dest_size, "%02d", (eventTimeData->tm_hour % 12));
       } else {
         characters = snprintf(dest, dest_size, "%02d", eventTimeData->tm_hour);
       }
@@ -895,7 +907,8 @@ static int extractNotificationField(char *dest, size_t dest_size,
       break;
 
     case N_EVENT_TIME_MONTH_LETTER:
-      characters = snprintf(dest, dest_size, "%02d", (eventTimeData->tm_mon + 1));
+      characters =
+          snprintf(dest, dest_size, "%02d", (eventTimeData->tm_mon + 1));
       break;
 
     case N_EVENT_TIME_MON_LETTER:
@@ -1000,36 +1013,40 @@ static int extractNotificationField(char *dest, size_t dest_size,
       break;
 
     case N_EVENT_TIME_FULL_YEAR_LETTER:
-      characters = snprintf(dest, dest_size, "%d", (eventTimeData->tm_year + START_YEAR));
+      characters = snprintf(dest, dest_size, "%d",
+                            (eventTimeData->tm_year + START_YEAR));
       break;
 
     case N_EVENT_TIME_MILLISECOND_LETTER:
       /* Extract millisecond from logTimestamp */
-      ms = (logRecord->logHeader.ntfHdr.eventTime / SA_TIME_ONE_MILLISECOND) % SA_TIME_OFFSET;
+      ms = (logRecord->logHeader.ntfHdr.eventTime / SA_TIME_ONE_MILLISECOND) %
+           SA_TIME_OFFSET;
       characters = snprintf(dest, dest_size, "%03lld", ms);
       break;
 
     case N_EVENT_TIME_TIMEZONE_LETTER:
       /* Get time offset from localtime to UTC */
-      gmtOffset = (eventTimeData->tm_gmtoff / SECOND_PER_HOUR) * 100 +
+      gmtOffset =
+          (eventTimeData->tm_gmtoff / SECOND_PER_HOUR) * 100 +
           (eventTimeData->tm_gmtoff % SECOND_PER_HOUR) / SECOND_PER_MINUTE;
 
       uGmtOffset = (gmtOffset >= 0) ? (gmtOffset) : (gmtOffset * -1);
-      characters = snprintf(dest, dest_size, "%c%04ld", gmtOffset >= 0 ? '+' : '-', uGmtOffset);
+      characters = snprintf(dest, dest_size, "%c%04ld",
+                            gmtOffset >= 0 ? '+' : '-', uGmtOffset);
       break;
 
     case N_EVENT_TYPE_LETTER:
       /* Check field size */
       fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
       if (fieldSize == 0) {
-        characters = snprintf(dest, dest_size, "%#x", logRecord->logHeader.ntfHdr.eventType);
+        characters = snprintf(dest, dest_size, "%#x",
+                              logRecord->logHeader.ntfHdr.eventType);
 
       } else {
         /* TODO!!! Fit hex output to size => two steps for non strings */
         /* 0x included in total field size */
         fieldSize = (fieldSize > 2) ? (fieldSize - 2) : 2;
-        characters = snprintf(dest, dest_size,
-                              "%#.*x", fieldSize,
+        characters = snprintf(dest, dest_size, "%#.*x", fieldSize,
                               logRecord->logHeader.ntfHdr.eventType);
       }
 
@@ -1040,14 +1057,15 @@ static int extractNotificationField(char *dest, size_t dest_size,
       /* Check field size and trunkate alternative pad with blanks */
       fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
       if (fieldSize == 0) {
-        characters = snprintf(dest, dest_size, "%s",
-                              osaf_extended_name_borrow(
-                                  logRecord->logHeader.ntfHdr.notificationObject));
+        characters =
+            snprintf(dest, dest_size, "%s",
+                     osaf_extended_name_borrow(
+                         logRecord->logHeader.ntfHdr.notificationObject));
       } else {
-        characters = snprintf(dest, dest_size, "%*.*s", (int) -fieldSize,
-                              (int) fieldSize,
-                              osaf_extended_name_borrow(
-                                  logRecord->logHeader.ntfHdr.notificationObject));
+        characters =
+            snprintf(dest, dest_size, "%*.*s", (int)-fieldSize, (int)fieldSize,
+                     osaf_extended_name_borrow(
+                         logRecord->logHeader.ntfHdr.notificationObject));
       }
 
       *fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
@@ -1061,10 +1079,10 @@ static int extractNotificationField(char *dest, size_t dest_size,
                               osaf_extended_name_borrow(
                                   logRecord->logHeader.ntfHdr.notifyingObject));
       } else {
-        characters = snprintf(dest, dest_size, "%*.*s", (int) -fieldSize,
-                              (int) fieldSize,
-                              osaf_extended_name_borrow(
-                                  logRecord->logHeader.ntfHdr.notifyingObject));
+        characters =
+            snprintf(dest, dest_size, "%*.*s", (int)-fieldSize, (int)fieldSize,
+                     osaf_extended_name_borrow(
+                         logRecord->logHeader.ntfHdr.notifyingObject));
       }
 
       *fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
@@ -1076,11 +1094,9 @@ static int extractNotificationField(char *dest, size_t dest_size,
   }
 
   /* Error */
-  if (characters == -1)
-    characters = 0;
+  if (characters == -1) characters = 0;
 
-  if (characters > static_cast<int>(dest_size))
-    characters = dest_size;
+  if (characters > static_cast<int>(dest_size)) characters = dest_size;
 
   return characters;
 }
@@ -1094,8 +1110,9 @@ static int extractNotificationField(char *dest, size_t dest_size,
  *
  * @return SaStringT
  */
-static int extractSystemField(char *dest, size_t dest_size,
-                              SaStringT fmtExpPtr, SaUint16T *fmtExpPtrOffset, const SaLogRecordT *logRecord) {
+static int extractSystemField(char *dest, size_t dest_size, SaStringT fmtExpPtr,
+                              SaUint16T *fmtExpPtrOffset,
+                              const SaLogRecordT *logRecord) {
   SaInt32T fieldSize;
   SaInt32T characters = 0;
   SaUint16T fieldSizeOffset = 0;
@@ -1105,17 +1122,15 @@ static int extractSystemField(char *dest, size_t dest_size,
     case S_LOGGER_NAME_LETTER:
       fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
       if (fieldSize != 0) {
-        characters = snprintf(dest, dest_size,
-                              "%*.*s",
-                              (int)-fieldSize,
-                              (int)fieldSize,
-                              osaf_extended_name_borrow(
-                                  logRecord->logHeader.genericHdr.logSvcUsrName));
+        characters =
+            snprintf(dest, dest_size, "%*.*s", (int)-fieldSize, (int)fieldSize,
+                     osaf_extended_name_borrow(
+                         logRecord->logHeader.genericHdr.logSvcUsrName));
       } else {
-        characters = snprintf(dest, dest_size,
-                              "%s",
-                              osaf_extended_name_borrow(
-                                  logRecord->logHeader.genericHdr.logSvcUsrName));
+        characters =
+            snprintf(dest, dest_size, "%s",
+                     osaf_extended_name_borrow(
+                         logRecord->logHeader.genericHdr.logSvcUsrName));
       }
       *fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
       break;
@@ -1153,7 +1168,6 @@ static int extractSystemField(char *dest, size_t dest_size,
         default:
           (void)strcpy(dest, "");
           break;
-
       }
       break;
 
@@ -1163,11 +1177,9 @@ static int extractSystemField(char *dest, size_t dest_size,
   }
 
   /* Error */
-  if (characters == -1)
-    characters = 0;
+  if (characters == -1) characters = 0;
 
-  if (characters > static_cast<int>(dest_size))
-    characters = dest_size;
+  if (characters > static_cast<int>(dest_size)) characters = dest_size;
 
   return characters;
 }
@@ -1181,7 +1193,8 @@ static int extractSystemField(char *dest, size_t dest_size,
  * @return SaBoolT
  */
 SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
-                                       logStreamTypeT logStreamType, SaBoolT *twelveHourModeFlag) {
+                                       logStreamTypeT logStreamType,
+                                       SaBoolT *twelveHourModeFlag) {
   SaBoolT formatExpressionOk = SA_FALSE;
   SaBoolT tokenOk = SA_FALSE;
   SaUint32T comTokenFlags = 0x00000000;
@@ -1194,33 +1207,35 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
   osafassert(formatExpression != NULL);
 
   /* Main checking loop */
-  for (;;) {              /* Scan the Format Expression */
-    if ((*fmtExpPtr == TOKEN_START_SYMBOL) && (*fmtExpPtrSnabel != STRING_END_CHARACTER)) {
-      switch (*fmtExpPtrSnabel++) {   /* New token to be validated */
+  for (;;) { /* Scan the Format Expression */
+    if ((*fmtExpPtr == TOKEN_START_SYMBOL) &&
+        (*fmtExpPtrSnabel != STRING_END_CHARACTER)) {
+      switch (*fmtExpPtrSnabel++) { /* New token to be validated */
         case COMMON_LOG_RECORD_FIELD_TYPE:
-          tokenOk = validateComToken(fmtExpPtrSnabel,
-                                     &fmtExpTokenOffset,
-                                     &comTokenFlags, twelveHourModeFlag, logStreamType);
+          tokenOk = validateComToken(fmtExpPtrSnabel, &fmtExpTokenOffset,
+                                     &comTokenFlags, twelveHourModeFlag,
+                                     logStreamType);
           break;
 
         case NOTIFICATION_LOG_RECORD_FIELD_TYPE:
-          tokenOk = validateNtfToken(fmtExpPtrSnabel,
-                                     &fmtExpTokenOffset, &ntfTokenFlags, twelveHourModeFlag);
+          tokenOk = validateNtfToken(fmtExpPtrSnabel, &fmtExpTokenOffset,
+                                     &ntfTokenFlags, twelveHourModeFlag);
           if (logStreamType > STREAM_TYPE_NOTIFICATION) {
-            tokenOk = SA_FALSE;     /* These tokens valid for alarm and
-                                       ntf log streams only */
+            tokenOk = SA_FALSE; /* These tokens valid for alarm and
+                                   ntf log streams only */
           }
           break;
 
         case SYSTEM_LOG_RECORD_FIELD_TYPE:
-          tokenOk = validateSysToken(fmtExpPtrSnabel, &fmtExpTokenOffset, &sysTokenFlags);
+          tokenOk = validateSysToken(fmtExpPtrSnabel, &fmtExpTokenOffset,
+                                     &sysTokenFlags);
           if (logStreamType < STREAM_TYPE_SYSTEM) {
-            tokenOk = SA_FALSE;     /* These tokens valid for app and
-                                       sys log streams only */
+            tokenOk = SA_FALSE; /* These tokens valid for app and
+                                   sys log streams only */
           }
           break;
 
-        default:        /* Non valid log record field type */
+        default: /* Non valid log record field type */
           tokenOk = SA_FALSE;
           break;
       }
@@ -1228,9 +1243,9 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
       /* All chars between tokens */
       fmtExpTokenOffset = LITTERAL_CHAR_OFFSET;
       tokenOk = SA_TRUE;
-    } else {        /* End of formatExpression */
+    } else { /* End of formatExpression */
       if (*fmtExpPtr == TOKEN_START_SYMBOL) {
-        tokenOk = SA_FALSE;     /* Illegal litteral character at the end */
+        tokenOk = SA_FALSE; /* Illegal litteral character at the end */
       }
       break;
     }
@@ -1238,7 +1253,7 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
     /* Step forward according to token offset */
     fmtExpPtr += fmtExpTokenOffset;
     if ((tokenOk == SA_FALSE) || (*fmtExpPtr == STRING_END_CHARACTER)) {
-      break;  /* Illegal token or end of formatExpression */
+      break; /* Illegal token or end of formatExpression */
     }
     fmtExpPtrSnabel = (fmtExpPtr + 1);
   }
@@ -1261,12 +1276,9 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
  */
 int lgs_format_log_record(SaLogRecordT *logRecord,
                           const SaStringT formatExpression,
-                          SaUint64T logFileSize,
-                          SaUint16T fixedLogRecordSize,
-                          size_t dest_size,
-                          char *dest,
-                          SaUint32T logRecordIdCounter,
-                          char *node_name) {
+                          SaUint64T logFileSize, SaUint16T fixedLogRecordSize,
+                          size_t dest_size, char *dest,
+                          SaUint32T logRecordIdCounter, char *node_name) {
   SaStringT fmtExpPtr = &formatExpression[0];
   SaStringT fmtExpPtrSnabel = &formatExpression[1];
   SaTimeT totalTime;
@@ -1296,34 +1308,27 @@ int lgs_format_log_record(SaLogRecordT *logRecord,
   /* Main formatting loop */
   for (;;) {
     /* Scan the Format Expression */
-    if ((*fmtExpPtr == TOKEN_START_SYMBOL) && (*fmtExpPtrSnabel != STRING_END_CHARACTER)) {
+    if ((*fmtExpPtr == TOKEN_START_SYMBOL) &&
+        (*fmtExpPtrSnabel != STRING_END_CHARACTER)) {
       switch (*fmtExpPtrSnabel++) {
         /* Check log record field types if a new token is present */
         case COMMON_LOG_RECORD_FIELD_TYPE:
-          i += extractCommonField(&dest[i],
-                                  dest_size - i,
-                                  fmtExpPtrSnabel,
-                                  &fmtExpTokenOffset,
-                                  &truncationLetterPos,
-                                  (SaInt32T)strlen(dest),
-                                  logRecordIdCounter,
-                                  twelveHourModeFlag,
-                                  timeStampData,
-                                  logRecord,
-                                  rec_size,
-                                  node_name);
+          i += extractCommonField(&dest[i], dest_size - i, fmtExpPtrSnabel,
+                                  &fmtExpTokenOffset, &truncationLetterPos,
+                                  (SaInt32T)strlen(dest), logRecordIdCounter,
+                                  twelveHourModeFlag, timeStampData, logRecord,
+                                  rec_size, node_name);
           break;
 
         case NOTIFICATION_LOG_RECORD_FIELD_TYPE:
-          i += extractNotificationField(&dest[i],
-                                        dest_size - i,
-                                        fmtExpPtrSnabel,
-                                        &fmtExpTokenOffset, twelveHourModeFlag, logRecord);
+          i += extractNotificationField(&dest[i], dest_size - i,
+                                        fmtExpPtrSnabel, &fmtExpTokenOffset,
+                                        twelveHourModeFlag, logRecord);
           break;
 
         case SYSTEM_LOG_RECORD_FIELD_TYPE:
-          i += extractSystemField(&dest[i],
-                                  dest_size - i, fmtExpPtrSnabel, &fmtExpTokenOffset, logRecord);
+          i += extractSystemField(&dest[i], dest_size - i, fmtExpPtrSnabel,
+                                  &fmtExpTokenOffset, logRecord);
           break;
 
         default:
@@ -1332,7 +1337,7 @@ int lgs_format_log_record(SaLogRecordT *logRecord,
           goto error_exit;
       }
 
-    } else {        /* All chars between tokens */
+    } else { /* All chars between tokens */
       fmtExpTokenOffset = 1;
       /* Insert litteral chars i.e. [:, ,/ and "] */
       if (i < dest_size) {
@@ -1340,10 +1345,10 @@ int lgs_format_log_record(SaLogRecordT *logRecord,
       }
 
       if (*fmtExpPtrSnabel == STRING_END_CHARACTER)
-        break;  /* End of formatExpression */
+        break; /* End of formatExpression */
     }
 
-    if (i >= dest_size){
+    if (i >= dest_size) {
       /* Truncation exists */
       truncationCharacter = (SaInt8T)TRUNCATED_LOG_RECORD;
       break;
@@ -1351,11 +1356,10 @@ int lgs_format_log_record(SaLogRecordT *logRecord,
 
     /* Step forward */
     fmtExpPtr += fmtExpTokenOffset;
-    if (*fmtExpPtr == STRING_END_CHARACTER)
-      break;  /* End of formatExpression */
+    if (*fmtExpPtr == STRING_END_CHARACTER) break; /* End of formatExpression */
 
     fmtExpPtrSnabel = (fmtExpPtr + 1);
-  }                       /* for ( ; ; ) */
+  } /* for ( ; ; ) */
 
   /* Pad log record to fixed log record fieldSize */
   if ((fixedLogRecordSize > 0) && (i < fixedLogRecordSize)) {
@@ -1370,10 +1374,12 @@ int lgs_format_log_record(SaLogRecordT *logRecord,
   if ((fixedLogRecordSize == 0) && (i < dest_size)) {
     dest[i] = '\n';
     ++i;
-  } else if ((fixedLogRecordSize == 0) && (i >= dest_size)) { /* dest size = record size +1 */
+  } else if ((fixedLogRecordSize == 0) &&
+             (i >= dest_size)) { /* dest size = record size +1 */
     if (i >= logFileSize) {
-      /* There can be situations when the filesize is as small as the maxrecsize.
-       * For eg:- By default for the application streams max file size is 1024
+      /* There can be situations when the filesize is as small as the
+       * maxrecsize. For eg:- By default for the application streams max file
+       * size is 1024
        */
       dest[logFileSize - 1] = '\n';
       i = logFileSize;
@@ -1383,7 +1389,7 @@ int lgs_format_log_record(SaLogRecordT *logRecord,
     }
   }
 
-  if (truncationLetterPos != -1) {        /* Insert truncation info letter */
+  if (truncationLetterPos != -1) { /* Insert truncation info letter */
     dest[truncationLetterPos] = truncationCharacter;
   }
 

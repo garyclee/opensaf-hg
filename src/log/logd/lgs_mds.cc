@@ -26,15 +26,14 @@
 #define LGS_SVC_PVT_SUBPART_VERSION 1
 #define LGS_WRT_LGA_SUBPART_VER_AT_MIN_MSG_FMT 1
 #define LGS_WRT_LGA_SUBPART_VER_AT_MAX_MSG_FMT 1
-#define LGS_WRT_LGA_SUBPART_VER_RANGE           \
-  (LGS_WRT_LGA_SUBPART_VER_AT_MAX_MSG_FMT -     \
+#define LGS_WRT_LGA_SUBPART_VER_RANGE       \
+  (LGS_WRT_LGA_SUBPART_VER_AT_MAX_MSG_FMT - \
    LGS_WRT_LGA_SUBPART_VER_AT_MIN_MSG_FMT + 1)
 
 static MDS_CLIENT_MSG_FORMAT_VER
-LGS_WRT_LGA_MSG_FMT_ARRAY[LGS_WRT_LGA_SUBPART_VER_RANGE] = {
-  1                       /*msg format version for LGA subpart version 1 */
+    LGS_WRT_LGA_MSG_FMT_ARRAY[LGS_WRT_LGA_SUBPART_VER_RANGE] = {
+        1 /*msg format version for LGA subpart version 1 */
 };
-
 
 /****************************************************************************
  * Name          : lgs_evt_destroy
@@ -147,20 +146,19 @@ static uint32_t dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg) {
   ncs_dec_skip_space(uba, 2);
 
   if (length >= kOsafMaxDnLength) {
-    TRACE("%s - lstr_name too long",__FUNCTION__);
+    TRACE("%s - lstr_name too long", __FUNCTION__);
     rc = NCSCC_RC_FAILURE;
     goto done;
   }
 
   /* log stream name */
-  str_name = static_cast<char *> (calloc(1, length + 1));
+  str_name = static_cast<char *>(calloc(1, length + 1));
   if (str_name == NULL) {
     LOG_ER("Fail to allocated memory - str_name");
     rc = NCSCC_RC_FAILURE;
     goto done;
   }
-  ncs_decode_n_octets_from_uba(uba,
-                               reinterpret_cast<uint8_t *>(str_name),
+  ncs_decode_n_octets_from_uba(uba, reinterpret_cast<uint8_t *>(str_name),
                                static_cast<uint32_t>(length));
   osaf_extended_name_clear(&param->lstr_name);
   /* This allocated memory must be freed in proc_stream_open_msg @lgs_evt */
@@ -207,7 +205,8 @@ static uint32_t dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg) {
      */
     param->logFilePathName = static_cast<char *>(malloc(len));
     if (param->logFilePathName == NULL) {
-      LOG_ER("%s - Failed to allocate memory for logFilePathName", __FUNCTION__);
+      LOG_ER("%s - Failed to allocate memory for logFilePathName",
+             __FUNCTION__);
       rc = NCSCC_RC_FAILURE;
       goto done_err;
     }
@@ -219,7 +218,8 @@ static uint32_t dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg) {
   param->maxLogFileSize = ncs_decode_64bit(&p8);
   param->maxLogRecordSize = ncs_decode_32bit(&p8);
   param->haProperty = static_cast<SaBoolT>(ncs_decode_32bit(&p8));
-  param->logFileFullAction = static_cast<SaLogFileFullActionT>(ncs_decode_32bit(&p8));
+  param->logFileFullAction =
+      static_cast<SaLogFileFullActionT>(ncs_decode_32bit(&p8));
   param->maxFilesRotated = ncs_decode_16bit(&p8);
   len = ncs_decode_16bit(&p8);
   ncs_dec_skip_space(uba, 24);
@@ -283,9 +283,8 @@ static uint32_t dec_lstr_close_msg(NCS_UBAID *uba, lgsv_msg_t *msg) {
   return rc;
 }
 
-static uint32_t dec_write_ntf_log_header(
-    NCS_UBAID *uba,
-    SaLogNtfLogHeaderT *const ntfLogH) {
+static uint32_t dec_write_ntf_log_header(NCS_UBAID *uba,
+                                         SaLogNtfLogHeaderT *const ntfLogH) {
   uint8_t *p8;
   uint8_t local_data[1024];
   size_t notificationL, notifyingL;
@@ -301,8 +300,8 @@ static uint32_t dec_write_ntf_log_header(
   ntfLogH->notificationId = ncs_decode_64bit(&p8);
   ntfLogH->eventType = static_cast<SaNtfEventTypeT>(ncs_decode_32bit(&p8));
 
-  ntfLogH->notificationObject = static_cast<SaNameT *>(
-      malloc(sizeof(SaNameT) + 1));
+  ntfLogH->notificationObject =
+      static_cast<SaNameT *>(malloc(sizeof(SaNameT) + 1));
   if (ntfLogH->notificationObject == NULL) {
     LOG_WA("malloc FAILED");
     rc = NCSCC_RC_FAILURE;
@@ -317,7 +316,7 @@ static uint32_t dec_write_ntf_log_header(
   }
   ncs_dec_skip_space(uba, 14);
 
-  notificationObj = static_cast<char *> (calloc(1, notificationL + 1));
+  notificationObj = static_cast<char *>(calloc(1, notificationL + 1));
   if (notificationObj == NULL) {
     LOG_WA("Fail to allocated memory - notificationObj");
     rc = NCSCC_RC_FAILURE;
@@ -329,7 +328,8 @@ static uint32_t dec_write_ntf_log_header(
   osaf_extended_name_clear(ntfLogH->notificationObject);
   osaf_extended_name_alloc(notificationObj, ntfLogH->notificationObject);
 
-  ntfLogH->notifyingObject = static_cast<SaNameT *>(malloc(sizeof(SaNameT) + 1));
+  ntfLogH->notifyingObject =
+      static_cast<SaNameT *>(malloc(sizeof(SaNameT) + 1));
   if (ntfLogH->notifyingObject == NULL) {
     LOG_WA("malloc FAILED");
     rc = NCSCC_RC_FAILURE;
@@ -345,20 +345,19 @@ static uint32_t dec_write_ntf_log_header(
     rc = NCSCC_RC_FAILURE;
     goto done;
   }
-  notifyingObj = static_cast<char *> (calloc(1, notifyingL + 1));
+  notifyingObj = static_cast<char *>(calloc(1, notifyingL + 1));
   if (notifyingObj == NULL) {
     LOG_WA("Fail to allocated memory - notifyingObj");
     rc = NCSCC_RC_FAILURE;
     goto done;
   }
-  ncs_decode_n_octets_from_uba(uba,
-                               reinterpret_cast<uint8_t *>(notifyingObj),
+  ncs_decode_n_octets_from_uba(uba, reinterpret_cast<uint8_t *>(notifyingObj),
                                static_cast<uint32_t>(notifyingL));
   osaf_extended_name_clear(ntfLogH->notifyingObject);
   osaf_extended_name_alloc(notifyingObj, ntfLogH->notifyingObject);
 
-  ntfLogH->notificationClassId = static_cast<SaNtfClassIdT *>(
-      malloc(sizeof(SaNtfClassIdT)));
+  ntfLogH->notificationClassId =
+      static_cast<SaNtfClassIdT *>(malloc(sizeof(SaNtfClassIdT)));
   if (ntfLogH->notificationClassId == NULL) {
     LOG_WA("malloc FAILED");
     rc = NCSCC_RC_FAILURE;
@@ -379,8 +378,7 @@ done:
 }
 
 static uint32_t dec_write_gen_log_header(
-    NCS_UBAID *uba,
-    SaLogGenericLogHeaderT *const genLogH) {
+    NCS_UBAID *uba, SaLogGenericLogHeaderT *const genLogH) {
   uint8_t *p8;
   uint8_t local_data[1024];
   size_t svcLength;
@@ -390,8 +388,8 @@ static uint32_t dec_write_gen_log_header(
   genLogH->notificationClassId = NULL;
   genLogH->logSvcUsrName = NULL;
 
-  genLogH->notificationClassId = static_cast<SaNtfClassIdT *>(
-      malloc(sizeof(SaNtfClassIdT)));
+  genLogH->notificationClassId =
+      static_cast<SaNtfClassIdT *>(malloc(sizeof(SaNtfClassIdT)));
   if (genLogH->notificationClassId == NULL) {
     LOG_WA("malloc FAILED");
     rc = NCSCC_RC_FAILURE;
@@ -422,14 +420,11 @@ static uint32_t dec_write_gen_log_header(
     goto done;
   }
   ncs_dec_skip_space(uba, 10);
-  ncs_decode_n_octets_from_uba(uba,
-                               reinterpret_cast<uint8_t *>(logSvcUsrName),
+  ncs_decode_n_octets_from_uba(uba, reinterpret_cast<uint8_t *>(logSvcUsrName),
                                static_cast<uint32_t>(svcLength));
   osaf_extended_name_clear(const_cast<SaNameT *>(genLogH->logSvcUsrName));
-  osaf_extended_name_alloc(
-      logSvcUsrName,
-      const_cast<SaNameT *>(genLogH->logSvcUsrName)
-                           );
+  osaf_extended_name_alloc(logSvcUsrName,
+                           const_cast<SaNameT *>(genLogH->logSvcUsrName));
 
   p8 = ncs_dec_flatten_space(uba, local_data, 2);
   genLogH->logSeverity = ncs_decode_16bit(&p8);
@@ -485,8 +480,8 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg) {
   /* ************* SaLogRecord decode ************** */
   p8 = ncs_dec_flatten_space(uba, local_data, 12);
   param->logRecord->logTimeStamp = ncs_decode_64bit(&p8);
-  param->logRecord->logHdrType = static_cast<SaLogHeaderTypeT>(
-      ncs_decode_32bit(&p8));
+  param->logRecord->logHdrType =
+      static_cast<SaLogHeaderTypeT>(ncs_decode_32bit(&p8));
   ncs_dec_skip_space(uba, 12);
 
   /*
@@ -513,7 +508,8 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg) {
       goto err_done;
   }
 
-  param->logRecord->logBuffer = static_cast<SaLogBufferT *>(malloc(sizeof(SaLogBufferT)));
+  param->logRecord->logBuffer =
+      static_cast<SaLogBufferT *>(malloc(sizeof(SaLogBufferT)));
   if (!param->logRecord->logBuffer) {
     LOG_WA("malloc FAILED");
     rc = NCSCC_RC_FAILURE;
@@ -535,9 +531,9 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg) {
     goto err_done;
   }
   if (param->logRecord->logBuffer->logBufSize > 0) {
-    ncs_decode_n_octets_from_uba(uba,
-                                 param->logRecord->logBuffer->logBuf,
-                                 (uint32_t)param->logRecord->logBuffer->logBufSize);
+    ncs_decode_n_octets_from_uba(
+        uba, param->logRecord->logBuffer->logBuf,
+        (uint32_t)param->logRecord->logBuffer->logBufSize);
   }
 
   /************ end saLogRecord decode ****************/
@@ -750,9 +746,9 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info) {
   MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
   uint32_t rc = NCSCC_RC_SUCCESS;
 
-  msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
-                                          LGS_WRT_LGA_SUBPART_VER_AT_MIN_MSG_FMT,
-                                          LGS_WRT_LGA_SUBPART_VER_AT_MAX_MSG_FMT, LGS_WRT_LGA_MSG_FMT_ARRAY);
+  msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(
+      info->info.enc.i_rem_svc_pvt_ver, LGS_WRT_LGA_SUBPART_VER_AT_MIN_MSG_FMT,
+      LGS_WRT_LGA_SUBPART_VER_AT_MAX_MSG_FMT, LGS_WRT_LGA_MSG_FMT_ARRAY);
   if (0 == msg_fmt_version) {
     LOG_ER("msg_fmt_version FAILED!");
     return NCSCC_RC_FAILURE;
@@ -813,8 +809,7 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info) {
         TRACE("Unknown API RSP type = %d", msg->info.api_resp_info.type);
         break;
     }
-    if (rc == NCSCC_RC_FAILURE)
-      goto err;
+    if (rc == NCSCC_RC_FAILURE) goto err;
 
   } else if (LGSV_LGS_CBK_MSG == msg->type) {
     /** encode the API RSP msg subtype **/
@@ -844,7 +839,8 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info) {
           TRACE("ncs_enc_reserve_space failed");
           goto err;
         }
-        ncs_encode_32bit(&p8, msg->info.cbk_info.clm_node_status_cbk.clm_node_status);
+        ncs_encode_32bit(
+            &p8, msg->info.cbk_info.clm_node_status_cbk.clm_node_status);
         TRACE_8("LGSV_CLM_NODE_STATUS_CALLBACK");
         break;
       case LGSV_SEVERITY_FILTER_CALLBACK:
@@ -854,7 +850,8 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info) {
           goto err;
         }
         ncs_encode_32bit(&p8, msg->info.cbk_info.lgs_stream_id);
-        ncs_encode_16bit(&p8, msg->info.cbk_info.serverity_filter_cbk.log_severity);
+        ncs_encode_16bit(&p8,
+                         msg->info.cbk_info.serverity_filter_cbk.log_severity);
         TRACE_8("LGSV_SEVERITY_FILTER_CALLBACK");
         break;
       default:
@@ -862,8 +859,7 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info) {
         TRACE("unknown callback type %d", msg->info.cbk_info.type);
         break;
     }
-    if (rc == NCSCC_RC_FAILURE)
-      goto err;
+    if (rc == NCSCC_RC_FAILURE) goto err;
 
   } else {
     TRACE("unknown msg type %d", msg->type);
@@ -897,7 +893,8 @@ static uint32_t mds_dec(struct ncsmds_callback_info *info) {
 
   if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
                                      LGS_WRT_LGA_SUBPART_VER_AT_MIN_MSG_FMT,
-                                     LGS_WRT_LGA_SUBPART_VER_AT_MAX_MSG_FMT, LGS_WRT_LGA_MSG_FMT_ARRAY)) {
+                                     LGS_WRT_LGA_SUBPART_VER_AT_MAX_MSG_FMT,
+                                     LGS_WRT_LGA_MSG_FMT_ARRAY)) {
     TRACE("Wrong format version");
     rc = NCSCC_RC_FAILURE;
     goto err;
@@ -919,7 +916,8 @@ static uint32_t mds_dec(struct ncsmds_callback_info *info) {
 
   if (LGSV_LGA_API_MSG == evt->info.msg.type) {
     p8 = ncs_dec_flatten_space(uba, local_data, 4);
-    evt->info.msg.info.api_info.type = static_cast<lgsv_api_msg_type_t>(ncs_decode_32bit(&p8));
+    evt->info.msg.info.api_info.type =
+        static_cast<lgsv_api_msg_type_t>(ncs_decode_32bit(&p8));
     ncs_dec_skip_space(uba, 4);
 
     /* FIX error handling for dec functions */
@@ -942,8 +940,7 @@ static uint32_t mds_dec(struct ncsmds_callback_info *info) {
       default:
         break;
     }
-    if (rc == NCSCC_RC_FAILURE)
-      goto err;
+    if (rc == NCSCC_RC_FAILURE) goto err;
   } else {
     TRACE("unknown msg type = %d", (int)evt->info.msg.type);
     goto err;
@@ -953,9 +950,8 @@ static uint32_t mds_dec(struct ncsmds_callback_info *info) {
 
 err:
   /* Decoding failed. There will be no message to pass as an event */
-  TRACE("%s - Decoding failed",__FUNCTION__);
-  if (evt != NULL)
-    free(evt);
+  TRACE("%s - Decoding failed", __FUNCTION__);
+  if (evt != NULL) free(evt);
 
   return NCSCC_RC_FAILURE;
 }
@@ -1030,8 +1026,7 @@ static NCS_IPC_PRIORITY getmboxprio(const lgsv_api_info_t *api_info) {
     /* Queue at lowest prio so no writes get bypassed.
      * No access to a stream ID here so use lowest possible prio. */
     return LGS_IPC_PRIO_APP_STREAM;
-  }
-  else if (api_info->type == LGSV_STREAM_CLOSE_REQ)
+  } else if (api_info->type == LGSV_STREAM_CLOSE_REQ)
     str_id = api_info->param.lstr_close.lstr_id;
   else {
     osafassert(api_info->type == LGSV_WRITE_LOG_ASYNC_REQ);
@@ -1060,7 +1055,8 @@ static NCS_IPC_PRIORITY getmboxprio(const lgsv_api_info_t *api_info) {
  *****************************************************************************/
 
 static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info) {
-  lgsv_lgs_evt_t *evt = static_cast<lgsv_lgs_evt_t *>(mds_info->info.receive.i_msg);
+  lgsv_lgs_evt_t *evt =
+      static_cast<lgsv_lgs_evt_t *>(mds_info->info.receive.i_msg);
   const lgsv_api_info_t *api_info = &evt->info.msg.info.api_info;
   lgsv_api_msg_type_t type = api_info->type;
   NCS_IPC_PRIORITY prio = NCS_IPC_PRIORITY_LOW;
@@ -1080,7 +1076,8 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info) {
 
   /* Get node name from MDS */
   memset(evt->node_name, 0, _POSIX_HOST_NAME_MAX);
-  strncpy(evt->node_name, mds_info->info.receive.i_node_name, _POSIX_HOST_NAME_MAX);
+  strncpy(evt->node_name, mds_info->info.receive.i_node_name,
+          _POSIX_HOST_NAME_MAX);
 
   /* for all msg types but WRITEs, sample curr time and store in msg */
   if ((type == LGSV_INITIALIZE_REQ) || (type == LGSV_STREAM_OPEN_REQ)) {
@@ -1119,8 +1116,7 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info) {
     if (api_info->param.write_log_async.ack_flags & SA_LOG_RECORD_WRITE_ACK) {
       lgs_send_write_log_ack(api_info->param.write_log_async.client_id,
                              api_info->param.write_log_async.invocation,
-                             SA_AIS_ERR_TRY_AGAIN,
-                             evt->fr_dest);
+                             SA_AIS_ERR_TRY_AGAIN, evt->fr_dest);
     } else
       silently_discarded[prio]++;
 
@@ -1134,15 +1130,14 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info) {
     goto done;
   } else {
     mbox_full[prio] = true;
-    TRACE("FULL, msgs: %u, low: %u, high: %u", mbox_msgs[prio],
-          mbox_low[prio], mbox_high[prio]);
+    TRACE("FULL, msgs: %u, low: %u, high: %u", mbox_msgs[prio], mbox_low[prio],
+          mbox_high[prio]);
 
     /* If logger has requested an ack, send one with error code TRYAGAIN */
     if (api_info->param.write_log_async.ack_flags & SA_LOG_RECORD_WRITE_ACK) {
       lgs_send_write_log_ack(api_info->param.write_log_async.client_id,
                              api_info->param.write_log_async.invocation,
-                             SA_AIS_ERR_TRY_AGAIN,
-                             evt->fr_dest);
+                             SA_AIS_ERR_TRY_AGAIN, evt->fr_dest);
     } else
       silently_discarded[prio]++;
   }
@@ -1186,7 +1181,8 @@ static uint32_t mds_quiesced_ack(struct ncsmds_callback_info *mds_info) {
     lgsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 
     /* Push the event and we are done */
-    if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&lgs_mbx, lgsv_evt, LGS_IPC_PRIO_CTRL_MSGS)) {
+    if (NCSCC_RC_FAILURE ==
+        m_NCS_IPC_SEND(&lgs_mbx, lgsv_evt, LGS_IPC_PRIO_CTRL_MSGS)) {
       TRACE("ipc send failed");
       lgs_evt_destroy(lgsv_evt);
       goto err;
@@ -1228,7 +1224,8 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info) {
   if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_LGA) {
     if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
       TRACE_8("MDS DOWN dest: %" PRIx64 ", node ID: %x, svc_id: %d",
-              info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
+              info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id,
+              info->info.svc_evt.i_svc_id);
 
       /* As of now we are only interested in LGA events */
       evt = static_cast<lgsv_lgs_evt_t *>(calloc(1, sizeof(lgsv_lgs_evt_t)));
@@ -1249,9 +1246,10 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info) {
       evt->info.mds_info.node_id = info->info.svc_evt.i_node_id;
       evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
 
-      /* Push to the lowest prio queue to not bypass any pending writes. If that fails
-       * (it is FULL) use the high prio unbounded ctrl msg queue */
-      if (m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_APP_STREAM) != NCSCC_RC_SUCCESS) {
+      /* Push to the lowest prio queue to not bypass any pending writes. If that
+       * fails (it is FULL) use the high prio unbounded ctrl msg queue */
+      if (m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_APP_STREAM) !=
+          NCSCC_RC_SUCCESS) {
         rc = m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_CTRL_MSGS);
         osafassert(rc == NCSCC_RC_SUCCESS);
       }
@@ -1259,8 +1257,9 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info) {
   } else if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_AVD) {
     if (info->info.svc_evt.i_change == NCSMDS_UP) {
       TRACE_8("MDS UP dest: %" PRIx64 ", node ID: %x, svc_id: %d",
-              info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
-      //Subscribed for only INTRA NODE, only one ADEST will come.
+              info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id,
+              info->info.svc_evt.i_svc_id);
+      // Subscribed for only INTRA NODE, only one ADEST will come.
       if (m_MDS_DEST_IS_AN_ADEST(info->info.svc_evt.i_dest)) {
         TRACE_8("AVD ADEST UP");
         ncs_sel_obj_ind(&lgs_cb->clm_init_sel_obj);
@@ -1305,19 +1304,19 @@ static uint32_t mds_sys_event(struct ncsmds_callback_info *mds_info) {
 static uint32_t mds_callback(struct ncsmds_callback_info *info) {
   uint32_t rc = NCSCC_RC_SUCCESS;
   static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
-    mds_cpy,        /* MDS_CALLBACK_COPY      */
-    mds_enc,        /* MDS_CALLBACK_ENC       */
-    mds_dec,        /* MDS_CALLBACK_DEC       */
-    mds_enc_flat,   /* MDS_CALLBACK_ENC_FLAT  */
-    mds_dec_flat,   /* MDS_CALLBACK_DEC_FLAT  */
-    mds_rcv,        /* MDS_CALLBACK_RECEIVE   */
-    mds_svc_event,  /* MDS_CALLBACK_SVC_EVENT */
-    mds_sys_event,  /* MDS_CALLBACK_SYS_EVENT */
-    mds_quiesced_ack        /* MDS_CALLBACK_QUIESCED_ACK */
+      mds_cpy,         /* MDS_CALLBACK_COPY      */
+      mds_enc,         /* MDS_CALLBACK_ENC       */
+      mds_dec,         /* MDS_CALLBACK_DEC       */
+      mds_enc_flat,    /* MDS_CALLBACK_ENC_FLAT  */
+      mds_dec_flat,    /* MDS_CALLBACK_DEC_FLAT  */
+      mds_rcv,         /* MDS_CALLBACK_RECEIVE   */
+      mds_svc_event,   /* MDS_CALLBACK_SVC_EVENT */
+      mds_sys_event,   /* MDS_CALLBACK_SYS_EVENT */
+      mds_quiesced_ack /* MDS_CALLBACK_QUIESCED_ACK */
   };
 
   if (info->i_op <= MDS_CALLBACK_QUIESCED_ACK) {
-    return (*cb_set[info->i_op]) (info);
+    return (*cb_set[info->i_op])(info);
   } else {
     TRACE("mds callback out of range");
     rc = NCSCC_RC_FAILURE;
@@ -1345,7 +1344,7 @@ static uint32_t mds_vdest_create(lgs_cb_t *lgs_cb) {
   lgs_cb->vaddr = LGS_VDEST_ID;
   vda_info.req = NCSVDA_VDEST_CREATE;
   vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-  vda_info.info.vdest_create.i_persistent = false;        /* Up-to-the application */
+  vda_info.info.vdest_create.i_persistent = false; /* Up-to-the application */
   vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
   vda_info.info.vdest_create.info.specified.i_vdest = lgs_cb->vaddr;
 
@@ -1364,8 +1363,8 @@ static uint32_t mds_vdest_create(lgs_cb_t *lgs_cb) {
 /****************************************************************************
  * Name          : lgs_mds_init
  *
- * Description   : This function creates the VDEST for lgs and installs/suscribes
- *                 into MDS.
+ * Description   : This function creates the VDEST for lgs and
+ *installs/suscribes into MDS.
  *
  * Arguments     : cb   : LGS control Block pointer.
  *
@@ -1387,11 +1386,9 @@ uint32_t lgs_mds_init(lgs_cb_t *cb, SaAmfHAStateT ha_state) {
   }
 
   /* Set the role of MDS */
-  if (ha_state == SA_AMF_HA_ACTIVE)
-    cb->mds_role = V_DEST_RL_ACTIVE;
+  if (ha_state == SA_AMF_HA_ACTIVE) cb->mds_role = V_DEST_RL_ACTIVE;
 
-  if (ha_state == SA_AMF_HA_STANDBY)
-    cb->mds_role = V_DEST_RL_STANDBY;
+  if (ha_state == SA_AMF_HA_STANDBY) cb->mds_role = V_DEST_RL_STANDBY;
 
   if (NCSCC_RC_SUCCESS != (rc = lgs_mds_change_role(cb))) {
     LOG_ER("MDS role change to %d FAILED\n", cb->mds_role);
@@ -1428,7 +1425,6 @@ uint32_t lgs_mds_init(lgs_cb_t *cb, SaAmfHAStateT ha_state) {
     LOG_ER("MDS subscribe FAILED");
     return rc;
   }
-
 
   svc = NCSMDS_SVC_ID_AVD;
   /* Now subscribe for AVD events in MDS. This will be
@@ -1551,8 +1547,9 @@ uint32_t lgs_mds_finalize(lgs_cb_t *cb) {
   Notes         : None.
 ******************************************************************************/
 
-uint32_t lgs_mds_msg_send(lgs_cb_t *cb,
-                          lgsv_msg_t *msg, MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio) {
+uint32_t lgs_mds_msg_send(lgs_cb_t *cb, lgsv_msg_t *msg, MDS_DEST *dest,
+                          MDS_SYNC_SND_CTXT *mds_ctxt,
+                          MDS_SEND_PRIORITY_TYPE prio) {
   NCSMDS_INFO mds_info;
   MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
   uint32_t rc = NCSCC_RC_SUCCESS;
@@ -1566,7 +1563,7 @@ uint32_t lgs_mds_msg_send(lgs_cb_t *cb,
 
   send_info->i_msg = msg;
   send_info->i_to_svc = NCSMDS_SVC_ID_LGA;
-  send_info->i_priority = prio;   /* Discuss the priority assignments TBD */
+  send_info->i_priority = prio; /* Discuss the priority assignments TBD */
 
   if (NULL == mds_ctxt || 0 == mds_ctxt->length) {
     /* regular send */

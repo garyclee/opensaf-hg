@@ -29,20 +29,18 @@
 
 /* The PLMC daemon command names.                                */
 /* Names with SA in them refer to the PLM specification actions. */
-static char *PLMC_cmd_name[] = { 
-  "PLMC_NOOP",
-  "PLMC_GET_ID",
-  "PLMC_GET_PROTOCOL_VER",
-  "PLMC_GET_OSINFO",
-  "PLMC_SA_PLM_ADMIN_UNLOCK",
-  "PLMC_SA_PLM_ADMIN_LOCK_INSTANTIATION",
-  "PLMC_SA_PLM_ADMIN_LOCK",
-  "PLMC_SA_PLM_ADMIN_RESTART",
-  "PLMC_OSAF_START",
-  "PLMC_OSAF_STOP",
-  "PLMC_OSAF_SERVICES_START",
-  "PLMC_OSAF_SERVICES_STOP",
-  "PLMC_PLMCD_RESTART"
-};
+static char *PLMC_cmd_name[] = {"PLMC_NOOP",
+                                "PLMC_GET_ID",
+                                "PLMC_GET_PROTOCOL_VER",
+                                "PLMC_GET_OSINFO",
+                                "PLMC_SA_PLM_ADMIN_UNLOCK",
+                                "PLMC_SA_PLM_ADMIN_LOCK_INSTANTIATION",
+                                "PLMC_SA_PLM_ADMIN_LOCK",
+                                "PLMC_SA_PLM_ADMIN_RESTART",
+                                "PLMC_OSAF_START",
+                                "PLMC_OSAF_STOP",
+                                "PLMC_OSAF_SERVICES_START",
+                                "PLMC_OSAF_SERVICES_STOP",
+                                "PLMC_PLMCD_RESTART"};
 
 #endif  // PLM_PLMCD_PLMC_CMDS_H_

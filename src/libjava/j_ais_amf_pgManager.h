@@ -55,9 +55,8 @@ extern jboolean JNU_ProtectionGroupMember_initIDs_OK(JNIEnv *jniEnv);
 // ENUM ais.amf.SProtectionGroupNotification$ProtectionGroupChanges
 extern jboolean JNU_ProtectionGroupChanges_initIDs_OK(JNIEnv *jniEnv);
 
-extern jobjectArray JNU_ProtectionGroupNotificationArray_create(JNIEnv *jniEnv,
-								const
-								SaAmfProtectionGroupNotificationBufferT
-								*saNotificationBufferPtr);
+extern jobjectArray JNU_ProtectionGroupNotificationArray_create(
+    JNIEnv *jniEnv,
+    const SaAmfProtectionGroupNotificationBufferT *saNotificationBufferPtr);
 
 #endif  // LIBJAVA_J_AIS_AMF_PGMANAGER_H_

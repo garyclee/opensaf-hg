@@ -17,7 +17,6 @@
 #ifndef DTM_DTMND_DTM_INTRA_DISC_H_
 #define DTM_DTMND_DTM_INTRA_DISC_H_
 
-
 /* 2 -len(0), 4 - iden(2), 1- ver(6), 1-msg type(7), 4- server_type (8),
    4 -server lower(12), 4 -server lower(16), 8 -ref(20), 4 - nodeid(28),
    4 - pid(32) */
@@ -25,20 +24,22 @@
 
 #define DTM_LIB_DOWN_MSG_SIZE DTM_LIB_UP_MSG_SIZE
 
-#define DTM_LIB_UP_MSG_SIZE_FULL (DTM_LIB_UP_MSG_SIZE+2)
+#define DTM_LIB_UP_MSG_SIZE_FULL (DTM_LIB_UP_MSG_SIZE + 2)
 
 #define DTM_LIB_DOWN_MSG_SIZE_FULL DTM_LIB_UP_MSG_SIZE_FULL
 
 /* 2 -len(0), 4 - iden(2), 1- ver(6), 1-msg type(7), 4- node_id (8),
    8 -ref_val(12) */
 
-#define DTM_LIB_NODE_UP_MSG_SIZE (18 + 1 /*i_addr_family*/ + 46 /*ip_addr*/ + _POSIX_HOST_NAME_MAX  /* node_name */)
+#define DTM_LIB_NODE_UP_MSG_SIZE               \
+  (18 + 1 /*i_addr_family*/ + 46 /*ip_addr*/ + \
+   _POSIX_HOST_NAME_MAX /* node_name */)
 
 #define DTM_LIB_NODE_DOWN_MSG_SIZE 18
 
-#define DTM_LIB_NODE_UP_MSG_SIZE_FULL (DTM_LIB_NODE_UP_MSG_SIZE+2)
+#define DTM_LIB_NODE_UP_MSG_SIZE_FULL (DTM_LIB_NODE_UP_MSG_SIZE + 2)
 
-#define DTM_LIB_NODE_DOWN_MSG_SIZE_FULL (DTM_LIB_NODE_DOWN_MSG_SIZE+2)
+#define DTM_LIB_NODE_DOWN_MSG_SIZE_FULL (DTM_LIB_NODE_DOWN_MSG_SIZE + 2)
 
 typedef enum dtm_svc_install_scope {
   DTM_SVC_INSTALL_SCOPE_PCON = 1,
@@ -120,7 +121,7 @@ typedef struct dtm_intranode_node_db {
   int fd;
   DTM_IP_ADDR_TYPE i_addr_family;
   char node_ip[INET6_ADDRSTRLEN];
-  NCS_PATRICIA_TREE dtm_rem_node_svc_tree;        /* Tree of service install info */
+  NCS_PATRICIA_TREE dtm_rem_node_svc_tree; /* Tree of service install info */
 } DTM_INTRANODE_NODE_DB;
 
 extern DTM_INTRANODE_NODE_DB *dtm_node_list_db;
@@ -176,9 +177,14 @@ uint32_t dtm_intranode_process_unsubscribe_msg(uint8_t *buff, int fd);
 uint32_t dtm_intranode_process_node_subscribe_msg(uint8_t *buff, int fd);
 uint32_t dtm_intranode_process_node_unsubscribe_msg(uint8_t *buff, int fd);
 
-uint32_t dtm_process_internode_service_up_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id);
-uint32_t dtm_process_internode_service_down_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id);
-uint32_t dtm_intranode_process_node_up(NODE_ID node_id, char *node_name, char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, SYSF_MBX mbx);
+uint32_t dtm_process_internode_service_up_msg(uint8_t *buffer, uint16_t len,
+                                              NODE_ID node_id);
+uint32_t dtm_process_internode_service_down_msg(uint8_t *buffer, uint16_t len,
+                                                NODE_ID node_id);
+uint32_t dtm_intranode_process_node_up(NODE_ID node_id, char *node_name,
+                                       char *node_ip,
+                                       DTM_IP_ADDR_TYPE i_addr_family,
+                                       SYSF_MBX mbx);
 uint32_t dtm_intranode_process_node_down(NODE_ID node_id);
 
 uint32_t dtm_intranode_process_pid_down(int fd);

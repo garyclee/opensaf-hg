@@ -20,7 +20,7 @@
 
 #include "log/apitest/logutil.h"
 
-struct LogProfile logProfile = { 25, 100 };
+struct LogProfile logProfile = {25, 100};
 static char host_name[_POSIX_HOST_NAME_MAX] = {0};
 
 const char *hostname(void)
@@ -68,7 +68,8 @@ int systemCall(const char *command)
  */
 SaAisErrorT logInitialize(void)
 {
-	SaAisErrorT rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
+	SaAisErrorT rc =
+	    saLogInitialize(&logHandle, &logCallbacks, &logVersion);
 	unsigned int nTries = 1;
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < logProfile.nTries) {
 		usleep(logProfile.retryInterval * 1000);
@@ -100,13 +101,14 @@ SaAisErrorT logFinalize(void)
  */
 SaAisErrorT logStreamOpen(const SaNameT *logStreamName)
 {
-	SaAisErrorT rc = saLogStreamOpen_2(logHandle, logStreamName, NULL, 0,
-					SA_TIME_ONE_SECOND, &logStreamHandle);
+	SaAisErrorT rc =
+	    saLogStreamOpen_2(logHandle, logStreamName, NULL, 0,
+			      SA_TIME_ONE_SECOND, &logStreamHandle);
 	unsigned int nTries = 1;
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < logProfile.nTries) {
 		usleep(logProfile.retryInterval * 1000);
 		rc = saLogStreamOpen_2(logHandle, logStreamName, NULL, 0,
-				SA_TIME_ONE_SECOND, &logStreamHandle);
+				       SA_TIME_ONE_SECOND, &logStreamHandle);
 		nTries++;
 	}
 
@@ -116,16 +118,19 @@ SaAisErrorT logStreamOpen(const SaNameT *logStreamName)
 /*
  * Wrapper function for 'saLogStreamOpen_2 for app stream'
  */
-SaAisErrorT logAppStreamOpen(const SaNameT *logStreamName,
-			const SaLogFileCreateAttributesT_2 *logFileCreateAttributes)
+SaAisErrorT
+logAppStreamOpen(const SaNameT *logStreamName,
+		 const SaLogFileCreateAttributesT_2 *logFileCreateAttributes)
 {
-	SaAisErrorT rc = saLogStreamOpen_2(logHandle, logStreamName, logFileCreateAttributes,
-					SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+	SaAisErrorT rc = saLogStreamOpen_2(
+	    logHandle, logStreamName, logFileCreateAttributes,
+	    SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
 	unsigned int nTries = 1;
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < logProfile.nTries) {
 		usleep(logProfile.retryInterval * 1000);
-		rc = saLogStreamOpen_2(logHandle, logStreamName, logFileCreateAttributes,
-				SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+		rc = saLogStreamOpen_2(
+		    logHandle, logStreamName, logFileCreateAttributes,
+		    SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
 		nTries++;
 	}
 
@@ -137,17 +142,18 @@ SaAisErrorT logAppStreamOpen(const SaNameT *logStreamName,
  */
 SaAisErrorT logWriteAsync(const SaLogRecordT *logRecord)
 {
-	SaAisErrorT rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, logRecord);
+	SaAisErrorT rc =
+	    saLogWriteLogAsync(logStreamHandle, invocation, 0, logRecord);
 	unsigned int nTries = 1;
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < logProfile.nTries) {
 		usleep(logProfile.retryInterval * 1000);
-		rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, logRecord);
+		rc = saLogWriteLogAsync(logStreamHandle, invocation, 0,
+					logRecord);
 		nTries++;
 	}
 
 	return rc;
 }
-
 
 /*
  * Wrapper function for 'saLogStreamClose'

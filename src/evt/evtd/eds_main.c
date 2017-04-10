@@ -38,7 +38,6 @@ static int __init_eds(void)
 	if (ncs_edsv_eds_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		LOG_ER("EDS Library Request Failed");
 		return NCSCC_RC_FAILURE;
-
 	}
 
 	return (NCSCC_RC_SUCCESS);
@@ -53,8 +52,9 @@ int main(int argc, char *argv[])
 		LOG_ER("EDS Initialization failed");
 		exit(EXIT_FAILURE);
 	}
-        
-	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+
+	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS,
+						       gl_eds_hdl))) {
 		LOG_ER("Global take handle failed");
 		exit(EXIT_FAILURE);
 	}

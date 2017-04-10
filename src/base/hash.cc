@@ -35,12 +35,8 @@ class HashLibrary {
 
   static void Initialize();
 
-  static HashLibrary* instance() {
-    return instance_;
-  }
-  int Init(Context* context) const {
-    return init_function_(context);
-  }
+  static HashLibrary* instance() { return instance_; }
+  int Init(Context* context) const { return init_function_(context); }
   int Update(Context* context, const void* data, size_t size) const {
     return update_function_(context, data, size);
   }
@@ -49,9 +45,9 @@ class HashLibrary {
   }
 
  private:
-  using InitFunction = int (Context*);
-  using UpdateFunction = int (Context*, const void*, size_t);
-  using FinalFunction = int (unsigned char*, Context*);
+  using InitFunction = int(Context*);
+  using UpdateFunction = int(Context*, const void*, size_t);
+  using FinalFunction = int(unsigned char*, Context*);
 
   HashLibrary();
   static void* OpenLibrary();
@@ -73,31 +69,26 @@ class HashLibrary {
 pthread_once_t HashLibrary::once_control_ = PTHREAD_ONCE_INIT;
 HashLibrary* HashLibrary::instance_ = nullptr;
 
-const char *const kSslLibs[] = {
+const char* const kSslLibs[] = {
 #include "osaf/ssl_libs.cc"
 };
 
-HashLibrary::HashLibrary() :
-    handle_{OpenLibrary()},
-    init_function_{
-      reinterpret_cast<InitFunction*>(
+HashLibrary::HashLibrary()
+    : handle_{OpenLibrary()},
+      init_function_{reinterpret_cast<InitFunction*>(
           GetSymbol(handle_, 512, "Init",
                     reinterpret_cast<void*>(FallbackInitFunction)))},
-    update_function_{
-      reinterpret_cast<UpdateFunction*>(
+      update_function_{reinterpret_cast<UpdateFunction*>(
           GetSymbol(handle_, 512, "Update",
                     reinterpret_cast<void*>(FallbackUpdateFunction)))},
-    final_function_{
-      reinterpret_cast<FinalFunction*>(
+      final_function_{reinterpret_cast<FinalFunction*>(
           GetSymbol(handle_, 512, "Final",
-                    reinterpret_cast<void*>(FallbackFinalFunction)))} {
-}
+                    reinterpret_cast<void*>(FallbackFinalFunction)))} {}
 
 void* HashLibrary::OpenLibrary() {
   void* handle = nullptr;
   for (int i = 0;
-       handle == nullptr && i != sizeof(kSslLibs) / sizeof(kSslLibs[0]);
-       ++i) {
+       handle == nullptr && i != sizeof(kSslLibs) / sizeof(kSslLibs[0]); ++i) {
     handle = dlopen(kSslLibs[i], RTLD_LAZY);
   }
   if (handle == nullptr) LOG_ER("Could not open ssl library");
@@ -124,9 +115,7 @@ void* HashLibrary::GetSymbol(void* handle, int bits, const char* function,
   return symbol != nullptr ? symbol : fallback;
 }
 
-int HashLibrary::FallbackInitFunction(Context*) {
-  return 1;
-}
+int HashLibrary::FallbackInitFunction(Context*) { return 1; }
 
 int HashLibrary::FallbackUpdateFunction(Context*, const void*, size_t) {
   return 1;
@@ -147,22 +136,18 @@ void HashLibrary::PthreadOnceInitRoutine() {
   instance_ = new HashLibrary();
   if (instance_ == nullptr) osaf_abort(0);
 }
-
 }
 
 namespace base {
 
 const char kHashFunctionAlphabet[64] = {
-  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
-  'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',
-  'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-  't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7',
-  '8', '9', '-', '_'
-};
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_'};
 
-void InitializeHashFunction() {
-  HashLibrary::Initialize();
-}
+void InitializeHashFunction() { HashLibrary::Initialize(); }
 
 std::string Hash(const std::string& message) {
   HashLibrary::Context context;

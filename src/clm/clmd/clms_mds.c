@@ -21,28 +21,28 @@
 #define CLMS_SVC_PVT_SUBPART_VERSION 1
 #define CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT 1
 #define CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT 1
-#define CLMS_WRT_CLMA_SUBPART_VER_RANGE             \
-        (CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT - \
-         CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT + 1)
+#define CLMS_WRT_CLMA_SUBPART_VER_RANGE                                        \
+	(CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT -                            \
+	 CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT + 1)
 
 static MDS_CLIENT_MSG_FORMAT_VER
- CLMS_WRT_CLMA_MSG_FMT_ARRAY[CLMS_WRT_CLMA_SUBPART_VER_RANGE] = {
-	1			/*msg format version for CLMA subpart version 1 */
+    CLMS_WRT_CLMA_MSG_FMT_ARRAY[CLMS_WRT_CLMA_SUBPART_VER_RANGE] = {
+	1 /*msg format version for CLMA subpart version 1 */
 };
 
 /****************************************************************************
   Name          : clms_dec_initialize_msg
- 
+
   Description   : This routine decodes an initialize API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -63,17 +63,17 @@ static uint32_t clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 /****************************************************************************
   Name          : clms_dec_finalize_msg
- 
+
   Description   : This routine decodes a finalize API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -92,21 +92,22 @@ static uint32_t clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 /****************************************************************************
   Name          : clms_dec_track_start_msg
-                        
+
   Description   : This routine encodes a track start API msg
-                
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	clmsv_track_start_param_t *param = &msg->info.api_info.param.track_start;
+	clmsv_track_start_param_t *param =
+	    &msg->info.api_info.param.track_start;
 	uint8_t local_data[9];
 	TRACE_ENTER();
 
@@ -124,17 +125,17 @@ static uint32_t clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 /****************************************************************************
   Name          : clms_dec_track_stop_msg
-                        
+
   Description   : This routine encodes a track start API msg
-                
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -152,17 +153,17 @@ static uint32_t clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 /****************************************************************************
   Name          : clms_dec_node_get_msg
- 
+
   Description   : This routine encodes a finalize API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -181,21 +182,22 @@ static uint32_t clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 /****************************************************************************
   Name          : clms_dec_node_get_async_msg
- 
+
   Description   : This routine encodes a node_get_async API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	clmsv_node_get_async_param_t *param = &msg->info.api_info.param.node_get_async;
+	clmsv_node_get_async_param_t *param =
+	    &msg->info.api_info.param.node_get_async;
 	uint8_t local_data[16];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 16);
@@ -211,17 +213,17 @@ static uint32_t clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 /****************************************************************************
   Name          : clms_dec_response_msg
- 
+
   Description   : This routine encodes a response API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	SaUint32T inv1 = 0;
@@ -253,17 +255,17 @@ static uint32_t clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 /****************************************************************************
   Name          : clms_enc_initialize_rsp_msg
- 
+
   Description   : This routine decodes an initialize sync response message
- 
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_enc_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_enc_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -279,7 +281,7 @@ static uint32_t clms_enc_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 	ncs_enc_claim_space(uba, 4);
 	total_bytes += 4;
 
- done:
+done:
 	TRACE_8("CLMSV_INITIALIZE_RSP");
 	return total_bytes;
 }
@@ -309,12 +311,13 @@ uint32_t encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 	ncs_encode_16bit(&p8, nodeAddress->length);
 	ncs_enc_claim_space(uba, 2);
 	total_bytes += 2;
-	ncs_encode_n_octets_in_uba(uba, nodeAddress->value, (uint32_t)nodeAddress->length);
+	ncs_encode_n_octets_in_uba(uba, nodeAddress->value,
+				   (uint32_t)nodeAddress->length);
 	total_bytes += (uint32_t)nodeAddress->length;
 	return total_bytes;
 }
 
-static uint32_t clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 * msg)
+static uint32_t clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -366,22 +369,25 @@ static uint32_t clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 * msg)
 
 /****************************************************************************
   Name          : clms_enc_node_get_rsp_msg
- 
+
   Description   : This routine decodes an initialize sync response message
- 
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_enc_node_get_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_enc_node_get_rsp_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
-	return clms_enc_node_get_msg(uba, &msg->info.api_resp_info.param.node_get);
+	return clms_enc_node_get_msg(uba,
+				     &msg->info.api_resp_info.param.node_get);
 }
 
-static uint32_t clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotificationBufferT_4 * notify_info)
+static uint32_t
+clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba,
+			     SaClmClusterNotificationBufferT_4 *notify_info)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0, i;
@@ -415,7 +421,8 @@ static uint32_t clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotific
 		ncs_encode_32bit(&p8, param->notification[i].clusterChange);
 		ncs_enc_claim_space(uba, 4);
 		total_bytes += 4;
-		total_bytes += clms_enc_node_get_msg(uba, &param->notification[i].clusterNode);
+		total_bytes += clms_enc_node_get_msg(
+		    uba, &param->notification[i].clusterNode);
 	}
 
 	TRACE_LEAVE();
@@ -424,32 +431,32 @@ static uint32_t clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotific
 
 /****************************************************************************
   Name          : clms_enc_track_current_rsp_msg
- 
+
   Description   : This routine decodes an initialize sync response message
- 
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
 	CLMSV_TRACK_INFO *track = &msg->info.api_resp_info.param.track;
 	TRACE_ENTER();
 
-/*	p8 = ncs_enc_reserve_space(uba,4);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-	ncs_encode_32bit(&p8, track->view_num);
-	ncs_enc_claim_space(uba, 4);
-	total_bytes += 4;
-*/
+	/*	p8 = ncs_enc_reserve_space(uba,4);
+		if (!p8) {
+			TRACE("p8 NULL!!!");
+			return 0;
+		}
+		ncs_encode_32bit(&p8, track->view_num);
+		ncs_enc_claim_space(uba, 4);
+		total_bytes += 4;
+	*/
 	p8 = ncs_enc_reserve_space(uba, 2);
 	if (!p8) {
 		TRACE("p8 NULL!!!");
@@ -466,22 +473,23 @@ static uint32_t clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 }
 
 /****************************************************************************
-  Name          : clms_enc_node_async_get_cbk_msg 
- 
+  Name          : clms_enc_node_async_get_cbk_msg
+
   Description   : This routine encodes track ckb response message
- 
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	CLMSV_NODE_GET_ASYNC_CBK_INFO *node_get = &msg->info.cbk_info.param.node_get;
+	CLMSV_NODE_GET_ASYNC_CBK_INFO *node_get =
+	    &msg->info.cbk_info.param.node_get;
 	TRACE_ENTER();
 
 	p8 = ncs_enc_reserve_space(uba, 4);
@@ -513,17 +521,17 @@ static uint32_t clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 /****************************************************************************
   Name          : clma_dec_track_cbk_msg
- 
+
   Description   : This routine decodes track ckb response message
- 
+
   Arguments     : NCS_UBAID *msg,
-                  CLMSV_MSG *msg
-                  
+		  CLMSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t clms_enc_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_enc_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -618,7 +626,7 @@ static uint32_t clms_mds_cpy(struct ncsmds_callback_info *info)
   Description   : This routine is invoked to encode AVND message.
 
   Arguments     : cb       - ptr to the AvA control block
-                  enc_info - ptr to the MDS encode info
+		  enc_info - ptr to the MDS encode info
 
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
@@ -632,16 +640,18 @@ uint32_t clms_mds_enc(struct ncsmds_callback_info *info)
 	uint32_t total_bytes = 0;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
-	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
-						CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT,
-						CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT, CLMS_WRT_CLMA_MSG_FMT_ARRAY);
+	msg_fmt_version =
+	    m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
+				  CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT,
+				  CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT,
+				  CLMS_WRT_CLMA_MSG_FMT_ARRAY);
 	if (0 == msg_fmt_version) {
 		LOG_ER("msg_fmt_version FAILED!");
 		return NCSCC_RC_FAILURE;
 	}
 	info->info.enc.o_msg_fmt_ver = msg_fmt_version;
 
-	msg = (CLMSV_MSG *) info->info.enc.i_msg;
+	msg = (CLMSV_MSG *)info->info.enc.i_msg;
 	uba = info->info.enc.io_uba;
 
 	if (uba == NULL) {
@@ -649,7 +659,7 @@ uint32_t clms_mds_enc(struct ncsmds_callback_info *info)
 		goto err;
 	}
 
-    /** encode the type of message **/
+	/** encode the type of message **/
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (p8 == NULL) {
 		TRACE("ncs_enc_reserve_space failed");
@@ -670,7 +680,7 @@ uint32_t clms_mds_enc(struct ncsmds_callback_info *info)
 		ncs_enc_claim_space(uba, 4);
 		total_bytes += 4;
 	} else if (CLMSV_CLMS_TO_CLMA_API_RESP_MSG == msg->evt_type) {
-	/** encode the API RSP msg subtype **/
+		/** encode the API RSP msg subtype **/
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
 			TRACE("ncs_enc_reserve_space failed");
@@ -703,17 +713,19 @@ uint32_t clms_mds_enc(struct ncsmds_callback_info *info)
 			break;
 		case CLMSV_NODE_GET_RESP:
 			if (msg->info.api_resp_info.rc == SA_AIS_OK)
-				total_bytes += clms_enc_node_get_rsp_msg(uba, msg);
+				total_bytes +=
+				    clms_enc_node_get_rsp_msg(uba, msg);
 			break;
 		case CLMSV_CLUSTER_JOIN_RESP:
-			total_bytes += clmsv_encodeSaNameT(uba, &(msg->info.api_resp_info.param.node_name));
+			total_bytes += clmsv_encodeSaNameT(
+			    uba, &(msg->info.api_resp_info.param.node_name));
 			break;
 		case CLMSV_RESPONSE_RESP:
 			break;
 		default:
-			TRACE("Unknown API RSP type = %d", msg->info.api_resp_info.type);
+			TRACE("Unknown API RSP type = %d",
+			      msg->info.api_resp_info.type);
 			goto err;
-
 		}
 	} else if (CLMSV_CLMS_TO_CLMA_CBK_MSG == msg->evt_type) {
 
@@ -735,16 +747,18 @@ uint32_t clms_mds_enc(struct ncsmds_callback_info *info)
 			break;
 		case CLMSV_NODE_ASYNC_GET_CBK:
 			TRACE_2("encode Ndoe async cbk message");
-			total_bytes += clms_enc_node_async_get_cbk_msg(uba, msg);
+			total_bytes +=
+			    clms_enc_node_async_get_cbk_msg(uba, msg);
 			break;
 		default:
-			TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);
+			TRACE_2("Unknown callback type = %d!",
+				msg->info.cbk_info.type);
 			goto err;
 		}
-	} else if(CLMSV_CLMS_TO_CLMA_IS_MEMBER_MSG == msg->evt_type) {
+	} else if (CLMSV_CLMS_TO_CLMA_IS_MEMBER_MSG == msg->evt_type) {
 
 		p8 = ncs_enc_reserve_space(uba, 12);
-		if(!p8) {
+		if (!p8) {
 			TRACE("ncs_enc_reserve_space Failed");
 			goto err;
 		}
@@ -765,14 +779,14 @@ uint32_t clms_mds_enc(struct ncsmds_callback_info *info)
 
 	return NCSCC_RC_SUCCESS;
 
- err:
+err:
 	return NCSCC_RC_FAILURE;
 }
 
 /**
-* Decode the nodeup msg
-**/
-static uint32_t clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+ * Decode the nodeup msg
+ **/
+static uint32_t clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -783,8 +797,10 @@ static uint32_t clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 	msg->info.api_info.param.nodeup_info.node_id = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
 	total_bytes += 4;
-	total_bytes += clmsv_decodeSaNameT(uba, &(msg->info.api_info.param.nodeup_info.node_name));
-	TRACE("nodename %s length %d", msg->info.api_info.param.nodeup_info.node_name.value,
+	total_bytes += clmsv_decodeSaNameT(
+	    uba, &(msg->info.api_info.param.nodeup_info.node_name));
+	TRACE("nodename %s length %d",
+	      msg->info.api_info.param.nodeup_info.node_name.value,
 	      msg->info.api_info.param.nodeup_info.node_name.length);
 
 	TRACE("CLMSV_NODE_UP_MSG");
@@ -797,7 +813,7 @@ static uint32_t clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  *
  * Description   : MDS decode
  *
- * Arguments     : pointer to ncsmds_callback_info 
+ * Arguments     : pointer to ncsmds_callback_info
  *
  * Return Values : NCSCC_RC_SUCCESS/Error Code.
  *
@@ -813,14 +829,16 @@ uint32_t clms_mds_dec(struct ncsmds_callback_info *info)
 
 	TRACE_ENTER();
 
-	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
-					   CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT,
-					   CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT, CLMS_WRT_CLMA_MSG_FMT_ARRAY)) {
+	if (0 ==
+	    m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
+				      CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT,
+				      CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT,
+				      CLMS_WRT_CLMA_MSG_FMT_ARRAY)) {
 		TRACE("Wrong format version");
 		goto err;
 	}
 
-    /* allocate an CLMSV_CLMS_EVENT now */
+	/* allocate an CLMSV_CLMS_EVENT now */
 	if (NULL == (evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
 		TRACE("calloc failed");
 		goto err;
@@ -842,29 +860,37 @@ uint32_t clms_mds_dec(struct ncsmds_callback_info *info)
 		ncs_dec_skip_space(uba, 4);
 		total_bytes += 4;
 
-		TRACE("evt->info.msg.info.api_info.type %d", evt->info.msg.info.api_info.type);
+		TRACE("evt->info.msg.info.api_info.type %d",
+		      evt->info.msg.info.api_info.type);
 		/* FIX error handling for dec functions */
 		switch (evt->info.msg.info.api_info.type) {
 		case CLMSV_INITIALIZE_REQ:
-			total_bytes += clms_dec_initialize_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    clms_dec_initialize_msg(uba, &evt->info.msg);
 			break;
 		case CLMSV_FINALIZE_REQ:
-			total_bytes += clms_dec_finalize_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    clms_dec_finalize_msg(uba, &evt->info.msg);
 			break;
 		case CLMSV_TRACK_START_REQ:
-			total_bytes += clms_dec_track_start_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    clms_dec_track_start_msg(uba, &evt->info.msg);
 			break;
 		case CLMSV_TRACK_STOP_REQ:
-			total_bytes += clms_dec_track_stop_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    clms_dec_track_stop_msg(uba, &evt->info.msg);
 			break;
 		case CLMSV_NODE_GET_REQ:
-			total_bytes += clms_dec_node_get_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    clms_dec_node_get_msg(uba, &evt->info.msg);
 			break;
 		case CLMSV_NODE_GET_ASYNC_REQ:
-			total_bytes += clms_dec_node_get_async_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    clms_dec_node_get_async_msg(uba, &evt->info.msg);
 			break;
 		case CLMSV_RESPONSE_REQ:
-			total_bytes += clms_dec_response_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    clms_dec_response_msg(uba, &evt->info.msg);
 			break;
 		case CLMSV_CLUSTER_JOIN_REQ:
 			/* Decode the nodeup mesg */
@@ -872,7 +898,8 @@ uint32_t clms_mds_dec(struct ncsmds_callback_info *info)
 			total_bytes += clms_dec_nodeup_msg(uba, &evt->info.msg);
 			break;
 		default:
-			TRACE("Unknown API type = %d", evt->info.msg.info.api_info.type);
+			TRACE("Unknown API type = %d",
+			      evt->info.msg.info.api_info.type);
 			break;
 		}
 		if (total_bytes == 4)
@@ -886,12 +913,11 @@ uint32_t clms_mds_dec(struct ncsmds_callback_info *info)
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
- err:
-	if(evt)
+err:
+	if (evt)
 		free(evt);
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
-
 }
 
 /****************************************************************************
@@ -968,61 +994,80 @@ static uint32_t clms_mds_node_event(struct ncsmds_callback_info *mds_info)
 	IPLIST *ip = NULL;
 	TRACE_ENTER();
 
-	TRACE("node_id %d,nodeup %d", mds_info->info.node_evt.node_id, mds_info->info.node_evt.node_chg);
+	TRACE("node_id %d,nodeup %d", mds_info->info.node_evt.node_id,
+	      mds_info->info.node_evt.node_chg);
 
 	/* Send the message to clms */
 	/* Node up Events will be taken care by clms nodeagent */
 
-	node_id =  mds_info->info.node_evt.node_id;
+	node_id = mds_info->info.node_evt.node_id;
 	if (mds_info->info.node_evt.node_chg == NCSMDS_NODE_UP) {
 		/* Store the ip info provided by MDS in the list.
 		 * The releases < 4.4 were storing default address family
-		 * as AF_INET4, any family other than AF_NET* was treated as invalid.
-		 * Now, in 4.4 MDS provides info of AF_TIPC also as an address family, but
-		 * this cannot yet be passed on to the clients yet because of checks
-		 * in the CLM library that prohibits this.
-		 * So, for backward compatibility reasons, when MDS provides
-		 * AF_TIPC address family, we default it to AF_INET4 before
-		 * sending it to the CLM clients.
+		 * as AF_INET4, any family other than AF_NET* was treated as
+		 * invalid. Now, in 4.4 MDS provides info of AF_TIPC also as an
+		 * address family, but this cannot yet be passed on to the
+		 * clients yet because of checks in the CLM library that
+		 * prohibits this. So, for backward compatibility reasons, when
+		 * MDS provides AF_TIPC address family, we default it to
+		 * AF_INET4 before sending it to the CLM clients.
 		 */
 		TRACE("Adding ipinformation to the ip list: %u", node_id);
 		node_id = mds_info->info.node_evt.node_id;
-		if ((ip = (IPLIST *)ncs_patricia_tree_get(&clms_cb->iplist, (uint8_t *)&node_id)) == NULL) {
-			IPLIST *ip = (IPLIST *)calloc(1,sizeof(IPLIST));
-			TRACE("node_id: %u not found, adding as a new node", ip->node_id);
+		if ((ip = (IPLIST *)ncs_patricia_tree_get(
+			 &clms_cb->iplist, (uint8_t *)&node_id)) == NULL) {
+			IPLIST *ip = (IPLIST *)calloc(1, sizeof(IPLIST));
+			TRACE("node_id: %u not found, adding as a new node",
+			      ip->node_id);
 			ip->node_id = mds_info->info.node_evt.node_id;
 			ip->pat_node_id.key_info = (uint8_t *)&(ip->node_id);
-			if (mds_info->info.node_evt.addr_family == OSAF_AF_TIPC) {
-				ip->addr.family = 1; /* For backward compatibility */
+			if (mds_info->info.node_evt.addr_family ==
+			    OSAF_AF_TIPC) {
+				ip->addr.family =
+				    1; /* For backward compatibility */
 				ip->addr.length = 0;
 			} else {
-				if (mds_info->info.node_evt.addr_family == AF_INET)
+				if (mds_info->info.node_evt.addr_family ==
+				    AF_INET)
 					ip->addr.family = SA_CLM_AF_INET;
-				else if (mds_info->info.node_evt.addr_family == AF_INET6)
+				else if (mds_info->info.node_evt.addr_family ==
+					 AF_INET6)
 					ip->addr.family = SA_CLM_AF_INET6;
 				else
-					LOG_ER("Unsupported address family from MDS: %u",
-							mds_info->info.node_evt.addr_family);
+					LOG_ER(
+					    "Unsupported address family from MDS: %u",
+					    mds_info->info.node_evt
+						.addr_family);
 
-				ip->addr.length = mds_info->info.node_evt.length;
+				ip->addr.length =
+				    mds_info->info.node_evt.length;
 				if (ip->addr.length) {
-					memcpy(ip->addr.value, mds_info->info.node_evt.ip_addr,
-							 mds_info->info.node_evt.length);
+					memcpy(ip->addr.value,
+					       mds_info->info.node_evt.ip_addr,
+					       mds_info->info.node_evt.length);
 				}
 			}
-			if (ncs_patricia_tree_add(&clms_cb->iplist, &ip->pat_node_id) != NCSCC_RC_SUCCESS)
-				TRACE("node add failed for node_id: %u", ip->node_id);
+			if (ncs_patricia_tree_add(&clms_cb->iplist,
+						  &ip->pat_node_id) !=
+			    NCSCC_RC_SUCCESS)
+				TRACE("node add failed for node_id: %u",
+				      ip->node_id);
 		} else {
 			ip->node_id = mds_info->info.node_evt.node_id;
-			if (mds_info->info.node_evt.addr_family == OSAF_AF_TIPC) {
-				ip->addr.family = 1; /* For backward compatibility */
+			if (mds_info->info.node_evt.addr_family ==
+			    OSAF_AF_TIPC) {
+				ip->addr.family =
+				    1; /* For backward compatibility */
 				ip->addr.length = 0;
-			 } else {
-				ip->addr.family = mds_info->info.node_evt.addr_family;
-				ip->addr.length = mds_info->info.node_evt.length;
+			} else {
+				ip->addr.family =
+				    mds_info->info.node_evt.addr_family;
+				ip->addr.length =
+				    mds_info->info.node_evt.length;
 				if (ip->addr.length) {
-					memcpy(ip->addr.value, mds_info->info.node_evt.ip_addr,
-							 mds_info->info.node_evt.length);
+					memcpy(ip->addr.value,
+					       mds_info->info.node_evt.ip_addr,
+					       mds_info->info.node_evt.length);
 				}
 			}
 		}
@@ -1037,17 +1082,20 @@ static uint32_t clms_mds_node_event(struct ncsmds_callback_info *mds_info)
 		}
 
 		clmsv_evt->type = CLMSV_CLMS_MDS_NODE_EVT;
-		clmsv_evt->info.node_mds_info.node_id = mds_info->info.node_evt.node_id;
-		clmsv_evt->info.node_mds_info.nodeup = mds_info->info.node_evt.node_chg;
+		clmsv_evt->info.node_mds_info.node_id =
+		    mds_info->info.node_evt.node_id;
+		clmsv_evt->info.node_mds_info.nodeup =
+		    mds_info->info.node_evt.node_chg;
 
-		rc = m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt, MDS_SEND_PRIORITY_MEDIUM);
+		rc = m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt,
+				    MDS_SEND_PRIORITY_MEDIUM);
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE("IPC send failed %d", rc);
 			free(clmsv_evt);
 		}
 	}
 
- done:
+done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1066,7 +1114,8 @@ static uint32_t clms_mds_node_event(struct ncsmds_callback_info *mds_info)
 
 static uint32_t clms_mds_rcv(struct ncsmds_callback_info *mds_info)
 {
-	CLMSV_CLMS_EVT *clmsv_evt = (CLMSV_CLMS_EVT *) mds_info->info.receive.i_msg;
+	CLMSV_CLMS_EVT *clmsv_evt =
+	    (CLMSV_CLMS_EVT *)mds_info->info.receive.i_msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Event type  %u", clmsv_evt->type);
 
@@ -1078,7 +1127,8 @@ static uint32_t clms_mds_rcv(struct ncsmds_callback_info *mds_info)
 	clmsv_evt->mds_ctxt = mds_info->info.receive.i_msg_ctxt;
 
 	/* Send the message to clms */
-	rc = m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt, mds_info->info.receive.i_priority);
+	rc = m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt,
+			    mds_info->info.receive.i_priority);
 	if (rc != NCSCC_RC_SUCCESS)
 		TRACE("IPC send failed %d", rc);
 
@@ -1105,7 +1155,7 @@ static uint32_t clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 	if (clms_cb->is_quiesced_set != true)
 		return NCSCC_RC_SUCCESS;
 
-    /** allocate an CLMSV_CLMS_EVENT now **/
+	/** allocate an CLMSV_CLMS_EVENT now **/
 	if (NULL == (clmsv_evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
 		TRACE("memory alloc FAILED");
 		goto err;
@@ -1116,7 +1166,8 @@ static uint32_t clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 	clmsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 
 	/* Push the event and we are done */
-	if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt, NCS_IPC_PRIORITY_NORMAL)) {
+	if (NCSCC_RC_FAILURE ==
+	    m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt, NCS_IPC_PRIORITY_NORMAL)) {
 		TRACE("ipc send failed");
 		free(clmsv_evt);
 		goto err;
@@ -1124,7 +1175,7 @@ static uint32_t clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 
 	return NCSCC_RC_SUCCESS;
 
- err:
+err:
 	return NCSCC_RC_FAILURE;
 }
 
@@ -1156,41 +1207,48 @@ static uint32_t clms_mds_svc_event(struct ncsmds_callback_info *info)
 
 	/* If this evt was sent from CLMA act on this */
 	if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
-			TRACE_8("MDS DOWN for CLMA dest: %" PRIx64 ", node ID: %x, svc_id: %d",
-				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
+		TRACE_8("MDS DOWN for CLMA dest: %" PRIx64
+			", node ID: %x, svc_id: %d",
+			info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id,
+			info->info.svc_evt.i_svc_id);
 
-			/* As of now we are only interested in CLMA events */
-			if (NULL == (evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
+		/* As of now we are only interested in CLMA events */
+		if (NULL == (evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
+			rc = NCSCC_RC_FAILURE;
+			TRACE("mem alloc FAILURE  ");
+			goto done;
+		}
+
+		/** Initialize the Event Header **/
+		evt->cb_hdl = 0;
+		evt->fr_node_id = info->info.svc_evt.i_node_id;
+		evt->fr_dest = info->info.svc_evt.i_dest;
+
+		if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_CLMA) {
+			evt->type = CLMSV_CLMS_CLMA_DOWN;
+			evt->info.mds_info.node_id =
+			    info->info.svc_evt.i_node_id;
+			evt->info.mds_info.mds_dest_id =
+			    info->info.svc_evt.i_dest;
+		} else if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_AVND) {
+			evt->type = CLMSV_AVND_DOWN_EVT;
+			evt->info.node_mds_info.node_id =
+			    info->info.svc_evt.i_node_id;
+			evt->info.node_mds_info.nodeup = false;
+		}
+		if (evt->type) {
+			/* Push the event and we are done */
+			if (m_NCS_IPC_SEND(&clms_cb->mbx, evt,
+					   NCS_IPC_PRIORITY_HIGH) !=
+			    NCSCC_RC_SUCCESS) {
+				TRACE("ipc send failed");
+				free(evt);
 				rc = NCSCC_RC_FAILURE;
-				TRACE("mem alloc FAILURE  ");
 				goto done;
 			}
-
-	    /** Initialize the Event Header **/
-			evt->cb_hdl = 0;
-			evt->fr_node_id = info->info.svc_evt.i_node_id;
-			evt->fr_dest = info->info.svc_evt.i_dest;
-
-			if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_CLMA) {
-				evt->type = CLMSV_CLMS_CLMA_DOWN;
-				evt->info.mds_info.node_id = info->info.svc_evt.i_node_id;
-				evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
-			} else if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_AVND) {
-				evt->type = CLMSV_AVND_DOWN_EVT;
-				evt->info.node_mds_info.node_id = info->info.svc_evt.i_node_id;
-				evt->info.node_mds_info.nodeup = false;
-			}
-			if (evt->type) {
-				/* Push the event and we are done */
-				if (m_NCS_IPC_SEND(&clms_cb->mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
-					TRACE("ipc send failed");
-					free(evt);
-					rc = NCSCC_RC_FAILURE;
-					goto done;
-				}
-			}
+		}
 	}
- done:
+done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1237,21 +1295,19 @@ static uint32_t clms_mds_callback(struct ncsmds_callback_info *info)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
-		clms_mds_cpy,	/* MDS_CALLBACK_COPY      */
-		clms_mds_enc,	/* MDS_CALLBACK_ENC       */
-		clms_mds_dec,	/* MDS_CALLBACK_DEC       */
-		clms_mds_enc_flat,	/* MDS_CALLBACK_ENC_FLAT  */
-		clms_mds_dec_flat,	/* MDS_CALLBACK_DEC_FLAT  */
-		clms_mds_rcv,	/* MDS_CALLBACK_RECEIVE   */
-		clms_mds_svc_event,	/* MDS_CALLBACK_SVC_EVENT */
-		clms_mds_sys_event,	/* MDS_CALLBACK_SYS_EVENT */
-		clms_mds_quiesced_ack,	/* MDS_CALLBACK_QUIESCED_ACK */
-		clms_mds_dummy,
-		clms_mds_node_event
-	};
+	    clms_mds_cpy,	  /* MDS_CALLBACK_COPY      */
+	    clms_mds_enc,	  /* MDS_CALLBACK_ENC       */
+	    clms_mds_dec,	  /* MDS_CALLBACK_DEC       */
+	    clms_mds_enc_flat,     /* MDS_CALLBACK_ENC_FLAT  */
+	    clms_mds_dec_flat,     /* MDS_CALLBACK_DEC_FLAT  */
+	    clms_mds_rcv,	  /* MDS_CALLBACK_RECEIVE   */
+	    clms_mds_svc_event,    /* MDS_CALLBACK_SVC_EVENT */
+	    clms_mds_sys_event,    /* MDS_CALLBACK_SYS_EVENT */
+	    clms_mds_quiesced_ack, /* MDS_CALLBACK_QUIESCED_ACK */
+	    clms_mds_dummy,	clms_mds_node_event};
 
 	if (info->i_op <= MDS_CALLBACK_NODE_EVENT) {
-		return (*cb_set[info->i_op]) (info);
+		return (*cb_set[info->i_op])(info);
 	} else {
 		TRACE("mds callback out of range");
 		rc = NCSCC_RC_FAILURE;
@@ -1265,13 +1321,13 @@ static uint32_t clms_mds_callback(struct ncsmds_callback_info *info)
  *
  * Description   : This function created the VDEST for CLMS
  *
- * Arguments     : 
+ * Arguments     :
  *
  * Return Values : NCSCC_RC_SUCCESS/Error Code.
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t mds_vdest_create(CLMS_CB * clms_cb)
+static uint32_t mds_vdest_create(CLMS_CB *clms_cb)
 {
 	NCSVDA_INFO vda_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -1280,7 +1336,8 @@ static uint32_t mds_vdest_create(CLMS_CB * clms_cb)
 	clms_cb->vaddr = CLMS_VDEST_ID;
 	vda_info.req = NCSVDA_VDEST_CREATE;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	vda_info.info.vdest_create.i_persistent = false;	/* Up-to-the application */
+	vda_info.info.vdest_create.i_persistent =
+	    false; /* Up-to-the application */
 	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	vda_info.info.vdest_create.info.specified.i_vdest = clms_cb->vaddr;
 
@@ -1299,8 +1356,8 @@ static uint32_t mds_vdest_create(CLMS_CB * clms_cb)
 /****************************************************************************
  * Name          : clms_mds_init
  *
- * Description   : This function creates the VDEST for clms and installs/suscribes
- *                 into MDS.
+ * Description   : This function creates the VDEST for clms and
+ *installs/suscribes into MDS.
  *
  * Arguments     : cb   : CLMS control Block pointer.
  *
@@ -1308,11 +1365,12 @@ static uint32_t mds_vdest_create(CLMS_CB * clms_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t clms_mds_init(CLMS_CB * cb)
+uint32_t clms_mds_init(CLMS_CB *cb)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
-	MDS_SVC_ID svc[] = { NCSMDS_SVC_ID_CLMA, NCSMDS_SVC_ID_CLMNA, NCSMDS_SVC_ID_AVND };
+	MDS_SVC_ID svc[] = {NCSMDS_SVC_ID_CLMA, NCSMDS_SVC_ID_CLMNA,
+			    NCSMDS_SVC_ID_AVND};
 
 	TRACE_ENTER();
 
@@ -1343,7 +1401,8 @@ uint32_t clms_mds_init(CLMS_CB * cb)
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	mds_info.info.svc_install.i_svc_cb = clms_mds_callback;
 	mds_info.info.svc_install.i_mds_q_ownership = false;
-	mds_info.info.svc_install.i_mds_svc_pvt_ver = CLMS_SVC_PVT_SUBPART_VERSION;
+	mds_info.info.svc_install.i_mds_svc_pvt_ver =
+	    CLMS_SVC_PVT_SUBPART_VERSION;
 
 	if (NCSCC_RC_SUCCESS != (rc = ncsmds_api(&mds_info))) {
 		LOG_ER("MDS Install FAILED");
@@ -1384,7 +1443,7 @@ uint32_t clms_mds_init(CLMS_CB * cb)
 /****************************************************************************
  * Name          : clms_mds_change_role
  *
- * Description   : This function informs mds of our vdest role change 
+ * Description   : This function informs mds of our vdest role change
  *
  * Arguments     : cb   : CLMS control Block pointer.
  *
@@ -1392,7 +1451,7 @@ uint32_t clms_mds_init(CLMS_CB * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t clms_mds_change_role(CLMS_CB * cb)
+uint32_t clms_mds_change_role(CLMS_CB *cb)
 {
 	NCSVDA_INFO arg;
 
@@ -1416,7 +1475,7 @@ uint32_t clms_mds_change_role(CLMS_CB * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t mds_vdest_destroy(CLMS_CB * clms_cb)
+static uint32_t mds_vdest_destroy(CLMS_CB *clms_cb)
 {
 	NCSVDA_INFO vda_info;
 	uint32_t rc;
@@ -1444,7 +1503,7 @@ static uint32_t mds_vdest_destroy(CLMS_CB * clms_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t clms_mds_finalize(CLMS_CB * cb)
+uint32_t clms_mds_finalize(CLMS_CB *cb)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
@@ -1469,24 +1528,24 @@ uint32_t clms_mds_finalize(CLMS_CB * cb)
 
 /****************************************************************************
   Name          : clms_mds_msg_send
- 
-  Description   : This routine sends a message to CLMA. The send 
-                  operation may be a 'normal' send or a synchronous call that 
-                  blocks until the response is received from CLMA.
- 
+
+  Description   : This routine sends a message to CLMA. The send
+		  operation may be a 'normal' send or a synchronous call that
+		  blocks until the response is received from CLMA.
+
   Arguments     : cb  - ptr to the CLMA CB
-                  i_msg - ptr to the CLMSv message
-                  dest  - MDS destination to send to.
-                  mds_ctxt - ctxt for synch mds req-resp.
- 
+		  i_msg - ptr to the CLMSv message
+		  dest  - MDS destination to send to.
+		  mds_ctxt - ctxt for synch mds req-resp.
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE/timeout
- 
+
   Notes         : None.
 ******************************************************************************/
 
-uint32_t clms_mds_msg_send(CLMS_CB * cb,
-			CLMSV_MSG * msg,
-			MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio, NCSMDS_SVC_ID svc_id)
+uint32_t clms_mds_msg_send(CLMS_CB *cb, CLMSV_MSG *msg, MDS_DEST *dest,
+			   MDS_SYNC_SND_CTXT *mds_ctxt,
+			   MDS_SEND_PRIORITY_TYPE prio, NCSMDS_SVC_ID svc_id)
 {
 	NCSMDS_INFO mds_info;
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
@@ -1501,8 +1560,9 @@ uint32_t clms_mds_msg_send(CLMS_CB * cb,
 	mds_info.i_op = MDS_SEND;
 
 	send_info->i_msg = msg;
-	send_info->i_to_svc = svc_id;	/* NCSMDS_SVC_ID_CLMNA or NCSMDS_SVC_ID_CLMA */
-	send_info->i_priority = prio;	/* Discuss the priority assignments TBD */
+	send_info->i_to_svc =
+	    svc_id; /* NCSMDS_SVC_ID_CLMNA or NCSMDS_SVC_ID_CLMA */
+	send_info->i_priority = prio; /* Discuss the priority assignments TBD */
 
 	if (NULL == mds_ctxt || 0 == mds_ctxt->length) {
 		/* regular send */
@@ -1534,7 +1594,7 @@ uint32_t clms_mds_msg_send(CLMS_CB * cb,
   Description   : This routine sends a broadcast message to CLMNA.
 
   Arguments     : cb  - ptr to the CLMA CB
-                  bcast_msg - ptr to the CLMSv broadcast message
+		  bcast_msg - ptr to the CLMSv broadcast message
 
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
@@ -1555,7 +1615,7 @@ uint32_t clms_mds_msg_bcast(CLMS_CB *cb, CLMSV_MSG *bcast_msg)
 	snd_mds.info.svc_send.info.bcast.i_bcast_scope = NCSMDS_SCOPE_NONE;
 
 	if ((rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: ncsmds_api MDS_SEND failed %u", __FUNCTION__ ,rc);
+		LOG_ER("%s: ncsmds_api MDS_SEND failed %u", __FUNCTION__, rc);
 		return rc;
 	}
 

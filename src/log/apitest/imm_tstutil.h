@@ -41,9 +41,9 @@ extern "C" {
  * @return false if Fail. Fail message is printed on stdout
  */
 bool get_multivalue_type_string_from_imm(SaImmHandleT *omHandle,
-					SaConstStringT objectName,
-					char *attribute_name,
-					char ***multivalue_array);
+                                         SaConstStringT objectName,
+                                         char *attribute_name,
+                                         char ***multivalue_array);
 
 /**
  * Used to free memory allocated for the multivalue_array by function
@@ -58,4 +58,3 @@ void free_multivalue(SaImmHandleT omHandle, char ***multivalue_array);
 #endif
 
 #endif /* IMM_TSTUTIL_H */
-

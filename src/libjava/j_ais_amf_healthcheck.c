@@ -36,7 +36,7 @@
 #include "j_ais.h"
 #include "j_ais_amf.h"
 #include "j_ais_amf_libHandle.h"
-#include "jni_ais_amf.h"	// not really needed, but good for syntax checking!
+#include "jni_ais_amf.h" // not really needed, but good for syntax checking!
 
 /**************************************************************************
  * Constants
@@ -74,16 +74,14 @@ static jfieldID FID_HI_value = NULL;
 jboolean JNU_Healthcheck_initIDs_OK(JNIEnv *jniEnv);
 static jboolean JNU_Healthcheck_initIDs_FromClass_OK(JNIEnv *jniEnv,
 						     jclass classAmfHandle);
-static jboolean JNU_SaAmfHealthcheckKeyT_set(JNIEnv *jniEnv,
-					     jbyteArray healthcheckKey,
-					     SaAmfHealthcheckKeyT
-					     *saHealthcheckKeyPtr);
+static jboolean
+JNU_SaAmfHealthcheckKeyT_set(JNIEnv *jniEnv, jbyteArray healthcheckKey,
+			     SaAmfHealthcheckKeyT *saHealthcheckKeyPtr);
 
 // ENUM ais.amf.Healthcheck$HealthcheckInvocation
 jboolean JNU_HealthcheckInvocation_initIDs_OK(JNIEnv *jniEnv);
-static jboolean JNU_HealthcheckInvocation_initIDs_FromClass_OK(JNIEnv *jniEnv,
-							       jclass
-							       EnumHealthcheckInvocation);
+static jboolean JNU_HealthcheckInvocation_initIDs_FromClass_OK(
+    JNIEnv *jniEnv, jclass EnumHealthcheckInvocation);
 
 /**************************************************************************
  * Function definitions
@@ -116,17 +114,16 @@ jboolean JNU_Healthcheck_initIDs_OK(JNIEnv *jniEnv)
 	  (*jniEnv)->FindClass( jniEnv,
 	  "ais/amf/Healthcheck" )
 	  ); */
-	ClassHealthcheck = JNU_GetGlobalClassRef(jniEnv,
-						 "org/opensaf/ais/amf/HealthcheckImpl");
+	ClassHealthcheck = JNU_GetGlobalClassRef(
+	    jniEnv, "org/opensaf/ais/amf/HealthcheckImpl");
 	if (ClassHealthcheck == NULL) {
 
 		_TRACE2("NATIVE ERROR: ClassHealthcheck is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 	// get IDs
 	return JNU_Healthcheck_initIDs_FromClass_OK(jniEnv, ClassHealthcheck);
-
 }
 
 /**************************************************************************
@@ -144,23 +141,22 @@ static jboolean JNU_Healthcheck_initIDs_FromClass_OK(JNIEnv *jniEnv,
 
 	// BODY
 
-	_TRACE2
-		("NATIVE: Executing JNU_Healthcheck_initIDs_FromClass_OK(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing JNU_Healthcheck_initIDs_FromClass_OK(...)\n");
 
 	// get field IDs
-	FID_amfLibraryHandle = (*jniEnv)->GetFieldID(jniEnv,
-						     classHealthcheck,
-						     "amfLibraryHandle",
-						     "Lorg/saforum/ais/amf/AmfHandle;");
+	FID_amfLibraryHandle =
+	    (*jniEnv)->GetFieldID(jniEnv, classHealthcheck, "amfLibraryHandle",
+				  "Lorg/saforum/ais/amf/AmfHandle;");
 	if (FID_amfLibraryHandle == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_amfLibraryHandle is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 
-	_TRACE2
-		("NATIVE: JNU_Healthcheck_initIDs_FromClass_OK(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: JNU_Healthcheck_initIDs_FromClass_OK(...) returning normally\n");
 
 	return JNI_TRUE;
 }
@@ -170,19 +166,14 @@ static jboolean JNU_Healthcheck_initIDs_FromClass_OK(JNIEnv *jniEnv,
  * TYPE:      native method
  *  Class:     ais_amf_Healthcheck
  *  Method:    startHealthcheck
- *  Signature: (Ljava/lang/String;[BLorg/saforum/ais/amf/Healthcheck$HealthcheckInvocation;Lorg/saforum/ais/amf/RecommendedRecovery;)V
+ *  Signature:
+ *(Ljava/lang/String;[BLorg/saforum/ais/amf/Healthcheck$HealthcheckInvocation;Lorg/saforum/ais/amf/RecommendedRecovery;)V
  *************************************************************************/
 JNIEXPORT void JNICALL
-Java_org_opensaf_ais_amf_HealthcheckImpl_startHealthcheck(JNIEnv *jniEnv,
-							  jobject
-							  thisHealthcheck,
-							  jstring componentName,
-							  jbyteArray
-							  healthcheckKey,
-							  jobject
-							  invocationType,
-							  jobject
-							  recommendedRecovery)
+Java_org_opensaf_ais_amf_HealthcheckImpl_startHealthcheck(
+    JNIEnv *jniEnv, jobject thisHealthcheck, jstring componentName,
+    jbyteArray healthcheckKey, jobject invocationType,
+    jobject recommendedRecovery)
 {
 	// VARIABLES
 	SaAmfHandleT _saAmfHandle;
@@ -198,56 +189,49 @@ Java_org_opensaf_ais_amf_HealthcheckImpl_startHealthcheck(JNIEnv *jniEnv,
 	// BODY
 
 	assert(thisHealthcheck != NULL);
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_amf_HealthcheckImpl_startHealthcheck(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_amf_HealthcheckImpl_startHealthcheck(...)\n");
 
 	// get Java library handle
-	_amfLibraryHandle = (*jniEnv)->GetObjectField(jniEnv,
-						      thisHealthcheck,
+	_amfLibraryHandle = (*jniEnv)->GetObjectField(jniEnv, thisHealthcheck,
 						      FID_amfLibraryHandle);
 
 	assert(_amfLibraryHandle != NULL);
 
 	// get native library handle
-	_saAmfHandle = (SaAmfHandleT)(*jniEnv)->GetLongField(jniEnv,
-							     _amfLibraryHandle,
-							     FID_saAmfHandle);
+	_saAmfHandle = (SaAmfHandleT)(*jniEnv)->GetLongField(
+	    jniEnv, _amfLibraryHandle, FID_saAmfHandle);
 	// copy Java component name object
-	if (JNU_copyFromStringToSaNameT(jniEnv,
-					componentName,
+	if (JNU_copyFromStringToSaNameT(jniEnv, componentName,
 					&_saComponentNamePtr) != JNI_TRUE) {
-		return;		// EXIT POINT! Exception pending...
+		return; // EXIT POINT! Exception pending...
 	}
 	// healthcheck key
-	if (JNU_SaAmfHealthcheckKeyT_set(jniEnv,
-					 healthcheckKey,
+	if (JNU_SaAmfHealthcheckKeyT_set(jniEnv, healthcheckKey,
 					 &_saHealthcheckKey) != JNI_TRUE) {
-		return;		// EXIT POINT! Exception pending...
+		return; // EXIT POINT! Exception pending...
 	}
 	// invocation type
 	if (invocationType == NULL) {
-		JNU_throwNewByName(jniEnv,
-				   "ais/AisInvalidParamException",
+		JNU_throwNewByName(jniEnv, "ais/AisInvalidParamException",
 				   AIS_ERR_INVALID_PARAM_MSG);
-		return;		// EXIT POINT!
+		return; // EXIT POINT!
 	}
-	_saInvocationType = (SaAmfHealthcheckInvocationT)
-		(*jniEnv)->GetIntField(jniEnv, invocationType, FID_HI_value);
+	_saInvocationType = (SaAmfHealthcheckInvocationT)(*jniEnv)->GetIntField(
+	    jniEnv, invocationType, FID_HI_value);
 	// recommended recovery
 	if (recommendedRecovery == NULL) {
-		JNU_throwNewByName(jniEnv,
-				   "ais/AisInvalidParamException",
+		JNU_throwNewByName(jniEnv, "ais/AisInvalidParamException",
 				   AIS_ERR_INVALID_PARAM_MSG);
-		return;		// EXIT POINT!
+		return; // EXIT POINT!
 	}
-	_saRecommendedRecovery = (SaAmfRecommendedRecoveryT)
-		(*jniEnv)->GetIntField(jniEnv, recommendedRecovery, FID_RR_value);
+	_saRecommendedRecovery =
+	    (SaAmfRecommendedRecoveryT)(*jniEnv)->GetIntField(
+		jniEnv, recommendedRecovery, FID_RR_value);
 
 	// call saAmfHealthcheckStart
-	_saStatus = saAmfHealthcheckStart(_saAmfHandle,
-					  _saComponentNamePtr,
-					  &_saHealthcheckKey,
-					  _saInvocationType,
+	_saStatus = saAmfHealthcheckStart(_saAmfHandle, _saComponentNamePtr,
+					  &_saHealthcheckKey, _saInvocationType,
 					  _saRecommendedRecovery);
 
 	_TRACE2("NATIVE: saAmfHealthcheckStart(...) has returned with %d...\n",
@@ -257,24 +241,24 @@ Java_org_opensaf_ais_amf_HealthcheckImpl_startHealthcheck(JNIEnv *jniEnv,
 	if (_saStatus != SA_AIS_OK) {
 		switch (_saStatus) {
 		case SA_AIS_ERR_LIBRARY:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisLibraryException",
-					   AIS_ERR_LIBRARY_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisLibraryException",
+			    AIS_ERR_LIBRARY_MSG);
 			break;
 		case SA_AIS_ERR_TIMEOUT:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisTimeoutException",
-					   AIS_ERR_TIMEOUT_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisTimeoutException",
+			    AIS_ERR_TIMEOUT_MSG);
 			break;
 		case SA_AIS_ERR_TRY_AGAIN:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisTryAgainException",
-					   AIS_ERR_TRY_AGAIN_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisTryAgainException",
+			    AIS_ERR_TRY_AGAIN_MSG);
 			break;
 		case SA_AIS_ERR_BAD_HANDLE:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisBadHandleException",
-					   AIS_ERR_BAD_HANDLE_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisBadHandleException",
+			    AIS_ERR_BAD_HANDLE_MSG);
 			break;
 		case SA_AIS_ERR_INIT:
 			JNU_throwNewByName(jniEnv,
@@ -283,41 +267,40 @@ Java_org_opensaf_ais_amf_HealthcheckImpl_startHealthcheck(JNIEnv *jniEnv,
 			break;
 		case SA_AIS_ERR_INVALID_PARAM:
 			// e.g. component name null
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisInvalidParamException",
-					   AIS_ERR_INVALID_PARAM_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisInvalidParamException",
+			    AIS_ERR_INVALID_PARAM_MSG);
 			break;
 		case SA_AIS_ERR_NO_MEMORY:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisNoMemoryException",
-					   AIS_ERR_NO_MEMORY_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisNoMemoryException",
+			    AIS_ERR_NO_MEMORY_MSG);
 			break;
 		case SA_AIS_ERR_NO_RESOURCES:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisNoResourcesException",
-					   AIS_ERR_NO_RESOURCES_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisNoResourcesException",
+			    AIS_ERR_NO_RESOURCES_MSG);
 			break;
 		case SA_AIS_ERR_NOT_EXIST:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisNotExistException",
-					   AIS_ERR_NOT_EXIST_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisNotExistException",
+			    AIS_ERR_NOT_EXIST_MSG);
 			break;
 		default:
 			// this should not happen here!
 
 			assert(JNI_FALSE);
 
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisLibraryException",
-					   AIS_ERR_LIBRARY_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisLibraryException",
+			    AIS_ERR_LIBRARY_MSG);
 			break;
 		}
-		return;		// EXIT POINT! Exception pending...
+		return; // EXIT POINT! Exception pending...
 	}
 
-	_TRACE2
-		("NATIVE: Java_org_opensaf_ais_amf_HealthcheckImpl_startHealthcheck(...) returning normally\n");
-
+	_TRACE2(
+	    "NATIVE: Java_org_opensaf_ais_amf_HealthcheckImpl_startHealthcheck(...) returning normally\n");
 }
 
 /**************************************************************************
@@ -327,13 +310,9 @@ Java_org_opensaf_ais_amf_HealthcheckImpl_startHealthcheck(JNIEnv *jniEnv,
  *  Method:    stopHealthcheck
  *  Signature: (Ljava/lang/String;[B)V
  *************************************************************************/
-JNIEXPORT void JNICALL
-Java_org_opensaf_ais_amf_HealthcheckImpl_stopHealthcheck(JNIEnv *jniEnv,
-							 jobject
-							 thisHealthcheck,
-							 jstring componentName,
-							 jbyteArray
-							 healthcheckKey)
+JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_HealthcheckImpl_stopHealthcheck(
+    JNIEnv *jniEnv, jobject thisHealthcheck, jstring componentName,
+    jbyteArray healthcheckKey)
 {
 	// VARIABLES
 	SaAmfHandleT _saAmfHandle;
@@ -347,35 +326,30 @@ Java_org_opensaf_ais_amf_HealthcheckImpl_stopHealthcheck(JNIEnv *jniEnv,
 	// BODY
 
 	assert(thisHealthcheck != NULL);
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_amf_HealthcheckImpl_stopHealthcheck(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_amf_HealthcheckImpl_stopHealthcheck(...)\n");
 
 	// get Java library handle
-	_amfLibraryHandle = (*jniEnv)->GetObjectField(jniEnv,
-						      thisHealthcheck,
+	_amfLibraryHandle = (*jniEnv)->GetObjectField(jniEnv, thisHealthcheck,
 						      FID_amfLibraryHandle);
 
 	assert(_amfLibraryHandle != NULL);
 
 	// get native library handle
-	_saAmfHandle = (SaAmfHandleT)(*jniEnv)->GetLongField(jniEnv,
-							     _amfLibraryHandle,
-							     FID_saAmfHandle);
+	_saAmfHandle = (SaAmfHandleT)(*jniEnv)->GetLongField(
+	    jniEnv, _amfLibraryHandle, FID_saAmfHandle);
 	// copy Java component name object
-	if (JNU_copyFromStringToSaNameT(jniEnv,
-					componentName,
+	if (JNU_copyFromStringToSaNameT(jniEnv, componentName,
 					&_saComponentNamePtr) != JNI_TRUE) {
-		return;		// EXIT POINT! Exception pending...
+		return; // EXIT POINT! Exception pending...
 	}
 	// healthcheck key
-	if (JNU_SaAmfHealthcheckKeyT_set(jniEnv,
-					 healthcheckKey,
+	if (JNU_SaAmfHealthcheckKeyT_set(jniEnv, healthcheckKey,
 					 &_saHealthcheckKey) != JNI_TRUE) {
-		return;		// EXIT POINT! Exception pending...
+		return; // EXIT POINT! Exception pending...
 	}
 	// call saAmfHealthcheckStop
-	_saStatus = saAmfHealthcheckStop(_saAmfHandle,
-					 _saComponentNamePtr,
+	_saStatus = saAmfHealthcheckStop(_saAmfHandle, _saComponentNamePtr,
 					 &_saHealthcheckKey);
 
 	_TRACE2("NATIVE: saAmfHealthcheckStop(...) has returned with %d...\n",
@@ -385,61 +359,60 @@ Java_org_opensaf_ais_amf_HealthcheckImpl_stopHealthcheck(JNIEnv *jniEnv,
 	if (_saStatus != SA_AIS_OK) {
 		switch (_saStatus) {
 		case SA_AIS_ERR_LIBRARY:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisLibraryException",
-					   AIS_ERR_LIBRARY_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisLibraryException",
+			    AIS_ERR_LIBRARY_MSG);
 			break;
 		case SA_AIS_ERR_TIMEOUT:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisTimeoutException",
-					   AIS_ERR_TIMEOUT_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisTimeoutException",
+			    AIS_ERR_TIMEOUT_MSG);
 			break;
 		case SA_AIS_ERR_TRY_AGAIN:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisTryAgainException",
-					   AIS_ERR_TRY_AGAIN_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisTryAgainException",
+			    AIS_ERR_TRY_AGAIN_MSG);
 			break;
 		case SA_AIS_ERR_BAD_HANDLE:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisBadHandleException",
-					   AIS_ERR_BAD_HANDLE_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisBadHandleException",
+			    AIS_ERR_BAD_HANDLE_MSG);
 			break;
 		case SA_AIS_ERR_INVALID_PARAM:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisInvalidParamException",
-					   AIS_ERR_INVALID_PARAM_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisInvalidParamException",
+			    AIS_ERR_INVALID_PARAM_MSG);
 			break;
 		case SA_AIS_ERR_NO_MEMORY:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisNoMemoryException",
-					   AIS_ERR_NO_MEMORY_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisNoMemoryException",
+			    AIS_ERR_NO_MEMORY_MSG);
 			break;
 		case SA_AIS_ERR_NO_RESOURCES:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisNoResourcesException",
-					   AIS_ERR_NO_RESOURCES_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisNoResourcesException",
+			    AIS_ERR_NO_RESOURCES_MSG);
 			break;
 		case SA_AIS_ERR_NOT_EXIST:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisNotExistException",
-					   AIS_ERR_NOT_EXIST_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisNotExistException",
+			    AIS_ERR_NOT_EXIST_MSG);
 			break;
 		default:
 			// this should not happen here!
 
 			assert(JNI_FALSE);
 
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisLibraryException",
-					   AIS_ERR_LIBRARY_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisLibraryException",
+			    AIS_ERR_LIBRARY_MSG);
 			break;
 		}
-		return;		// EXIT POINT! Exception pending...
+		return; // EXIT POINT! Exception pending...
 	}
 
-	_TRACE2
-		("NATIVE: Java_org_opensaf_ais_amf_HealthcheckImpl_stopHealthcheck(...) returning normally\n");
-
+	_TRACE2(
+	    "NATIVE: Java_org_opensaf_ais_amf_HealthcheckImpl_stopHealthcheck(...) returning normally\n");
 }
 
 /**************************************************************************
@@ -450,15 +423,9 @@ Java_org_opensaf_ais_amf_HealthcheckImpl_stopHealthcheck(JNIEnv *jniEnv,
  *  Signature: (Ljava/lang/String;[BI)V
  *************************************************************************/
 JNIEXPORT void JNICALL
-Java_org_opensaf_ais_amf_HealthcheckImpl_confirmHealthcheck(JNIEnv *jniEnv,
-							    jobject
-							    thisHealthcheck,
-							    jstring
-							    componentName,
-							    jbyteArray
-							    healthcheckKey,
-							    jint
-							    healthcheckResult)
+Java_org_opensaf_ais_amf_HealthcheckImpl_confirmHealthcheck(
+    JNIEnv *jniEnv, jobject thisHealthcheck, jstring componentName,
+    jbyteArray healthcheckKey, jint healthcheckResult)
 {
 	// VARIABLES
 	SaAmfHandleT _saAmfHandle;
@@ -472,101 +439,95 @@ Java_org_opensaf_ais_amf_HealthcheckImpl_confirmHealthcheck(JNIEnv *jniEnv,
 	// BODY
 
 	assert(thisHealthcheck != NULL);
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_amf_HealthcheckImpl_confirmHealthcheck(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_amf_HealthcheckImpl_confirmHealthcheck(...)\n");
 
 	// get Java library handle
-	_amfLibraryHandle = (*jniEnv)->GetObjectField(jniEnv,
-						      thisHealthcheck,
+	_amfLibraryHandle = (*jniEnv)->GetObjectField(jniEnv, thisHealthcheck,
 						      FID_amfLibraryHandle);
 
 	assert(_amfLibraryHandle != NULL);
 
 	// get native library handle
-	_saAmfHandle = (SaAmfHandleT)(*jniEnv)->GetLongField(jniEnv,
-							     _amfLibraryHandle,
-							     FID_saAmfHandle);
+	_saAmfHandle = (SaAmfHandleT)(*jniEnv)->GetLongField(
+	    jniEnv, _amfLibraryHandle, FID_saAmfHandle);
 	// copy Java component name object
-	if (JNU_copyFromStringToSaNameT(jniEnv,
-					componentName,
+	if (JNU_copyFromStringToSaNameT(jniEnv, componentName,
 					&_saComponentNamePtr) != JNI_TRUE) {
-		return;		// EXIT POINT! Exception pending...
+		return; // EXIT POINT! Exception pending...
 	}
 	// healthcheck key
-	if (JNU_SaAmfHealthcheckKeyT_set(jniEnv,
-					 healthcheckKey,
+	if (JNU_SaAmfHealthcheckKeyT_set(jniEnv, healthcheckKey,
 					 &_saHealthcheckKey) != JNI_TRUE) {
-		return;		// EXIT POINT! Exception pending...
+		return; // EXIT POINT! Exception pending...
 	}
 	// call saAmfHealthcheckConfirm
-	_saStatus = saAmfHealthcheckConfirm(_saAmfHandle,
-					    _saComponentNamePtr,
+	_saStatus = saAmfHealthcheckConfirm(_saAmfHandle, _saComponentNamePtr,
 					    &_saHealthcheckKey,
 					    (SaAisErrorT)healthcheckResult);
 
-	_TRACE2
-		("NATIVE: saAmfHealthcheckConfirm(...) has returned with %d...\n",
-		 _saStatus);
+	_TRACE2(
+	    "NATIVE: saAmfHealthcheckConfirm(...) has returned with %d...\n",
+	    _saStatus);
 
 	// error handling
 	if (_saStatus != SA_AIS_OK) {
 		switch (_saStatus) {
 		case SA_AIS_ERR_LIBRARY:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisLibraryException",
-					   AIS_ERR_LIBRARY_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisLibraryException",
+			    AIS_ERR_LIBRARY_MSG);
 			break;
 		case SA_AIS_ERR_TIMEOUT:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisTimeoutException",
-					   AIS_ERR_TIMEOUT_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisTimeoutException",
+			    AIS_ERR_TIMEOUT_MSG);
 			break;
 		case SA_AIS_ERR_TRY_AGAIN:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisTryAgainException",
-					   AIS_ERR_TRY_AGAIN_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisTryAgainException",
+			    AIS_ERR_TRY_AGAIN_MSG);
 			break;
 		case SA_AIS_ERR_BAD_HANDLE:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisBadHandleException",
-					   AIS_ERR_BAD_HANDLE_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisBadHandleException",
+			    AIS_ERR_BAD_HANDLE_MSG);
 			break;
 		case SA_AIS_ERR_INVALID_PARAM:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisInvalidParamException",
-					   AIS_ERR_INVALID_PARAM_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisInvalidParamException",
+			    AIS_ERR_INVALID_PARAM_MSG);
 			break;
 		case SA_AIS_ERR_NO_MEMORY:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisNoMemoryException",
-					   AIS_ERR_NO_MEMORY_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisNoMemoryException",
+			    AIS_ERR_NO_MEMORY_MSG);
 			break;
 		case SA_AIS_ERR_NO_RESOURCES:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisNoResourcesException",
-					   AIS_ERR_NO_RESOURCES_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisNoResourcesException",
+			    AIS_ERR_NO_RESOURCES_MSG);
 			break;
 		case SA_AIS_ERR_NOT_EXIST:
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisNotExistException",
-					   AIS_ERR_NOT_EXIST_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisNotExistException",
+			    AIS_ERR_NOT_EXIST_MSG);
 			break;
 		default:
 			// this should not happen here!
 
 			assert(JNI_FALSE);
 
-			JNU_throwNewByName(jniEnv,
-					   "org/saforum/ais/AisLibraryException",
-					   AIS_ERR_LIBRARY_MSG);
+			JNU_throwNewByName(
+			    jniEnv, "org/saforum/ais/AisLibraryException",
+			    AIS_ERR_LIBRARY_MSG);
 			break;
 		}
-		return;		// EXIT POINT! Exception pending...
+		return; // EXIT POINT! Exception pending...
 	}
 
-	_TRACE2
-		("NATIVE: Java_org_opensaf_ais_amf_HealthcheckImpl_confirmHealthcheck(...) returning normally\n");
-
+	_TRACE2(
+	    "NATIVE: Java_org_opensaf_ais_amf_HealthcheckImpl_confirmHealthcheck(...) returning normally\n");
 }
 
 /**************************************************************************
@@ -577,28 +538,27 @@ Java_org_opensaf_ais_amf_HealthcheckImpl_confirmHealthcheck(JNIEnv *jniEnv,
  *                the specified SaAmfHealthcheckKeyT parameter.
  * INTERFACE:
  *   parameters:
- * 		healthcheckKey [in]
- * 			- the source Java byte array.
- * 			If null, AisInvalidParamException is thrown.
- * 			Its length can be zero, however: in this case a zero length SaAmfHealthcheckKeyT is returned.
- *          If longer than SA_AMF_HEALTHCHECK_KEY_MAX, AisInvalidParamException is thrown.
- *      saHealthcheckKeyPtr [in/out]
- * 			- a pointer to the SaAmfHealthcheckKeyT structure into which
- * 			the content of the source Java byte array is copied. It must not be NULL.
- *   returns:     JNI_FALSE if an error occured, JNI_TRUE otherwise
- * NOTE: If JNI_FALSE is returned, then an exception is already pending!
+ *		healthcheckKey [in]
+ *			- the source Java byte array.
+ *			If null, AisInvalidParamException is thrown.
+ *			Its length can be zero, however: in this case a zero length
+ *SaAmfHealthcheckKeyT is returned. If longer than SA_AMF_HEALTHCHECK_KEY_MAX,
+ *AisInvalidParamException is thrown. saHealthcheckKeyPtr [in/out] - a
+ *pointer to the SaAmfHealthcheckKeyT structure into which the content of the
+ *source Java byte array is copied. It must not be NULL. returns:
+ *JNI_FALSE if an error occured, JNI_TRUE otherwise NOTE: If JNI_FALSE is
+ *returned, then an exception is already pending!
  *************************************************************************/
-static jboolean JNU_SaAmfHealthcheckKeyT_set(JNIEnv *jniEnv,
-					     jbyteArray healthcheckKey,
-					     SaAmfHealthcheckKeyT
-					     *saHealthcheckKeyPtr)
+static jboolean
+JNU_SaAmfHealthcheckKeyT_set(JNIEnv *jniEnv, jbyteArray healthcheckKey,
+			     SaAmfHealthcheckKeyT *saHealthcheckKeyPtr)
 {
 	// VARIABLES
 	jsize _len;
 	// BODY
 
 	assert(saHealthcheckKeyPtr != NULL);
-	//assert( healthcheckKey != NULL );
+	// assert( healthcheckKey != NULL );
 	_TRACE2("NATIVE: Executing JNU_SaAmfHealthcheckKeyT_set(...)\n");
 
 	if (healthcheckKey == NULL) {
@@ -623,15 +583,13 @@ static jboolean JNU_SaAmfHealthcheckKeyT_set(JNIEnv *jniEnv,
 				   AIS_ERR_INVALID_PARAM_MSG);
 		return JNI_FALSE;
 	}
-	(*jniEnv)->GetByteArrayRegion(jniEnv,
-				      healthcheckKey,
-				      (jsize)0,
-				      _len, (jbyte *)saHealthcheckKeyPtr->key);
+	(*jniEnv)->GetByteArrayRegion(jniEnv, healthcheckKey, (jsize)0, _len,
+				      (jbyte *)saHealthcheckKeyPtr->key);
 
 	assert(((*jniEnv)->ExceptionCheck(jniEnv)) == JNI_FALSE);
 
-	_TRACE2
-		("NATIVE: JNU_SaAmfHealthcheckKeyT_set(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: JNU_SaAmfHealthcheckKeyT_set(...) returning normally\n");
 
 	return JNI_TRUE;
 }
@@ -715,28 +673,28 @@ jboolean JNU_HealthcheckInvocation_initIDs_OK(JNIEnv *jniEnv)
 {
 	// BODY
 
-	_TRACE2
-		("NATIVE: Executing JNU_HealthcheckInvocation_initIDs_OK(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing JNU_HealthcheckInvocation_initIDs_OK(...)\n");
 
-	// get HealthcheckInvocation class & create a global reference right away
+	// get HealthcheckInvocation class & create a global reference right
+	// away
 	/*
 	  EnumHealthcheckInvocation =
 	  (*jniEnv)->NewGlobalRef( jniEnv,
 	  (*jniEnv)->FindClass( jniEnv,
 	  "org/saforum/ais/amf/Healthcheck$HealthcheckInvocation" )
 	  ); */
-	EnumHealthcheckInvocation = JNU_GetGlobalClassRef(jniEnv,
-							  "org/saforum/ais/amf/Healthcheck$HealthcheckInvocation");
+	EnumHealthcheckInvocation = JNU_GetGlobalClassRef(
+	    jniEnv, "org/saforum/ais/amf/Healthcheck$HealthcheckInvocation");
 	if (EnumHealthcheckInvocation == NULL) {
 
 		_TRACE2("NATIVE ERROR: enum HealthcheckInvocation is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 	// get IDs
-	return JNU_HealthcheckInvocation_initIDs_FromClass_OK(jniEnv,
-							      EnumHealthcheckInvocation);
-
+	return JNU_HealthcheckInvocation_initIDs_FromClass_OK(
+	    jniEnv, EnumHealthcheckInvocation);
 }
 
 /**************************************************************************
@@ -748,28 +706,27 @@ jboolean JNU_HealthcheckInvocation_initIDs_OK(JNIEnv *jniEnv)
  *   returns:     JNI_FALSE if an error occured, JNI_TRUE otherwise
  * NOTE: If JNI_FALSE is returned, then an exception is already pending!
  *************************************************************************/
-static jboolean JNU_HealthcheckInvocation_initIDs_FromClass_OK(JNIEnv *jniEnv,
-							       jclass
-							       enumHealthcheckInvocation)
+static jboolean
+JNU_HealthcheckInvocation_initIDs_FromClass_OK(JNIEnv *jniEnv,
+					       jclass enumHealthcheckInvocation)
 {
 	// BODY
 
-	_TRACE2
-		("NATIVE: Executing JNU_HealthcheckInvocation_initIDs_FromClass_OK(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing JNU_HealthcheckInvocation_initIDs_FromClass_OK(...)\n");
 
 	// get field IDs
-	FID_HI_value = (*jniEnv)->GetFieldID(jniEnv,
-					     enumHealthcheckInvocation,
+	FID_HI_value = (*jniEnv)->GetFieldID(jniEnv, enumHealthcheckInvocation,
 					     "value", "I");
 	if (FID_HI_value == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_HI_value is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 
-	_TRACE2
-		("NATIVE: JNU_HealthcheckInvocation_initIDs_FromClass_OK(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: JNU_HealthcheckInvocation_initIDs_FromClass_OK(...) returning normally\n");
 
 	return JNI_TRUE;
 }

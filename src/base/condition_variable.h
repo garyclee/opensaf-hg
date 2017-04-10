@@ -36,8 +36,8 @@ class ConditionVariable {
   ConditionVariable();
   ~ConditionVariable();
   void Wait(Lock* lock) {
-    int result = pthread_cond_wait(&condition_variable_,
-                                   lock->mutex()->native_handle());
+    int result =
+        pthread_cond_wait(&condition_variable_, lock->mutex()->native_handle());
     if (result != 0) osaf_abort(result);
   }
   template <typename Predicate>
@@ -45,9 +45,8 @@ class ConditionVariable {
     while (!predicate()) Wait(lock);
   }
   CvStatus WaitUntil(Lock* lock, const struct timespec& absolute_time) {
-    int result = pthread_cond_timedwait(&condition_variable_,
-                                        lock->mutex()->native_handle(),
-                                        &absolute_time);
+    int result = pthread_cond_timedwait(
+        &condition_variable_, lock->mutex()->native_handle(), &absolute_time);
     if (result == 0) {
       return CvStatus::kNoTimeout;
     } else if (result == ETIMEDOUT) {

@@ -42,11 +42,11 @@
 #include "base/saf_error.h"
 #include "base/osaf_extended_name.h"
 
-static SaVersionT immVersion = { 'A', 2, 17 };
+static SaVersionT immVersion = {'A', 2, 17};
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
-/* signal handler for SIGALRM */ 
-void sigalarmh(int sig) 
+/* signal handler for SIGALRM */
+void sigalarmh(int sig)
 {
 	fprintf(stderr, "error - immlist command timed out (alarm)\n");
 	exit(EXIT_FAILURE);
@@ -62,13 +62,16 @@ static void usage(const char *progname)
 	printf("\t%s [options] <class name>\n", progname);
 
 	printf("\nDESCRIPTION\n");
-	printf("\t%s is an IMM OM client used to print attributes of IMM objects.\n", progname);
+	printf(
+	    "\t%s is an IMM OM client used to print attributes of IMM objects.\n",
+	    progname);
 
 	printf("\nOPTIONS\n");
 	printf("\t-a, --attribute=NAME \n");
 	printf("\t-c, --class - display class definition\n");
 	printf("\t-h, --help - display this help and exit\n");
-	printf("\t-p, --pretty-print=<yes|no> - select pretty print, default yes\n");
+	printf(
+	    "\t-p, --pretty-print=<yes|no> - select pretty print, default yes\n");
 	printf("\t-t, --timeout <sec>\n");
 	printf("\t\tutility timeout in seconds\n");
 
@@ -78,9 +81,10 @@ static void usage(const char *progname)
 	printf("\timmlist --pretty-print=no -a saAmfAppType safApp=OpenSAF\n");
 }
 
-static void print_attr_value_raw(SaImmValueTypeT attrValueType, SaImmAttrValueT *attrValue)
+static void print_attr_value_raw(SaImmValueTypeT attrValueType,
+				 SaImmAttrValueT *attrValue)
 {
-    switch (attrValueType) {
+	switch (attrValueType) {
 	case SA_IMM_ATTR_SAINT32T:
 		printf("%d", *((SaInt32T *)attrValue));
 		break;
@@ -94,7 +98,7 @@ static void print_attr_value_raw(SaImmValueTypeT attrValueType, SaImmAttrValueT 
 		printf("%llu", *((SaUint64T *)attrValue));
 		break;
 	case SA_IMM_ATTR_SATIMET:
-		printf("%llu",  *((SaTimeT *)attrValue));
+		printf("%llu", *((SaTimeT *)attrValue));
 		break;
 	case SA_IMM_ATTR_SAFLOATT:
 		printf("%.8g", *((SaFloatT *)attrValue));
@@ -113,13 +117,12 @@ static void print_attr_value_raw(SaImmValueTypeT attrValueType, SaImmAttrValueT 
 	case SA_IMM_ATTR_SAANYT: {
 		SaAnyT *anyp = (SaAnyT *)attrValue;
 		unsigned int i = 0;
-		if(anyp->bufferSize == 0) {
+		if (anyp->bufferSize == 0) {
 			printf("-empty-");
 		} else {
 			printf("0x");
-			for (; i < anyp->bufferSize; i++)
-			{
-				if(((int) anyp->bufferAddr[i]) < 0x10) {
+			for (; i < anyp->bufferSize; i++) {
+				if (((int)anyp->bufferAddr[i]) < 0x10) {
 					printf("0");
 				}
 				printf("%x", (int)anyp->bufferAddr[i]);
@@ -133,61 +136,65 @@ static void print_attr_value_raw(SaImmValueTypeT attrValueType, SaImmAttrValueT 
 	}
 }
 
-static void print_attr_value(SaImmValueTypeT attrValueType, SaImmAttrValueT *attrValue)
+static void print_attr_value(SaImmValueTypeT attrValueType,
+			     SaImmAttrValueT *attrValue)
 {
 	switch (attrValueType) {
 	case SA_IMM_ATTR_SAINT32T:
-		printf("%d (0x%x)", *((SaInt32T *)attrValue), *((SaInt32T *)attrValue));
+		printf("%d (0x%x)", *((SaInt32T *)attrValue),
+		       *((SaInt32T *)attrValue));
 		break;
 	case SA_IMM_ATTR_SAUINT32T:
-		printf("%u (0x%x)", *((SaUint32T *)attrValue), *((SaUint32T *)attrValue));
+		printf("%u (0x%x)", *((SaUint32T *)attrValue),
+		       *((SaUint32T *)attrValue));
 		break;
 	case SA_IMM_ATTR_SAINT64T:
-		printf("%lld (0x%llx)", *((SaInt64T *)attrValue), *((SaInt64T *)attrValue));
+		printf("%lld (0x%llx)", *((SaInt64T *)attrValue),
+		       *((SaInt64T *)attrValue));
 		break;
 	case SA_IMM_ATTR_SAUINT64T:
-		printf("%llu (0x%llx)", *((SaUint64T *)attrValue), *((SaUint64T *)attrValue));
+		printf("%llu (0x%llx)", *((SaUint64T *)attrValue),
+		       *((SaUint64T *)attrValue));
 		break;
-	case SA_IMM_ATTR_SATIMET:
-		{
-			char buf[32];
-			const time_t time = *((SaTimeT *)attrValue) / SA_TIME_ONE_SECOND;
+	case SA_IMM_ATTR_SATIMET: {
+		char buf[32];
+		const time_t time =
+		    *((SaTimeT *)attrValue) / SA_TIME_ONE_SECOND;
 
-			ctime_r(&time, buf);
-			buf[strlen(buf) - 1] = '\0';	/* Remove new line */
-			printf("%llu (0x%llx, %s)", *((SaTimeT *)attrValue), *((SaTimeT *)attrValue), buf);
-			break;
-		}
+		ctime_r(&time, buf);
+		buf[strlen(buf) - 1] = '\0'; /* Remove new line */
+		printf("%llu (0x%llx, %s)", *((SaTimeT *)attrValue),
+		       *((SaTimeT *)attrValue), buf);
+		break;
+	}
 	case SA_IMM_ATTR_SAFLOATT:
 		printf("%.8g", *((SaFloatT *)attrValue));
 		break;
 	case SA_IMM_ATTR_SADOUBLET:
 		printf("%.17g", *((SaDoubleT *)attrValue));
 		break;
-	case SA_IMM_ATTR_SANAMET:
-		{
-			SaNameT *myNameT = (SaNameT *)attrValue;
-			printf("%s (%zu) ", saAisNameBorrow(myNameT),
-				strlen(saAisNameBorrow(myNameT)));
-			break;
-		}
+	case SA_IMM_ATTR_SANAMET: {
+		SaNameT *myNameT = (SaNameT *)attrValue;
+		printf("%s (%zu) ", saAisNameBorrow(myNameT),
+		       strlen(saAisNameBorrow(myNameT)));
+		break;
+	}
 	case SA_IMM_ATTR_SASTRINGT:
 		printf("%s ", *((char **)attrValue));
 		break;
 	case SA_IMM_ATTR_SAANYT: {
 		SaAnyT *anyp = (SaAnyT *)attrValue;
 		unsigned int i = 0;
-		if(anyp->bufferSize) {
+		if (anyp->bufferSize) {
 			printf("0x");
-			for (; i < anyp->bufferSize; i++)
-			{
-				if(((int) anyp->bufferAddr[i]) < 0x10) {
+			for (; i < anyp->bufferSize; i++) {
+				if (((int)anyp->bufferAddr[i]) < 0x10) {
 					printf("0");
 				}
 				printf("%x", (int)anyp->bufferAddr[i]);
 			}
 		}
-		printf(" size(%u)", (unsigned int) anyp->bufferSize);
+		printf(" size(%u)", (unsigned int)anyp->bufferSize);
 
 		break;
 	}
@@ -242,18 +249,21 @@ static char *get_attr_type_name(SaImmValueTypeT attrValueType)
  * @param immHandle
  */
 static void display_class_definition(const SaImmClassNameT className,
-	SaImmHandleT immHandle)
+				     SaImmHandleT immHandle)
 {
-        SaImmClassCategoryT classCategory;
+	SaImmClassCategoryT classCategory;
 	SaAisErrorT error;
-        SaImmAttrDefinitionT_2 **attrDefinitions;
+	SaImmAttrDefinitionT_2 **attrDefinitions;
 	SaImmAttrDefinitionT_2 *attrDefinition;
 	int i;
 
-	error = immutil_saImmOmClassDescriptionGet_2(immHandle, className, &classCategory, &attrDefinitions);
+	error = immutil_saImmOmClassDescriptionGet_2(
+	    immHandle, className, &classCategory, &attrDefinitions);
 
 	if (SA_AIS_OK != error) {
-		fprintf(stderr, "error - saImmOmClassDescriptionGet_2 FAILED: %s\n", saf_error(error));
+		fprintf(stderr,
+			"error - saImmOmClassDescriptionGet_2 FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
@@ -270,16 +280,16 @@ static void display_class_definition(const SaImmClassNameT className,
 		break;
 	}
 
-	for (i = 0, attrDefinition = attrDefinitions[i];
-	      attrDefinition;
-	      i++, attrDefinition = attrDefinitions[i]) {
+	for (i = 0, attrDefinition = attrDefinitions[i]; attrDefinition;
+	     i++, attrDefinition = attrDefinitions[i]) {
 
 		// Skip IMM added attributes
 		if (strncmp(attrDefinition->attrName, "SaImmAttr", 9) == 0)
 			continue;
 
 		printf("%s : ", attrDefinition->attrName);
-		printf("%s ", get_attr_type_name(attrDefinition->attrValueType));
+		printf("%s ",
+		       get_attr_type_name(attrDefinition->attrValueType));
 
 		// Print multiplicity
 		if (attrDefinition->attrFlags & SA_IMM_ATTR_INITIALIZED) {
@@ -292,14 +302,16 @@ static void display_class_definition(const SaImmClassNameT className,
 		} else
 			printf("]");
 
-
 		if (attrDefinition->attrFlags & SA_IMM_ATTR_CONFIG) {
-			if (!(attrDefinition->attrFlags & SA_IMM_ATTR_INITIALIZED)) {
+			if (!(attrDefinition->attrFlags &
+			      SA_IMM_ATTR_INITIALIZED)) {
 				printf(" = ");
 				if (attrDefinition->attrDefaultValue == NULL) {
 					printf("Empty");
 				} else
-					print_attr_value(attrDefinition->attrValueType, attrDefinition->attrDefaultValue);			
+					print_attr_value(
+					    attrDefinition->attrValueType,
+					    attrDefinition->attrDefaultValue);
 			}
 
 			printf(" {");
@@ -321,7 +333,8 @@ static void display_class_definition(const SaImmClassNameT className,
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_NOTIFY)
 				printf(", NOTIFY");
 
-			if (attrDefinition->attrFlags & SA_IMM_ATTR_NO_DUPLICATES)
+			if (attrDefinition->attrFlags &
+			    SA_IMM_ATTR_NO_DUPLICATES)
 				printf(", NO_DUPLICATES");
 
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_NO_DANGLING)
@@ -330,16 +343,20 @@ static void display_class_definition(const SaImmClassNameT className,
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_DN)
 				printf(", DN");
 
-			if (attrDefinition->attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED)
+			if (attrDefinition->attrFlags &
+			    SA_IMM_ATTR_DEFAULT_REMOVED)
 				printf(", DEFAULT_REMOVED");
 
-			if (attrDefinition->attrFlags & SA_IMM_ATTR_STRONG_DEFAULT)
+			if (attrDefinition->attrFlags &
+			    SA_IMM_ATTR_STRONG_DEFAULT)
 				printf(", STRONG_DEFAULT");
 
 		} else if (attrDefinition->attrFlags & SA_IMM_ATTR_RUNTIME) {
 			if (attrDefinition->attrDefaultValue != NULL) {
 				printf(" = ");
-				print_attr_value(attrDefinition->attrValueType, attrDefinition->attrDefaultValue);			
+				print_attr_value(
+				    attrDefinition->attrValueType,
+				    attrDefinition->attrDefaultValue);
 			}
 
 			printf(" {");
@@ -361,29 +378,33 @@ static void display_class_definition(const SaImmClassNameT className,
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_NOTIFY)
 				printf(", NOTIFY");
 
-			if (attrDefinition->attrFlags & SA_IMM_ATTR_NO_DUPLICATES)
+			if (attrDefinition->attrFlags &
+			    SA_IMM_ATTR_NO_DUPLICATES)
 				printf(", NO_DUPLICATES");
 
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_DN)
 				printf(", DN");
 
-			if (attrDefinition->attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED)
+			if (attrDefinition->attrFlags &
+			    SA_IMM_ATTR_DEFAULT_REMOVED)
 				printf(", DEFAULT_REMOVED");
 
-			if (attrDefinition->attrFlags & SA_IMM_ATTR_STRONG_DEFAULT)
+			if (attrDefinition->attrFlags &
+			    SA_IMM_ATTR_STRONG_DEFAULT)
 				printf(", STRONG_DEFAULT");
 		}
 
 		printf("}\n");
 	}
 
-	(void)immutil_saImmOmClassDescriptionMemoryFree_2(immHandle, attrDefinitions);
+	(void)immutil_saImmOmClassDescriptionMemoryFree_2(immHandle,
+							  attrDefinitions);
 }
 
 static void display_object(const char *name,
-						   SaImmAccessorHandleT accessorHandle,
-						   int pretty_print,
-						   const SaImmAttrNameT *attributeNames)
+			   SaImmAccessorHandleT accessorHandle,
+			   int pretty_print,
+			   const SaImmAttrNameT *attributeNames)
 {
 	int i = 0, j;
 	SaImmAttrValuesT_2 *attr;
@@ -393,24 +414,31 @@ static void display_object(const char *name,
 
 	saAisNameLend(name, &objectName);
 
-	error = immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, attributeNames, &attributes);
+	error = immutil_saImmOmAccessorGet_2(accessorHandle, &objectName,
+					     attributeNames, &attributes);
 	if (SA_AIS_OK != error) {
 		if (error == SA_AIS_ERR_NOT_EXIST)
-			fprintf(stderr, "error - object or attribute does not exist\n");
+			fprintf(stderr,
+				"error - object or attribute does not exist\n");
 		else
-			fprintf(stderr, "error - saImmOmAccessorGet_2 FAILED: %s\n", saf_error(error));
+			fprintf(stderr,
+				"error - saImmOmAccessorGet_2 FAILED: %s\n",
+				saf_error(error));
 
 		exit(EXIT_FAILURE);
 	}
 
 	if (pretty_print) {
 		printf("%-50s %-12s Value(s)\n", "Name", "Type");
-		printf("========================================================================");
+		printf(
+		    "========================================================================");
 		while ((attr = attributes[i++]) != NULL) {
-			printf("\n%-50s %-12s ", attr->attrName, get_attr_type_name(attr->attrValueType));
+			printf("\n%-50s %-12s ", attr->attrName,
+			       get_attr_type_name(attr->attrValueType));
 			if (attr->attrValuesNumber > 0) {
 				for (j = 0; j < attr->attrValuesNumber; j++)
-					print_attr_value(attr->attrValueType, attr->attrValues[j]);
+					print_attr_value(attr->attrValueType,
+							 attr->attrValues[j]);
 			} else
 				printf("<Empty>");
 		}
@@ -420,7 +448,9 @@ static void display_object(const char *name,
 			printf("%s=", attr->attrName);
 			if (attr->attrValuesNumber > 0) {
 				for (j = 0; j < attr->attrValuesNumber; j++) {
-					print_attr_value_raw(attr->attrValueType, attr->attrValues[j]);
+					print_attr_value_raw(
+					    attr->attrValueType,
+					    attr->attrValues[j]);
 					if ((j + 1) < attr->attrValuesNumber)
 						printf(":");
 				}
@@ -435,13 +465,12 @@ int main(int argc, char *argv[])
 {
 	int c;
 	struct option long_options[] = {
-		{"attribute", required_argument, 0, 'a'},
-		{"class", no_argument, 0, 'c'},
-		{"timeout", required_argument, 0, 't'},
-		{"help", no_argument, 0, 'h'},
-		{"pretty-print", required_argument, 0, 'p'},
-		{0, 0, 0, 0}
-	};
+	    {"attribute", required_argument, 0, 'a'},
+	    {"class", no_argument, 0, 'c'},
+	    {"timeout", required_argument, 0, 't'},
+	    {"help", no_argument, 0, 'h'},
+	    {"pretty-print", required_argument, 0, 'p'},
+	    {0, 0, 0, 0}};
 	SaAisErrorT error;
 	SaImmHandleT immHandle;
 	SaImmAccessorHandleT accessorHandle;
@@ -455,18 +484,21 @@ int main(int argc, char *argv[])
 	/* Support for long DN */
 	setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1);
 	/* osaf_extended_name_init() is added to prevent future safe use of
-	 * osaf_extended_name_* before saImmOmInitialize and saImmOiInitialize */
+	 * osaf_extended_name_* before saImmOmInitialize and saImmOiInitialize
+	 */
 	osaf_extended_name_init();
 
 	while (1) {
 		c = getopt_long(argc, argv, "a:p:t:ch", long_options, NULL);
 
-		if (c == -1)	/* have all command-line options have been parsed? */
+		if (c ==
+		    -1) /* have all command-line options have been parsed? */
 			break;
 
 		switch (c) {
 		case 'a':
-			attributeNames = realloc(attributeNames, ++len * sizeof(SaImmAttrNameT));
+			attributeNames = realloc(
+			    attributeNames, ++len * sizeof(SaImmAttrNameT));
 			attributeNames[len - 2] = strdup(optarg);
 			attributeNames[len - 1] = NULL;
 			pretty_print = 0;
@@ -486,7 +518,9 @@ int main(int argc, char *argv[])
 				pretty_print = 0;
 			break;
 		default:
-			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
+			fprintf(stderr,
+				"Try '%s --help' for more information\n",
+				argv[0]);
 			exit(EXIT_FAILURE);
 			break;
 		}
@@ -508,7 +542,8 @@ int main(int argc, char *argv[])
 
 	error = immutil_saImmOmInitialize(&immHandle, NULL, &immVersion);
 	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmInitialize FAILED: %s\n", saf_error(error));
+		fprintf(stderr, "error - saImmOmInitialize FAILED: %s\n",
+			saf_error(error));
 		rc = EXIT_FAILURE;
 		goto done;
 	}
@@ -519,22 +554,30 @@ int main(int argc, char *argv[])
 			optind++;
 		}
 	} else {
-		error = immutil_saImmOmAccessorInitialize(immHandle, &accessorHandle);
+		error = immutil_saImmOmAccessorInitialize(immHandle,
+							  &accessorHandle);
 		if (SA_AIS_OK != error) {
-			fprintf(stderr, "error - saImmOmAccessorInitialize FAILED: %s\n", saf_error(error));
+			fprintf(
+			    stderr,
+			    "error - saImmOmAccessorInitialize FAILED: %s\n",
+			    saf_error(error));
 			rc = EXIT_FAILURE;
 			goto done_finalize;
 		}
 
-		/* Remaining arguments should be object names to print attributes for. */
+		/* Remaining arguments should be object names to print
+		 * attributes for. */
 		while (optind < argc) {
-			display_object(argv[optind], accessorHandle, pretty_print, attributeNames);
+			display_object(argv[optind], accessorHandle,
+				       pretty_print, attributeNames);
 			optind++;
 		}
 
 		error = immutil_saImmOmAccessorFinalize(accessorHandle);
 		if (SA_AIS_OK != error) {
-			fprintf(stderr, "error - saImmOmAccessorFinalize FAILED: %s\n", saf_error(error));
+			fprintf(stderr,
+				"error - saImmOmAccessorFinalize FAILED: %s\n",
+				saf_error(error));
 			rc = EXIT_FAILURE;
 			goto done_finalize;
 		}
@@ -543,7 +586,8 @@ int main(int argc, char *argv[])
 done_finalize:
 	error = immutil_saImmOmFinalize(immHandle);
 	if (SA_AIS_OK != error) {
-		fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n", saf_error(error));
+		fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n",
+			saf_error(error));
 		rc = EXIT_FAILURE;
 	}
 

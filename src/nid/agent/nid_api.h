@@ -43,28 +43,29 @@ extern "C" {
 #endif
 
 /* API Error Codes */
-#define NID_INV_PARAM    11
-#define NID_OFIFO_ERR    22
-#define NID_WFIFO_ERR    33
+#define NID_INV_PARAM 11
+#define NID_OFIFO_ERR 22
+#define NID_WFIFO_ERR 33
 
-#define NID_MAGIC       0xAAB49DAA
+#define NID_MAGIC 0xAAB49DAA
 
-#define NID_MAXSNAME                30
+#define NID_MAXSNAME 30
 
 /****************************************************************
  *       Message format used by nodeinitd and spawned services  *
  *       for communicating initialization status.               *
  ****************************************************************/
 typedef struct nid_fifo_msg {
-  uint32_t nid_magic_no;  /* Magic number */
-  char nid_serv_name[NID_MAXSNAME];       /* Identifies the spawned service uniquely */
-  uint32_t nid_stat_code; /* Identifies the initialization status */
+  uint32_t nid_magic_no; /* Magic number */
+  char
+      nid_serv_name[NID_MAXSNAME]; /* Identifies the spawned service uniquely */
+  uint32_t nid_stat_code;          /* Identifies the initialization status */
 } NID_FIFO_MSG;
 
 /**********************************************************************
  *    Exported finctions by NID_API                                    *
  **********************************************************************/
-uint32_t nid_notify(const char*, uint32_t, uint32_t*);
+uint32_t nid_notify(const char *, uint32_t, uint32_t *);
 uint32_t nid_create_ipc(char *);
 uint32_t nid_open_ipc(int32_t *fd, char *);
 void nid_close_ipc(void);

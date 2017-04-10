@@ -60,46 +60,37 @@
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepState::getClassName()const
-{
-	return "SmfStepState";
-}
+std::string SmfStepState::getClassName() const { return "SmfStepState"; }
 
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-SmfStepResultT 
-SmfStepState::execute(SmfUpgradeStep * i_step)
-{
-	return SMF_STEP_NULL; /* Nothing done */
+SmfStepResultT SmfStepState::execute(SmfUpgradeStep *i_step) {
+  return SMF_STEP_NULL; /* Nothing done */
 }
 
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-SmfStepResultT 
-SmfStepState::rollback(SmfUpgradeStep * i_step)
-{
-	return SMF_STEP_NULL; /* Nothing done */
+SmfStepResultT SmfStepState::rollback(SmfUpgradeStep *i_step) {
+  return SMF_STEP_NULL; /* Nothing done */
 }
 
 //------------------------------------------------------------------------------
 // changeState()
 //------------------------------------------------------------------------------
-void 
-SmfStepState::changeState(SmfUpgradeStep * i_step, SmfStepState * i_state)
-{
-	TRACE_ENTER();
-	TRACE("SmfStepState::changeState");
+void SmfStepState::changeState(SmfUpgradeStep *i_step, SmfStepState *i_state) {
+  TRACE_ENTER();
+  TRACE("SmfStepState::changeState");
 
-	std::string newState = i_state->getClassName();
-	std::string oldState = i_step->m_state->getClassName();
+  std::string newState = i_state->getClassName();
+  std::string oldState = i_step->m_state->getClassName();
 
-	TRACE("SmfStepState::changeState old state=%s , new state=%s", oldState.c_str(), newState.c_str());
-	i_step->changeState(i_state);
+  TRACE("SmfStepState::changeState old state=%s , new state=%s",
+        oldState.c_str(), newState.c_str());
+  i_step->changeState(i_state);
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 }
 
 //------------------------------------------------------------------------------
@@ -110,53 +101,47 @@ SmfStepState::changeState(SmfUpgradeStep * i_step, SmfStepState * i_state)
 
 SmfStepState *SmfStepStateInitial::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateInitial::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateInitial;
-	}
+SmfStepState *SmfStepStateInitial::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateInitial;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateInitial::getClassName()const
-{
-	return "SmfStepStateInitial";
+std::string SmfStepStateInitial::getClassName() const {
+  return "SmfStepStateInitial";
 }
 
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-SmfStepResultT 
-SmfStepStateInitial::execute(SmfUpgradeStep * i_step)
-{
-	TRACE_ENTER();
+SmfStepResultT SmfStepStateInitial::execute(SmfUpgradeStep *i_step) {
+  TRACE_ENTER();
 
-	TRACE("Start executing upgrade step %s", i_step->getDn().c_str());
+  TRACE("Start executing upgrade step %s", i_step->getDn().c_str());
 
-        if (i_step->calculateStepType() != SA_AIS_OK) {
-                LOG_ER("SmfStepStateInitial: Failed to calculate step type");
-                changeState(i_step, SmfStepStateFailed::instance());
-                TRACE_LEAVE();
-                return SMF_STEP_FAILED;
-        }
+  if (i_step->calculateStepType() != SA_AIS_OK) {
+    LOG_ER("SmfStepStateInitial: Failed to calculate step type");
+    changeState(i_step, SmfStepStateFailed::instance());
+    TRACE_LEAVE();
+    return SMF_STEP_FAILED;
+  }
 
-        if (i_step->getSwitchOver() == true) {
-                TRACE("Switch over is needed in this step");
-                TRACE_LEAVE();
-                return SMF_STEP_SWITCHOVER;
-        }
+  if (i_step->getSwitchOver() == true) {
+    TRACE("Switch over is needed in this step");
+    TRACE_LEAVE();
+    return SMF_STEP_SWITCHOVER;
+  }
 
-        i_step->setRetryCount(0);
-	changeState(i_step, SmfStepStateExecuting::instance());
+  i_step->setRetryCount(0);
+  changeState(i_step, SmfStepStateExecuting::instance());
 
-	TRACE_LEAVE();
-	return SMF_STEP_CONTINUE;
+  TRACE_LEAVE();
+  return SMF_STEP_CONTINUE;
 }
 
 //------------------------------------------------------------------------------
@@ -166,80 +151,81 @@ SmfStepStateInitial::execute(SmfUpgradeStep * i_step)
 //------------------------------------------------------------------------------
 SmfStepState *SmfStepStateExecuting::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateExecuting::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateExecuting;
-	}
+SmfStepState *SmfStepStateExecuting::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateExecuting;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateExecuting::getClassName()const
-{
-	return "SmfStepStateExecuting";
+std::string SmfStepStateExecuting::getClassName() const {
+  return "SmfStepStateExecuting";
 }
 
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-SmfStepResultT 
-SmfStepStateExecuting::execute(SmfUpgradeStep * i_step)
-{
+SmfStepResultT SmfStepStateExecuting::execute(SmfUpgradeStep *i_step) {
+  TRACE_ENTER();
+  TRACE("Executing step %s", i_step->getDn().c_str());
 
-	TRACE_ENTER();
-	TRACE("Executing step %s", i_step->getDn().c_str());
+  // Two sets of step actions are available
+  // The first set is according to the SMF specification SMF A.01.02
+  // The second set is an OpeSAF proprietary set.
+  // This set is triggerd by the nodeBundleActCmd attribute in the SmfConfig
+  // class. If the nodeBundleActCmd attribute is set, the value shall point out
+  // a command which shall be executed to to activate the software
+  // installed/removed in the sw bundle installation/removal scripts. The
+  // activation is done once for the step.
 
-	// Two sets of step actions are available
-	// The first set is according to the SMF specification SMF A.01.02
-	// The second set is an OpeSAF proprietary set.
-	// This set is triggerd by the nodeBundleActCmd attribute in the SmfConfig class.
-	// If the nodeBundleActCmd attribute is set, the value shall point out a command
-	// which shall be executed to to activate the software installed/removed in the 
-	// sw bundle installation/removal scripts. The activation is done once for the step.
+  SmfStepType *stepType = i_step->getStepType();
+  if (stepType == NULL) {
+    /* We could have been restarted in this state e.g. at cluster reboot */
+    if (SmfCampaignThread::instance()
+            ->campaign()
+            ->getUpgradeCampaign()
+            ->getProcExecutionMode() == SMF_MERGE_TO_SINGLE_STEP) {
+      // If SMF_MERGE_TO_SINGLE_STEP is configured we can only come here after a
+      // cluster reboot
+      if (i_step->calculateStepTypeForMergedSingle() != SA_AIS_OK) {
+        LOG_ER(
+            "Failed to recalculate step type for merged single step when \
+                                        trying to continue step %s",
+            i_step->getDn().c_str());
+        changeState(i_step, SmfStepStateFailed::instance());
+        return SMF_STEP_FAILED;
+      }
+    } else {
+      if (i_step->calculateStepType() != SA_AIS_OK) {
+        LOG_ER(
+            "Failed to recalculate step type when trying to continue step %s",
+            i_step->getDn().c_str());
+        changeState(i_step, SmfStepStateFailed::instance());
+        return SMF_STEP_FAILED;
+      }
+    }
+    stepType = i_step->getStepType();
+  }
 
-        SmfStepType* stepType = i_step->getStepType();
-        if (stepType == NULL) {
-                /* We could have been restarted in this state e.g. at cluster reboot */
-                if (SmfCampaignThread::instance()->campaign()->getUpgradeCampaign()->getProcExecutionMode()
-		    == SMF_MERGE_TO_SINGLE_STEP) {
-                        // If SMF_MERGE_TO_SINGLE_STEP is configured we can only come here after a cluster reboot
-                        if (i_step->calculateStepTypeForMergedSingle() != SA_AIS_OK) {
-                                LOG_ER("Failed to recalculate step type for merged single step when \
-                                        trying to continue step %s", i_step->getDn().c_str());
-                                changeState(i_step, SmfStepStateFailed::instance());
-                                return SMF_STEP_FAILED;
-                        }
-                } else {
-                        if (i_step->calculateStepType() != SA_AIS_OK) {
-                                LOG_ER("Failed to recalculate step type when trying to continue step %s", i_step->getDn().c_str());
-                                changeState(i_step, SmfStepStateFailed::instance());
-                                return SMF_STEP_FAILED;
-                        }
-                }
-                stepType = i_step->getStepType();
-        }
+  if (stepType == NULL) {
+    LOG_ER("Unknown step type when trying to execute step %s",
+           i_step->getDn().c_str());
+    changeState(i_step, SmfStepStateFailed::instance());
+    return SMF_STEP_FAILED;
+  }
 
-        if (stepType == NULL) {
-                LOG_ER("Unknown step type when trying to execute step %s", i_step->getDn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return SMF_STEP_FAILED;
-        }
-
-        if (stepType->execute() == false) {
-                LOG_ER("Step execution failed, Try undoing the step");
-                changeState(i_step, SmfStepStateUndoing::instance());
-                return SMF_STEP_CONTINUE; /* Continue in new state */
-        }
-        else {
-                changeState(i_step, SmfStepStateCompleted::instance());
-                return SMF_STEP_COMPLETED;
-        }
+  if (stepType->execute() == false) {
+    LOG_ER("Step execution failed, Try undoing the step");
+    changeState(i_step, SmfStepStateUndoing::instance());
+    return SMF_STEP_CONTINUE; /* Continue in new state */
+  } else {
+    changeState(i_step, SmfStepStateCompleted::instance());
+    return SMF_STEP_COMPLETED;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -249,54 +235,49 @@ SmfStepStateExecuting::execute(SmfUpgradeStep * i_step)
 //------------------------------------------------------------------------------
 SmfStepState *SmfStepStateCompleted::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateCompleted::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateCompleted;
-	}
+SmfStepState *SmfStepStateCompleted::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateCompleted;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateCompleted::getClassName()const
-{
-	return "SmfStepStateCompleted";
+std::string SmfStepStateCompleted::getClassName() const {
+  return "SmfStepStateCompleted";
 }
 
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-SmfStepResultT 
-SmfStepStateCompleted::rollback(SmfUpgradeStep * i_step)
-{
-        TRACE_ENTER();
+SmfStepResultT SmfStepStateCompleted::rollback(SmfUpgradeStep *i_step) {
+  TRACE_ENTER();
 
-	TRACE("Start rollback upgrade step %s", i_step->getDn().c_str());
+  TRACE("Start rollback upgrade step %s", i_step->getDn().c_str());
 
-        /* We could have switched over at previous steps so recalculate step type just in case*/
-        if (i_step->calculateStepType() != SA_AIS_OK) {
-                LOG_ER("Failed to calculate step type at rollback");
-                changeState(i_step, SmfStepStateRollbackFailed::instance());
-                TRACE_LEAVE();
-                return SMF_STEP_ROLLBACKFAILED;
-        }
+  /* We could have switched over at previous steps so recalculate step type just
+   * in case*/
+  if (i_step->calculateStepType() != SA_AIS_OK) {
+    LOG_ER("Failed to calculate step type at rollback");
+    changeState(i_step, SmfStepStateRollbackFailed::instance());
+    TRACE_LEAVE();
+    return SMF_STEP_ROLLBACKFAILED;
+  }
 
-        if (i_step->getSwitchOver() == true) {
-                TRACE("Switch over is needed when rolling back this step");
-                TRACE_LEAVE();
-                return SMF_STEP_SWITCHOVER;
-        }
+  if (i_step->getSwitchOver() == true) {
+    TRACE("Switch over is needed when rolling back this step");
+    TRACE_LEAVE();
+    return SMF_STEP_SWITCHOVER;
+  }
 
-        i_step->setRetryCount(0);
-	changeState(i_step, SmfStepStateRollingBack::instance());
+  i_step->setRetryCount(0);
+  changeState(i_step, SmfStepStateRollingBack::instance());
 
-	TRACE_LEAVE();
-	return SMF_STEP_CONTINUE;
+  TRACE_LEAVE();
+  return SMF_STEP_CONTINUE;
 }
 
 //------------------------------------------------------------------------------
@@ -306,23 +287,19 @@ SmfStepStateCompleted::rollback(SmfUpgradeStep * i_step)
 //------------------------------------------------------------------------------
 SmfStepState *SmfStepStateFailed::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateFailed::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateFailed;
-	}
+SmfStepState *SmfStepStateFailed::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateFailed;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateFailed::getClassName()const
-{
-	return "SmfStepStateFailed";
+std::string SmfStepStateFailed::getClassName() const {
+  return "SmfStepStateFailed";
 }
 
 //------------------------------------------------------------------------------
@@ -332,62 +309,55 @@ SmfStepStateFailed::getClassName()const
 //------------------------------------------------------------------------------
 SmfStepState *SmfStepStateUndoing::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateUndoing::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateUndoing;
-	}
+SmfStepState *SmfStepStateUndoing::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateUndoing;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateUndoing::getClassName()const
-{
-	return "SmfStepStateUndoing";
+std::string SmfStepStateUndoing::getClassName() const {
+  return "SmfStepStateUndoing";
 }
-
 
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-SmfStepResultT 
-SmfStepStateUndoing::execute(SmfUpgradeStep * i_step)
-{
-	TRACE_ENTER();
-	LOG_NO("SmfStepStateUndoing::execute start undoing step.");
+SmfStepResultT SmfStepStateUndoing::execute(SmfUpgradeStep *i_step) {
+  TRACE_ENTER();
+  LOG_NO("SmfStepStateUndoing::execute start undoing step.");
 
-        SmfStepType* stepType = i_step->getStepType();
-        if (stepType == NULL) {
-                LOG_ER("Unknown step type when trying to undo step %s", i_step->getDn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return SMF_STEP_FAILED;
-        }
+  SmfStepType *stepType = i_step->getStepType();
+  if (stepType == NULL) {
+    LOG_ER("Unknown step type when trying to undo step %s",
+           i_step->getDn().c_str());
+    changeState(i_step, SmfStepStateFailed::instance());
+    return SMF_STEP_FAILED;
+  }
 
-        if (stepType->rollback() == false) {
-                LOG_ER("Step undoing failed");
-                changeState(i_step, SmfStepStateFailed::instance());
-                return SMF_STEP_FAILED;
-        }
+  if (stepType->rollback() == false) {
+    LOG_ER("Step undoing failed");
+    changeState(i_step, SmfStepStateFailed::instance());
+    return SMF_STEP_FAILED;
+  }
 
-        i_step->setRetryCount(i_step->getRetryCount() + 1);
-        if (i_step->getRetryCount() > i_step->getMaxRetry()) {
-        	changeState(i_step, SmfStepStateUndone::instance());
-                LOG_NO("SmfStepStateUndoing::execute step undone.");
-                return SMF_STEP_UNDONE;
-        }
-        else {
-        	changeState(i_step, SmfStepStateExecuting::instance());
-                LOG_NO("SmfStepStateUndoing::execute step undone OK, try step again.");
-                return SMF_STEP_CONTINUE; /* Continue in next state */
-        }
+  i_step->setRetryCount(i_step->getRetryCount() + 1);
+  if (i_step->getRetryCount() > i_step->getMaxRetry()) {
+    changeState(i_step, SmfStepStateUndone::instance());
+    LOG_NO("SmfStepStateUndoing::execute step undone.");
+    return SMF_STEP_UNDONE;
+  } else {
+    changeState(i_step, SmfStepStateExecuting::instance());
+    LOG_NO("SmfStepStateUndoing::execute step undone OK, try step again.");
+    return SMF_STEP_CONTINUE; /* Continue in next state */
+  }
 
-	TRACE_LEAVE();
-	return SMF_STEP_FAILED;
+  TRACE_LEAVE();
+  return SMF_STEP_FAILED;
 }
 
 //------------------------------------------------------------------------------
@@ -397,51 +367,45 @@ SmfStepStateUndoing::execute(SmfUpgradeStep * i_step)
 //------------------------------------------------------------------------------
 SmfStepState *SmfStepStateUndone::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateUndone::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateUndone;
-	}
+SmfStepState *SmfStepStateUndone::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateUndone;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateUndone::getClassName()const
-{
-	return "SmfStepStateUndone";
+std::string SmfStepStateUndone::getClassName() const {
+  return "SmfStepStateUndone";
 }
 
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-SmfStepResultT 
-SmfStepStateUndone::execute(SmfUpgradeStep * i_step)
-{
-	TRACE_ENTER();
+SmfStepResultT SmfStepStateUndone::execute(SmfUpgradeStep *i_step) {
+  TRACE_ENTER();
 
-        if (i_step->calculateStepType() != SA_AIS_OK) {
-                LOG_ER("SmfStepStateUndone: Failed to calculate step type");
-                changeState(i_step, SmfStepStateFailed::instance());
-                TRACE_LEAVE();
-                return SMF_STEP_FAILED;
-        }
+  if (i_step->calculateStepType() != SA_AIS_OK) {
+    LOG_ER("SmfStepStateUndone: Failed to calculate step type");
+    changeState(i_step, SmfStepStateFailed::instance());
+    TRACE_LEAVE();
+    return SMF_STEP_FAILED;
+  }
 
-        if (i_step->getSwitchOver() == true) {
-                TRACE("Switch over is needed in this step");
-                TRACE_LEAVE();
-                return SMF_STEP_SWITCHOVER;
-        }
+  if (i_step->getSwitchOver() == true) {
+    TRACE("Switch over is needed in this step");
+    TRACE_LEAVE();
+    return SMF_STEP_SWITCHOVER;
+  }
 
-        i_step->setRetryCount(0); /* Reset the retry counter */
-	changeState(i_step, SmfStepStateExecuting::instance());
+  i_step->setRetryCount(0); /* Reset the retry counter */
+  changeState(i_step, SmfStepStateExecuting::instance());
 
-        TRACE_LEAVE();
-	return SMF_STEP_CONTINUE;
+  TRACE_LEAVE();
+  return SMF_STEP_CONTINUE;
 }
 
 //------------------------------------------------------------------------------
@@ -451,68 +415,64 @@ SmfStepStateUndone::execute(SmfUpgradeStep * i_step)
 //------------------------------------------------------------------------------
 SmfStepState *SmfStepStateRollingBack::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateRollingBack::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateRollingBack;
-	}
+SmfStepState *SmfStepStateRollingBack::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateRollingBack;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateRollingBack::getClassName()const
-{
-	return "SmfStepStateRollingBack";
+std::string SmfStepStateRollingBack::getClassName() const {
+  return "SmfStepStateRollingBack";
 }
 
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-SmfStepResultT 
-SmfStepStateRollingBack::rollback(SmfUpgradeStep * i_step)
-{
-	TRACE_ENTER();
-        TRACE("Rolling back step %s", i_step->getDn().c_str());
+SmfStepResultT SmfStepStateRollingBack::rollback(SmfUpgradeStep *i_step) {
+  TRACE_ENTER();
+  TRACE("Rolling back step %s", i_step->getDn().c_str());
 
-	// Two sets of step actions are available
-	// The first set is according to the SMF specification SMF A.01.02
-	// The second set is an OpenSAF proprietary set.
-	// This set is triggerd by the nodeBundleActCmd attribute in the SmfConfig class.
-	// If the nodeBundleActCmd attribute is set, the value shall point out a command
-	// which shall be executed to activate the software installed/removed in the 
-	// sw bundle installation/removal scripts. The activation is done once for the step.
+  // Two sets of step actions are available
+  // The first set is according to the SMF specification SMF A.01.02
+  // The second set is an OpenSAF proprietary set.
+  // This set is triggerd by the nodeBundleActCmd attribute in the SmfConfig
+  // class. If the nodeBundleActCmd attribute is set, the value shall point out
+  // a command which shall be executed to activate the software
+  // installed/removed in the sw bundle installation/removal scripts. The
+  // activation is done once for the step.
 
-        SmfStepType* stepType = i_step->getStepType();
-        if (stepType == NULL) {
-                /* We could have been restarted in this state e.g. at cluster reboot */
-                if (i_step->calculateStepType() != SA_AIS_OK) {
-                        LOG_ER("Failed to recalculate step type when trying to continue step %s", i_step->getDn().c_str());
-                        changeState(i_step, SmfStepStateFailed::instance());
-                        return SMF_STEP_FAILED;
-                }
-                stepType = i_step->getStepType();
-        }
+  SmfStepType *stepType = i_step->getStepType();
+  if (stepType == NULL) {
+    /* We could have been restarted in this state e.g. at cluster reboot */
+    if (i_step->calculateStepType() != SA_AIS_OK) {
+      LOG_ER("Failed to recalculate step type when trying to continue step %s",
+             i_step->getDn().c_str());
+      changeState(i_step, SmfStepStateFailed::instance());
+      return SMF_STEP_FAILED;
+    }
+    stepType = i_step->getStepType();
+  }
 
-        if (stepType == NULL) {
-                LOG_ER("Unknown step type when trying to rollback step %s", i_step->getDn().c_str());
-                changeState(i_step, SmfStepStateRollbackFailed::instance());
-                return SMF_STEP_ROLLBACKFAILED;
-        }
+  if (stepType == NULL) {
+    LOG_ER("Unknown step type when trying to rollback step %s",
+           i_step->getDn().c_str());
+    changeState(i_step, SmfStepStateRollbackFailed::instance());
+    return SMF_STEP_ROLLBACKFAILED;
+  }
 
-        if (stepType->rollback() == false) {
-                LOG_ER("Step rollback failed, Try redoing the step");
-                changeState(i_step, SmfStepStateUndoingRollback::instance());
-                return SMF_STEP_CONTINUE; /* Continue in next state */
-        }
-        else {
-                changeState(i_step, SmfStepStateRolledBack::instance());
-                return SMF_STEP_ROLLEDBACK; 
-        }
+  if (stepType->rollback() == false) {
+    LOG_ER("Step rollback failed, Try redoing the step");
+    changeState(i_step, SmfStepStateUndoingRollback::instance());
+    return SMF_STEP_CONTINUE; /* Continue in next state */
+  } else {
+    changeState(i_step, SmfStepStateRolledBack::instance());
+    return SMF_STEP_ROLLEDBACK;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -522,23 +482,19 @@ SmfStepStateRollingBack::rollback(SmfUpgradeStep * i_step)
 //------------------------------------------------------------------------------
 SmfStepState *SmfStepStateRolledBack::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateRolledBack::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateRolledBack;
-	}
+SmfStepState *SmfStepStateRolledBack::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateRolledBack;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateRolledBack::getClassName()const
-{
-	return "SmfStepStateRolledBack";
+std::string SmfStepStateRolledBack::getClassName() const {
+  return "SmfStepStateRolledBack";
 }
 
 //------------------------------------------------------------------------------
@@ -548,61 +504,57 @@ SmfStepStateRolledBack::getClassName()const
 //------------------------------------------------------------------------------
 SmfStepState *SmfStepStateUndoingRollback::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateUndoingRollback::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateUndoingRollback;
-	}
+SmfStepState *SmfStepStateUndoingRollback::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateUndoingRollback;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateUndoingRollback::getClassName()const
-{
-	return "SmfStepStateUndoingRollback";
+std::string SmfStepStateUndoingRollback::getClassName() const {
+  return "SmfStepStateUndoingRollback";
 }
 
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-SmfStepResultT 
-SmfStepStateUndoingRollback::rollback(SmfUpgradeStep * i_step)
-{
-	TRACE_ENTER();
-	LOG_NO("SmfStepStateUndoingRollback::rollback try to undo the rollback.");
+SmfStepResultT SmfStepStateUndoingRollback::rollback(SmfUpgradeStep *i_step) {
+  TRACE_ENTER();
+  LOG_NO("SmfStepStateUndoingRollback::rollback try to undo the rollback.");
 
-        SmfStepType* stepType = i_step->getStepType();
-        if (stepType == NULL) {
-                LOG_ER("Unknown step type when trying to undo rollback step %s", i_step->getDn().c_str());
-                changeState(i_step, SmfStepStateRollbackFailed::instance());
-                return SMF_STEP_ROLLBACKFAILED;
-        }
+  SmfStepType *stepType = i_step->getStepType();
+  if (stepType == NULL) {
+    LOG_ER("Unknown step type when trying to undo rollback step %s",
+           i_step->getDn().c_str());
+    changeState(i_step, SmfStepStateRollbackFailed::instance());
+    return SMF_STEP_ROLLBACKFAILED;
+  }
 
-        if (stepType->execute() == false) {
-                LOG_ER("SmfStepStateUndoingRollback::rollback Step undoing rollback failed");
-                changeState(i_step, SmfStepStateRollbackFailed::instance());
-                return SMF_STEP_ROLLBACKFAILED;
-        }
+  if (stepType->execute() == false) {
+    LOG_ER(
+        "SmfStepStateUndoingRollback::rollback Step undoing rollback failed");
+    changeState(i_step, SmfStepStateRollbackFailed::instance());
+    return SMF_STEP_ROLLBACKFAILED;
+  }
 
-        i_step->setRetryCount(i_step->getRetryCount() + 1);
-        if (i_step->getRetryCount() > i_step->getMaxRetry()) {
-        	changeState(i_step, SmfStepStateRollbackUndone::instance());
-                LOG_NO("SmfStepStateUndoingRollback::rollback step undone.");
-                return SMF_STEP_ROLLBACKUNDONE;
-        }
-        else {
-        	changeState(i_step, SmfStepStateRollingBack::instance());
-                LOG_NO("SmfStepStateUndoingRollback::rollback step rollback undone OK, try rollback again.");
-                return SMF_STEP_CONTINUE; /* Continue in next state */
-        }
+  i_step->setRetryCount(i_step->getRetryCount() + 1);
+  if (i_step->getRetryCount() > i_step->getMaxRetry()) {
+    changeState(i_step, SmfStepStateRollbackUndone::instance());
+    LOG_NO("SmfStepStateUndoingRollback::rollback step undone.");
+    return SMF_STEP_ROLLBACKUNDONE;
+  } else {
+    changeState(i_step, SmfStepStateRollingBack::instance());
+    LOG_NO(
+        "SmfStepStateUndoingRollback::rollback step rollback undone OK, try rollback again.");
+    return SMF_STEP_CONTINUE; /* Continue in next state */
+  }
 
-	TRACE_LEAVE();
-	return SMF_STEP_ROLLBACKFAILED;
+  TRACE_LEAVE();
+  return SMF_STEP_ROLLBACKFAILED;
 }
 
 //------------------------------------------------------------------------------
@@ -612,23 +564,19 @@ SmfStepStateUndoingRollback::rollback(SmfUpgradeStep * i_step)
 //------------------------------------------------------------------------------
 SmfStepState *SmfStepStateRollbackUndone::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateRollbackUndone::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateRollbackUndone;
-	}
+SmfStepState *SmfStepStateRollbackUndone::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateRollbackUndone;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateRollbackUndone::getClassName()const
-{
-	return "SmfStepStateRollbackUndone";
+std::string SmfStepStateRollbackUndone::getClassName() const {
+  return "SmfStepStateRollbackUndone";
 }
 
 //------------------------------------------------------------------------------
@@ -638,22 +586,17 @@ SmfStepStateRollbackUndone::getClassName()const
 //------------------------------------------------------------------------------
 SmfStepState *SmfStepStateRollbackFailed::s_instance = NULL;
 
-SmfStepState *
-SmfStepStateRollbackFailed::instance(void)
-{
-	if (s_instance == NULL) {
-		s_instance = new SmfStepStateRollbackFailed;
-	}
+SmfStepState *SmfStepStateRollbackFailed::instance(void) {
+  if (s_instance == NULL) {
+    s_instance = new SmfStepStateRollbackFailed;
+  }
 
-	return s_instance;
+  return s_instance;
 }
 
 //------------------------------------------------------------------------------
 // getClassName()
 //------------------------------------------------------------------------------
-std::string 
-SmfStepStateRollbackFailed::getClassName()const
-{
-	return "SmfStepStateRollbackFailed";
+std::string SmfStepStateRollbackFailed::getClassName() const {
+  return "SmfStepStateRollbackFailed";
 }
-

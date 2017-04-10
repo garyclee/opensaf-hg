@@ -20,12 +20,12 @@
 
 #define FUNC_NAME(DS) cpsv_edp_##DS##_info
 
-uint32_t FUNC_NAME(CPD_NODE_REF_INFO) ();
-uint32_t FUNC_NAME(CPD_A2S_CKPT_CREATE) ();
-uint32_t FUNC_NAME(CPD_A2S_CKPT_UNLINK) ();
-uint32_t FUNC_NAME(CPSV_CKPT_RDSET) ();
-uint32_t FUNC_NAME(CPSV_CKPT_DEST_INFO) ();
-uint32_t FUNC_NAME(CPD_A2S_CKPT_USR_INFO) ();
+uint32_t FUNC_NAME(CPD_NODE_REF_INFO)();
+uint32_t FUNC_NAME(CPD_A2S_CKPT_CREATE)();
+uint32_t FUNC_NAME(CPD_A2S_CKPT_UNLINK)();
+uint32_t FUNC_NAME(CPSV_CKPT_RDSET)();
+uint32_t FUNC_NAME(CPSV_CKPT_DEST_INFO)();
+uint32_t FUNC_NAME(CPD_A2S_CKPT_USR_INFO)();
 
 uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg);
 uint32_t cpd_process_sb_msg(CPD_CB *cb, CPD_MBCSV_MSG *msg);

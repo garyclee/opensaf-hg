@@ -33,12 +33,12 @@
 #include "base/ncs_lib.h"
 #include "base/ncs_saf.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-#define NCS_MAX_SP_ABSTRACT_NAME_LEN   31       /* Excluding the terminating '\0' */
-#define NCS_ENV_ID_DEFAULT              1
+#define NCS_MAX_SP_ABSTRACT_NAME_LEN 31 /* Excluding the terminating '\0' */
+#define NCS_ENV_ID_DEFAULT 1
 
 /*****************************************************************\
  ******************** SPLR API request types *********************
@@ -53,24 +53,22 @@ typedef enum {
 } NCS_SPLR_REQ_TYPES;
 
 #define NCS_SPLR_INSTANTIATION_PER_INST_NAME 0x1
-#define NCS_SPLR_INSTANTIATION_PER_ENV_ID    0x2
+#define NCS_SPLR_INSTANTIATION_PER_ENV_ID 0x2
 
 /**** SPLR API REGISTER request structure ****/
 typedef struct {
   /* Flags will be ORed NCS_SPLR_INSTANTIATION_* values */
   uint8_t instantiation_flags;
-  NCS_LIB_REQUEST instantiation_api;      /* API for instantiating service-provider   */
-  void *user_se_api;      /* Single-entry API for use by service-user */
+  NCS_LIB_REQUEST
+      instantiation_api; /* API for instantiating service-provider   */
+  void *user_se_api;     /* Single-entry API for use by service-user */
 } NCS_SPLR_REQ_REG_INFO;
 
 /**** SPLR API DEREGISTER request structure ****/
-typedef struct {
-  uint8_t dummy;
-} NCS_SPLR_REQ_DEREG_INFO;
+typedef struct { uint8_t dummy; } NCS_SPLR_REQ_DEREG_INFO;
 
 /**** SPLR API request structure ****/
 typedef struct {
-
   NCS_SPLR_REQ_TYPES type;
 
   char *i_sp_abstract_name;
@@ -118,19 +116,18 @@ typedef enum {
 } NCS_SPIR_REQ_TYPES;
 
 typedef struct {
-  SaAmfCSIAttributeListT i_inst_attrs;    /* Attributes of the instance-name */
+  SaAmfCSIAttributeListT i_inst_attrs; /* Attributes of the instance-name */
   uint32_t i_handle;
-  void *i_arg;    /* Cookie */
+  void *i_arg; /* Cookie */
 } NCS_SPIR_REQ_ADD_INST_INFO;
 
 typedef struct {
   void *o_user_se_api;
   uint64_t o_handle;
-  void *o_arg;    /* Cookie */
+  void *o_arg; /* Cookie */
 } NCS_SPIR_REQ_LOOKUP_INST_INFO;
 
 typedef struct {
-
   /* Key to next instance */
   SaNameT o_next_instance_name;
   uint32_t o_next_environment_id;
@@ -138,26 +135,26 @@ typedef struct {
   /* Date on the next instance */
   void *o_user_se_api;
   uint64_t o_handle;
-  void *o_arg;    /* Cookie */
+  void *o_arg; /* Cookie */
 
 } NCS_SPIR_REQ_LOOKUP_NEXT_INST_INFO;
 
 typedef struct {
-  SaAmfCSIAttributeListT i_inst_attrs;    /* Attributes of the instance-name */
+  SaAmfCSIAttributeListT i_inst_attrs; /* Attributes of the instance-name */
 
   bool o_created; /* true if instance not preexisting */
   void *o_user_se_api;
   uint64_t o_handle;
-  void *o_arg;    /* Cookie */
+  void *o_arg; /* Cookie */
 } NCS_SPIR_REQ_LOOKUP_CREATE_INST_INFO;
 
 /**** SPIR API request structure ****/
 typedef struct {
-
   NCS_SPIR_REQ_TYPES type;
 
   /* SPIR entry key */
-  char *i_sp_abstract_name;       /* Name will be copied(so, pointer can be on-stack) */
+  char *
+      i_sp_abstract_name; /* Name will be copied(so, pointer can be on-stack) */
   SaNameT i_instance_name;
   uint32_t i_environment_id;
 
@@ -166,14 +163,14 @@ typedef struct {
     /* The following two are invoked by the service-provider to
        populate his handles before actual "demand" */
     NCS_SPIR_REQ_ADD_INST_INFO add_inst;
-    uint32_t rmv_inst;      /* dummy */
+    uint32_t rmv_inst; /* dummy */
 
     /* The following two are invoked by the service-provider to
        populate his handles on actual "demand" */
     NCS_SPIR_REQ_LOOKUP_INST_INFO lookup_inst;
     NCS_SPIR_REQ_LOOKUP_NEXT_INST_INFO lookup_next_inst;
     NCS_SPIR_REQ_LOOKUP_CREATE_INST_INFO lookup_create_inst;
-    uint32_t rel_inst;      /*dummy */
+    uint32_t rel_inst; /*dummy */
   } info;
 } NCS_SPIR_REQ_INFO;
 
@@ -184,7 +181,7 @@ uint32_t ncs_spir_api(NCS_SPIR_REQ_INFO *info);
 uint32_t ncs_environment_setup(uint32_t env_id);
 uint32_t ncs_environment_clear(uint32_t env_id);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

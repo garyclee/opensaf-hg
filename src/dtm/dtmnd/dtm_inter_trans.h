@@ -17,11 +17,14 @@
 #ifndef DTM_DTMND_DTM_INTER_TRANS_H_
 #define DTM_DTMND_DTM_INTER_TRANS_H_
 
-extern uint32_t dtm_add_to_msg_dist_list(uint8_t *buffer, uint16_t len, NODE_ID node_id);
+extern uint32_t dtm_add_to_msg_dist_list(uint8_t *buffer, uint16_t len,
+                                         NODE_ID node_id);
 
-extern uint32_t dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uint16_t len);
+extern uint32_t dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer,
+                                                   uint16_t len);
 
-extern uint32_t dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len, NODE_ID node_id);
+extern uint32_t dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len,
+                                              NODE_ID node_id);
 extern uint32_t dtm_internode_process_pollout(int fd);
 extern uint32_t dtm_prepare_data_msg(uint8_t *buffer, uint16_t len);
 

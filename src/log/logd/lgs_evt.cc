@@ -31,7 +31,7 @@
 #include "lgs_clm.h"
 #include "lgs_dest.h"
 
-void *client_db = nullptr;       /* used for C++ STL map */
+void *client_db = nullptr; /* used for C++ STL map */
 
 static uint32_t process_api_evt(lgsv_lgs_evt_t *evt);
 static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt);
@@ -43,20 +43,13 @@ static uint32_t proc_stream_close_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
 static uint32_t proc_write_log_async_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
 
 static const LGSV_LGS_EVT_HANDLER lgs_lgsv_top_level_evt_dispatch_tbl[] = {
-  process_api_evt,
-  proc_lga_updn_mds_msg,
-  proc_lga_updn_mds_msg,
-  proc_mds_quiesced_ack_msg
-};
+    process_api_evt, proc_lga_updn_mds_msg, proc_lga_updn_mds_msg,
+    proc_mds_quiesced_ack_msg};
 
 /* Dispatch table for LGA_API realted messages */
-static const
-LGSV_LGS_LGA_API_MSG_HANDLER lgs_lga_api_msg_dispatcher[] = {
-  proc_initialize_msg,
-  proc_finalize_msg,
-  proc_stream_open_msg,
-  proc_stream_close_msg,
-  proc_write_log_async_msg,
+static const LGSV_LGS_LGA_API_MSG_HANDLER lgs_lga_api_msg_dispatcher[] = {
+    proc_initialize_msg,   proc_finalize_msg,        proc_stream_open_msg,
+    proc_stream_close_msg, proc_write_log_async_msg,
 };
 
 /**
@@ -84,7 +77,7 @@ uint32_t lgs_client_map_init() {
     TRACE("Client Map already exists");
     return NCSCC_RC_FAILURE;
   }
-  /*Client DB */ 
+  /*Client DB */
   client_db = new ClientMap;
   TRACE_LEAVE();
   return NCSCC_RC_SUCCESS;
@@ -100,11 +93,10 @@ log_client_t *lgs_client_get_by_id(uint32_t client_id) {
   log_client_t *rec = nullptr;
 
   /* Client DB */
-  ClientMap *clientMap(reinterpret_cast<ClientMap *>
-                         (client_db));
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
   if (clientMap) {
     auto it = (clientMap->find(client_id));
- 
+
     if (it != clientMap->end()) {
       rec = it->second;
     } else {
@@ -113,8 +105,7 @@ log_client_t *lgs_client_get_by_id(uint32_t client_id) {
   } else {
     TRACE("clm_node_id delete to map not exist failed : %x", client_id);
   }
-  if (NULL == rec)
-    TRACE("client_id: %u lookup failed", client_id);
+  if (NULL == rec) TRACE("client_id: %u lookup failed", client_id);
 
   return rec;
 }
@@ -127,20 +118,19 @@ log_client_t *lgs_client_get_by_id(uint32_t client_id) {
  *
  * @return log_client_t*
  */
-log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_list_t *stream_list) {
+log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id,
+                             lgs_stream_list_t *stream_list) {
   log_client_t *client;
 
   TRACE_ENTER2("MDS dest %" PRIx64, mds_dest);
   /* Client DB */
-  ClientMap *clientMap(reinterpret_cast<ClientMap *>
-                         (client_db));
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
   if (client_id == 0) {
     lgs_cb->last_client_id++;
-    if (lgs_cb->last_client_id == 0)
-      lgs_cb->last_client_id++;
+    if (lgs_cb->last_client_id == 0) lgs_cb->last_client_id++;
   }
 
-  client = new log_client_t(); 
+  client = new log_client_t();
 
   if (NULL == client) {
     LOG_WA("lgs_client_new calloc FAILED");
@@ -148,16 +138,17 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_l
   }
 
   /** Initialize the record **/
-  if ((lgs_cb->ha_state == SA_AMF_HA_STANDBY) || (lgs_cb->ha_state == SA_AMF_HA_QUIESCED))
+  if ((lgs_cb->ha_state == SA_AMF_HA_STANDBY) ||
+      (lgs_cb->ha_state == SA_AMF_HA_QUIESCED))
     lgs_cb->last_client_id = client_id;
   client->client_id = lgs_cb->last_client_id;
   client->mds_dest = mds_dest;
   client->stream_list_root = stream_list;
- 
+
   if (clientMap) {
-    std::pair<ClientMap::iterator, bool> p(clientMap->insert(
-        std::make_pair(client->client_id, client)));
- 
+    std::pair<ClientMap::iterator, bool> p(
+        clientMap->insert(std::make_pair(client->client_id, client)));
+
     if (!p.second) {
       TRACE("unable to add clm node info map - the id %x already existed",
             client->client_id);
@@ -193,8 +184,7 @@ int lgs_client_delete(uint32_t client_id, time_t *closetime_ptr) {
 
   TRACE_ENTER2("client_id %u", client_id);
   /* Client DB */
-  ClientMap *clientMap(reinterpret_cast<ClientMap *>
-                         (client_db));
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
   /* Initiate close time value if not provided via closetime_ptr */
   if (closetime_ptr == NULL) {
     osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
@@ -213,7 +203,8 @@ int lgs_client_delete(uint32_t client_id, time_t *closetime_ptr) {
   while (NULL != cur_rec) {
     lgs_stream_list_t *tmp_rec;
     log_stream_t *stream = log_stream_get_by_id(cur_rec->stream_id);
-    TRACE_4("client_id: %u, REMOVE stream id: %u", client->client_id, cur_rec->stream_id);
+    TRACE_4("client_id: %u, REMOVE stream id: %u", client->client_id,
+            cur_rec->stream_id);
     if (stream != NULL) {
       log_stream_close(&stream, &closetime);
     }
@@ -222,16 +213,16 @@ int lgs_client_delete(uint32_t client_id, time_t *closetime_ptr) {
     cur_rec = tmp_rec;
   }
 
-   if (clientMap) {
+  if (clientMap) {
     auto it = (clientMap->find(client_id));
- 
+
     if (it != clientMap->end()) {
       client_rec = it->second;
       clientMap->erase(it);
       delete client_rec;
     } else {
       TRACE("clm_node_id delete  failed : %x", client_id);
-      status = -2; 
+      status = -2;
     }
   } else {
     TRACE("clm_node_id delete to map not exist failed : %x", client_id);
@@ -263,7 +254,7 @@ int lgs_client_stream_add(uint32_t client_id, uint32_t stream_id) {
   }
 
   stream = static_cast<lgs_stream_list_t *>(malloc(sizeof(lgs_stream_list_t)));
-  if (stream  == NULL) {
+  if (stream == NULL) {
     LOG_WA("malloc FAILED");
     rs = -1;
     goto err_exit;
@@ -307,7 +298,8 @@ int lgs_client_stream_rmv(uint32_t client_id, uint32_t stream_id) {
   last_rec = client->stream_list_root;
   do {
     if (stream_id == cur_rec->stream_id) {
-      TRACE_4("client_id: %u, REMOVE stream id: %u", client_id, cur_rec->stream_id);
+      TRACE_4("client_id: %u, REMOVE stream id: %u", client_id,
+              cur_rec->stream_id);
       tmp_rec = cur_rec->next;
       last_rec->next = tmp_rec;
       if (client->stream_list_root == cur_rec)
@@ -339,10 +331,9 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest, time_t *closetime_ptr) {
 
   TRACE_ENTER2("mds_dest %" PRIx64, mds_dest);
   /* Loop through Client DB */
-  ClientMap *clientMap(reinterpret_cast<ClientMap *>
-                         (client_db));
-  for (const auto& value : *clientMap) {
-    rp =  value.second;    
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
+  for (const auto &value : *clientMap) {
+    rp = value.second;
 
     if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest))
       rc = lgs_client_delete(rp->client_id, closetime_ptr);
@@ -370,18 +361,17 @@ uint32_t lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest) {
     if (m_NCS_MDS_DEST_EQUAL(&lga_down_rec->mds_dest, &mds_dest)) {
       /* Remove the LGA entry */
       /* Reset pointers */
-      if (lga_down_rec == cb->lga_down_list_head) {   /* 1st in the list? */
-        if (lga_down_rec->next == NULL) {       /* Only one in the list? */
-          cb->lga_down_list_head = NULL;  /* Clear head sublist pointer */
-          cb->lga_down_list_tail = NULL;  /* Clear tail sublist pointer */
-        } else {        /* 1st but not only one */
-          cb->lga_down_list_head = lga_down_rec->next;    /* Move next one up */
+      if (lga_down_rec == cb->lga_down_list_head) { /* 1st in the list? */
+        if (lga_down_rec->next == NULL) {           /* Only one in the list? */
+          cb->lga_down_list_head = NULL; /* Clear head sublist pointer */
+          cb->lga_down_list_tail = NULL; /* Clear tail sublist pointer */
+        } else {                         /* 1st but not only one */
+          cb->lga_down_list_head = lga_down_rec->next; /* Move next one up */
         }
-      } else {        /* Not 1st in the list */
+      } else { /* Not 1st in the list */
         if (prev) {
-          if (lga_down_rec->next == NULL)
-            cb->lga_down_list_tail = prev;
-          prev->next = lga_down_rec->next;        /* Link previous to next */
+          if (lga_down_rec->next == NULL) cb->lga_down_list_tail = prev;
+          prev->next = lga_down_rec->next; /* Link previous to next */
         }
       }
 
@@ -390,12 +380,11 @@ uint32_t lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest) {
       lga_down_rec = NULL;
       break;
     }
-    prev = lga_down_rec;    /* Remember address of this entry */
-    lga_down_rec = lga_down_rec->next;      /* Go to next entry */
+    prev = lga_down_rec;               /* Remember address of this entry */
+    lga_down_rec = lga_down_rec->next; /* Go to next entry */
   }
   return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
  * Name          : proc_lga_updn_mds_msg
@@ -423,9 +412,10 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt) {
       break;
 
     case LGSV_LGS_EVT_LGA_DOWN:
-      TRACE("%s: LGSV_LGS_EVT_LGA_DOWN mds_dest = %" PRIx64,
-            __FUNCTION__, evt->fr_dest);
-      if ((lgs_cb->ha_state == SA_AMF_HA_ACTIVE) || (lgs_cb->ha_state == SA_AMF_HA_QUIESCED)) {
+      TRACE("%s: LGSV_LGS_EVT_LGA_DOWN mds_dest = %" PRIx64, __FUNCTION__,
+            evt->fr_dest);
+      if ((lgs_cb->ha_state == SA_AMF_HA_ACTIVE) ||
+          (lgs_cb->ha_state == SA_AMF_HA_QUIESCED)) {
         /* Remove this LGA entry from our processing lists */
         osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
         time_t closetime = closetime_tspec.tv_sec;
@@ -457,7 +447,8 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt) {
       } else if (lgs_cb->ha_state == SA_AMF_HA_STANDBY) {
         LGA_DOWN_LIST *lga_down_rec = NULL;
         if (lgs_lga_entry_valid(lgs_cb, evt->fr_dest)) {
-          lga_down_rec = static_cast<LGA_DOWN_LIST *>(malloc(sizeof(LGA_DOWN_LIST)));
+          lga_down_rec =
+              static_cast<LGA_DOWN_LIST *>(malloc(sizeof(LGA_DOWN_LIST)));
           if (NULL == lga_down_rec) {
             /* Log it */
             LOG_WA("memory allocation for the LGA_DOWN_LIST failed");
@@ -506,8 +497,7 @@ static uint32_t proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt) {
     lgs_cb->ha_state = SA_AMF_HA_QUIESCED;
 
     /* Inform MBCSV of HA state change */
-    if (lgs_mbcsv_change_HA_state(lgs_cb, lgs_cb->ha_state) !=
-        NCSCC_RC_SUCCESS)
+    if (lgs_mbcsv_change_HA_state(lgs_cb, lgs_cb->ha_state) != NCSCC_RC_SUCCESS)
       TRACE("lgs_mbcsv_change_HA_state FAILED");
 
     /* Finally respond to AMF */
@@ -518,7 +508,6 @@ static uint32_t proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt) {
   TRACE_LEAVE();
   return NCSCC_RC_SUCCESS;
 }
-
 
 /**
  * Clear any pending lga_down records
@@ -546,16 +535,15 @@ static void lgs_process_lga_down_list() {
   }
 }
 
-
 static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt) {
   uint32_t rc = NCSCC_RC_SUCCESS;
 
-  TRACE_ENTER2("%d", (int) evt->info.rda_info.io_role);
+  TRACE_ENTER2("%d", (int)evt->info.rda_info.io_role);
 
-  if ((rc = initialize_for_assignment(lgs_cb,
-                                      (SaAmfHAStateT) evt->info.rda_info.io_role))
-      != NCSCC_RC_SUCCESS) {
-    LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+  if ((rc = initialize_for_assignment(
+           lgs_cb, (SaAmfHAStateT)evt->info.rda_info.io_role)) !=
+      NCSCC_RC_SUCCESS) {
+    LOG_ER("initialize_for_assignment FAILED %u", (unsigned)rc);
     exit(EXIT_FAILURE);
   }
 
@@ -570,8 +558,8 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt) {
       exit(EXIT_FAILURE);
     }
 
-    if ((rc = lgs_mbcsv_change_HA_state(lgs_cb, lgs_cb->ha_state))
-        != NCSCC_RC_SUCCESS) {
+    if ((rc = lgs_mbcsv_change_HA_state(lgs_cb, lgs_cb->ha_state)) !=
+        NCSCC_RC_SUCCESS) {
       LOG_ER("lgs_mbcsv_change_HA_state FAILED %u", rc);
       exit(EXIT_FAILURE);
     }
@@ -594,8 +582,7 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt) {
       count++;
     }
 
-    if (count == 0)
-      LOG_ER("No streams exist!");
+    if (count == 0) LOG_ER("No streams exist!");
   }
 
   TRACE_LEAVE();
@@ -662,7 +649,7 @@ done:
  * @return
  */
 static uint32_t lgs_ckpt_initialized_client(lgs_cb_t *cb, MDS_DEST mds_dest,
-                                    log_client_t *client) {
+                                            log_client_t *client) {
   uint32_t async_rc = NCSCC_RC_SUCCESS;
   lgsv_ckpt_msg_v1_t ckpt_v1;
   lgsv_ckpt_msg_v6_t ckpt_v6;
@@ -702,7 +689,7 @@ static uint32_t lgs_ckpt_initialized_client(lgs_cb_t *cb, MDS_DEST mds_dest,
     }
   }
 
-  TRACE_LEAVE2("async_rc = %d",async_rc);
+  TRACE_LEAVE2("async_rc = %d", async_rc);
   return async_rc;
 }
 
@@ -730,7 +717,7 @@ static uint32_t proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
     goto snd_rsp;
   }
 
-  if (is_client_clm_member(evt->fr_node_id, version) != true){
+  if (is_client_clm_member(evt->fr_node_id, version) != true) {
     ais_rc = SA_AIS_ERR_UNAVAILABLE;
     TRACE("client not a CLM member FAILED");
     goto snd_rsp;
@@ -750,8 +737,10 @@ snd_rsp:
   msg.type = LGSV_LGA_API_RESP_MSG;
   msg.info.api_resp_info.type = LGSV_INITIALIZE_RSP;
   msg.info.api_resp_info.rc = ais_rc;
-  msg.info.api_resp_info.param.init_rsp.client_id = client ? client->client_id : 0;
-  rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+  msg.info.api_resp_info.param.init_rsp.client_id =
+      client ? client->client_id : 0;
+  rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt,
+                        MDS_SEND_PRIORITY_HIGH);
 
   TRACE_LEAVE2("client_id %u", client ? client->client_id : 0);
   return rc;
@@ -809,7 +798,8 @@ snd_rsp:
   msg.info.api_resp_info.type = LGSV_FINALIZE_RSP;
   msg.info.api_resp_info.rc = ais_rc;
   msg.info.api_resp_info.param.finalize_rsp.client_id = client_id;
-  rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+  rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt,
+                        MDS_SEND_PRIORITY_HIGH);
 
   TRACE_LEAVE2("ais_rc: %u", ais_rc);
   return rc;
@@ -852,11 +842,15 @@ static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream,
     ckpt_rec_open_ptr->clientId = open_sync_param->client_id;
     ckpt_rec_open_ptr->streamId = logStream->streamId;
 
-    ckpt_rec_open_ptr->logFile = const_cast<char *>(logStream->fileName.c_str());
-    ckpt_rec_open_ptr->logPath = const_cast<char *>(logStream->pathName.c_str());
-    ckpt_rec_open_ptr->logFileCurrent = const_cast<char *>(logStream->logFileCurrent.c_str());
+    ckpt_rec_open_ptr->logFile =
+        const_cast<char *>(logStream->fileName.c_str());
+    ckpt_rec_open_ptr->logPath =
+        const_cast<char *>(logStream->pathName.c_str());
+    ckpt_rec_open_ptr->logFileCurrent =
+        const_cast<char *>(logStream->logFileCurrent.c_str());
     ckpt_rec_open_ptr->fileFmt = logStream->logFileFormat;
-    ckpt_rec_open_ptr->logStreamName = const_cast<char *>(logStream->name.c_str());
+    ckpt_rec_open_ptr->logStreamName =
+        const_cast<char *>(logStream->name.c_str());
 
     ckpt_rec_open_ptr->maxFileSize = logStream->maxLogFileSize;
     ckpt_rec_open_ptr->maxLogRecordSize = logStream->fixedLogRecordSize;
@@ -873,7 +867,7 @@ static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream,
       TRACE_4("REG_REC ASYNC UPDATE SEND SUCCESS...");
     }
   }
-  TRACE_LEAVE2("async_rc = %d",async_rc);
+  TRACE_LEAVE2("async_rc = %d", async_rc);
   return async_rc;
 }
 
@@ -885,7 +879,8 @@ static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream,
  *
  * @return AIS return code
  */
-SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param, log_stream_t **o_stream) {
+SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param,
+                                  log_stream_t **o_stream) {
   SaAisErrorT rc = SA_AIS_OK;
   log_stream_t *stream;
   SaBoolT twelveHourModeFlag;
@@ -909,7 +904,8 @@ SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param, log_s
     goto done;
   }
 
-  /* Validate maxFilesRotated just in case of SA_LOG_FILE_FULL_ACTION_ROTATE type */
+  /* Validate maxFilesRotated just in case of SA_LOG_FILE_FULL_ACTION_ROTATE
+   * type */
   if ((open_sync_param->logFileFullAction == SA_LOG_FILE_FULL_ACTION_ROTATE) &&
       ((open_sync_param->maxFilesRotated < 1) ||
        (open_sync_param->maxFilesRotated > 127))) {
@@ -920,12 +916,15 @@ SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param, log_s
 
   if (open_sync_param->logFileFmt == NULL) {
     TRACE("logFileFmt is NULL, use default one");
-    const char* logFileFormat = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT));
+    const char *logFileFormat =
+        static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT));
     open_sync_param->logFileFmt = strdup(logFileFormat);
   }
 
   /* Check the format string */
-  if (!lgs_is_valid_format_expression(open_sync_param->logFileFmt, STREAM_TYPE_APPLICATION, &twelveHourModeFlag)) {
+  if (!lgs_is_valid_format_expression(open_sync_param->logFileFmt,
+                                      STREAM_TYPE_APPLICATION,
+                                      &twelveHourModeFlag)) {
     TRACE("format expression failure");
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
@@ -974,7 +973,8 @@ SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param, log_s
   }
 
   /* Verify that the fixedLogRecordSize is in valid range */
-  logMaxLogrecsize_conf = *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE));
+  logMaxLogrecsize_conf =
+      *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE));
   if ((open_sync_param->maxLogRecordSize != 0) &&
       ((open_sync_param->maxLogRecordSize < SA_LOG_MIN_RECORD_SIZE) ||
        (open_sync_param->maxLogRecordSize > logMaxLogrecsize_conf))) {
@@ -990,17 +990,12 @@ SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param, log_s
   }
 
   err = lgs_populate_log_stream(
-      open_sync_param->logFileName,
-      open_sync_param->logFilePathName,
-      open_sync_param->maxLogFileSize,
-      open_sync_param->maxLogRecordSize,
-      open_sync_param->logFileFullAction,
-      open_sync_param->maxFilesRotated,
-      open_sync_param->logFileFmt,
-      STREAM_TYPE_APPLICATION,
-      twelveHourModeFlag,
+      open_sync_param->logFileName, open_sync_param->logFilePathName,
+      open_sync_param->maxLogFileSize, open_sync_param->maxLogRecordSize,
+      open_sync_param->logFileFullAction, open_sync_param->maxFilesRotated,
+      open_sync_param->logFileFmt, STREAM_TYPE_APPLICATION, twelveHourModeFlag,
       0,
-      *o_stream); // output
+      *o_stream);  // output
   if (err == -1) {
     log_stream_delete(o_stream);
     rc = SA_AIS_ERR_NO_MEMORY;
@@ -1021,23 +1016,26 @@ done:
  * @param applicationStream
  * @return
  */
-static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param, log_stream_t *applicationStream) {
+static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param,
+                                      log_stream_t *applicationStream) {
   SaAisErrorT rs = SA_AIS_OK;
 
   TRACE_ENTER2("Stream: %s", applicationStream->name.c_str());
 
   if (open_sync_param->maxLogFileSize != applicationStream->maxLogFileSize ||
-      open_sync_param->maxLogRecordSize != applicationStream->fixedLogRecordSize ||
+      open_sync_param->maxLogRecordSize !=
+          applicationStream->fixedLogRecordSize ||
       open_sync_param->maxFilesRotated != applicationStream->maxFilesRotated) {
-    TRACE("create params differ, new: mfs %llu, mlrs %u , mr %u"
-          " existing: mfs %llu, mlrs %u , mr %u",
-          open_sync_param->maxLogFileSize,
-          open_sync_param->maxLogRecordSize,
-          open_sync_param->maxFilesRotated,
-          applicationStream->maxLogFileSize,
-          applicationStream->fixedLogRecordSize, applicationStream->maxFilesRotated);
+    TRACE(
+        "create params differ, new: mfs %llu, mlrs %u , mr %u"
+        " existing: mfs %llu, mlrs %u , mr %u",
+        open_sync_param->maxLogFileSize, open_sync_param->maxLogRecordSize,
+        open_sync_param->maxFilesRotated, applicationStream->maxLogFileSize,
+        applicationStream->fixedLogRecordSize,
+        applicationStream->maxFilesRotated);
     rs = SA_AIS_ERR_EXIST;
-  } else if (applicationStream->logFullAction != open_sync_param->logFileFullAction) {
+  } else if (applicationStream->logFullAction !=
+             open_sync_param->logFileFullAction) {
     TRACE("logFileFullAction create params differs, new: %d, old: %d",
           open_sync_param->logFileFullAction, applicationStream->logFullAction);
     rs = SA_AIS_ERR_EXIST;
@@ -1047,10 +1045,12 @@ static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param, l
     rs = SA_AIS_ERR_EXIST;
   } else if (applicationStream->pathName != open_sync_param->logFilePathName) {
     TRACE("log file path differs, new: %s existing: %s",
-          open_sync_param->logFilePathName, applicationStream->pathName.c_str());
+          open_sync_param->logFilePathName,
+          applicationStream->pathName.c_str());
     rs = SA_AIS_ERR_EXIST;
   } else if ((open_sync_param->logFileFmt != NULL) &&
-             strcmp(applicationStream->logFileFormat, open_sync_param->logFileFmt) != 0) {
+             strcmp(applicationStream->logFileFormat,
+                    open_sync_param->logFileFmt) != 0) {
     TRACE("logFile format differs, new: %s existing: %s",
           open_sync_param->logFileFmt, applicationStream->logFileFormat);
     rs = SA_AIS_ERR_EXIST;
@@ -1078,7 +1078,8 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   SaAisErrorT ais_rv = SA_AIS_OK;
   uint32_t lstr_id = (uint32_t)-1;
   lgsv_msg_t msg;
-  lgsv_stream_open_req_t *open_sync_param = &(evt->info.msg.info.api_info.param.lstr_open_sync);
+  lgsv_stream_open_req_t *open_sync_param =
+      &(evt->info.msg.info.api_info.param.lstr_open_sync);
   log_stream_t *logStream;
   std::string name;
   time_t file_closetime = 0;
@@ -1087,7 +1088,8 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   /* Create null-terminated stream name */
   name = osaf_extended_name_borrow(&open_sync_param->lstr_name);
 
-  TRACE_ENTER2("stream '%s', client_id %u", name.c_str(), open_sync_param->client_id);
+  TRACE_ENTER2("stream '%s', client_id %u", name.c_str(),
+               open_sync_param->client_id);
 
   logStream = log_stream_get_by_name(name);
   if (logStream != NULL) {
@@ -1096,8 +1098,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
       /* Verify the creation attributes for an existing appl. stream */
       if (open_sync_param->lstr_open_flags & SA_LOG_STREAM_CREATE) {
         ais_rv = file_attribute_cmp(open_sync_param, logStream);
-        if (ais_rv != SA_AIS_OK)
-          goto snd_rsp;
+        if (ais_rv != SA_AIS_OK) goto snd_rsp;
       }
     } else {
       /* One of the well-known log streams */
@@ -1125,9 +1126,8 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
      * add it to the client
      */
     if (lgs_cb->lgs_recovery_state == LGS_RECOVERY) {
-      TRACE("%s LGS_RECOVERY",__FUNCTION__);
-      i_rc = lgs_restore_one_app_stream(name,
-                                        open_sync_param->client_id,
+      TRACE("%s LGS_RECOVERY", __FUNCTION__);
+      i_rc = lgs_restore_one_app_stream(name, open_sync_param->client_id,
                                         &logStream);
       if (i_rc == -1) {
         // Not find the opening stream in recovery database.
@@ -1141,7 +1141,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
       goto snd_rsp;
     }
 
- next:
+  next:
     if ((open_sync_param->lstr_open_flags & SA_LOG_STREAM_CREATE) == 0) {
       /* Trying to open a non existing stream */
       TRACE("%s Attempt to open not existing stream", __FUNCTION__);
@@ -1164,8 +1164,8 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
      */
     ais_rv = create_new_app_stream(open_sync_param, &logStream);
     if (ais_rv != SA_AIS_OK) {
-      TRACE("%s create_new_app_stream Fail \"%s\"",
-            __FUNCTION__, saf_error(ais_rv));
+      TRACE("%s create_new_app_stream Fail \"%s\"", __FUNCTION__,
+            saf_error(ais_rv));
       goto snd_rsp;
     }
   }
@@ -1202,7 +1202,8 @@ snd_rsp:
   msg.info.api_resp_info.rc = ais_rv;
   msg.info.api_resp_info.param.lstr_open_rsp.lstr_id = lstr_id;
   TRACE_4("lstr_open_rsp.lstr_id: %u, rv: %u", lstr_id, ais_rv);
-  rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+  rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt,
+                        MDS_SEND_PRIORITY_HIGH);
 
   if (ais_rv == SA_AIS_OK) {
     (void)lgs_ckpt_stream_open(cb, logStream, open_sync_param);
@@ -1227,7 +1228,8 @@ snd_rsp:
  */
 static uint32_t proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   uint32_t rc = NCSCC_RC_SUCCESS;
-  lgsv_stream_close_req_t *close_param = &(evt->info.msg.info.api_info.param.lstr_close);
+  lgsv_stream_close_req_t *close_param =
+      &(evt->info.msg.info.api_info.param.lstr_close);
   log_stream_t *stream;
   lgsv_msg_t msg;
   SaAisErrorT ais_rc = SA_AIS_OK;
@@ -1237,7 +1239,8 @@ static uint32_t proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   lgsv_ckpt_msg_v2_t ckpt_v2;
   void *ckpt_ptr;
 
-  TRACE_ENTER2("client_id %u, stream ID %u", close_param->client_id, close_param->lstr_id);
+  TRACE_ENTER2("client_id %u, stream ID %u", close_param->client_id,
+               close_param->lstr_id);
 
   if ((stream = log_stream_get_by_id(close_param->lstr_id)) == NULL) {
     TRACE("Bad stream ID");
@@ -1255,7 +1258,8 @@ static uint32_t proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
     goto snd_rsp;
   }
 
-  if (lgs_client_stream_rmv(close_param->client_id, close_param->lstr_id) != 0) {
+  if (lgs_client_stream_rmv(close_param->client_id, close_param->lstr_id) !=
+      0) {
     TRACE("Bad client or stream ID");
     ais_rc = SA_AIS_ERR_BAD_HANDLE;
     goto snd_rsp;
@@ -1292,7 +1296,8 @@ snd_rsp:
   msg.info.api_resp_info.rc = ais_rc;
   msg.info.api_resp_info.param.close_rsp.client_id = close_param->client_id;
   msg.info.api_resp_info.param.close_rsp.lstr_id = close_param->lstr_id;
-  rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+  rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt,
+                        MDS_SEND_PRIORITY_HIGH);
   TRACE_LEAVE2("ais_rc: %u", ais_rc);
   return rc;
 }
@@ -1310,7 +1315,8 @@ snd_rsp:
  * Notes         : None.
  *****************************************************************************/
 static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
-  lgsv_write_log_async_req_t *param = &(evt->info.msg.info.api_info.param).write_log_async;
+  lgsv_write_log_async_req_t *param =
+      &(evt->info.msg.info.api_info.param).write_log_async;
   log_stream_t *stream = NULL;
   SaAisErrorT error = SA_AIS_OK;
   SaStringT logOutputString = NULL;
@@ -1327,8 +1333,8 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   memset(node_name, 0, _POSIX_HOST_NAME_MAX);
   strncpy(node_name, evt->node_name, _POSIX_HOST_NAME_MAX);
 
-  TRACE_ENTER2("client_id %u, stream ID %u, node_name = %s",
-               param->client_id, param->lstr_id, node_name);
+  TRACE_ENTER2("client_id %u, stream ID %u, node_name = %s", param->client_id,
+               param->lstr_id, node_name);
 
   if (lgs_client_get_by_id(param->client_id) == NULL) {
     TRACE("Bad client ID: %u", param->client_id);
@@ -1344,26 +1350,33 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
 
   /* Apply filtering only to system and application streams */
   if ((param->logRecord->logHdrType == SA_LOG_GENERIC_HEADER) &&
-      ((stream->severityFilter & (1 << param->logRecord->logHeader.genericHdr.logSeverity)) == 0)) {
+      ((stream->severityFilter &
+        (1 << param->logRecord->logHeader.genericHdr.logSeverity)) == 0)) {
     stream->filtered++;
     goto done;
   }
 
   /*
   ** To avoid truncation we support fixedLogRecordSize==0. We then allocate an
-  ** a buffer with an implementation defined size instead. We also do not pad in this mode.
+  ** a buffer with an implementation defined size instead. We also do not pad in
+  *this mode.
   */
-  max_logrecsize = *static_cast<const uint32_t *>(lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE));
-  buf_size = stream->fixedLogRecordSize == 0 ? max_logrecsize : stream->fixedLogRecordSize;
-  logOutputString = static_cast<char *>(calloc(1, buf_size + 1)); /* Make room for a '\0' termination */
+  max_logrecsize =
+      *static_cast<const uint32_t *>(lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE));
+  buf_size = stream->fixedLogRecordSize == 0 ? max_logrecsize
+                                             : stream->fixedLogRecordSize;
+  logOutputString = static_cast<char *>(
+      calloc(1, buf_size + 1)); /* Make room for a '\0' termination */
   if (logOutputString == NULL) {
     LOG_ER("Could not allocate %d bytes", stream->fixedLogRecordSize + 1);
     error = SA_AIS_ERR_NO_MEMORY;
     goto done;
   }
 
-  if ((n = lgs_format_log_record(param->logRecord, stream->logFileFormat, stream->maxLogFileSize,
-                                 stream->fixedLogRecordSize, buf_size, logOutputString, ++stream->logRecordId, node_name)) == 0) {
+  if ((n = lgs_format_log_record(
+           param->logRecord, stream->logFileFormat, stream->maxLogFileSize,
+           stream->fixedLogRecordSize, buf_size, logOutputString,
+           ++stream->logRecordId, node_name)) == 0) {
     error = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
@@ -1412,7 +1425,8 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   WriteToDestination(data, stream->dest_names);
 
 checkpoint:
-  /* TODO: send fail back if ack is wanted, Fix counter for application stream!! */
+  /* TODO: send fail back if ack is wanted, Fix counter for application stream!!
+   */
   if (cb->ha_state == SA_AMF_HA_ACTIVE) {
     if (lgs_is_peer_v2()) {
       memset(&ckpt_v2, 0, sizeof(ckpt_v2));
@@ -1422,10 +1436,11 @@ checkpoint:
       ckpt_v2.ckpt_rec.write_log.recordId = stream->logRecordId;
       ckpt_v2.ckpt_rec.write_log.streamId = stream->streamId;
       ckpt_v2.ckpt_rec.write_log.curFileSize = stream->curFileSize;
-      ckpt_v2.ckpt_rec.write_log.logFileCurrent = const_cast<char *>(
-          stream->logFileCurrent.c_str());
+      ckpt_v2.ckpt_rec.write_log.logFileCurrent =
+          const_cast<char *>(stream->logFileCurrent.c_str());
       ckpt_v2.ckpt_rec.write_log.logRecord = logOutputString;
-      ckpt_v2.ckpt_rec.write_log.c_file_close_time_stamp = stream->act_last_close_timestamp;
+      ckpt_v2.ckpt_rec.write_log.c_file_close_time_stamp =
+          stream->act_last_close_timestamp;
       ckpt_ptr = &ckpt_v2;
     } else {
       memset(&ckpt_v1, 0, sizeof(ckpt_v1));
@@ -1435,8 +1450,8 @@ checkpoint:
       ckpt_v1.ckpt_rec.write_log.recordId = stream->logRecordId;
       ckpt_v1.ckpt_rec.write_log.streamId = stream->streamId;
       ckpt_v1.ckpt_rec.write_log.curFileSize = stream->curFileSize;
-      ckpt_v1.ckpt_rec.write_log.logFileCurrent = const_cast<char *>(
-          stream->logFileCurrent.c_str());
+      ckpt_v1.ckpt_rec.write_log.logFileCurrent =
+          const_cast<char *>(stream->logFileCurrent.c_str());
       ckpt_ptr = &ckpt_v1;
     }
 
@@ -1451,11 +1466,11 @@ checkpoint:
 
 done:
   /*
-    Since the logOutputString is referred by the log handler thread, in timeout case,
-    the log API thread might be still using the log record memory.
+    Since the logOutputString is referred by the log handler thread, in timeout
+    case, the log API thread might be still using the log record memory.
 
-    To make sure there is no corruption of memory usage in case of time-out (rc = -2),
-    We leave the log record memory freed to the log handler thread..
+    To make sure there is no corruption of memory usage in case of time-out (rc
+    = -2), We leave the log record memory freed to the log handler thread..
 
     It is never a good idea to allocate and free memory in different places.
     But consider it as a trade-off to have a better performance of LOGsv
@@ -1469,7 +1484,8 @@ done:
   }
 
   if (param->ack_flags == SA_LOG_RECORD_WRITE_ACK)
-    lgs_send_write_log_ack(param->client_id, param->invocation, error, evt->fr_dest);
+    lgs_send_write_log_ack(param->client_id, param->invocation, error,
+                           evt->fr_dest);
 
   lgs_free_write_log(param);
 
@@ -1493,8 +1509,7 @@ done:
 static uint32_t process_api_evt(lgsv_lgs_evt_t *evt) {
   lgsv_api_msg_type_t api_type;
 
-  if (evt->evt_type != LGSV_LGS_LGSV_MSG)
-    goto done;
+  if (evt->evt_type != LGSV_LGS_LGSV_MSG) goto done;
 
   if (evt->info.msg.type >= LGSV_MSG_MAX) {
     LOG_ER("Invalid event type %d", evt->info.msg.type);
@@ -1528,13 +1543,13 @@ static uint32_t process_api_evt(lgsv_lgs_evt_t *evt) {
      * library
      */
     if (osaf_timespec_to_millis(&diff_ts) > (LGS_WAIT_TIME * 10)) {
-      LOG_IN("discarded message from %" PRIx64 " type %u",
-             evt->fr_dest, api_type);
+      LOG_IN("discarded message from %" PRIx64 " type %u", evt->fr_dest,
+             api_type);
       goto done;
     }
   }
 
-  if (lgs_lga_api_msg_dispatcher[api_type] (lgs_cb, evt) != NCSCC_RC_SUCCESS) {
+  if (lgs_lga_api_msg_dispatcher[api_type](lgs_cb, evt) != NCSCC_RC_SUCCESS) {
     LOG_ER("lgs_lga_api_msg_dispatcher FAILED type: %d", evt->info.msg.type);
   }
 
@@ -1562,7 +1577,7 @@ void lgs_process_mbx(SYSF_MBX *mbx) {
   if (msg != NULL) {
     if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
       if (msg->evt_type <= LGSV_LGS_EVT_LGA_DOWN) {
-        lgs_lgsv_top_level_evt_dispatch_tbl[msg->evt_type] (msg);
+        lgs_lgsv_top_level_evt_dispatch_tbl[msg->evt_type](msg);
       } else if (msg->evt_type == LGSV_EVT_QUIESCED_ACK) {
         proc_mds_quiesced_ack_msg(msg);
       } else if (msg->evt_type == LGSV_EVT_NO_OP) {
@@ -1573,7 +1588,7 @@ void lgs_process_mbx(SYSF_MBX *mbx) {
         LOG_ER("message type invalid");
     } else {
       if (msg->evt_type == LGSV_LGS_EVT_LGA_DOWN) {
-        lgs_lgsv_top_level_evt_dispatch_tbl[msg->evt_type] (msg);
+        lgs_lgsv_top_level_evt_dispatch_tbl[msg->evt_type](msg);
       }
       if (msg->evt_type == LGSV_EVT_RDA) {
         proc_rda_cb_msg(msg);

@@ -22,7 +22,7 @@
 
   FUNCTIONS INCLUDED in this module:
   cpd_lib_req ............ SE API to init and create PWE for CPD
-  cpd_lib_init ........... Function used to init CPD.  
+  cpd_lib_init ........... Function used to init CPD.
   cpd_lib_destroy ........ Function used to destroy CPD.
   cpd_main_process ........Process all the events posted to CPD.
 ******************************************************************************/
@@ -36,24 +36,18 @@
 #include "rde/agent/rda_papi.h"
 #include "base/osaf_time.h"
 
-enum {
-	FD_TERM = 0,
-	FD_AMF,
-	FD_CLM,
-	FD_MBCSV,
-	FD_MBX,
-	FD_IMM,
-	NUM_FD
-};
+enum { FD_TERM = 0, FD_AMF, FD_CLM, FD_MBCSV, FD_MBX, FD_IMM, NUM_FD };
 
 static struct pollfd fds[NUM_FD];
 static nfds_t nfds = NUM_FD;
 uint32_t gl_cpd_cb_hdl = 0;
 
 /* Static Function Declerations */
-static uint32_t cpd_extract_create_info(int argc, char *argv[], CPD_CREATE_INFO *create_info);
+static uint32_t cpd_extract_create_info(int argc, char *argv[],
+					CPD_CREATE_INFO *create_info);
 
-static uint32_t cpd_extract_destroy_info(int argc, char *argv[], CPD_DESTROY_INFO *destroy_info);
+static uint32_t cpd_extract_destroy_info(int argc, char *argv[],
+					 CPD_DESTROY_INFO *destroy_info);
 
 static uint32_t cpd_lib_init(CPD_CREATE_INFO *info);
 
@@ -68,11 +62,11 @@ void cpd_main_process(CPD_CB *cb);
 /****************************************************************************
  * Name          : cpd_lib_req
  *
- * Description   : This is the SE API which is used to init/destroy or 
+ * Description   : This is the SE API which is used to init/destroy or
  *                 Create/destroy PWE's of CPD. This will be called by SBOM.
  *
- * Arguments     : req_info  - This is the pointer to the input information 
- *                             which SBOM gives.  
+ * Arguments     : req_info  - This is the pointer to the input information
+ *                             which SBOM gives.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
@@ -87,14 +81,16 @@ uint32_t cpd_lib_req(NCS_LIB_REQ_INFO *req_info)
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
 		if (cpd_extract_create_info(req_info->info.create.argc,
-					    req_info->info.create.argv, &create_info) == NCSCC_RC_FAILURE) {
+					    req_info->info.create.argv,
+					    &create_info) == NCSCC_RC_FAILURE) {
 			break;
 		}
 		rc = cpd_lib_init(&create_info);
 		break;
 	case NCS_LIB_REQ_DESTROY:
-		if (cpd_extract_destroy_info(req_info->info.create.argc,
-					     req_info->info.create.argv, &destroy_info) == NCSCC_RC_FAILURE) {
+		if (cpd_extract_destroy_info(
+			req_info->info.create.argc, req_info->info.create.argv,
+			&destroy_info) == NCSCC_RC_FAILURE) {
 			break;
 		}
 		rc = cpd_lib_destroy(&destroy_info);
@@ -118,7 +114,8 @@ uint32_t cpd_lib_req(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t cpd_extract_create_info(int argc, char *argv[], CPD_CREATE_INFO *create_info)
+static uint32_t cpd_extract_create_info(int argc, char *argv[],
+					CPD_CREATE_INFO *create_info)
 {
 
 	memset(create_info, 0, sizeof(CPD_CREATE_INFO));
@@ -136,13 +133,15 @@ static uint32_t cpd_extract_create_info(int argc, char *argv[], CPD_CREATE_INFO 
  *
  * Arguments     : argc  - This is the Number of arguments received.
  *                 argv  - string received.
- *                 destroy_info - Structure to be filled for initing the service.
+ *                 destroy_info - Structure to be filled for initing the
+ *service.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t cpd_extract_destroy_info(int argc, char *argv[], CPD_DESTROY_INFO *destroy_info)
+static uint32_t cpd_extract_destroy_info(int argc, char *argv[],
+					 CPD_DESTROY_INFO *destroy_info)
 {
 
 	memset(destroy_info, 0, sizeof(CPD_DESTROY_INFO));
@@ -164,40 +163,42 @@ static SaAisErrorT cpd_clm_init(CPD_CB *cb)
 	for (;;) {
 		SaVersionT clm_version;
 		m_CPSV_GET_AMF_VER(clm_version);
-		error = saClmInitialize(&cb->clm_hdl, &cpd_clm_cbk, &clm_version);
+		error =
+		    saClmInitialize(&cb->clm_hdl, &cpd_clm_cbk, &clm_version);
 		if (error == SA_AIS_ERR_TRY_AGAIN ||
 		    error == SA_AIS_ERR_TIMEOUT ||
-                    error == SA_AIS_ERR_UNAVAILABLE) {
+		    error == SA_AIS_ERR_UNAVAILABLE) {
 			if (error != SA_AIS_ERR_TRY_AGAIN) {
 				LOG_WA("saClmInitialize returned %u",
-				       (unsigned) error);
+				       (unsigned)error);
 			}
 			osaf_nanosleep(&kHundredMilliseconds);
 			continue;
 		}
-		if (error == SA_AIS_OK) break;
+		if (error == SA_AIS_OK)
+			break;
 		LOG_ER("Failed to Initialize with CLM: %u", error);
 		return error;
 	}
 
-	error =	saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj);
+	error = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj);
 	if (error != SA_AIS_OK) {
-		LOG_ER("cpd clm selectionobjget failed %u",error);
+		LOG_ER("cpd clm selectionobjget failed %u", error);
 		goto done;
 	}
 
 	/* Start Cluster Tracking */
 	error = saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
 	if (error != SA_AIS_OK) {
-		LOG_ER("cpd clm cluster track failed %u",error);
+		LOG_ER("cpd clm cluster track failed %u", error);
 		goto done;
-        }
+	}
 
 	return error;
 
 done:
 	saClmFinalize(cb->clm_hdl);
-	
+
 	return error;
 }
 
@@ -212,9 +213,9 @@ done:
  *
  * Notes         : None.
  *****************************************************************************/
-static void* cpd_clm_init_thread(void* arg)
+static void *cpd_clm_init_thread(void *arg)
 {
-	CPD_CB *cb = (CPD_CB*)arg;
+	CPD_CB *cb = (CPD_CB *)arg;
 
 	TRACE_ENTER();
 
@@ -224,7 +225,7 @@ static void* cpd_clm_init_thread(void* arg)
 	}
 
 	/* Notify main process to update clm select object */
-	ncs_sel_obj_ind((NCS_SEL_OBJ*)&cb->clm_sel_obj);
+	ncs_sel_obj_ind((NCS_SEL_OBJ *)&cb->clm_sel_obj);
 
 	TRACE_LEAVE();
 	return NULL;
@@ -264,8 +265,8 @@ static SaAisErrorT cpd_clm_init_bg(CPD_CB *cb)
  * Description   : This is the function which initalize the CPD libarary.
  *                 This function creates an IPC mail Box and spawns CPD
  *                 thread.
- *                 This function initializes the CB, handle manager, MDS, CPD 
- *                 and Registers with AMF with respect to the component Type 
+ *                 This function initializes the CB, handle manager, MDS, CPD
+ *                 and Registers with AMF with respect to the component Type
  *                 (CPD).
  *
  * Arguments     : create_info: pointer to struct CPD_CREATE_INFO.
@@ -301,7 +302,8 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 		goto cpd_cb_init_fail;
 	}
 
-	if ((cb->cpd_hdl = ncshm_create_hdl(cb->hm_poolid, NCS_SERVICE_ID_CPD, (NCSCONTEXT)cb)) == 0) {
+	if ((cb->cpd_hdl = ncshm_create_hdl(cb->hm_poolid, NCS_SERVICE_ID_CPD,
+					    (NCSCONTEXT)cb)) == 0) {
 		LOG_ER("cpd handle creation failed");
 		rc = NCSCC_RC_FAILURE;
 		goto cpd_hdl_fail;
@@ -310,7 +312,7 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 	/* Store the handle in some global location */
 	m_CPD_STORE_CB_HDL(cb->cpd_hdl);
 
-	if (cpd_get_scAbsenceAllowed_attr() != 0 ) {
+	if (cpd_get_scAbsenceAllowed_attr() != 0) {
 		cb->scAbsenceAllowed = true;
 		TRACE("cpd scAbsenceAllowed = true");
 	} else
@@ -330,7 +332,7 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 
 	/* Initialise with the AMF service */
 	if (cpd_amf_init(cb) != NCSCC_RC_SUCCESS) {
-		LOG_ER("cpd amf init failed");	
+		LOG_ER("cpd amf init failed");
 		goto amf_init_err;
 	}
 
@@ -359,7 +361,8 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 	healthy.keyLen = strlen((char *)healthy.key);
 
 	amf_error = saAmfHealthcheckStart(cb->amf_hdl, &cb->comp_name, &healthy,
-					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
+					  SA_AMF_HEALTHCHECK_AMF_INVOKED,
+					  SA_AMF_COMPONENT_FAILOVER);
 
 	if (amf_error != SA_AIS_OK) {
 		LOG_ER("cpd health check start failed");
@@ -370,37 +373,37 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 		goto cpd_mab_fail;
 
 	if ((rc = initialize_for_assignment(cb, cb->ha_state)) !=
-		NCSCC_RC_SUCCESS) {
-		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned)rc);
 		exit(EXIT_FAILURE);
 	}
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
- cpd_mab_fail:
+cpd_mab_fail:
 	cpd_amf_deregister(cb);
 
- amf_reg_err:
+amf_reg_err:
 	cpd_amf_de_init(cb);
 
- amf_init_err:
+amf_init_err:
 	m_NCS_IPC_DETACH(&cb->cpd_mbx, cpd_clear_mbx, cb);
 
- cpd_ipc_att_fail:
+cpd_ipc_att_fail:
 	m_NCS_IPC_RELEASE(&cb->cpd_mbx, NULL);
 
- cpd_ipc_create_fail:
+cpd_ipc_create_fail:
 	ncshm_destroy_hdl(NCS_SERVICE_ID_CPD, cb->cpd_hdl);
 
- cpd_hdl_fail:
+cpd_hdl_fail:
 	cpd_cb_db_destroy(cb);
 
- cpd_cb_init_fail:
+cpd_cb_init_fail:
 	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
 	m_MMGR_FREE_CPD_CB(cb);
 
- cpd_cb_alloc_fail:
+cpd_cb_alloc_fail:
 
 	TRACE_LEAVE();
 	return (rc);
@@ -408,7 +411,7 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 
 uint32_t initialize_for_assignment(CPD_CB *cb, SaAmfHAStateT ha_state)
 {
-	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	TRACE_ENTER2("ha_state = %d", (int)ha_state);
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) {
 		goto done;
@@ -448,8 +451,8 @@ cpd_mds_fail:
  *
  * Description   : This is the function which destroy the cpd libarary.
  *                 This function releases the Task and the IPX mail Box.
- *                 This function unregisters with AMF, destroies handle 
- *                 manager, CB and clean up all the component specific 
+ *                 This function unregisters with AMF, destroies handle
+ *                 manager, CB and clean up all the component specific
  *                 databases.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
@@ -505,7 +508,7 @@ static uint32_t cpd_lib_destroy(CPD_DESTROY_INFO *info)
 /****************************************************************************
  * Name          : cpd_clear_mbx
  *
- * Description   : This is the function which deletes all the messages from 
+ * Description   : This is the function which deletes all the messages from
  *                 the mail box.
  *
  * Arguments     : arg     - argument to be passed.
@@ -532,14 +535,14 @@ static bool cpd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 /****************************************************************************
  * Name          : cpd_main_process
  *
- * Description   : This is the function which is given as a input to the 
+ * Description   : This is the function which is given as a input to the
  *                 CPD task.
  *                 This function will be select of both the FD's (AMF FD and
  *                 Mail Box FD), depending on which FD has been selected, it
  *                 will call the corresponding routines.
  *
- * Arguments     : mbx  - This is the mail box pointer on which IfD/IfND is 
- *                        going to block.  
+ * Arguments     : mbx  - This is the mail box pointer on which IfD/IfND is
+ *                        going to block.
  *
  * Return Values : None.
  *
@@ -559,22 +562,23 @@ void cpd_main_process(CPD_CB *cb)
 	mbx_fd = ncs_ipc_get_sel_obj(&cb->cpd_mbx);
 	error = saAmfSelectionObjectGet(cb->amf_hdl, &amf_sel_obj);
 	if (error != SA_AIS_OK) {
-		LOG_ER("cpd amf selectionobjget failed %u",error);
+		LOG_ER("cpd amf selectionobjget failed %u", error);
 		return;
 	}
 
 	daemon_sigterm_install(&term_fd);
 
-	/* Get the role. If role=SA_AMF_HA_ACTIVE, this is the first checkpoint director
-	 *    starting after both directors have been down.
-	 *    In this case delete old checkpoint runtime objects */
+	/* Get the role. If role=SA_AMF_HA_ACTIVE, this is the first checkpoint
+	 * director starting after both directors have been down. In this case
+	 * delete old checkpoint runtime objects */
 	if (rda_get_role(&rda_role) != NCSCC_RC_SUCCESS) {
 		LOG_ER("cpd rda_get_role FAILED");
 		return;
 	}
 	if (rda_role == SA_AMF_HA_ACTIVE) {
-		LOG_NO("cpd RDA role is active, clean old checkpoint runtime objects");
-		if (cpd_clean_checkpoint_objects(cb)!= NCSCC_RC_SUCCESS) {
+		LOG_NO(
+		    "cpd RDA role is active, clean old checkpoint runtime objects");
+		if (cpd_clean_checkpoint_objects(cb) != NCSCC_RC_SUCCESS) {
 			LOG_ER("cpd_clean_checkpoint_objects FAILED");
 			return;
 		}
@@ -656,7 +660,9 @@ void cpd_main_process(CPD_CB *cb)
 
 		/* process the CPD Mail box */
 		if (fds[FD_MBX].revents & POLLIN) {
-			if (NULL != (evt = (CPSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&mbx, evt))) {
+			if (NULL !=
+			    (evt = (CPSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(
+				 &mbx, evt))) {
 				/* now got the IPC mail box event */
 				cpd_process_evt(evt);
 			}
@@ -664,25 +670,30 @@ void cpd_main_process(CPD_CB *cb)
 		/* process the IMM messages */
 		if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
 			/* dispatch all the IMM pending function */
-			error = saImmOiDispatch(cb->immOiHandle, SA_DISPATCH_ONE);
+			error =
+			    saImmOiDispatch(cb->immOiHandle, SA_DISPATCH_ONE);
 
 			/*
-			 ** BAD_HANDLE is interpreted as an IMM service restart. Try 
-			 ** reinitialize the IMM OI API in a background thread and let 
-			 ** this thread do business as usual especially handling write 
-			 ** requests.
+			 ** BAD_HANDLE is interpreted as an IMM service restart.
+			 *Try * reinitialize the IMM OI API in a background
+			 *thread and let * this thread do business as usual
+			 *especially handling write * requests.
 			 **
-			 ** All other errors are treated as non-recoverable (fatal) and will
-			 ** cause an exit of the process.
+			 ** All other errors are treated as non-recoverable
+			 *(fatal) and will * cause an exit of the process.
 			 */
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
-				TRACE_4("cpd saImmOiDispatch returned Bad_handle %u",error);
+				TRACE_4(
+				    "cpd saImmOiDispatch returned Bad_handle %u",
+				    error);
 
-				/* 
-				 ** Invalidate the IMM OI handle, this info is used in other
-				 ** locations. E.g. giving TRY_AGAIN responses to a create and
-				 ** close resource requests. That is needed since the IMM OI
-				 ** is used in context of these functions.
+				/*
+				 ** Invalidate the IMM OI handle, this info is
+				 *used in other * locations. E.g. giving
+				 *TRY_AGAIN responses to a create and * close
+				 *resource requests. That is needed since the
+				 *IMM OI * is used in context of these
+				 *functions.
 				 */
 				saImmOiFinalize(cb->immOiHandle);
 				cb->immOiHandle = 0;
@@ -690,11 +701,10 @@ void cpd_main_process(CPD_CB *cb)
 				cpd_imm_reinit_bg(cb);
 
 			} else if (error != SA_AIS_OK) {
-				LOG_ER("cpd saImmOiDispatch failed %u",error);	
+				LOG_ER("cpd saImmOiDispatch failed %u", error);
 				break;
 			}
 		}
 	}
 	return;
-
 }

@@ -22,10 +22,10 @@
 
 void exitIfFalse(int expression) /* instead of assert */
 {
-  if (!expression) {
-    printf("INVALID PARAM - exit\n");
-    exit(1);
-  }
+	if (!expression) {
+		printf("INVALID PARAM - exit\n");
+		exit(1);
+	}
 }
 
 const char *sa_error_list[] = {
@@ -138,12 +138,9 @@ const char *sa_probable_cause_list[] = {
 };
 
 const char *sa_severity_list[] = {
-    "SA_NTF_SEVERITY_CLEARED",
-    "SA_NTF_SEVERITY_INDETERMINATE",
-    "SA_NTF_SEVERITY_WARNING",
-    "SA_NTF_SEVERITY_MINOR",
-    "SA_NTF_SEVERITY_MAJOR",
-    "SA_NTF_SEVERITY_CRITICAL",
+    "SA_NTF_SEVERITY_CLEARED", "SA_NTF_SEVERITY_INDETERMINATE",
+    "SA_NTF_SEVERITY_WARNING", "SA_NTF_SEVERITY_MINOR",
+    "SA_NTF_SEVERITY_MAJOR",   "SA_NTF_SEVERITY_CRITICAL",
 };
 
 const char *sa_alarm_event_type_list[] = {
@@ -156,13 +153,11 @@ const char *sa_alarm_event_type_list[] = {
 };
 
 const char *sa_state_change_event_type_list[] = {
-    "SA_NTF_STATE_CHANGE_NOTIFICATIONS_START",
-    "SA_NTF_OBJECT_STATE_CHANGE",
+    "SA_NTF_STATE_CHANGE_NOTIFICATIONS_START", "SA_NTF_OBJECT_STATE_CHANGE",
 };
 
 const char *sa_object_create_delete_event_type_list[] = {
-    "SA_NTF_OBJECT_NOTIFICATIONS_START",
-    "SA_NTF_OBJECT_CREATION",
+    "SA_NTF_OBJECT_NOTIFICATIONS_START", "SA_NTF_OBJECT_CREATION",
     "SA_NTF_OBJECT_DELETION",
 };
 
@@ -184,185 +179,191 @@ const char *sa_security_alarm_event_type_list[] = {
 };
 
 const char *sa_source_indicator_list[] = {
-    "SA_NTF_OBJECT_OPERATION",
-    "SA_NTF_UNKNOWN_OPERATION",
+    "SA_NTF_OBJECT_OPERATION", "SA_NTF_UNKNOWN_OPERATION",
     "SA_NTF_MANAGEMENT_OPERATION",
 };
 
 char *get_sa_error_b(SaAisErrorT error)
 {
-    exitIfFalse(error >= SA_AIS_OK);
-    exitIfFalse(error <= SA_AIS_ERR_NO_SECTIONS);
+	exitIfFalse(error >= SA_AIS_OK);
+	exitIfFalse(error <= SA_AIS_ERR_NO_SECTIONS);
 
-    return ((char *)sa_error_list[error]);
+	return ((char *)sa_error_list[error]);
 }
 
 char *get_test_output(SaAisErrorT result, SaAisErrorT expected)
 {
-    static char test_result[256];
+	static char test_result[256];
 
-    if (result == expected) {
-	return ("PASSED");
-    } else {
-	(void)sprintf(test_result,
-		"FAILED expected %s got %s",
-		get_sa_error_b(expected),
-		get_sa_error_b(result));
-	return (test_result);
-    }
+	if (result == expected) {
+		return ("PASSED");
+	} else {
+		(void)sprintf(test_result, "FAILED expected %s got %s",
+			      get_sa_error_b(expected), get_sa_error_b(result));
+		return (test_result);
+	}
 }
 
 void print_severity(SaNtfSeverityT input)
 {
-    exitIfFalse(input >= SA_NTF_SEVERITY_CLEARED);
-    exitIfFalse(input <= SA_NTF_SEVERITY_CRITICAL);
+	exitIfFalse(input >= SA_NTF_SEVERITY_CLEARED);
+	exitIfFalse(input <= SA_NTF_SEVERITY_CRITICAL);
 
-    (void)printf("%s\n", (char *)sa_severity_list[input]);
+	(void)printf("%s\n", (char *)sa_severity_list[input]);
 }
 
 void print_probable_cause(SaNtfProbableCauseT input)
 {
-    exitIfFalse(input >= SA_NTF_ADAPTER_ERROR);
-    exitIfFalse(input <= SA_NTF_UNSPECIFIED_REASON);
+	exitIfFalse(input >= SA_NTF_ADAPTER_ERROR);
+	exitIfFalse(input <= SA_NTF_UNSPECIFIED_REASON);
 
-    (void)printf("%s\n", (char *)sa_probable_cause_list[input]);
+	(void)printf("%s\n", (char *)sa_probable_cause_list[input]);
 }
 
 void print_event_type(SaNtfEventTypeT input,
-                      SaNtfNotificationTypeT notificationType)
+		      SaNtfNotificationTypeT notificationType)
 {
-    int listIndex;
+	int listIndex;
 
+	switch (notificationType) {
+	case SA_NTF_TYPE_STATE_CHANGE:
+		if (input >= (int)SA_NTF_STATE_CHANGE_NOTIFICATIONS_START) {
+			listIndex = (int)input - (int)SA_NTF_TYPE_STATE_CHANGE;
 
-    switch (notificationType) {
-    case SA_NTF_TYPE_STATE_CHANGE:
-        if(input >= (int)SA_NTF_STATE_CHANGE_NOTIFICATIONS_START) {
-            listIndex = (int)input - (int)SA_NTF_TYPE_STATE_CHANGE;
+			exitIfFalse(input >=
+				    SA_NTF_STATE_CHANGE_NOTIFICATIONS_START);
+			exitIfFalse(input <= SA_NTF_OBJECT_STATE_CHANGE);
 
-	    exitIfFalse(input >= SA_NTF_STATE_CHANGE_NOTIFICATIONS_START);
-	    exitIfFalse(input <= SA_NTF_OBJECT_STATE_CHANGE);
+			(void)printf(
+			    "%s\n",
+			    (char *)sa_state_change_event_type_list[listIndex]);
+		}
+		break;
 
-            (void)printf("%s\n",
-                         (char *)sa_state_change_event_type_list[listIndex]);
+	case SA_NTF_TYPE_ALARM:
+		if (input >= (int)SA_NTF_ALARM_NOTIFICATIONS_START) {
+			listIndex = (int)input - (int)SA_NTF_TYPE_ALARM;
 
-        }
-        break;
+			exitIfFalse(input >= SA_NTF_ALARM_NOTIFICATIONS_START);
+			exitIfFalse(input <= SA_NTF_ALARM_ENVIRONMENT);
 
-    case SA_NTF_TYPE_ALARM:
-	if(input >= (int)SA_NTF_ALARM_NOTIFICATIONS_START) {
-	    listIndex = (int)input - (int)SA_NTF_TYPE_ALARM;
+			(void)printf(
+			    "%s\n",
+			    (char *)sa_alarm_event_type_list[listIndex]);
+		}
+		break;
 
-	    exitIfFalse(input >= SA_NTF_ALARM_NOTIFICATIONS_START);
-	    exitIfFalse(input <= SA_NTF_ALARM_ENVIRONMENT);
+	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
+		if (input >= (int)SA_NTF_OBJECT_NOTIFICATIONS_START) {
+			listIndex =
+			    (int)input - (int)SA_NTF_TYPE_OBJECT_CREATE_DELETE;
 
-	    (void)printf("%s\n",
-			 (char *)sa_alarm_event_type_list[listIndex]);
+			exitIfFalse(input >= SA_NTF_OBJECT_NOTIFICATIONS_START);
+			exitIfFalse(input <= SA_NTF_OBJECT_DELETION);
+
+			(void)printf(
+			    "%s\n",
+			    (char *)sa_object_create_delete_event_type_list
+				[listIndex]);
+		}
+		break;
+
+	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
+		if (input >= (int)SA_NTF_ATTRIBUTE_NOTIFICATIONS_START) {
+			listIndex =
+			    (int)input - (int)SA_NTF_TYPE_ATTRIBUTE_CHANGE;
+
+			exitIfFalse(input >=
+				    SA_NTF_ATTRIBUTE_NOTIFICATIONS_START);
+			exitIfFalse(input <= SA_NTF_ATTRIBUTE_RESET);
+
+			(void)printf(
+			    "%s\n",
+			    (char *)
+				sa_attribute_change_event_type_list[listIndex]);
+		}
+		break;
+
+	case SA_NTF_TYPE_SECURITY_ALARM:
+		if (input >= (int)SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START) {
+			listIndex =
+			    (int)input - (int)SA_NTF_TYPE_SECURITY_ALARM;
+
+			exitIfFalse(input >=
+				    SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START);
+			exitIfFalse(input <= SA_NTF_TIME_VIOLATION);
+
+			(void)printf(
+			    "%s\n",
+			    (char *)
+				sa_security_alarm_event_type_list[listIndex]);
+		}
+		break;
+
+	default:
+		(void)printf("Unknown Notification Type!!");
+		exit(1);
+		break;
 	}
-        break;
-
-    case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
-	if(input >= (int)SA_NTF_OBJECT_NOTIFICATIONS_START) {
-	    listIndex = (int)input - (int)SA_NTF_TYPE_OBJECT_CREATE_DELETE;
-
-	    exitIfFalse(input >= SA_NTF_OBJECT_NOTIFICATIONS_START);
-	    exitIfFalse(input <= SA_NTF_OBJECT_DELETION);
-
-	    (void)printf(
-		"%s\n",
-		(char *)sa_object_create_delete_event_type_list[listIndex]);
-	}
-        break;
-
-    case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
-	if(input >= (int)SA_NTF_ATTRIBUTE_NOTIFICATIONS_START) {
-	    listIndex = (int)input - (int)SA_NTF_TYPE_ATTRIBUTE_CHANGE;
-
-	    exitIfFalse(input >= SA_NTF_ATTRIBUTE_NOTIFICATIONS_START);
-	    exitIfFalse(input <= SA_NTF_ATTRIBUTE_RESET);
-
-	    (void)printf(
-		"%s\n",
-		(char *)sa_attribute_change_event_type_list[listIndex]);
-	}
-	break;
-
-    case SA_NTF_TYPE_SECURITY_ALARM:
-	if(input >= (int)SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START) {
-	    listIndex = (int)input - (int)SA_NTF_TYPE_SECURITY_ALARM;
-
-	    exitIfFalse(input >= SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START);
-	    exitIfFalse(input <= SA_NTF_TIME_VIOLATION);
-
-	    (void)printf("%s\n",
-			 (char *)sa_security_alarm_event_type_list[listIndex]);
-	}
-	break;
-
-    default:
-        (void)printf("Unknown Notification Type!!");
-        exit(1);
-        break;
-    }
 }
 
 void print_change_states(SaNtfStateChangeT *input)
 {
-    (void)printf("State ID: %d\n", input->stateId);
+	(void)printf("State ID: %d\n", input->stateId);
 
-    if (input->oldStatePresent == SA_TRUE) {
-        (void)printf("Old State Present: Yes\n");
-        (void)printf("Old State: %d\n", input->oldState);
-    } else {
-        (void)printf("Old State Present: No\n");
-    }
-    (void)printf("New State: %d\n", input->newState);
-
+	if (input->oldStatePresent == SA_TRUE) {
+		(void)printf("Old State Present: Yes\n");
+		(void)printf("Old State: %d\n", input->oldState);
+	} else {
+		(void)printf("Old State Present: No\n");
+	}
+	(void)printf("New State: %d\n", input->newState);
 }
 
 void print_object_attributes(SaNtfAttributeT *input)
 {
-    (void)printf("Attribute ID: %d\n", input->attributeId);
-    (void)printf("Attribute Type: %d\n", input->attributeType);
-    (void)printf("Attribute Value: %d\n", input->attributeValue.int32Val);
+	(void)printf("Attribute ID: %d\n", input->attributeId);
+	(void)printf("Attribute Type: %d\n", input->attributeType);
+	(void)printf("Attribute Value: %d\n", input->attributeValue.int32Val);
 }
 
 void print_changed_attributes(SaNtfAttributeChangeT *input)
 {
-    (void)printf("Attribute ID: %d\n", input->attributeId);
+	(void)printf("Attribute ID: %d\n", input->attributeId);
 
-    (void)printf("Attribute Type: %d\n", input->attributeType);
-    if (input->oldAttributePresent == SA_TRUE) {
-        (void)printf("Old Attribute Present: Yes\n");
-        (void)printf("Old Attribute: %d\n", input->oldAttributeValue.int16Val);
-    } else {
-        (void)printf("Old Attribute Present: No\n");
-    }
-    (void)printf("New Attribute Value: %d\n", input->newAttributeValue.int32Val);
-
+	(void)printf("Attribute Type: %d\n", input->attributeType);
+	if (input->oldAttributePresent == SA_TRUE) {
+		(void)printf("Old Attribute Present: Yes\n");
+		(void)printf("Old Attribute: %d\n",
+			     input->oldAttributeValue.int16Val);
+	} else {
+		(void)printf("Old Attribute Present: No\n");
+	}
+	(void)printf("New Attribute Value: %d\n",
+		     input->newAttributeValue.int32Val);
 }
 
 void print_security_alarm_types(SaNtfSecurityAlarmNotificationT *input)
 {
-    (void)printf("Security Alarm Detector Type: %d\n",
-		 input->securityAlarmDetector->valueType);
-    (void)printf("Security Alarm Detector Value: %d\n",
-		 input->securityAlarmDetector->value.int32Val);
+	(void)printf("Security Alarm Detector Type: %d\n",
+		     input->securityAlarmDetector->valueType);
+	(void)printf("Security Alarm Detector Value: %d\n",
+		     input->securityAlarmDetector->value.int32Val);
 
-    (void)printf("Service User Type: %d\n",
-		 input->serviceUser->valueType);
-    (void)printf("Service User Value: %d\n",
-		 input->serviceUser->value.int32Val);
+	(void)printf("Service User Type: %d\n", input->serviceUser->valueType);
+	(void)printf("Service User Value: %d\n",
+		     input->serviceUser->value.int32Val);
 
-    (void)printf("Service Provider Type: %d\n",
-		 input->serviceProvider->valueType);
-    (void)printf("Service Provider Value: %d\n",
-		 input->serviceProvider->value.int32Val);
+	(void)printf("Service Provider Type: %d\n",
+		     input->serviceProvider->valueType);
+	(void)printf("Service Provider Value: %d\n",
+		     input->serviceProvider->value.int32Val);
 }
 
 void print_source_indicator(SaNtfSourceIndicatorT input)
 {
-    exitIfFalse(input >= SA_NTF_OBJECT_OPERATION);
-    exitIfFalse(input <= SA_NTF_MANAGEMENT_OPERATION);
+	exitIfFalse(input >= SA_NTF_OBJECT_OPERATION);
+	exitIfFalse(input <= SA_NTF_MANAGEMENT_OPERATION);
 
-    (void)printf("%s\n", (char *)sa_source_indicator_list[input]);
+	(void)printf("%s\n", (char *)sa_source_indicator_list[input]);
 }

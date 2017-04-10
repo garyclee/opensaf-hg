@@ -18,8 +18,8 @@
 #include "base/time.h"
 #include "gtest/gtest.h"
 
-static const timespec kZeroDotNineSeconds = { 0, 900000000 };
-static const timespec kOneDotOneSeconds = { 1, 100000000 };
+static const timespec kZeroDotNineSeconds = {0, 900000000};
+static const timespec kOneDotOneSeconds = {1, 100000000};
 
 TEST(BaseTimeCompare, ZeroWithZero) {
   // cppcheck-suppress duplicateExpression
@@ -153,52 +153,48 @@ TEST(BaseTimeCompare, ZeroDotOneWithZeroDotNine) {
 TEST(BaseTimeCompare, MaxOfTwoWithLargestLast) {
   EXPECT_EQ(base::Max(kZeroDotNineSeconds, kOneDotOneSeconds),
             kOneDotOneSeconds);
-  EXPECT_EQ(base::Max(base::kOneHundredMilliseconds,
-                      base::kTwoHundredMilliseconds),
-            base::kTwoHundredMilliseconds);
+  EXPECT_EQ(
+      base::Max(base::kOneHundredMilliseconds, base::kTwoHundredMilliseconds),
+      base::kTwoHundredMilliseconds);
 }
 
 TEST(BaseTimeCompare, MaxOfTwoWithLargestFirst) {
   EXPECT_EQ(base::Max(kOneDotOneSeconds, kZeroDotNineSeconds),
             kOneDotOneSeconds);
-  EXPECT_EQ(base::Max(base::kTwoHundredMilliseconds,
-                      base::kOneHundredMilliseconds),
-            base::kTwoHundredMilliseconds);
+  EXPECT_EQ(
+      base::Max(base::kTwoHundredMilliseconds, base::kOneHundredMilliseconds),
+      base::kTwoHundredMilliseconds);
 }
 
 TEST(BaseTimeCompare, MaxOfTwoEqual) {
-  EXPECT_EQ(base::Max(kOneDotOneSeconds, kOneDotOneSeconds),
-            kOneDotOneSeconds);
+  EXPECT_EQ(base::Max(kOneDotOneSeconds, kOneDotOneSeconds), kOneDotOneSeconds);
 }
 
 TEST(BaseTimeCompare, MaxOfThreeWithLargestLast) {
-  EXPECT_EQ(base::Max(kZeroDotNineSeconds, base::kOneSecond,
-                      kOneDotOneSeconds),
+  EXPECT_EQ(base::Max(kZeroDotNineSeconds, base::kOneSecond, kOneDotOneSeconds),
             kOneDotOneSeconds);
-  EXPECT_EQ(base::Max(base::kOneHundredMilliseconds,
-                      base::kTwoHundredMilliseconds,
-                      base::kThreeHundredMilliseconds),
-            base::kThreeHundredMilliseconds);
+  EXPECT_EQ(
+      base::Max(base::kOneHundredMilliseconds, base::kTwoHundredMilliseconds,
+                base::kThreeHundredMilliseconds),
+      base::kThreeHundredMilliseconds);
 }
 
 TEST(BaseTimeCompare, MaxOfThreeWithLargestInTheMiddle) {
-  EXPECT_EQ(base::Max(kZeroDotNineSeconds, kOneDotOneSeconds,
-                      base::kOneSecond),
+  EXPECT_EQ(base::Max(kZeroDotNineSeconds, kOneDotOneSeconds, base::kOneSecond),
             kOneDotOneSeconds);
-  EXPECT_EQ(base::Max(base::kOneHundredMilliseconds,
-                      base::kThreeHundredMilliseconds,
-                      base::kTwoHundredMilliseconds),
-            base::kThreeHundredMilliseconds);
+  EXPECT_EQ(
+      base::Max(base::kOneHundredMilliseconds, base::kThreeHundredMilliseconds,
+                base::kTwoHundredMilliseconds),
+      base::kThreeHundredMilliseconds);
 }
 
 TEST(BaseTimeCompare, MaxOfThreeWithLargestFirst) {
-  EXPECT_EQ(base::Max(kOneDotOneSeconds, base::kOneSecond,
-                      kZeroDotNineSeconds),
+  EXPECT_EQ(base::Max(kOneDotOneSeconds, base::kOneSecond, kZeroDotNineSeconds),
             kOneDotOneSeconds);
-  EXPECT_EQ(base::Max(base::kThreeHundredMilliseconds,
-                      base::kOneHundredMilliseconds,
-                      base::kTwoHundredMilliseconds),
-            base::kThreeHundredMilliseconds);
+  EXPECT_EQ(
+      base::Max(base::kThreeHundredMilliseconds, base::kOneHundredMilliseconds,
+                base::kTwoHundredMilliseconds),
+      base::kThreeHundredMilliseconds);
 }
 
 TEST(BaseTimeCompare, MaxOfThreeEqual) {

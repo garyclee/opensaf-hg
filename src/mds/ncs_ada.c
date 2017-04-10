@@ -18,9 +18,9 @@
 /*****************************************************************************
 ..............................................................................
 
-  MODULE NAME:       ncs_ada.c   
+  MODULE NAME:       ncs_ada.c
 
-  DESCRIPTION:       
+  DESCRIPTION:
 
 ******************************************************************************
 */
@@ -116,7 +116,6 @@ static uint32_t ada_instantiate(NCS_LIB_REQ_INFO *req)
 	req->info.inst.o_inst_hdl = mds_adm_get_adest_hdl();
 	m_NCSADA_TRACE_ARG1("ADA:LIB_INSTANTIATE:DONE\n");
 	return NCSCC_RC_SUCCESS;
-
 }
 
 static uint32_t ada_uninstantiate(NCS_LIB_REQ_INFO *req)

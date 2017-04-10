@@ -49,7 +49,8 @@ static void close_all_files() {
  *
  * Notes         : None
  *****************************************************************************/
-static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocation) {
+static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb,
+                                            SaInvocationT invocation) {
   log_stream_t *stream;
   SaAisErrorT error = SA_AIS_OK;
   SaBoolT endloop = SA_FALSE, jstart = SA_TRUE;
@@ -73,8 +74,7 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
     count++;
   }
 
-  if (count == 0)
-    LOG_ER("No streams exist!");
+  if (count == 0) LOG_ER("No streams exist!");
 
 done:
   /* Update role independent of stream processing */
@@ -96,7 +96,8 @@ done:
  *
  * Notes         : None
  *****************************************************************************/
-static SaAisErrorT amf_standby_state_handler(lgs_cb_t *cb, SaInvocationT invocation) {
+static SaAisErrorT amf_standby_state_handler(lgs_cb_t *cb,
+                                             SaInvocationT invocation) {
   SaAisErrorT error = SA_AIS_OK;
 
   TRACE_ENTER2("HA STANDBY request");
@@ -121,7 +122,8 @@ static SaAisErrorT amf_standby_state_handler(lgs_cb_t *cb, SaInvocationT invocat
  *
  * Notes         : None
  *****************************************************************************/
-static SaAisErrorT amf_quiescing_state_handler(lgs_cb_t *cb, SaInvocationT invocation) {
+static SaAisErrorT amf_quiescing_state_handler(lgs_cb_t *cb,
+                                               SaInvocationT invocation) {
   SaAisErrorT ais_rc = SA_AIS_OK;
 
   TRACE_ENTER2("HA QUIESCING request");
@@ -151,7 +153,8 @@ static SaAisErrorT amf_quiescing_state_handler(lgs_cb_t *cb, SaInvocationT invoc
  *
  * Notes         : None
  *****************************************************************************/
-static SaAisErrorT amf_quiesced_state_handler(lgs_cb_t *cb, SaInvocationT invocation) {
+static SaAisErrorT amf_quiesced_state_handler(lgs_cb_t *cb,
+                                              SaInvocationT invocation) {
   V_DEST_RL mds_role;
   SaAisErrorT rc = SA_AIS_OK;
 
@@ -190,7 +193,8 @@ done:
  * Name          : amf_health_chk_callback
  *
  * Description   : This is the callback function which will be called
- *                 when the AMF framework needs to health check for the component.
+ *                 when the AMF framework needs to health check for the
+ *component.
  *
  * Arguments     : invocation - Designates a particular invocation.
  *                 compName       - A pointer to the name of the component
@@ -203,7 +207,8 @@ done:
  * Notes         : None
  *****************************************************************************/
 static void amf_health_chk_callback(SaInvocationT invocation,
-                                    const SaNameT *compName, SaAmfHealthcheckKeyT *checkType) {
+                                    const SaNameT *compName,
+                                    SaAmfHealthcheckKeyT *checkType) {
   saAmfResponse(lgs_cb->amf_hdl, invocation, SA_AIS_OK);
 }
 /****************************************************************************
@@ -233,7 +238,8 @@ static void amf_health_chk_callback(SaInvocationT invocation,
  * Notes         : None.
  *****************************************************************************/
 static void amf_csi_set_callback(SaInvocationT invocation,
-                                 const SaNameT *compName, SaAmfHAStateT new_haState,
+                                 const SaNameT *compName,
+                                 SaAmfHAStateT new_haState,
                                  SaAmfCSIDescriptorT csiDescriptor) {
   SaAisErrorT error = SA_AIS_OK;
   SaAmfHAStateT prev_haState;
@@ -247,9 +253,9 @@ static void amf_csi_set_callback(SaInvocationT invocation,
    */
   prev_haState = lgs_cb->ha_state;
 
-  if ((rc = initialize_for_assignment(lgs_cb,
-                                      new_haState)) != NCSCC_RC_SUCCESS) {
-    TRACE("initialize_for_assignment FAILED %u", (unsigned) rc);
+  if ((rc = initialize_for_assignment(lgs_cb, new_haState)) !=
+      NCSCC_RC_SUCCESS) {
+    TRACE("initialize_for_assignment FAILED %u", (unsigned)rc);
     error = SA_AIS_ERR_FAILED_OPERATION;
     goto response;
   }
@@ -276,11 +282,11 @@ static void amf_csi_set_callback(SaInvocationT invocation,
       break;
   }
 
-  if (error != SA_AIS_OK)
-    goto response;
+  if (error != SA_AIS_OK) goto response;
 
   if (new_haState == SA_AMF_HA_QUIESCED) {
-    /* AMF response will be done later when MDS quiesced ack has been received */
+    /* AMF response will be done later when MDS quiesced ack has been received
+     */
     goto done;
   }
 
@@ -338,7 +344,8 @@ done:
  *
  * Notes         : None
  *****************************************************************************/
-static void amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName) {
+static void amf_comp_terminate_callback(SaInvocationT invocation,
+                                        const SaNameT *compName) {
   TRACE_ENTER();
 
   saAmfResponse(lgs_cb->amf_hdl, invocation, SA_AIS_OK);
@@ -373,7 +380,9 @@ static void amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT 
  * Return Values : None
  *****************************************************************************/
 static void amf_csi_rmv_callback(SaInvocationT invocation,
-                                 const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags) {
+                                 const SaNameT *compName,
+                                 const SaNameT *csiName,
+                                 const SaAmfCSIFlagsT csiFlags) {
   TRACE_ENTER();
   saAmfResponse(lgs_cb->amf_hdl, invocation, SA_AIS_OK);
   TRACE_LEAVE();
@@ -409,10 +418,10 @@ static SaAisErrorT amf_healthcheck_start(lgs_cb_t *lgs_cb) {
   healthy.keyLen = strlen((char *)healthy.key);
 
   error = saAmfHealthcheckStart(lgs_cb->amf_hdl, &lgs_cb->comp_name, &healthy,
-                                SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
+                                SA_AMF_HEALTHCHECK_AMF_INVOKED,
+                                SA_AMF_COMPONENT_FAILOVER);
 
-  if (error != SA_AIS_OK)
-    LOG_ER("saAmfHealthcheckStart FAILED: %u", error);
+  if (error != SA_AIS_OK) LOG_ER("saAmfHealthcheckStart FAILED: %u", error);
 
   TRACE_LEAVE();
   return error;
@@ -437,8 +446,8 @@ SaAisErrorT lgs_amf_init(lgs_cb_t *cb) {
   TRACE_ENTER();
 
   if (cb->nid_started &&
-      amf_comp_name_get_set_from_file("LOGD_COMP_NAME_FILE",
-                                      &cb->comp_name) != NCSCC_RC_SUCCESS) {
+      amf_comp_name_get_set_from_file("LOGD_COMP_NAME_FILE", &cb->comp_name) !=
+          NCSCC_RC_SUCCESS) {
     error = SA_AIS_ERR_NOT_EXIST;
     goto done;
   }
@@ -483,8 +492,8 @@ SaAisErrorT lgs_amf_init(lgs_cb_t *cb) {
   }
 
   /* Start AMF healthchecks */
-  if ((error = amf_healthcheck_start(cb)) != SA_AIS_OK){
-    LOG_ER("amf_healthcheck_start() failed with error %u",error);
+  if ((error = amf_healthcheck_start(cb)) != SA_AIS_OK) {
+    LOG_ER("amf_healthcheck_start() failed with error %u", error);
     goto done;
   }
 

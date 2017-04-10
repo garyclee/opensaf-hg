@@ -25,13 +25,13 @@
 #include "ntfs_imcnutil.h"
 #include "osaf/saflog/saflog.h"
 
-
-#define m_NTFSV_FILL_ASYNC_UPDATE_FINALIZE(ckpt,client_id){ \
-  ckpt.header.ckpt_rec_type=NTFS_CKPT_FINALIZE_REC; \
-  ckpt.header.num_ckpt_records=1; \
-  ckpt.header.data_len=1; \
-  ckpt.ckpt_rec.finalize_rec.client_id= client_id;\
-}
+#define m_NTFSV_FILL_ASYNC_UPDATE_FINALIZE(ckpt, client_id)                    \
+	{                                                                      \
+		ckpt.header.ckpt_rec_type = NTFS_CKPT_FINALIZE_REC;            \
+		ckpt.header.num_ckpt_records = 1;                              \
+		ckpt.header.data_len = 1;                                      \
+		ckpt.ckpt_rec.finalize_rec.client_id = client_id;              \
+	}
 
 static uint32_t process_api_evt(ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt);
@@ -42,35 +42,35 @@ static uint32_t proc_subscribe_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_unsubscribe_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_send_not_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_reader_initialize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
-static uint32_t proc_reader_initialize_msg_2(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+static uint32_t proc_reader_initialize_msg_2(ntfs_cb_t *,
+					     ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_reader_finalize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uint32_t proc_read_next_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 
-static int ntf_version_is_valid(SaVersionT *ver) {
-/* TODO: remove after upgrade to version A.02.01 */       
-/* To be backward compatible during upgrade due to ticket (#544)(#634) */
+static int ntf_version_is_valid(SaVersionT *ver)
+{
+	/* TODO: remove after upgrade to version A.02.01 */
+	/* To be backward compatible during upgrade due to ticket (#544)(#634)
+	 */
 	const SaVersionT alloved_ver = {'A', 0x02, 0x01};
 	if (ver->releaseCode == alloved_ver.releaseCode &&
-		ver->minorVersion == alloved_ver.minorVersion &&
-		ver->majorVersion == alloved_ver.majorVersion)
+	    ver->minorVersion == alloved_ver.minorVersion &&
+	    ver->majorVersion == alloved_ver.majorVersion)
 		return 1;
 
-	return((ver->releaseCode == NTF_RELEASE_CODE) && (0 < ver->majorVersion) && 
-			 (ver->majorVersion <= NTF_MAJOR_VERSION));
+	return ((ver->releaseCode == NTF_RELEASE_CODE) &&
+		(0 < ver->majorVersion) &&
+		(ver->majorVersion <= NTF_MAJOR_VERSION));
 }
 
-static const
-NTFSV_NTFS_EVT_HANDLER ntfs_ntfsv_top_level_evt_dispatch_tbl[NTFSV_NTFS_EVT_MAX] = {
-	NULL,
-	process_api_evt,
-	proc_ntfa_updn_mds_msg,
-	proc_ntfa_updn_mds_msg,
-	proc_mds_quiesced_ack_msg
-};
+static const NTFSV_NTFS_EVT_HANDLER
+    ntfs_ntfsv_top_level_evt_dispatch_tbl[NTFSV_NTFS_EVT_MAX] = {
+	NULL, process_api_evt, proc_ntfa_updn_mds_msg, proc_ntfa_updn_mds_msg,
+	proc_mds_quiesced_ack_msg};
 
 /* Dispatch table for NTFA_API realted messages */
-static const
-NTFSV_NTFS_NTFA_API_MSG_HANDLER ntfs_ntfa_api_msg_dispatcher[NTFSV_API_MAX] = {
+static const NTFSV_NTFS_NTFA_API_MSG_HANDLER
+    ntfs_ntfa_api_msg_dispatcher[NTFSV_API_MAX] = {
 	NULL,
 	proc_initialize_msg,
 	proc_finalize_msg,
@@ -120,7 +120,7 @@ static uint32_t proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt)
  * Name          : proc_mds_quiesced_ack_msg
  *
  * Description   : This is the function which is called when ntfs receives an
- *                       quiesced ack event from MDS 
+ *                       quiesced ack event from MDS
  *
  * Arguments     : evt  - Message that was posted to the NTFS Mail box.
  *
@@ -134,11 +134,13 @@ static uint32_t proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt)
 	if (ntfs_cb->is_quisced_set == true) {
 		ntfs_cb->ha_state = SA_AMF_HA_QUIESCED;
 		/* Inform MBCSV of HA state change */
-		if (ntfs_mbcsv_change_HA_state(ntfs_cb, ntfs_cb->ha_state) != NCSCC_RC_SUCCESS)
+		if (ntfs_mbcsv_change_HA_state(ntfs_cb, ntfs_cb->ha_state) !=
+		    NCSCC_RC_SUCCESS)
 			TRACE("ntfs_mbcsv_change_HA_state FAILED");
 
 		/* Update control block */
-		saAmfResponse(ntfs_cb->amf_hdl, ntfs_cb->amf_invocation_id, SA_AIS_OK);
+		saAmfResponse(ntfs_cb->amf_hdl, ntfs_cb->amf_invocation_id,
+			      SA_AIS_OK);
 		ntfs_cb->is_quisced_set = false;
 	}
 	TRACE_LEAVE();
@@ -161,16 +163,16 @@ static uint32_t proc_rda_cb_msg(ntfsv_ntfs_evt_t *evt)
 {
 	uint32_t rc;
 
-	TRACE_ENTER2("%d", (int) evt->info.rda_info.io_role);
-	if ((rc = initialize_for_assignment(ntfs_cb,
-		(SaAmfHAStateT) evt->info.rda_info.io_role)) !=
-		NCSCC_RC_SUCCESS) {
-		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+	TRACE_ENTER2("%d", (int)evt->info.rda_info.io_role);
+	if ((rc = initialize_for_assignment(
+		 ntfs_cb, (SaAmfHAStateT)evt->info.rda_info.io_role)) !=
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned)rc);
 		exit(EXIT_FAILURE);
 	}
 
 	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE &&
-		ntfs_cb->ha_state != SA_AMF_HA_ACTIVE) {
+	    ntfs_cb->ha_state != SA_AMF_HA_ACTIVE) {
 		SaAmfHAStateT old_ha_state = ntfs_cb->ha_state;
 		LOG_NO("ACTIVE request");
 
@@ -181,13 +183,15 @@ static uint32_t proc_rda_cb_msg(ntfsv_ntfs_evt_t *evt)
 		}
 
 		ntfs_cb->ha_state = SA_AMF_HA_ACTIVE;
-		if ((rc = ntfs_mbcsv_change_HA_state(ntfs_cb, ntfs_cb->ha_state)) != NCSCC_RC_SUCCESS) {
+		if ((rc = ntfs_mbcsv_change_HA_state(
+			 ntfs_cb, ntfs_cb->ha_state)) != NCSCC_RC_SUCCESS) {
 			LOG_ER("ntfs_mbcsv_change_HA_state FAILED %u", rc);
 			goto done;
 		}
 
 		if (old_ha_state == SA_AMF_HA_STANDBY) {
-			/* check for unsent notifictions and if notifiction is not logged */
+			/* check for unsent notifictions and if notifiction is
+			 * not logged */
 			checkNotificationList();
 		}
 	}
@@ -202,9 +206,9 @@ done:
 /****************************************************************************
  * Name          : ntfs_cb_init
  *
- * Description   : This function initializes the NTFS_CB including the 
+ * Description   : This function initializes the NTFS_CB including the
  *                 Patricia trees.
- *                 
+ *
  *
  * Arguments     : ntfs_cb * - Pointer to the NTFS_CB.
  *
@@ -230,10 +234,11 @@ uint32_t ntfs_cb_init(ntfs_cb_t *ntfs_cb)
 
 	tmp = (char *)getenv("NTFSV_ENV_CACHE_SIZE");
 	if (tmp) {
-		ntfs_cb->cache_size =(unsigned int) atoi(tmp);
-		TRACE("NTFSV_ENV_CACHE_SIZE configured value: %u", ntfs_cb->cache_size);
+		ntfs_cb->cache_size = (unsigned int)atoi(tmp);
+		TRACE("NTFSV_ENV_CACHE_SIZE configured value: %u",
+		      ntfs_cb->cache_size);
 	} else {
-		ntfs_cb->cache_size = NTFSV_READER_CACHE_DEFAULT; 
+		ntfs_cb->cache_size = NTFSV_READER_CACHE_DEFAULT;
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -254,7 +259,7 @@ void update_standby(ntfsv_ckpt_msg_t *ckpt, uint32_t action)
  * Handle a initialize message
  * @param cb
  * @param evt
- * 
+ *
  * @return uns32
  */
 static uint32_t proc_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
@@ -270,19 +275,21 @@ static uint32_t proc_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	if (!ntf_version_is_valid(version)) {
 		ais_rc = SA_AIS_ERR_VERSION;
 		TRACE("version FAILED");
-		client_added_res_lib(ais_rc, 0, evt->fr_dest, &evt->mds_ctxt, version);
+		client_added_res_lib(ais_rc, 0, evt->fr_dest, &evt->mds_ctxt,
+				     version);
 		goto done;
 	}
-	//Do not initialize, if node of client is not CLM member. 
+	// Do not initialize, if node of client is not CLM member.
 	if (is_client_clm_member(evt->fr_node_id, version) == false) {
 		ais_rc = SA_AIS_ERR_UNAVAILABLE;
 		TRACE("New client node is not CLM member.");
-		client_added_res_lib(ais_rc, 0, evt->fr_dest, &evt->mds_ctxt, version);
+		client_added_res_lib(ais_rc, 0, evt->fr_dest, &evt->mds_ctxt,
+				     version);
 		goto done;
 	}
 	clientAdded(0, evt->fr_dest, &evt->mds_ctxt, version);
 
- done:
+done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -291,16 +298,18 @@ static uint32_t proc_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * Handle an finalize message
  * @param cb
  * @param evt
- * 
+ *
  * @return uns32
  */
 static uint32_t proc_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-	uint32_t client_id = evt->info.msg.info.api_info.param.finalize.client_id;
+	uint32_t client_id =
+	    evt->info.msg.info.api_info.param.finalize.client_id;
 
 	TRACE_ENTER2("client_id %u", client_id);
 	clientRemoved(client_id);
-	client_removed_res_lib(SA_AIS_OK, client_id, evt->fr_dest, &evt->mds_ctxt);
+	client_removed_res_lib(SA_AIS_OK, client_id, evt->fr_dest,
+			       &evt->mds_ctxt);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -323,13 +332,16 @@ static uint32_t proc_subscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	ntfsv_subscribe_req_t *subscribe_param = &(evt->info.msg.info.api_info.param.subscribe);
+	ntfsv_subscribe_req_t *subscribe_param =
+	    &(evt->info.msg.info.api_info.param.subscribe);
 
-	//This may be a queued request, first verify CLM membership status of client node.
+	// This may be a queued request, first verify CLM membership status of
+	// client node.
 	if (is_stale_client(subscribe_param->client_id) == true) {
 		TRACE_5("Client node is not CLM member.");
-		subscribe_res_lib(SA_AIS_ERR_UNAVAILABLE, subscribe_param->subscriptionId,
-				evt->fr_dest, &evt->mds_ctxt);
+		subscribe_res_lib(SA_AIS_ERR_UNAVAILABLE,
+				  subscribe_param->subscriptionId, evt->fr_dest,
+				  &evt->mds_ctxt);
 		TRACE_LEAVE();
 		return rc;
 	}
@@ -345,27 +357,32 @@ static uint32_t proc_subscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * Handle a unsubscribe message
  * @param cb
  * @param evt
- * 
+ *
  * @return uns32
  */
 static uint32_t proc_unsubscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	ntfsv_unsubscribe_req_t *param = &(evt->info.msg.info.api_info.param.unsubscribe);
+	ntfsv_unsubscribe_req_t *param =
+	    &(evt->info.msg.info.api_info.param.unsubscribe);
 
-	TRACE_ENTER2("client_id %u, subscriptionId %u", param->client_id, param->subscriptionId);
+	TRACE_ENTER2("client_id %u, subscriptionId %u", param->client_id,
+		     param->subscriptionId);
 
-	//This may be a queued request, first verify CLM membership status of client node.
+	// This may be a queued request, first verify CLM membership status of
+	// client node.
 	if (is_stale_client(param->client_id) == true) {
 		TRACE_5("Client node is not CLM member.");
-		unsubscribe_res_lib(SA_AIS_ERR_UNAVAILABLE, param->subscriptionId,
-				evt->fr_dest, &evt->mds_ctxt);
+		unsubscribe_res_lib(SA_AIS_ERR_UNAVAILABLE,
+				    param->subscriptionId, evt->fr_dest,
+				    &evt->mds_ctxt);
 		TRACE_LEAVE();
 		return rc;
 	}
 
-	subscriptionRemoved(param->client_id, param->subscriptionId, &evt->mds_ctxt);
+	subscriptionRemoved(param->client_id, param->subscriptionId,
+			    &evt->mds_ctxt);
 	TRACE_LEAVE();
 	return rc;
 }
@@ -381,17 +398,19 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader)
 	TRACE_1("eventType = %d", (int)*notificationHeader->eventType);
 
 	/* Notification Object */
-	TRACE_1("notificationObject.length = %zu\n",
-			osaf_extended_name_length(notificationHeader->notificationObject));
+	TRACE_1(
+	    "notificationObject.length = %zu\n",
+	    osaf_extended_name_length(notificationHeader->notificationObject));
 
 	/* Notifying Object */
 	TRACE_1("notifyingObject->length = %zu\n",
-			osaf_extended_name_length(notificationHeader->notifyingObject));
+		osaf_extended_name_length(notificationHeader->notifyingObject));
 
 	/* Notification Class ID */
 	TRACE_1("VendorID = %d\nmajorID = %d\nminorID = %d\n",
 		notificationHeader->notificationClassId->vendorId,
-		notificationHeader->notificationClassId->majorId, notificationHeader->notificationClassId->minorId);
+		notificationHeader->notificationClassId->majorId,
+		notificationHeader->notificationClassId->minorId);
 
 	/* Event Time */
 	ntfTime = *notificationHeader->eventTime;
@@ -400,7 +419,7 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader)
 	tzset();
 	tstamp_data = localtime_r((const time_t *)&totalTime, &tm_info);
 	osafassert(tstamp_data);
-	
+
 	(void)strftime(time_str, sizeof(time_str), "%d-%m-%Y %T", tstamp_data);
 
 	TRACE_1("eventTime = %lld = %s\n", (SaTimeT)ntfTime, time_str);
@@ -409,7 +428,8 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader)
 	TRACE_1("notificationID = %llu\n", *notificationHeader->notificationId);
 
 	/* Length of Additional text */
-	TRACE_1("lengthadditionalText = %d\n", notificationHeader->lengthAdditionalText);
+	TRACE_1("lengthadditionalText = %d\n",
+		notificationHeader->lengthAdditionalText);
 
 	/* Additional text */
 	TRACE_1("additionalText = %s\n", notificationHeader->additionalText);
@@ -432,21 +452,26 @@ static uint32_t proc_send_not_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	ntfsv_send_not_req_t *param = evt->info.msg.info.api_info.param.send_notification;
-	
-	//This may be a queued request, first verify CLM membership status of client node.
+	ntfsv_send_not_req_t *param =
+	    evt->info.msg.info.api_info.param.send_notification;
+
+	// This may be a queued request, first verify CLM membership status of
+	// client node.
 	if (is_stale_client(param->client_id) == true) {
 		TRACE_5("Client node is not CLM member.");
-		notfication_result_lib(SA_AIS_ERR_UNAVAILABLE, 0, &evt->mds_ctxt, evt->fr_dest);
+		notfication_result_lib(SA_AIS_ERR_UNAVAILABLE, 0,
+				       &evt->mds_ctxt, evt->fr_dest);
 		TRACE_LEAVE();
 		return rc;
 	}
 	if (param->notificationType == SA_NTF_TYPE_ALARM) {
 		print_header(&param->notification.alarm.notificationHeader);
 	}
-	notificationReceived(param->client_id, param->notificationType, param, &evt->mds_ctxt);
+	notificationReceived(param->client_id, param->notificationType, param,
+			     &evt->mds_ctxt);
 
-	/* The allocated resources in ntfsv_enc_dec.c is freed in the destructor in NtfNotification */
+	/* The allocated resources in ntfsv_enc_dec.c is freed in the destructor
+	 * in NtfNotification */
 	TRACE_LEAVE();
 	return rc;
 }
@@ -469,18 +494,23 @@ static uint32_t proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	ntfsv_reader_init_req_t *reader_initialize_param = &(evt->info.msg.info.api_info.param.reader_init);
+	ntfsv_reader_init_req_t *reader_initialize_param =
+	    &(evt->info.msg.info.api_info.param.reader_init);
 
-	//This may be a queued request, first verify CLM membership status of client node.
-        if (is_stale_client(reader_initialize_param->client_id) == true) {
-                TRACE_5("Client node is not CLM member.");
-		new_reader_res_lib(SA_AIS_ERR_UNAVAILABLE, 0, evt->fr_dest, &evt->mds_ctxt);
-                TRACE_LEAVE();
-                return rc;
-        }
+	// This may be a queued request, first verify CLM membership status of
+	// client node.
+	if (is_stale_client(reader_initialize_param->client_id) == true) {
+		TRACE_5("Client node is not CLM member.");
+		new_reader_res_lib(SA_AIS_ERR_UNAVAILABLE, 0, evt->fr_dest,
+				   &evt->mds_ctxt);
+		TRACE_LEAVE();
+		return rc;
+	}
 
 	TRACE_4("client_id: %u", reader_initialize_param->client_id);
-	newReader(reader_initialize_param->client_id, reader_initialize_param->searchCriteria, NULL, &evt->mds_ctxt);
+	newReader(reader_initialize_param->client_id,
+		  reader_initialize_param->searchCriteria, NULL,
+		  &evt->mds_ctxt);
 	TRACE_LEAVE();
 	return rc;
 }
@@ -498,24 +528,29 @@ static uint32_t proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t proc_reader_initialize_msg_2(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
+static uint32_t proc_reader_initialize_msg_2(ntfs_cb_t *cb,
+					     ntfsv_ntfs_evt_t *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	ntfsv_reader_init_req_2_t *rp = &(evt->info.msg.info.api_info.param.reader_init_2);
+	ntfsv_reader_init_req_2_t *rp =
+	    &(evt->info.msg.info.api_info.param.reader_init_2);
 
 	TRACE_4("client_id: %u", rp->head.client_id);
 
-	//This may be a queued request, first verify CLM membership status of client node.
+	// This may be a queued request, first verify CLM membership status of
+	// client node.
 	if (is_stale_client(rp->head.client_id) == true) {
 		TRACE_5("Client node is not CLM member.");
-		new_reader_res_lib(SA_AIS_ERR_UNAVAILABLE, 0, evt->fr_dest, &evt->mds_ctxt);
+		new_reader_res_lib(SA_AIS_ERR_UNAVAILABLE, 0, evt->fr_dest,
+				   &evt->mds_ctxt);
 		TRACE_LEAVE();
 		return rc;
 	}
 
-	newReader(rp->head.client_id, rp->head.searchCriteria, &rp->f_rec, &evt->mds_ctxt);
+	newReader(rp->head.client_id, rp->head.searchCriteria, &rp->f_rec,
+		  &evt->mds_ctxt);
 	TRACE_LEAVE();
 	return rc;
 }
@@ -538,26 +573,30 @@ static uint32_t proc_reader_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	ntfsv_reader_finalize_req_t *reader_finalize_param = &(evt->info.msg.info.api_info.param.reader_finalize);
+	ntfsv_reader_finalize_req_t *reader_finalize_param =
+	    &(evt->info.msg.info.api_info.param.reader_finalize);
 
-	//This may be a queued request, first verify CLM membership status of client node.
-        if (is_stale_client(reader_finalize_param->client_id) == true) {
-                TRACE_5("Client node is not CLM member.");
-                delete_reader_res_lib(SA_AIS_ERR_UNAVAILABLE, evt->fr_dest, &evt->mds_ctxt);
-                TRACE_LEAVE();
-                return rc;
-        }
+	// This may be a queued request, first verify CLM membership status of
+	// client node.
+	if (is_stale_client(reader_finalize_param->client_id) == true) {
+		TRACE_5("Client node is not CLM member.");
+		delete_reader_res_lib(SA_AIS_ERR_UNAVAILABLE, evt->fr_dest,
+				      &evt->mds_ctxt);
+		TRACE_LEAVE();
+		return rc;
+	}
 
 	TRACE_4("client_id: %u", reader_finalize_param->client_id);
-	deleteReader(reader_finalize_param->client_id, reader_finalize_param->readerId, &evt->mds_ctxt);
+	deleteReader(reader_finalize_param->client_id,
+		     reader_finalize_param->readerId, &evt->mds_ctxt);
 
-/*  if (ais_rv == SA_AIS_OK)                                                 */
-/*  {                                                                        */
-/*     async_rc = ntfs_subscription_initialize_async_update(cb,              */
-/*                                                  reader_finalize_param);*/
-/*     if (async_rc != NCSCC_RC_SUCCESS)                                     */
-/*        TRACE("ntfs_send_reader_finalize_async_update failed");          */
-/*  }                                                                        */
+	/*  if (ais_rv == SA_AIS_OK) */
+	/*  { */
+	/*     async_rc = ntfs_subscription_initialize_async_update(cb, */
+	/*                                                  reader_finalize_param);*/
+	/*     if (async_rc != NCSCC_RC_SUCCESS) */
+	/*        TRACE("ntfs_send_reader_finalize_async_update failed"); */
+	/*  } */
 	TRACE_LEAVE();
 	return rc;
 }
@@ -580,27 +619,30 @@ static uint32_t proc_read_next_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	ntfsv_read_next_req_t *read_next_param = &(evt->info.msg.info.api_info.param.read_next);
+	ntfsv_read_next_req_t *read_next_param =
+	    &(evt->info.msg.info.api_info.param.read_next);
 
 	TRACE_4("client_id: %u", read_next_param->client_id);
 
-        //This may be a queued request, first verify CLM membership status of client node.
-        if (is_stale_client(read_next_param->client_id) == true) {
-                TRACE_5("Client node is not CLM member.");
-                read_next_res_lib(SA_AIS_ERR_UNAVAILABLE, NULL, evt->fr_dest, &evt->mds_ctxt);
-                TRACE_LEAVE();
-                return rc;
-        }
+	// This may be a queued request, first verify CLM membership status of
+	// client node.
+	if (is_stale_client(read_next_param->client_id) == true) {
+		TRACE_5("Client node is not CLM member.");
+		read_next_res_lib(SA_AIS_ERR_UNAVAILABLE, NULL, evt->fr_dest,
+				  &evt->mds_ctxt);
+		TRACE_LEAVE();
+		return rc;
+	}
 
-	readNext(read_next_param->client_id,
-		 read_next_param->readerId, read_next_param->searchDirection, &evt->mds_ctxt);
-/*  if (ais_rv == SA_AIS_OK)                                                 */
-/*  {                                                                        */
-/*     async_rc = ntfs_subscription_initialize_async_update(cb,              */
-/*                                                  read_next_param);*/
-/*     if (async_rc != NCSCC_RC_SUCCESS)                                     */
-/*        TRACE("ntfs_send_read_next_async_update failed");          */
-/*  }                                                                        */
+	readNext(read_next_param->client_id, read_next_param->readerId,
+		 read_next_param->searchDirection, &evt->mds_ctxt);
+	/*  if (ais_rv == SA_AIS_OK) */
+	/*  { */
+	/*     async_rc = ntfs_subscription_initialize_async_update(cb, */
+	/*                                                  read_next_param);*/
+	/*     if (async_rc != NCSCC_RC_SUCCESS) */
+	/*        TRACE("ntfs_send_read_next_async_update failed");          */
+	/*  } */
 	TRACE_LEAVE();
 	return rc;
 }
@@ -622,13 +664,18 @@ static uint32_t process_api_evt(ntfsv_ntfs_evt_t *evt)
 {
 	if (evt->evt_type == NTFSV_NTFS_NTFSV_MSG) {
 		/* ignore one level... */
-		if ((evt->info.msg.type >= NTFSV_NTFA_API_MSG) && (evt->info.msg.type < NTFSV_MSG_MAX)) {
-			if ((evt->info.msg.info.api_info.type >= NTFSV_INITIALIZE_REQ) &&
-			    (evt->info.msg.info.api_info.type < NTFSV_API_MAX)) {
-				if (ntfs_ntfa_api_msg_dispatcher[evt->info.msg.info.api_info.type] (ntfs_cb, evt) !=
-				    NCSCC_RC_SUCCESS) {
-					TRACE_2("ntfs_ntfa_api_msg_dispatcher FAILED type: %d",
-						(int)evt->info.msg.type);
+		if ((evt->info.msg.type >= NTFSV_NTFA_API_MSG) &&
+		    (evt->info.msg.type < NTFSV_MSG_MAX)) {
+			if ((evt->info.msg.info.api_info.type >=
+			     NTFSV_INITIALIZE_REQ) &&
+			    (evt->info.msg.info.api_info.type <
+			     NTFSV_API_MAX)) {
+				if (ntfs_ntfa_api_msg_dispatcher
+					[evt->info.msg.info.api_info.type](
+					    ntfs_cb, evt) != NCSCC_RC_SUCCESS) {
+					TRACE_2(
+					    "ntfs_ntfa_api_msg_dispatcher FAILED type: %d",
+					    (int)evt->info.msg.type);
 				}
 			}
 		}
@@ -639,11 +686,11 @@ static uint32_t process_api_evt(ntfsv_ntfs_evt_t *evt)
 /****************************************************************************
  * Name          : ntfs_process_mbx
  *
- * Description   : This is the function which process the IPC mail box of 
- *                 NTFS 
+ * Description   : This is the function which process the IPC mail box of
+ *                 NTFS
  *
- * Arguments     : mbx  - This is the mail box pointer on which NTFS is 
- *                        going to block.  
+ * Arguments     : mbx  - This is the mail box pointer on which NTFS is
+ *                        going to block.
  *
  * Return Values : None.
  *
@@ -656,15 +703,18 @@ void ntfs_process_mbx(SYSF_MBX *mbx)
 	msg = (ntfsv_ntfs_evt_t *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, msg);
 	if (msg != NULL) {
 		if (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE) {
-			if ((msg->evt_type >= NTFSV_NTFS_NTFSV_MSG) && (msg->evt_type <= NTFSV_NTFS_EVT_NTFA_DOWN)) {
-				ntfs_ntfsv_top_level_evt_dispatch_tbl[msg->evt_type] (msg);
+			if ((msg->evt_type >= NTFSV_NTFS_NTFSV_MSG) &&
+			    (msg->evt_type <= NTFSV_NTFS_EVT_NTFA_DOWN)) {
+				ntfs_ntfsv_top_level_evt_dispatch_tbl
+				    [msg->evt_type](msg);
 			} else if (msg->evt_type == NTFSV_EVT_QUIESCED_ACK) {
 				proc_mds_quiesced_ack_msg(msg);
 			} else
 				TRACE("message type invalid");
 		} else {
 			if (msg->evt_type == NTFSV_NTFS_EVT_NTFA_DOWN) {
-				ntfs_ntfsv_top_level_evt_dispatch_tbl[msg->evt_type] (msg);
+				ntfs_ntfsv_top_level_evt_dispatch_tbl
+				    [msg->evt_type](msg);
 			}
 			if (msg->evt_type == NTFSV_EVT_RDA) {
 				proc_rda_cb_msg(msg);

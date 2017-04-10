@@ -51,20 +51,27 @@ typedef struct ncs_ipc_queue {
 } NCS_IPC_QUEUE;
 
 typedef struct tag_ncs_ipc {
-  NCS_LOCK queue_lock;    /* to protect access to queue */
+  NCS_LOCK queue_lock; /* to protect access to queue */
 
-  NCS_IPC_QUEUE queue[NCS_IPC_PRIO_LEVELS];       /* element 0 for queueing HIGH priority IPC messages */
+  NCS_IPC_QUEUE queue[NCS_IPC_PRIO_LEVELS]; /* element 0 for queueing HIGH
+                                               priority IPC messages */
   /* element 1 for queueing NORMAL priority IPC messages */
   /* element 2 for queueing LOW priority IPC messages */
 
-  uint32_t no_of_msgs[NCS_IPC_PRIO_LEVELS];       /* (priority level message count, used to compare
-                                                     with the corresponding threshold value) */
+  uint32_t no_of_msgs[NCS_IPC_PRIO_LEVELS]; /* (priority level message count,
+                                               used to compare with the
+                                               corresponding threshold value) */
 
-  uint32_t max_no_of_msgs[NCS_IPC_PRIO_LEVELS];   /* (threshold value configured through
-                                                     m_NCS_IPC_CONFIG_MAX_MSGS otherwise initialized to zero) */
-  uint32_t *usr_counters[NCS_IPC_PRIO_LEVELS];    /* user given 32bit counters are accessed through these pointers */
+  uint32_t max_no_of_msgs[NCS_IPC_PRIO_LEVELS]; /* (threshold value configured
+                                                   through
+                                                   m_NCS_IPC_CONFIG_MAX_MSGS
+                                                   otherwise initialized to
+                                                   zero) */
+  uint32_t
+      *usr_counters[NCS_IPC_PRIO_LEVELS]; /* user given 32bit counters are
+                                             accessed through these pointers */
 
-  unsigned int active_queue;      /* the next queue to check for an IPC message */
+  unsigned int active_queue; /* the next queue to check for an IPC message */
 
   /* Changes to migrate to SAF model:PM:7/Jan/03. */
   NCS_SEL_OBJ sel_obj;
@@ -81,11 +88,11 @@ typedef struct tag_ncs_ipc {
 
   /* If "sel_obj" is put to use, the "sem_handle" member will be removed.
      For now it stays */
-  void *sem_handle;       /* for blocking/waking IPC msg receiver */
-  bool releasing; /* flag from ncs_ipc_release to ncs_ipc_recv */
-  uint32_t ref_count;     /* reference count - number of instances attached
-                           * to this IPC */
-  char *name;             /* mbx task name */
+  void *sem_handle;   /* for blocking/waking IPC msg receiver */
+  bool releasing;     /* flag from ncs_ipc_release to ncs_ipc_recv */
+  uint32_t ref_count; /* reference count - number of instances attached
+                       * to this IPC */
+  char *name;         /* mbx task name */
 } NCS_IPC;
 
 #endif  // BASE_SYSF_IPC_H_

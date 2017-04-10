@@ -56,29 +56,29 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
  *   FUNCTION PROTOTYPES
  * ========================================================================
  */
-SaAisErrorT 
-smfCreateRollbackElement(const std::string & i_dn, SaImmOiHandleT i_oiHandle)
-{
-	TRACE("Create rollback element '%s'", i_dn.c_str());
+SaAisErrorT smfCreateRollbackElement(const std::string& i_dn,
+                                     SaImmOiHandleT i_oiHandle) {
+  TRACE("Create rollback element '%s'", i_dn.c_str());
 
-	SmfImmRTCreateOperation icoRollbackCcb;
+  SmfImmRTCreateOperation icoRollbackCcb;
 
-        std::string parentDn = i_dn.substr(i_dn.find(',') + 1, std::string::npos);
-        std::string rdnStr = i_dn.substr(0, i_dn.find(','));
+  std::string parentDn = i_dn.substr(i_dn.find(',') + 1, std::string::npos);
+  std::string rdnStr = i_dn.substr(0, i_dn.find(','));
 
-	TRACE("Create rollback element, parent '%s', rdn '%s'", parentDn.c_str(), rdnStr.c_str());
+  TRACE("Create rollback element, parent '%s', rdn '%s'", parentDn.c_str(),
+        rdnStr.c_str());
 
-        icoRollbackCcb.setClassName("OpenSafSmfRollbackElement");
-	icoRollbackCcb.setParentDn(parentDn);
-	icoRollbackCcb.setImmHandle(i_oiHandle);
+  icoRollbackCcb.setClassName("OpenSafSmfRollbackElement");
+  icoRollbackCcb.setParentDn(parentDn);
+  icoRollbackCcb.setImmHandle(i_oiHandle);
 
-        SmfImmAttribute rdn;
-        rdn.setName("smfRollbackElement");
-        rdn.setType("SA_IMM_ATTR_SASTRINGT");
-        rdn.addValue(rdnStr);
-        icoRollbackCcb.addValue(rdn);
+  SmfImmAttribute rdn;
+  rdn.setName("smfRollbackElement");
+  rdn.setType("SA_IMM_ATTR_SASTRINGT");
+  rdn.addValue(rdnStr);
+  icoRollbackCcb.addValue(rdn);
 
-        return icoRollbackCcb.execute(); // Create the object
+  return icoRollbackCcb.execute();  // Create the object
 }
 
 //================================================================================
@@ -87,358 +87,365 @@ smfCreateRollbackElement(const std::string & i_dn, SaImmOiHandleT i_oiHandle)
 // Comments:
 //================================================================================
 
-SmfRollbackData::SmfRollbackData(SmfRollbackCcb* i_ccb) :
-        m_ccb(i_ccb),
-	m_id(0)
-{
-}
+SmfRollbackData::SmfRollbackData(SmfRollbackCcb* i_ccb)
+    : m_ccb(i_ccb), m_id(0) {}
 
 // ------------------------------------------------------------------------------
 // ~SmfRollbackData()
 // ------------------------------------------------------------------------------
-SmfRollbackData::~SmfRollbackData()
-{
-}
+SmfRollbackData::~SmfRollbackData() {}
 
 //------------------------------------------------------------------------------
 // setType()
 //------------------------------------------------------------------------------
-void 
-SmfRollbackData::setType(const std::string & i_type)
-{
-	m_type = i_type;
-}
+void SmfRollbackData::setType(const std::string& i_type) { m_type = i_type; }
 
 //------------------------------------------------------------------------------
 // setDn()
 //------------------------------------------------------------------------------
-void 
-SmfRollbackData::setDn(const std::string & i_dn)
-{
-	m_dn = i_dn;
-}
+void SmfRollbackData::setDn(const std::string& i_dn) { m_dn = i_dn; }
 
 //------------------------------------------------------------------------------
 // setClass()
 //------------------------------------------------------------------------------
-void 
-SmfRollbackData::setClass(const std::string & i_class)
-{
-	m_class = i_class;
+void SmfRollbackData::setClass(const std::string& i_class) {
+  m_class = i_class;
 }
 
 //------------------------------------------------------------------------------
 // addAttrValue()
 //------------------------------------------------------------------------------
-void 
-SmfRollbackData::addAttrValue(const std::string & i_attrName,
-                              const std::string & i_attrType,
-                              const std::string & i_attrValue)
-{
-	m_attrValues.push_back(std::string(i_attrName + ":" + i_attrType + "#" + i_attrValue));
+void SmfRollbackData::addAttrValue(const std::string& i_attrName,
+                                   const std::string& i_attrType,
+                                   const std::string& i_attrValue) {
+  m_attrValues.push_back(
+      std::string(i_attrName + ":" + i_attrType + "#" + i_attrValue));
 }
 
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-SaAisErrorT 
-SmfRollbackData::execute(SaImmOiHandleT i_oiHandle)
-{
-        SaAisErrorT result = SA_AIS_OK;
+SaAisErrorT SmfRollbackData::execute(SaImmOiHandleT i_oiHandle) {
+  SaAisErrorT result = SA_AIS_OK;
 
-        /* 
-           1) Create rollback data object with the rollback CCB as parent
-        */
+  /*
+     1) Create rollback data object with the rollback CCB as parent
+  */
 
-	SmfImmRTCreateOperation icoRollbackData;
+  SmfImmRTCreateOperation icoRollbackData;
 
-	icoRollbackData.setClassName("OpenSafSmfRollbackData");
-	icoRollbackData.setParentDn(m_ccb->getDn());
-	icoRollbackData.setImmHandle(i_oiHandle);
+  icoRollbackData.setClassName("OpenSafSmfRollbackData");
+  icoRollbackData.setParentDn(m_ccb->getDn());
+  icoRollbackData.setImmHandle(i_oiHandle);
 
-        char idStr[16];
-        snprintf(idStr, sizeof(idStr), "%08u", m_id);
-        std::string rdnValue = "smfRollbackData=";
-        rdnValue += idStr;
+  char idStr[16];
+  snprintf(idStr, sizeof(idStr), "%08u", m_id);
+  std::string rdnValue = "smfRollbackData=";
+  rdnValue += idStr;
 
-        SmfImmAttribute rdn;
-        rdn.setName("smfRollbackData");
-        rdn.setType("SA_IMM_ATTR_SASTRINGT");
-        rdn.addValue(rdnValue);
-        icoRollbackData.addValue(rdn);
+  SmfImmAttribute rdn;
+  rdn.setName("smfRollbackData");
+  rdn.setType("SA_IMM_ATTR_SASTRINGT");
+  rdn.addValue(rdnValue);
+  icoRollbackData.addValue(rdn);
 
-        SmfImmAttribute typeAttr;
-        typeAttr.setName("smfRollbackType");
-        typeAttr.setType("SA_IMM_ATTR_SASTRINGT");
-        typeAttr.addValue(m_type);
-        icoRollbackData.addValue(typeAttr);
+  SmfImmAttribute typeAttr;
+  typeAttr.setName("smfRollbackType");
+  typeAttr.setType("SA_IMM_ATTR_SASTRINGT");
+  typeAttr.addValue(m_type);
+  icoRollbackData.addValue(typeAttr);
 
-        SmfImmAttribute dnAttr;
-        dnAttr.setName("smfRollbackDn");
-        dnAttr.setType("SA_IMM_ATTR_SANAMET");
-        dnAttr.addValue(m_dn);
-        icoRollbackData.addValue(dnAttr);
+  SmfImmAttribute dnAttr;
+  dnAttr.setName("smfRollbackDn");
+  dnAttr.setType("SA_IMM_ATTR_SANAMET");
+  dnAttr.addValue(m_dn);
+  icoRollbackData.addValue(dnAttr);
 
-        SmfImmAttribute classAttr;
-        classAttr.setName("smfRollbackClass");
-        classAttr.setType("SA_IMM_ATTR_SASTRINGT");
-        classAttr.addValue(m_class);
-        icoRollbackData.addValue(classAttr);
+  SmfImmAttribute classAttr;
+  classAttr.setName("smfRollbackClass");
+  classAttr.setType("SA_IMM_ATTR_SASTRINGT");
+  classAttr.addValue(m_class);
+  icoRollbackData.addValue(classAttr);
 
-        SmfImmAttribute attrValueAttr;
-        attrValueAttr.setName("smfRollbackAttrValue");
-        attrValueAttr.setType("SA_IMM_ATTR_SASTRINGT");
+  SmfImmAttribute attrValueAttr;
+  attrValueAttr.setName("smfRollbackAttrValue");
+  attrValueAttr.setType("SA_IMM_ATTR_SASTRINGT");
 
-        if (m_attrValues.size() == 0) {
-                attrValueAttr.addValue("");
-        }
-        else {
-		for (auto& elem : m_attrValues) {
-                        attrValueAttr.addValue((elem));
-                }
-        }
+  if (m_attrValues.size() == 0) {
+    attrValueAttr.addValue("");
+  } else {
+    for (auto& elem : m_attrValues) {
+      attrValueAttr.addValue((elem));
+    }
+  }
 
-        icoRollbackData.addValue(attrValueAttr);
-        
-        result = icoRollbackData.execute(); // Create the object
-	if (result != SA_AIS_OK){
-                LOG_ER("SmfRollbackData::execute, Failed to create IMM rollback data object, %s", saf_error(result));
-        }
+  icoRollbackData.addValue(attrValueAttr);
 
-	return result;
+  result = icoRollbackData.execute();  // Create the object
+  if (result != SA_AIS_OK) {
+    LOG_ER(
+        "SmfRollbackData::execute, Failed to create IMM rollback data object, %s",
+        saf_error(result));
+  }
+
+  return result;
 }
 
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-SaAisErrorT 
-SmfRollbackData::rollback(const std::string& i_dn, 
-                          std::list < SmfImmOperation * >& io_operationList)
-{
-        SmfImmUtils immUtil;
-        SaImmAttrValuesT_2 **attributes;
-        const char *typeAttr;
+SaAisErrorT SmfRollbackData::rollback(
+    const std::string& i_dn, std::list<SmfImmOperation*>& io_operationList) {
+  SmfImmUtils immUtil;
+  SaImmAttrValuesT_2** attributes;
+  const char* typeAttr;
 
-        /* 
-           1) Read IMM object representing this rollback data and create an IMM operation object
-        */
+  /*
+     1) Read IMM object representing this rollback data and create an IMM
+     operation object
+  */
 
-        TRACE("Rollback of data in %s", i_dn.c_str());
+  TRACE("Rollback of data in %s", i_dn.c_str());
 
-        if (immUtil.getObject(i_dn, &attributes) == false) {
-                LOG_ER("SmfRollbackData::rollback, fail to get rollback data imm object %s", i_dn.c_str());
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  if (immUtil.getObject(i_dn, &attributes) == false) {
+    LOG_ER("SmfRollbackData::rollback, fail to get rollback data imm object %s",
+           i_dn.c_str());
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        typeAttr = immutil_getStringAttr((const SaImmAttrValuesT_2 **) attributes, 
-                                         "smfRollbackType", 0);
+  typeAttr = immutil_getStringAttr((const SaImmAttrValuesT_2**)attributes,
+                                   "smfRollbackType", 0);
 
-        if (typeAttr == NULL) {
-                LOG_ER("SmfRollbackData::rollback, could not find smfRollbackType attribute in %s", i_dn.c_str());
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  if (typeAttr == NULL) {
+    LOG_ER(
+        "SmfRollbackData::rollback, could not find smfRollbackType attribute in %s",
+        i_dn.c_str());
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        if (!strcmp(typeAttr, "CREATE")) {
-                return rollbackCreateOperation((const SaImmAttrValuesT_2 **)attributes, io_operationList);
-        }
-        else if (!strcmp(typeAttr, "DELETE")) {
-                return rollbackDeleteOperation((const SaImmAttrValuesT_2 **)attributes, io_operationList);
-        }
-        else if (!strcmp(typeAttr, "MODIFY")) {
-                return rollbackModifyOperation((const SaImmAttrValuesT_2 **)attributes, io_operationList);
-        }
-        else {
-                LOG_ER("SmfRollbackData::rollback, unknown type attribute value %s in %s", typeAttr, i_dn.c_str());
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  if (!strcmp(typeAttr, "CREATE")) {
+    return rollbackCreateOperation((const SaImmAttrValuesT_2**)attributes,
+                                   io_operationList);
+  } else if (!strcmp(typeAttr, "DELETE")) {
+    return rollbackDeleteOperation((const SaImmAttrValuesT_2**)attributes,
+                                   io_operationList);
+  } else if (!strcmp(typeAttr, "MODIFY")) {
+    return rollbackModifyOperation((const SaImmAttrValuesT_2**)attributes,
+                                   io_operationList);
+  } else {
+    LOG_ER("SmfRollbackData::rollback, unknown type attribute value %s in %s",
+           typeAttr, i_dn.c_str());
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-	return SA_AIS_OK;
+  return SA_AIS_OK;
 }
 
 //------------------------------------------------------------------------------
 // rollbackCreateOperation()
 //------------------------------------------------------------------------------
-SaAisErrorT 
-SmfRollbackData::rollbackCreateOperation(const SaImmAttrValuesT_2 ** i_attributes, 
-                                         std::list < SmfImmOperation * >& io_operationList)
-{
-        const SaNameT *dnAttr;
-        const char *classAttr;
-        SaAisErrorT result;
-        SaUint32T   noOfAttrValues;
+SaAisErrorT SmfRollbackData::rollbackCreateOperation(
+    const SaImmAttrValuesT_2** i_attributes,
+    std::list<SmfImmOperation*>& io_operationList) {
+  const SaNameT* dnAttr;
+  const char* classAttr;
+  SaAisErrorT result;
+  SaUint32T noOfAttrValues;
 
-        /* 
-           1) Read rollback data for a create operation and create corresponding IMM operation
-        */
+  /*
+     1) Read rollback data for a create operation and create corresponding IMM
+     operation
+  */
 
-        /* TODO not finished yet */
+  /* TODO not finished yet */
 
-        dnAttr = immutil_getNameAttr(i_attributes, "smfRollbackDn", 0);
-        if (dnAttr == NULL) {
-                LOG_ER("SmfRollbackData::rollbackCreateOperation, could not find smfRollbackDn attribute");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  dnAttr = immutil_getNameAttr(i_attributes, "smfRollbackDn", 0);
+  if (dnAttr == NULL) {
+    LOG_ER(
+        "SmfRollbackData::rollbackCreateOperation, could not find smfRollbackDn attribute");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        classAttr = immutil_getStringAttr(i_attributes, "smfRollbackClass", 0);
-        if (classAttr == NULL) {
-                LOG_ER("SmfRollbackData::rollbackCreateOperation, could not find smfRollbackClass attribute");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  classAttr = immutil_getStringAttr(i_attributes, "smfRollbackClass", 0);
+  if (classAttr == NULL) {
+    LOG_ER(
+        "SmfRollbackData::rollbackCreateOperation, could not find smfRollbackClass attribute");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        result = immutil_getAttrValuesNumber((char*)"smfRollbackAttrValue", i_attributes, &noOfAttrValues);
+  result = immutil_getAttrValuesNumber((char*)"smfRollbackAttrValue",
+                                       i_attributes, &noOfAttrValues);
 
-        if (result != SA_AIS_OK) {
-                LOG_ER("SmfRollbackData::rollbackCreateOperation, could not find smfRollbackAttrValue attribute");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  if (result != SA_AIS_OK) {
+    LOG_ER(
+        "SmfRollbackData::rollbackCreateOperation, could not find smfRollbackAttrValue attribute");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        TRACE("Rollback create object %s no of attributes %d", osaf_extended_name_borrow(dnAttr), noOfAttrValues);
+  TRACE("Rollback create object %s no of attributes %d",
+        osaf_extended_name_borrow(dnAttr), noOfAttrValues);
 
-        if (noOfAttrValues == 0) {
-                LOG_ER("SmfRollbackData::rollbackCreateOperation, at least one attribute (rdn) is needed when createing object");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  if (noOfAttrValues == 0) {
+    LOG_ER(
+        "SmfRollbackData::rollbackCreateOperation, at least one attribute (rdn) is needed when createing object");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        SmfImmCreateOperation* immOp = new (std::nothrow) SmfImmCreateOperation();
-        if (immOp == NULL) {
-                LOG_ER("SmfRollbackData::rollbackCreateOperation, could not create SmfImmCreateOperation");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  SmfImmCreateOperation* immOp = new (std::nothrow) SmfImmCreateOperation();
+  if (immOp == NULL) {
+    LOG_ER(
+        "SmfRollbackData::rollbackCreateOperation, could not create SmfImmCreateOperation");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        immOp->setParentDn(osaf_extended_name_borrow(dnAttr));
-        immOp->setClassName(classAttr);
+  immOp->setParentDn(osaf_extended_name_borrow(dnAttr));
+  immOp->setClassName(classAttr);
 
-        for (unsigned int index = 0; index < noOfAttrValues; index ++) {
-                const char *attrValueString = immutil_getStringAttr(i_attributes, "smfRollbackAttrValue", index);
-                if (attrValueString == NULL) {
-                        LOG_ER("Could not get smfRollbackAttrValue index %u, no of values %u", index, noOfAttrValues);
-                        delete immOp;
-                        return SA_AIS_ERR_FAILED_OPERATION;
-                }
+  for (unsigned int index = 0; index < noOfAttrValues; index++) {
+    const char* attrValueString =
+        immutil_getStringAttr(i_attributes, "smfRollbackAttrValue", index);
+    if (attrValueString == NULL) {
+      LOG_ER("Could not get smfRollbackAttrValue index %u, no of values %u",
+             index, noOfAttrValues);
+      delete immOp;
+      return SA_AIS_ERR_FAILED_OPERATION;
+    }
 
-                TRACE("Rollback create object attribute value string %s", attrValueString);
-                std::string attrValueStr(attrValueString);
-                unsigned int colonPos = attrValueStr.find(':');
-                unsigned int hashPos = attrValueStr.find('#');
-                std::string attrName = attrValueStr.substr(0, colonPos);
-                std::string attrType = attrValueStr.substr(colonPos + 1, hashPos - colonPos - 1);
-                std::string attrValue = attrValueStr.substr(hashPos + 1, std::string::npos);
+    TRACE("Rollback create object attribute value string %s", attrValueString);
+    std::string attrValueStr(attrValueString);
+    unsigned int colonPos = attrValueStr.find(':');
+    unsigned int hashPos = attrValueStr.find('#');
+    std::string attrName = attrValueStr.substr(0, colonPos);
+    std::string attrType =
+        attrValueStr.substr(colonPos + 1, hashPos - colonPos - 1);
+    std::string attrValue = attrValueStr.substr(hashPos + 1, std::string::npos);
 
-                TRACE("Rollback create object attribute name %s, type %s, value '%s'", 
-                      attrName.c_str(), attrType.c_str(), attrValue.c_str());
-                immOp->addAttrValue(attrName, attrType, attrValue);
-        }
+    TRACE("Rollback create object attribute name %s, type %s, value '%s'",
+          attrName.c_str(), attrType.c_str(), attrValue.c_str());
+    immOp->addAttrValue(attrName, attrType, attrValue);
+  }
 
-        io_operationList.push_back(immOp);
+  io_operationList.push_back(immOp);
 
-	return SA_AIS_OK;
+  return SA_AIS_OK;
 }
 
 //------------------------------------------------------------------------------
 // rollbackDeleteOperation()
 //------------------------------------------------------------------------------
-SaAisErrorT 
-SmfRollbackData::rollbackDeleteOperation(const SaImmAttrValuesT_2 ** i_attributes, 
-                                         std::list < SmfImmOperation * >& io_operationList)
-{
-        const SaNameT *dnAttr;
+SaAisErrorT SmfRollbackData::rollbackDeleteOperation(
+    const SaImmAttrValuesT_2** i_attributes,
+    std::list<SmfImmOperation*>& io_operationList) {
+  const SaNameT* dnAttr;
 
-        /* 
-           1) Read rollback data for a delete operation and create corresponding IMM operation
-        */
+  /*
+     1) Read rollback data for a delete operation and create corresponding IMM
+     operation
+  */
 
-        dnAttr = immutil_getNameAttr(i_attributes, "smfRollbackDn", 0);
-        if (dnAttr == NULL) {
-                LOG_ER("SmfRollbackData::rollbackDeleteOperation, could not find smfRollbackDn attribute");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  dnAttr = immutil_getNameAttr(i_attributes, "smfRollbackDn", 0);
+  if (dnAttr == NULL) {
+    LOG_ER(
+        "SmfRollbackData::rollbackDeleteOperation, could not find smfRollbackDn attribute");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        SmfImmDeleteOperation* immOp = new (std::nothrow) SmfImmDeleteOperation();
-        if (immOp == NULL) {
-                LOG_ER("SmfRollbackData::rollbackDeleteOperation, could not create SmfImmDeleteOperation");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  SmfImmDeleteOperation* immOp = new (std::nothrow) SmfImmDeleteOperation();
+  if (immOp == NULL) {
+    LOG_ER(
+        "SmfRollbackData::rollbackDeleteOperation, could not create SmfImmDeleteOperation");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        TRACE("Rollback delete object %s", osaf_extended_name_borrow(dnAttr));
+  TRACE("Rollback delete object %s", osaf_extended_name_borrow(dnAttr));
 
-        immOp->setDn(osaf_extended_name_borrow(dnAttr));
+  immOp->setDn(osaf_extended_name_borrow(dnAttr));
 
-        io_operationList.push_back(immOp);
+  io_operationList.push_back(immOp);
 
-	return SA_AIS_OK;
+  return SA_AIS_OK;
 }
 
 //------------------------------------------------------------------------------
 // rollbackModifyOperation()
 //------------------------------------------------------------------------------
-SaAisErrorT 
-SmfRollbackData::rollbackModifyOperation(const SaImmAttrValuesT_2 ** i_attributes, 
-                                         std::list < SmfImmOperation * >& io_operationList)
-{
-        const SaNameT *dnAttr;
-        SaAisErrorT result;
-        SaUint32T   noOfAttrValues;
+SaAisErrorT SmfRollbackData::rollbackModifyOperation(
+    const SaImmAttrValuesT_2** i_attributes,
+    std::list<SmfImmOperation*>& io_operationList) {
+  const SaNameT* dnAttr;
+  SaAisErrorT result;
+  SaUint32T noOfAttrValues;
 
-        /* 
-           1) Read rollback data for a modify replace operation and create corresponding IMM operation
-        */
+  /*
+     1) Read rollback data for a modify replace operation and create
+     corresponding IMM operation
+  */
 
-        /* TODO not finished yet */
+  /* TODO not finished yet */
 
-        dnAttr = immutil_getNameAttr(i_attributes, "smfRollbackDn", 0);
-        if (dnAttr == NULL) {
-                LOG_ER("SmfRollbackData::rollbackModifyOperation, could not find smfRollbackDn attribute");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  dnAttr = immutil_getNameAttr(i_attributes, "smfRollbackDn", 0);
+  if (dnAttr == NULL) {
+    LOG_ER(
+        "SmfRollbackData::rollbackModifyOperation, could not find smfRollbackDn attribute");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        result = immutil_getAttrValuesNumber((char*)"smfRollbackAttrValue", i_attributes, &noOfAttrValues);
+  result = immutil_getAttrValuesNumber((char*)"smfRollbackAttrValue",
+                                       i_attributes, &noOfAttrValues);
 
-        if (result != SA_AIS_OK) {
-                LOG_ER("SmfRollbackData::rollbackModifyOperation, could not find smfRollbackAttrValue attribute");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  if (result != SA_AIS_OK) {
+    LOG_ER(
+        "SmfRollbackData::rollbackModifyOperation, could not find smfRollbackAttrValue attribute");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        if (noOfAttrValues == 0) {
-                LOG_ER("SmfRollbackData::rollbackModifyOperation, at least one attribute needs to be modified");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  if (noOfAttrValues == 0) {
+    LOG_ER(
+        "SmfRollbackData::rollbackModifyOperation, at least one attribute needs to be modified");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        SmfImmModifyOperation* immOp = new (std::nothrow) SmfImmModifyOperation();
-        if (immOp == NULL) {
-                LOG_ER("SmfRollbackData::rollbackModifyOperation, could not create SmfImmCreateOperation");
-                return SA_AIS_ERR_FAILED_OPERATION;
-        }
+  SmfImmModifyOperation* immOp = new (std::nothrow) SmfImmModifyOperation();
+  if (immOp == NULL) {
+    LOG_ER(
+        "SmfRollbackData::rollbackModifyOperation, could not create SmfImmCreateOperation");
+    return SA_AIS_ERR_FAILED_OPERATION;
+  }
 
-        TRACE("Rollback modify object %s, no of attributes %d", osaf_extended_name_borrow(dnAttr), noOfAttrValues);
+  TRACE("Rollback modify object %s, no of attributes %d",
+        osaf_extended_name_borrow(dnAttr), noOfAttrValues);
 
-        immOp->setDn(osaf_extended_name_borrow(dnAttr));
-        immOp->setOp("SA_IMM_ATTR_VALUES_REPLACE");
+  immOp->setDn(osaf_extended_name_borrow(dnAttr));
+  immOp->setOp("SA_IMM_ATTR_VALUES_REPLACE");
 
-        for (unsigned int index = 0; index < noOfAttrValues; index ++) {
-                const char *attrValueString = immutil_getStringAttr(i_attributes, "smfRollbackAttrValue", index);
-                if (attrValueString == NULL) {
-                        LOG_ER("Could not get smfRollbackAttrValue index %u, no of values %u", index, noOfAttrValues);
-                        delete immOp;
-                        return SA_AIS_ERR_FAILED_OPERATION;
-                }
+  for (unsigned int index = 0; index < noOfAttrValues; index++) {
+    const char* attrValueString =
+        immutil_getStringAttr(i_attributes, "smfRollbackAttrValue", index);
+    if (attrValueString == NULL) {
+      LOG_ER("Could not get smfRollbackAttrValue index %u, no of values %u",
+             index, noOfAttrValues);
+      delete immOp;
+      return SA_AIS_ERR_FAILED_OPERATION;
+    }
 
-                TRACE("Rollback modify object attribute value string %s", attrValueString);
-                std::string attrValueStr(attrValueString);
-                unsigned int colonPos = attrValueStr.find(':');
-                unsigned int hashPos = attrValueStr.find('#');
-                std::string attrName = attrValueStr.substr(0, colonPos);
-                std::string attrType = attrValueStr.substr(colonPos + 1, hashPos - colonPos - 1);
-                std::string attrValue = attrValueStr.substr(hashPos + 1, std::string::npos);
+    TRACE("Rollback modify object attribute value string %s", attrValueString);
+    std::string attrValueStr(attrValueString);
+    unsigned int colonPos = attrValueStr.find(':');
+    unsigned int hashPos = attrValueStr.find('#');
+    std::string attrName = attrValueStr.substr(0, colonPos);
+    std::string attrType =
+        attrValueStr.substr(colonPos + 1, hashPos - colonPos - 1);
+    std::string attrValue = attrValueStr.substr(hashPos + 1, std::string::npos);
 
-                TRACE("Rollback modify object attribute name %s, type %s, value '%s'", 
-                      attrName.c_str(), attrType.c_str(), attrValue.c_str());
+    TRACE("Rollback modify object attribute name %s, type %s, value '%s'",
+          attrName.c_str(), attrType.c_str(), attrValue.c_str());
 
-                immOp->addAttrValue(attrName, attrType, attrValue);
-        }
+    immOp->addAttrValue(attrName, attrType, attrValue);
+  }
 
-        io_operationList.push_back(immOp);
+  io_operationList.push_back(immOp);
 
-	return SA_AIS_OK;
+  return SA_AIS_OK;
 }
 
 //================================================================================
@@ -447,111 +454,104 @@ SmfRollbackData::rollbackModifyOperation(const SaImmAttrValuesT_2 ** i_attribute
 // Comments:
 //================================================================================
 
-SmfRollbackCcb::SmfRollbackCcb(const std::string& i_dn, SaImmOiHandleT i_oiHandle):
-	m_dn(i_dn),
-        m_dataId(1),
-        m_oiHandle(i_oiHandle)
-{
-}
+SmfRollbackCcb::SmfRollbackCcb(const std::string& i_dn,
+                               SaImmOiHandleT i_oiHandle)
+    : m_dn(i_dn), m_dataId(1), m_oiHandle(i_oiHandle) {}
 
 // ------------------------------------------------------------------------------
 // ~SmfRollbackCcb()
 // ------------------------------------------------------------------------------
-SmfRollbackCcb::~SmfRollbackCcb()
-{
-	for (const auto& elem : m_rollbackData) 
-		delete(elem);
+SmfRollbackCcb::~SmfRollbackCcb() {
+  for (const auto& elem : m_rollbackData) delete (elem);
 }
 
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-SaAisErrorT 
-SmfRollbackCcb::execute()
-{
-        SaAisErrorT result = SA_AIS_OK;
-        /* 
-           1) For each rollback data : call execute 
-        */
+SaAisErrorT SmfRollbackCcb::execute() {
+  SaAisErrorT result = SA_AIS_OK;
+  /*
+     1) For each rollback data : call execute
+  */
 
-	for (auto& dataElem  : m_rollbackData) {
-                if ((result = (*dataElem).execute(m_oiHandle)) != SA_AIS_OK) {
-                        LOG_ER("SmfRollbackCcb::execute, fail to execute rollback data, rc=%s", saf_error(result));
-                        break;
-                }
-	}
+  for (auto& dataElem : m_rollbackData) {
+    if ((result = (*dataElem).execute(m_oiHandle)) != SA_AIS_OK) {
+      LOG_ER("SmfRollbackCcb::execute, fail to execute rollback data, rc=%s",
+             saf_error(result));
+      break;
+    }
+  }
 
-	return result;
+  return result;
 }
 
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-SaAisErrorT 
-SmfRollbackCcb::rollback()
-{
-        SaAisErrorT result = SA_AIS_OK;
+SaAisErrorT SmfRollbackCcb::rollback() {
+  SaAisErrorT result = SA_AIS_OK;
 
-        /* 
-           1) Search for all rollback data IMM objects below this ccb object
-        */
+  /*
+     1) Search for all rollback data IMM objects below this ccb object
+  */
 
-        std::list < std::string > rollbackData;
-        SmfImmUtils immUtil;
-        (void)immUtil.getChildren(m_dn, rollbackData, SA_IMM_SUBLEVEL, "OpenSafSmfRollbackData");
+  std::list<std::string> rollbackData;
+  SmfImmUtils immUtil;
+  (void)immUtil.getChildren(m_dn, rollbackData, SA_IMM_SUBLEVEL,
+                            "OpenSafSmfRollbackData");
 
-        if (rollbackData.size() == 0) {
-                LOG_NO("SmfRollbackCcb::rollback, no rollback data found for ccb %s", m_dn.c_str());
-                return SA_AIS_OK;
-        }
+  if (rollbackData.size() == 0) {
+    LOG_NO("SmfRollbackCcb::rollback, no rollback data found for ccb %s",
+           m_dn.c_str());
+    return SA_AIS_OK;
+  }
 
-        TRACE("Rollback %zu operations in CCB %s", rollbackData.size(), m_dn.c_str());
+  TRACE("Rollback %zu operations in CCB %s", rollbackData.size(), m_dn.c_str());
 
-        /* Sort the rollback data list */
-        rollbackData.sort();
+  /* Sort the rollback data list */
+  rollbackData.sort();
 
-        /* 
-           2) For each rollback data object (in reverse order) : 
-                  create a new SmfRollbackData and call rollback 
-        */
+  /*
+     2) For each rollback data object (in reverse order) :
+            create a new SmfRollbackData and call rollback
+  */
 
-        std::list < SmfImmOperation* > operationList;
-        std::list < std::string >::reverse_iterator iter;
+  std::list<SmfImmOperation*> operationList;
+  std::list<std::string>::reverse_iterator iter;
 
-        /* Loop through the rollback data list in reverse order */
-        for (iter = rollbackData.rbegin(); iter != rollbackData.rend(); ++iter) {
-                SmfRollbackData rollbackData(this);
-                if ((result = rollbackData.rollback((*iter), operationList)) != SA_AIS_OK) {
-                        LOG_ER("SmfRollbackCcb::rollback, rollback of %s failed, rc=%s", (*iter).c_str(), saf_error(result));
-                        break;
-                }
-        }
-        /* 
-           3) Use SmfImmUtils object and call doImmOperations
-                  with list of IMM operations created by rollback data objects
-        */
+  /* Loop through the rollback data list in reverse order */
+  for (iter = rollbackData.rbegin(); iter != rollbackData.rend(); ++iter) {
+    SmfRollbackData rollbackData(this);
+    if ((result = rollbackData.rollback((*iter), operationList)) != SA_AIS_OK) {
+      LOG_ER("SmfRollbackCcb::rollback, rollback of %s failed, rc=%s",
+             (*iter).c_str(), saf_error(result));
+      break;
+    }
+  }
+  /*
+     3) Use SmfImmUtils object and call doImmOperations
+            with list of IMM operations created by rollback data objects
+  */
 
-        if (result == SA_AIS_OK) {
-                if ((result = immUtil.doImmOperations(operationList)) != SA_AIS_OK) {
-                        LOG_ER("Rollback ccb operations failed for %s, rc=%s", m_dn.c_str(), saf_error(result));
-                }
-        }
+  if (result == SA_AIS_OK) {
+    if ((result = immUtil.doImmOperations(operationList)) != SA_AIS_OK) {
+      LOG_ER("Rollback ccb operations failed for %s, rc=%s", m_dn.c_str(),
+             saf_error(result));
+    }
+  }
 
-        /* Remove all operations */
-	for (auto& opElem : operationList) {
-                delete (opElem);
-        }
+  /* Remove all operations */
+  for (auto& opElem : operationList) {
+    delete (opElem);
+  }
 
-	return result;
+  return result;
 }
 
 //------------------------------------------------------------------------------
 // addCcbData()
 //------------------------------------------------------------------------------
-void 
-SmfRollbackCcb::addCcbData(SmfRollbackData* i_data)
-{
-        i_data->setId(m_dataId++);
-        m_rollbackData.push_back(i_data);
+void SmfRollbackCcb::addCcbData(SmfRollbackData* i_data) {
+  i_data->setId(m_dataId++);
+  m_rollbackData.push_back(i_data);
 }
-

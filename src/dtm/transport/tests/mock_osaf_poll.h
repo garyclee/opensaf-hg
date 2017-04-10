@@ -21,10 +21,7 @@
 #include "base/osaf_poll.h"
 
 struct MockOsafPoll {
-  MockOsafPoll() :
-      return_value{0},
-      invocations{0} {
-  }
+  MockOsafPoll() : return_value{0}, invocations{0} {}
   void reset() {
     return_value = 0;
     invocations = 0;

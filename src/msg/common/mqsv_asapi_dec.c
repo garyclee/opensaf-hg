@@ -26,10 +26,10 @@
    asapi_reg_dec............ASAPi Registration Message Decode routine
    asapi_reg_resp_dec.......ASAPi Registration Response Message Decode routine
    asapi_dereg_dec..........ASAPi De-registration Message Decode routine
-   asapi_dereg_resp_dec.....ASAPi De-registration Response Message Decode routine
-   asapi_nreslove_dec.......ASAPi Name Resolution Message Decode routine
-   asapi_nreslove_resp_dec..ASAPi Name Resolution Response Message Decode routine
-   asapi_getqueue_dec.......ASAPi Getqueue Message Decode routine
+   asapi_dereg_resp_dec.....ASAPi De-registration Response Message Decode
+routine asapi_nreslove_dec.......ASAPi Name Resolution Message Decode routine
+   asapi_nreslove_resp_dec..ASAPi Name Resolution Response Message Decode
+routine asapi_getqueue_dec.......ASAPi Getqueue Message Decode routine
    asapi_getqueue_resp_dec..ASAPi Getqueue Response Message Decode routine
    asapi_track_dec..........ASAPi Track Message Decode routine
    asapi_track_resp_dec.....ASAPi Track Response Message Decode routine
@@ -44,44 +44,50 @@ static uint32_t asapi_reg_resp_dec(NCS_UBAID *, ASAPi_REG_RESP_INFO *);
 static uint32_t asapi_dereg_dec(NCS_UBAID *, ASAPi_DEREG_INFO *);
 static uint32_t asapi_dereg_resp_dec(NCS_UBAID *, ASAPi_DEREG_RESP_INFO *);
 static uint32_t asapi_nreslove_dec(NCS_UBAID *, ASAPi_NRESOLVE_INFO *);
-static uint32_t asapi_nreslove_resp_dec(NCS_UBAID *, ASAPi_NRESOLVE_RESP_INFO *);
+static uint32_t asapi_nreslove_resp_dec(NCS_UBAID *,
+					ASAPi_NRESOLVE_RESP_INFO *);
 static uint32_t asapi_getqueue_dec(NCS_UBAID *, ASAPi_GETQUEUE_INFO *);
-static uint32_t asapi_getqueue_resp_dec(NCS_UBAID *, ASAPi_GETQUEUE_RESP_INFO *);
+static uint32_t asapi_getqueue_resp_dec(NCS_UBAID *,
+					ASAPi_GETQUEUE_RESP_INFO *);
 static uint32_t asapi_track_dec(NCS_UBAID *, ASAPi_TRACK_INFO *);
 static uint32_t asapi_track_resp_dec(NCS_UBAID *, ASAPi_TRACK_RESP_INFO *);
 static uint32_t asapi_track_ntfy_dec(NCS_UBAID *, ASAPi_TRACK_NTFY_INFO *);
-static uint32_t asapi_ginfo_dec(NCS_UBAID *, SaNameT *, SaMsgQueueGroupPolicyT *);
+static uint32_t asapi_ginfo_dec(NCS_UBAID *, SaNameT *,
+				SaMsgQueueGroupPolicyT *);
 static uint32_t asapi_qinfo_dec(NCS_UBAID *, ASAPi_QUEUE_PARAM *);
 static uint32_t asapi_name_dec(NCS_UBAID *, SaNameT *);
-static uint32_t asapi_obj_info_dec(NCS_UBAID *, ASAPi_OBJECT_INFO *, ASAPi_ERR_INFO *);
+static uint32_t asapi_obj_info_dec(NCS_UBAID *, ASAPi_OBJECT_INFO *,
+				   ASAPi_ERR_INFO *);
 /*****************************************************************************/
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_msg_dec
 
-   DESCRIPTION    :  This is ASAPi decode routine, Based on the ASAPi message 
-                     type it decodes request messages. This routine will be 
-                     invoked within the flow of MDS when it deceides to decodes
-                     the ASAPi messages.
+   DESCRIPTION    :  This is ASAPi decode routine, Based on the ASAPi message
+		     type it decodes request messages. This routine will be
+		     invoked within the flow of MDS when it deceides to decodes
+		     the ASAPi messages.
    ARGUMENTS      :  pBuff  - Data buffer
-                     o_pMsg - ASAPi Message   
+		     o_pMsg - ASAPi Message
 
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something.
-   NOTE           :  This decode routine is common for both, inter process 
-                     decoding & inter card decoding.
+		     FAILURE - internal processing didn't like something.
+   NOTE           :  This decode routine is common for both, inter process
+		     decoding & inter card decoding.
 \****************************************************************************/
 uint32_t asapi_msg_dec(NCS_UBAID *pBuff, ASAPi_MSG_INFO **o_pMsg)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64];		/* sufficient space to decode data */
+	uint8_t space[64]; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO *pMsg = 0;
 
 	*o_pMsg = 0;
-	pMsg = m_MMGR_ALLOC_ASAPi_MSG_INFO(asapi.my_svc_id);	/* Allocate new MSG envelop */
+	pMsg = m_MMGR_ALLOC_ASAPi_MSG_INFO(
+	    asapi.my_svc_id); /* Allocate new MSG envelop */
 	if (!pMsg) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* Memmory failure ... */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* Memmory failure ... */
 	}
 	memset(pMsg, 0, sizeof(ASAPi_MSG_INFO));
 
@@ -126,29 +132,29 @@ uint32_t asapi_msg_dec(NCS_UBAID *pBuff, ASAPi_MSG_INFO **o_pMsg)
 	}
 
 	if (NCSCC_RC_SUCCESS != rc) {
-		asapi_msg_free(&pMsg);	/* Free the message ... */
+		asapi_msg_free(&pMsg); /* Free the message ... */
 		pMsg = 0;
 		return m_ASAPi_DBG_SINK(rc);
 	}
 
-	*o_pMsg = pMsg;		/* OK--Done */
+	*o_pMsg = pMsg; /* OK--Done */
 	return rc;
-}	/* End of asapi_msg_dec() */
+} /* End of asapi_msg_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_reg_dec
 
    DESCRIPTION    :  Routine to decode ASAPi Registration message
    ARGUMENTS      :  pBuff - Data buffer
-                     msg   - Registration Message 
-                     
+		     msg   - Registration Message
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
 static uint32_t asapi_reg_dec(NCS_UBAID *pBuff, ASAPi_REG_INFO *msg)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64], flag = 0;	/* sufficient space to decode data */
+	uint8_t space[64], flag = 0; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
 	bool gflag = false;
@@ -163,18 +169,19 @@ static uint32_t asapi_reg_dec(NCS_UBAID *pBuff, ASAPi_REG_INFO *msg)
 	len = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(len));
 	if (!len) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* wrong message length */
 	}
 
 	/* Decode Group Information */
 	rc = asapi_ginfo_dec(pBuff, &msg->group, &msg->policy);
 	if (NCSCC_RC_SUCCESS == rc) {
-		gflag = true;	/* Group present */
+		gflag = true; /* Group present */
 	}
 
 	/* Decode Queue Information */
 	rc = asapi_qinfo_dec(pBuff, &msg->queue);
-	if (NCSCC_RC_SUCCESS != rc) {	/* Queue Information doesn't exist */
+	if (NCSCC_RC_SUCCESS != rc) { /* Queue Information doesn't exist */
 		if (gflag) {
 			msg->objtype = ASAPi_OBJ_GROUP;
 			rc = NCSCC_RC_SUCCESS;
@@ -187,22 +194,22 @@ static uint32_t asapi_reg_dec(NCS_UBAID *pBuff, ASAPi_REG_INFO *msg)
 			msg->objtype = ASAPi_OBJ_QUEUE;
 	}
 	return rc;
-}	/* End of asapi_reg_dec() */
+} /* End of asapi_reg_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_reg_resp_dec
 
    DESCRIPTION    :  Routine to decode ASAPi Registration Response message
    ARGUMENTS      :  pBuff - Data buffer
-                     msg   - Registration Response Message 
-                     
+		     msg   - Registration Response Message
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
 static uint32_t asapi_reg_resp_dec(NCS_UBAID *pBuff, ASAPi_REG_RESP_INFO *msg)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64];		/* sufficient space to decode data */
+	uint8_t space[64]; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
 	bool gflag = false;
@@ -217,18 +224,19 @@ static uint32_t asapi_reg_resp_dec(NCS_UBAID *pBuff, ASAPi_REG_RESP_INFO *msg)
 	len = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(len));
 	if (!len) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* wrong message length */
 	}
 
 	/* Decode Group Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->group);
 	if (NCSCC_RC_SUCCESS == rc) {
-		gflag = true;	/* Group present */
+		gflag = true; /* Group present */
 	}
 
 	/* Decode Queue Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->queue);
-	if (NCSCC_RC_SUCCESS != rc) {	/* Queue Information doesn't exist */
+	if (NCSCC_RC_SUCCESS != rc) { /* Queue Information doesn't exist */
 		if (gflag) {
 			msg->objtype = ASAPi_OBJ_GROUP;
 			rc = NCSCC_RC_SUCCESS;
@@ -243,28 +251,29 @@ static uint32_t asapi_reg_resp_dec(NCS_UBAID *pBuff, ASAPi_REG_RESP_INFO *msg)
 
 	/* Decode Error Information */
 	if (msg->err.flag) {
-		stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.errcode));
+		stream = ncs_dec_flatten_space(pBuff, space,
+					       sizeof(msg->err.errcode));
 		msg->err.errcode = ncs_decode_32bit(&stream);
 		ncs_dec_skip_space(pBuff, sizeof(msg->err.errcode));
 	}
 
 	return rc;
-}	/* End of asapi_reg_resp_dec() */
+} /* End of asapi_reg_resp_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_dereg_dec
 
    DESCRIPTION    :  Routine to decode ASAPi De-registration message
    ARGUMENTS      :  pBuff - Data buffer
-                     msg   - De-registration Message 
-                     
+		     msg   - De-registration Message
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
 static uint32_t asapi_dereg_dec(NCS_UBAID *pBuff, ASAPi_DEREG_INFO *msg)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64], flag = 0;	/* sufficient space to decode data */
+	uint8_t space[64], flag = 0; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
 	bool gflag = false;
@@ -279,13 +288,14 @@ static uint32_t asapi_dereg_dec(NCS_UBAID *pBuff, ASAPi_DEREG_INFO *msg)
 	len = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(len));
 	if (!len) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* wrong message length */
 	}
 
 	/* Decode Group Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->group);
 	if (NCSCC_RC_SUCCESS == rc) {
-		gflag = true;	/* Group present */
+		gflag = true; /* Group present */
 	}
 
 	/* Decode Queue Name & Length */
@@ -303,22 +313,23 @@ static uint32_t asapi_dereg_dec(NCS_UBAID *pBuff, ASAPi_DEREG_INFO *msg)
 			msg->objtype = ASAPi_OBJ_QUEUE;
 	}
 	return rc;
-}	/* End of asapi_dereg_dec() */
+} /* End of asapi_dereg_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_dereg_resp_dec
 
    DESCRIPTION    :  Routine to decode ASAPi De-registration Response message
    ARGUMENTS      :  pBuff - Data buffer
-                     msg   - De-registration Response Message 
-                     
+		     msg   - De-registration Response Message
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uint32_t asapi_dereg_resp_dec(NCS_UBAID *pBuff, ASAPi_DEREG_RESP_INFO *msg)
+static uint32_t asapi_dereg_resp_dec(NCS_UBAID *pBuff,
+				     ASAPi_DEREG_RESP_INFO *msg)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64];		/* sufficient space to decode data */
+	uint8_t space[64]; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
 	bool gflag = false;
@@ -333,18 +344,19 @@ static uint32_t asapi_dereg_resp_dec(NCS_UBAID *pBuff, ASAPi_DEREG_RESP_INFO *ms
 	len = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(len));
 	if (!len) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* wrong message length */
 	}
 
 	/* Decode Group Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->group);
 	if (NCSCC_RC_SUCCESS == rc) {
-		gflag = true;	/* Group present */
+		gflag = true; /* Group present */
 	}
 
 	/* Decode Queue Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->queue);
-	if (NCSCC_RC_SUCCESS != rc) {	/* Queue Information doesn't exist */
+	if (NCSCC_RC_SUCCESS != rc) { /* Queue Information doesn't exist */
 		if (gflag) {
 			msg->objtype = ASAPi_OBJ_GROUP;
 			rc = NCSCC_RC_SUCCESS;
@@ -359,28 +371,29 @@ static uint32_t asapi_dereg_resp_dec(NCS_UBAID *pBuff, ASAPi_DEREG_RESP_INFO *ms
 
 	/* Decode Error Information */
 	if (msg->err.flag) {
-		stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.errcode));
+		stream = ncs_dec_flatten_space(pBuff, space,
+					       sizeof(msg->err.errcode));
 		msg->err.errcode = ncs_decode_32bit(&stream);
 		ncs_dec_skip_space(pBuff, sizeof(msg->err.errcode));
 	}
 
 	return rc;
-}	/* End of asapi_dereg_resp_dec() */
+} /* End of asapi_dereg_resp_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_nreslove_dec
 
    DESCRIPTION    :  Routine to decode ASAPi Name Resolution message
    ARGUMENTS      :  pBuff - Data buffer
-                     msg   - Name Resolution Message 
-                     
+		     msg   - Name Resolution Message
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
 static uint32_t asapi_nreslove_dec(NCS_UBAID *pBuff, ASAPi_NRESOLVE_INFO *msg)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64];		/* sufficient space to decode data */
+	uint8_t space[64]; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
 
@@ -394,46 +407,48 @@ static uint32_t asapi_nreslove_dec(NCS_UBAID *pBuff, ASAPi_NRESOLVE_INFO *msg)
 	len = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(len));
 	if (!len) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* wrong message length */
 	}
 
 	/* Decode Object Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->object);
 	return rc;
-}	/* End of asapi_nreslove_dec() */
+} /* End of asapi_nreslove_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_nreslove_resp_dec
 
    DESCRIPTION    :  Routine to decode ASAPi Name Resolution Response message
    ARGUMENTS      :  pBuff - Data buffer
-                     msg   - Nmae Resolution Response Message 
-                     
+		     msg   - Nmae Resolution Response Message
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uint32_t asapi_nreslove_resp_dec(NCS_UBAID *pBuff, ASAPi_NRESOLVE_RESP_INFO *msg)
+static uint32_t asapi_nreslove_resp_dec(NCS_UBAID *pBuff,
+					ASAPi_NRESOLVE_RESP_INFO *msg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = asapi_obj_info_dec(pBuff, &msg->oinfo, &msg->err);
 	return rc;
-}	/* End of asapi_nreslove_resp_dec() */
+} /* End of asapi_nreslove_resp_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_getqueue_dec
 
    DESCRIPTION    :  Routine to decode ASAPi Getqueue message
    ARGUMENTS      :  pBuff - Data buffer
-                     msg   - Getqueue Message                      
+		     msg   - Getqueue Message
 
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
 static uint32_t asapi_getqueue_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_INFO *msg)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64], flag = 0;	/* sufficient space to decode data */
+	uint8_t space[64], flag = 0; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
 
@@ -447,28 +462,30 @@ static uint32_t asapi_getqueue_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_INFO *msg)
 	len = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(len));
 	if (!len) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* wrong message length */
 	}
 
 	/* Decode Queue Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->queue);
 	return rc;
-}	/* End of asapi_getqueue_dec() */
+} /* End of asapi_getqueue_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_getqueue_resp_dec
 
    DESCRIPTION    :  Routine to decode ASAPi Getqueue Response message
    ARGUMENTS      :  pBuff - Data buffer
-                     msg   - Getqueue Response Message 
-                     
+		     msg   - Getqueue Response Message
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uint32_t asapi_getqueue_resp_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_RESP_INFO *msg)
+static uint32_t asapi_getqueue_resp_dec(NCS_UBAID *pBuff,
+					ASAPi_GETQUEUE_RESP_INFO *msg)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64];		/* sufficient space to decode data */
+	uint8_t space[64]; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
 
@@ -482,7 +499,8 @@ static uint32_t asapi_getqueue_resp_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_RESP_IN
 	len = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(len));
 	if (!len) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* wrong message length */
 	}
 
 	/* Decode Queue Information */
@@ -490,28 +508,29 @@ static uint32_t asapi_getqueue_resp_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_RESP_IN
 
 	/* Decode Error Information */
 	if (msg->err.flag) {
-		stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.errcode));
+		stream = ncs_dec_flatten_space(pBuff, space,
+					       sizeof(msg->err.errcode));
 		msg->err.errcode = ncs_decode_32bit(&stream);
 		ncs_dec_skip_space(pBuff, sizeof(msg->err.errcode));
 	}
 
 	return rc;
-}	/* End of asapi_getqueue_resp_dec() */
+} /* End of asapi_getqueue_resp_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_track_dec
 
    DESCRIPTION    :  Routine to decode ASAPi Track message
    ARGUMENTS      :  pBuff - Data buffer
-                     msg   - Track Message 
-                     
+		     msg   - Track Message
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
 static uint32_t asapi_track_dec(NCS_UBAID *pBuff, ASAPi_TRACK_INFO *msg)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64];		/* sufficient space to decode data */
+	uint8_t space[64]; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
 
@@ -525,48 +544,51 @@ static uint32_t asapi_track_dec(NCS_UBAID *pBuff, ASAPi_TRACK_INFO *msg)
 	len = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(len));
 	if (!len) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* wrong message length */
 	}
 
 	/* Decode Object Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->object);
 
 	return rc;
-}	/* End of asapi_track_dec() */
+} /* End of asapi_track_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_track_resp_dec
 
    DESCRIPTION    :  Routine to decode ASAPi Track Response message
    ARGUMENTS      :  pBuff - Data buffer
-                     msg   - Track Response Message 
-                     
+		     msg   - Track Response Message
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uint32_t asapi_track_resp_dec(NCS_UBAID *pBuff, ASAPi_TRACK_RESP_INFO *tresp)
+static uint32_t asapi_track_resp_dec(NCS_UBAID *pBuff,
+				     ASAPi_TRACK_RESP_INFO *tresp)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = asapi_obj_info_dec(pBuff, &tresp->oinfo, &tresp->err);
 	return rc;
-}	/* End of asapi_track_resp_dec() */
+} /* End of asapi_track_resp_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_obj_info_dec
 
    DESCRIPTION    :  Routine to decode ASAPi Object Information & error info
    ARGUMENTS      :  pBuff - Data buffer
-                     info  - Object info pointer
-                     err   - Error info pointer
-                     
+		     info  - Object info pointer
+		     err   - Error info pointer
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uint32_t asapi_obj_info_dec(NCS_UBAID *pBuff, ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *err)
+static uint32_t asapi_obj_info_dec(NCS_UBAID *pBuff, ASAPi_OBJECT_INFO *info,
+				   ASAPi_ERR_INFO *err)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64];		/* sufficient space to decode data */
+	uint8_t space[64]; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0, idx = 0;
 
@@ -580,7 +602,8 @@ static uint32_t asapi_obj_info_dec(NCS_UBAID *pBuff, ASAPi_OBJECT_INFO *info, AS
 	len = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(len));
 	if (!len) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* wrong message length */
 	}
 
 	/* Decode Group Info */
@@ -593,9 +616,11 @@ static uint32_t asapi_obj_info_dec(NCS_UBAID *pBuff, ASAPi_OBJECT_INFO *info, AS
 
 	/* Allocate Queue Information */
 	if (info->qcnt) {
-		info->qparam = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(info->qcnt * sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
+		info->qparam = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(
+		    info->qcnt * sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
 		if (!info->qparam) {
-			return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* OOOppps Memory Failure */
+			return m_ASAPi_DBG_SINK(
+			    NCSCC_RC_FAILURE); /* OOOppps Memory Failure */
 		}
 		memset(info->qparam, 0, sizeof(ASAPi_QUEUE_PARAM));
 
@@ -607,29 +632,31 @@ static uint32_t asapi_obj_info_dec(NCS_UBAID *pBuff, ASAPi_OBJECT_INFO *info, AS
 
 	/* Decode Error Information */
 	if (err->flag) {
-		stream = ncs_dec_flatten_space(pBuff, space, sizeof(err->errcode));
+		stream =
+		    ncs_dec_flatten_space(pBuff, space, sizeof(err->errcode));
 		err->errcode = ncs_decode_32bit(&stream);
 		ncs_dec_skip_space(pBuff, sizeof(err->errcode));
 	}
 
 	return rc;
-}	/* End of asapi_obj_info_dec() */
+} /* End of asapi_obj_info_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_track_ntfy_dec
 
    DESCRIPTION    :  Routine to decode ASAPi Track Notification message
 
-   ARGUMENTS      :  pBuff - Data buffer                     
-                     msg   - Track Notification Message 
-                     
+   ARGUMENTS      :  pBuff - Data buffer
+		     msg   - Track Notification Message
+
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something. 
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uint32_t asapi_track_ntfy_dec(NCS_UBAID *pBuff, ASAPi_TRACK_NTFY_INFO *msg)
+static uint32_t asapi_track_ntfy_dec(NCS_UBAID *pBuff,
+				     ASAPi_TRACK_NTFY_INFO *msg)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64], flag = 0;	/* sufficient space to decode data */
+	uint8_t space[64], flag = 0; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0, idx = 0;
 
@@ -643,7 +670,8 @@ static uint32_t asapi_track_ntfy_dec(NCS_UBAID *pBuff, ASAPi_TRACK_NTFY_INFO *ms
 	len = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(len));
 	if (!len) {
-		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+		return m_ASAPi_DBG_SINK(
+		    NCSCC_RC_FAILURE); /* wrong message length */
 	}
 
 	/* Decode track operation */
@@ -661,8 +689,9 @@ static uint32_t asapi_track_ntfy_dec(NCS_UBAID *pBuff, ASAPi_TRACK_NTFY_INFO *ms
 
 	/* Allocate Queue Information */
 	if (msg->oinfo.qcnt) {
-		msg->oinfo.qparam = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(msg->oinfo.qcnt *
-								   sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
+		msg->oinfo.qparam = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(
+		    msg->oinfo.qcnt * sizeof(ASAPi_QUEUE_PARAM),
+		    asapi.my_svc_id);
 		if (!msg->oinfo.qparam) {
 			return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
 		}
@@ -675,7 +704,7 @@ static uint32_t asapi_track_ntfy_dec(NCS_UBAID *pBuff, ASAPi_TRACK_NTFY_INFO *ms
 	}
 
 	return rc;
-}	/* End of asapi_track_ntfy_dec() */
+} /* End of asapi_track_ntfy_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_ginfo_dec
@@ -683,16 +712,17 @@ static uint32_t asapi_track_ntfy_dec(NCS_UBAID *pBuff, ASAPi_TRACK_NTFY_INFO *ms
    DESCRIPTION    :  Routine to decode Group Information
 
    ARGUMENTS      :  pBuff  - Data buffer
-                     group  - Group to decode 
-                     policy - selection policy for the group                     
+		     group  - Group to decode
+		     policy - selection policy for the group
 
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something.
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uint32_t asapi_ginfo_dec(NCS_UBAID *pBuff, SaNameT *group, SaMsgQueueGroupPolicyT *policy)
+static uint32_t asapi_ginfo_dec(NCS_UBAID *pBuff, SaNameT *group,
+				SaMsgQueueGroupPolicyT *policy)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64];		/* sufficient space to decode data */
+	uint8_t space[64]; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(group, 0, sizeof(SaNameT));
@@ -702,10 +732,11 @@ static uint32_t asapi_ginfo_dec(NCS_UBAID *pBuff, SaNameT *group, SaMsgQueueGrou
 	group->length = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(group->length));
 	if (!group->length)
-		return NCSCC_RC_FAILURE;	/* Nothin to decode */
+		return NCSCC_RC_FAILURE; /* Nothin to decode */
 
 	/* Decode Group Selection Policy */
-	stream = ncs_dec_flatten_space(pBuff, space, sizeof(SaMsgQueueGroupPolicyT));
+	stream =
+	    ncs_dec_flatten_space(pBuff, space, sizeof(SaMsgQueueGroupPolicyT));
 	*policy = ncs_decode_32bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(SaMsgQueueGroupPolicyT));
 
@@ -715,7 +746,7 @@ static uint32_t asapi_ginfo_dec(NCS_UBAID *pBuff, SaNameT *group, SaMsgQueueGrou
 	ncs_dec_skip_space(pBuff, group->length);
 
 	return rc;
-}	/* End of asapi_ginfo_dec() */
+} /* End of asapi_ginfo_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_qinfo_dec
@@ -723,21 +754,21 @@ static uint32_t asapi_ginfo_dec(NCS_UBAID *pBuff, SaNameT *group, SaMsgQueueGrou
    DESCRIPTION    :  Routine to decode Queue Information
 
    ARGUMENTS      :  pBuff - Data buffer
-                     queue - Queue to decode                      
+		     queue - Queue to decode
 
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something.
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
 static uint32_t asapi_qinfo_dec(NCS_UBAID *pBuff, ASAPi_QUEUE_PARAM *queue)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64];		/* sufficient space to decode data */
+	uint8_t space[64]; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS, i;
 
 	/* Decode Queue Name & Length */
 	rc = asapi_name_dec(pBuff, &queue->name);
 	if (NCSCC_RC_SUCCESS != rc) {
-		return rc;	/* Queue Info doesn't exist */
+		return rc; /* Queue Info doesn't exist */
 	}
 
 	/* Decode Queue Handle */
@@ -746,7 +777,8 @@ static uint32_t asapi_qinfo_dec(NCS_UBAID *pBuff, ASAPi_QUEUE_PARAM *queue)
 	ncs_dec_skip_space(pBuff, sizeof(queue->hdl));
 
 	/* Decode Registration Life */
-	stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->retentionTime));
+	stream =
+	    ncs_dec_flatten_space(pBuff, space, sizeof(queue->retentionTime));
 	queue->retentionTime = ncs_decode_64bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(queue->retentionTime));
 
@@ -764,24 +796,27 @@ static uint32_t asapi_qinfo_dec(NCS_UBAID *pBuff, ASAPi_QUEUE_PARAM *queue)
 	ncs_dec_skip_space(pBuff, sizeof(queue->status));
 
 	/* Decode the flag which says is_mqnd_down or not */
-	stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->is_mqnd_down));
+	stream =
+	    ncs_dec_flatten_space(pBuff, space, sizeof(queue->is_mqnd_down));
 	queue->is_mqnd_down = ncs_decode_8bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(queue->is_mqnd_down));
 
 	/* Decode creationFlags */
-	stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->creationFlags));
+	stream =
+	    ncs_dec_flatten_space(pBuff, space, sizeof(queue->creationFlags));
 	queue->creationFlags = ncs_decode_32bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(queue->creationFlags));
 
 	/* Decode size[] array */
 	for (i = 0; i < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; i++) {
-		stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->size[i]));
+		stream =
+		    ncs_dec_flatten_space(pBuff, space, sizeof(queue->size[i]));
 		queue->size[i] = ncs_decode_64bit(&stream);
 		ncs_dec_skip_space(pBuff, sizeof(queue->size[i]));
 	}
 
 	return rc;
-}	/* End of asapi_qinfo_dec() */
+} /* End of asapi_qinfo_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_name_dec
@@ -789,15 +824,15 @@ static uint32_t asapi_qinfo_dec(NCS_UBAID *pBuff, ASAPi_QUEUE_PARAM *queue)
    DESCRIPTION    :  Routine to decode name & length
 
    ARGUMENTS      :  pBuff - Data buffer
-                     name - name to decode                      
+		     name - name to decode
 
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something.
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
 static uint32_t asapi_name_dec(NCS_UBAID *pBuff, SaNameT *name)
 {
 	uint8_t *stream = 0;
-	uint8_t space[64];		/* sufficient space to decode data */
+	uint8_t space[64]; /* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(name, 0, sizeof(SaNameT));
@@ -807,7 +842,7 @@ static uint32_t asapi_name_dec(NCS_UBAID *pBuff, SaNameT *name)
 	name->length = ncs_decode_16bit(&stream);
 	ncs_dec_skip_space(pBuff, sizeof(name->length));
 	if (!name->length)
-		return NCSCC_RC_FAILURE;	/* Nothin to decode */
+		return NCSCC_RC_FAILURE; /* Nothin to decode */
 
 	/* Decode Name */
 	stream = ncs_dec_flatten_space(pBuff, space, name->length);
@@ -815,4 +850,4 @@ static uint32_t asapi_name_dec(NCS_UBAID *pBuff, SaNameT *name)
 	ncs_dec_skip_space(pBuff, name->length);
 
 	return rc;
-}	/* End of asapi_name_dec() */
+} /* End of asapi_name_dec() */

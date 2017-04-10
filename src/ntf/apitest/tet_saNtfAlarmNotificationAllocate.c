@@ -22,50 +22,54 @@
 
 static SaNtfAlarmNotificationT myAlarmNotification;
 
-void saNtfAlarmNotificationAllocate_01(void) {
+void saNtfAlarmNotificationAllocate_01(void)
+{
 	/*  struct pollfd fds[1];*/
 	/*  int ret;             */
 	saNotificationAllocationParamsT myNotificationAllocationParams;
-	saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
+	saNotificationFilterAllocationParamsT
+	    myNotificationFilterAllocationParams;
 	saNotificationParamsT myNotificationParams;
 
 	fillInDefaultValues(&myNotificationAllocationParams,
-			&myNotificationFilterAllocationParams, &myNotificationParams);
+			    &myNotificationFilterAllocationParams,
+			    &myNotificationParams);
 
-	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion) , SA_AIS_OK);
-	safassert(saNtfSelectionObjectGet(ntfHandle, &selectionObject) , SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion),
+		  SA_AIS_OK);
+	safassert(saNtfSelectionObjectGet(ntfHandle, &selectionObject),
+		  SA_AIS_OK);
 
 	AlarmNotificationParams myAlarmParams;
 
-	myAlarmParams.numCorrelatedNotifications
-			= myNotificationAllocationParams.numCorrelatedNotifications;
-	myAlarmParams.lengthAdditionalText
-			= myNotificationAllocationParams.lengthAdditionalText;
-	myAlarmParams.numAdditionalInfo
-			= myNotificationAllocationParams.numAdditionalInfo;
-	myAlarmParams.numSpecificProblems
-			= myNotificationAllocationParams.numSpecificProblems;
-	myAlarmParams.numMonitoredAttributes
-			= myNotificationAllocationParams.numMonitoredAttributes;
-	myAlarmParams.numProposedRepairActions
-			= myNotificationAllocationParams.numProposedRepairActions;
-	myAlarmParams.variableDataSize
-			= myNotificationAllocationParams.variableDataSize;
+	myAlarmParams.numCorrelatedNotifications =
+	    myNotificationAllocationParams.numCorrelatedNotifications;
+	myAlarmParams.lengthAdditionalText =
+	    myNotificationAllocationParams.lengthAdditionalText;
+	myAlarmParams.numAdditionalInfo =
+	    myNotificationAllocationParams.numAdditionalInfo;
+	myAlarmParams.numSpecificProblems =
+	    myNotificationAllocationParams.numSpecificProblems;
+	myAlarmParams.numMonitoredAttributes =
+	    myNotificationAllocationParams.numMonitoredAttributes;
+	myAlarmParams.numProposedRepairActions =
+	    myNotificationAllocationParams.numProposedRepairActions;
+	myAlarmParams.variableDataSize =
+	    myNotificationAllocationParams.variableDataSize;
 
 	rc = saNtfAlarmNotificationAllocate(
-					ntfHandle,
-					&myAlarmNotification,
-					myAlarmParams.numCorrelatedNotifications,
-					myAlarmParams.lengthAdditionalText,
-					myAlarmParams.numAdditionalInfo,
-					myAlarmParams.numSpecificProblems,
-					myAlarmParams.numMonitoredAttributes,
-					myAlarmParams.numProposedRepairActions,
-					myAlarmParams.variableDataSize);
+	    ntfHandle, &myAlarmNotification,
+	    myAlarmParams.numCorrelatedNotifications,
+	    myAlarmParams.lengthAdditionalText, myAlarmParams.numAdditionalInfo,
+	    myAlarmParams.numSpecificProblems,
+	    myAlarmParams.numMonitoredAttributes,
+	    myAlarmParams.numProposedRepairActions,
+	    myAlarmParams.variableDataSize);
 
-        free(myNotificationParams.additionalText);
-	safassert(saNtfNotificationFree(myAlarmNotification.notificationHandle) , SA_AIS_OK);
-	safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
+	free(myNotificationParams.additionalText);
+	safassert(saNtfNotificationFree(myAlarmNotification.notificationHandle),
+		  SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 	test_validate(rc, SA_AIS_OK);
 }
 
@@ -75,69 +79,68 @@ void saNtfAlarmNotificationAllocate_01(void) {
  * Strategy: Set the handle to zero or invalid number
  *           Create a handle and then destroy it.
  */
-void saNtfAlarmNotificationAllocate_02(void) {
+void saNtfAlarmNotificationAllocate_02(void)
+{
 	/* Variable to count the number of errors */
 	int errors = 0;
 	saNotificationAllocationParamsT myNotificationAllocationParams;
-	saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
+	saNotificationFilterAllocationParamsT
+	    myNotificationFilterAllocationParams;
 	saNotificationParamsT myNotificationParams;
 	AlarmNotificationParams myAlarmParams;
 
 	fillInDefaultValues(&myNotificationAllocationParams,
-			&myNotificationFilterAllocationParams, &myNotificationParams);
+			    &myNotificationFilterAllocationParams,
+			    &myNotificationParams);
 
-	myAlarmParams.numCorrelatedNotifications
-			= myNotificationAllocationParams.numCorrelatedNotifications;
-	myAlarmParams.lengthAdditionalText
-			= myNotificationAllocationParams.lengthAdditionalText;
-	myAlarmParams.numAdditionalInfo
-			= myNotificationAllocationParams.numAdditionalInfo;
-	myAlarmParams.numSpecificProblems
-			= myNotificationAllocationParams.numSpecificProblems;
-	myAlarmParams.numMonitoredAttributes
-			= myNotificationAllocationParams.numMonitoredAttributes;
-	myAlarmParams.numProposedRepairActions
-			= myNotificationAllocationParams.numProposedRepairActions;
-	myAlarmParams.variableDataSize
-			= myNotificationAllocationParams.variableDataSize;
+	myAlarmParams.numCorrelatedNotifications =
+	    myNotificationAllocationParams.numCorrelatedNotifications;
+	myAlarmParams.lengthAdditionalText =
+	    myNotificationAllocationParams.lengthAdditionalText;
+	myAlarmParams.numAdditionalInfo =
+	    myNotificationAllocationParams.numAdditionalInfo;
+	myAlarmParams.numSpecificProblems =
+	    myNotificationAllocationParams.numSpecificProblems;
+	myAlarmParams.numMonitoredAttributes =
+	    myNotificationAllocationParams.numMonitoredAttributes;
+	myAlarmParams.numProposedRepairActions =
+	    myNotificationAllocationParams.numProposedRepairActions;
+	myAlarmParams.variableDataSize =
+	    myNotificationAllocationParams.variableDataSize;
 
 	/* Set the handle to invalid number */
 	rc = saNtfAlarmNotificationAllocate(
-					0,
-					&myAlarmNotification,
-					myAlarmParams.numCorrelatedNotifications,
-					myAlarmParams.lengthAdditionalText,
-					myAlarmParams.numAdditionalInfo,
-					myAlarmParams.numSpecificProblems,
-					myAlarmParams.numMonitoredAttributes,
-					myAlarmParams.numProposedRepairActions,
-					myAlarmParams.variableDataSize);
+	    0, &myAlarmNotification, myAlarmParams.numCorrelatedNotifications,
+	    myAlarmParams.lengthAdditionalText, myAlarmParams.numAdditionalInfo,
+	    myAlarmParams.numSpecificProblems,
+	    myAlarmParams.numMonitoredAttributes,
+	    myAlarmParams.numProposedRepairActions,
+	    myAlarmParams.variableDataSize);
 
-	if(rc != SA_AIS_ERR_BAD_HANDLE) {
+	if (rc != SA_AIS_ERR_BAD_HANDLE) {
 		errors++;
 	}
 
-        free(myNotificationParams.additionalText);
+	free(myNotificationParams.additionalText);
 	/* Create a handle and then destroy it */
-	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion) , SA_AIS_OK);
-	safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion),
+		  SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 
 	rc = saNtfAlarmNotificationAllocate(
-					ntfHandle,
-					&myAlarmNotification,
-					myAlarmParams.numCorrelatedNotifications,
-					myAlarmParams.lengthAdditionalText,
-					myAlarmParams.numAdditionalInfo,
-					myAlarmParams.numSpecificProblems,
-					myAlarmParams.numMonitoredAttributes,
-					myAlarmParams.numProposedRepairActions,
-					myAlarmParams.variableDataSize);
+	    ntfHandle, &myAlarmNotification,
+	    myAlarmParams.numCorrelatedNotifications,
+	    myAlarmParams.lengthAdditionalText, myAlarmParams.numAdditionalInfo,
+	    myAlarmParams.numSpecificProblems,
+	    myAlarmParams.numMonitoredAttributes,
+	    myAlarmParams.numProposedRepairActions,
+	    myAlarmParams.variableDataSize);
 
-	if(rc != SA_AIS_ERR_BAD_HANDLE) {
+	if (rc != SA_AIS_ERR_BAD_HANDLE) {
 		errors++;
 	}
 
-	rc = (errors == 0)? SA_AIS_OK:  SA_AIS_ERR_BAD_HANDLE;
+	rc = (errors == 0) ? SA_AIS_OK : SA_AIS_ERR_BAD_HANDLE;
 
 	test_validate(rc, SA_AIS_OK);
 }
@@ -147,62 +150,67 @@ void saNtfAlarmNotificationAllocate_02(void) {
  *
  * Strategy: set notification parameter to NULL
  */
-void saNtfAlarmNotificationAllocate_03(void) {
+void saNtfAlarmNotificationAllocate_03(void)
+{
 	int errors = 0;
 
 	saNotificationAllocationParamsT myNotificationAllocationParams;
-	saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
+	saNotificationFilterAllocationParamsT
+	    myNotificationFilterAllocationParams;
 	saNotificationParamsT myNotificationParams;
 	AlarmNotificationParams myAlarmParams;
 
 	fillInDefaultValues(&myNotificationAllocationParams,
-			&myNotificationFilterAllocationParams, &myNotificationParams);
+			    &myNotificationFilterAllocationParams,
+			    &myNotificationParams);
 
-	myAlarmParams.numCorrelatedNotifications
-			= myNotificationAllocationParams.numCorrelatedNotifications;
-	myAlarmParams.lengthAdditionalText
-			= myNotificationAllocationParams.lengthAdditionalText;
-	myAlarmParams.numAdditionalInfo
-			= myNotificationAllocationParams.numAdditionalInfo;
-	myAlarmParams.numSpecificProblems
-			= myNotificationAllocationParams.numSpecificProblems;
-	myAlarmParams.numMonitoredAttributes
-			= myNotificationAllocationParams.numMonitoredAttributes;
-	myAlarmParams.numProposedRepairActions
-			= myNotificationAllocationParams.numProposedRepairActions;
-	myAlarmParams.variableDataSize
-			= myNotificationAllocationParams.variableDataSize;
+	myAlarmParams.numCorrelatedNotifications =
+	    myNotificationAllocationParams.numCorrelatedNotifications;
+	myAlarmParams.lengthAdditionalText =
+	    myNotificationAllocationParams.lengthAdditionalText;
+	myAlarmParams.numAdditionalInfo =
+	    myNotificationAllocationParams.numAdditionalInfo;
+	myAlarmParams.numSpecificProblems =
+	    myNotificationAllocationParams.numSpecificProblems;
+	myAlarmParams.numMonitoredAttributes =
+	    myNotificationAllocationParams.numMonitoredAttributes;
+	myAlarmParams.numProposedRepairActions =
+	    myNotificationAllocationParams.numProposedRepairActions;
+	myAlarmParams.variableDataSize =
+	    myNotificationAllocationParams.variableDataSize;
 
-	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion) , SA_AIS_OK);
-	safassert(saNtfSelectionObjectGet(ntfHandle, &selectionObject) , SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion),
+		  SA_AIS_OK);
+	safassert(saNtfSelectionObjectGet(ntfHandle, &selectionObject),
+		  SA_AIS_OK);
 
 	rc = saNtfAlarmNotificationAllocate(
-					ntfHandle,
-					NULL,
-					myAlarmParams.numCorrelatedNotifications,
-					myAlarmParams.lengthAdditionalText,
-					myAlarmParams.numAdditionalInfo,
-					myAlarmParams.numSpecificProblems,
-					myAlarmParams.numMonitoredAttributes,
-					myAlarmParams.numProposedRepairActions,
-					myAlarmParams.variableDataSize);
-	if(rc != SA_AIS_ERR_INVALID_PARAM) {
+	    ntfHandle, NULL, myAlarmParams.numCorrelatedNotifications,
+	    myAlarmParams.lengthAdditionalText, myAlarmParams.numAdditionalInfo,
+	    myAlarmParams.numSpecificProblems,
+	    myAlarmParams.numMonitoredAttributes,
+	    myAlarmParams.numProposedRepairActions,
+	    myAlarmParams.variableDataSize);
+	if (rc != SA_AIS_ERR_INVALID_PARAM) {
 		errors++;
 	}
 
-        free(myNotificationParams.additionalText);
-	safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
+	free(myNotificationParams.additionalText);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 
-	rc = (errors == 0)? SA_AIS_OK:  SA_AIS_ERR_INVALID_PARAM;
+	rc = (errors == 0) ? SA_AIS_OK : SA_AIS_ERR_INVALID_PARAM;
 
 	test_validate(rc, SA_AIS_OK);
 }
 
-__attribute__ ((constructor)) static void saNtfNotificationSend_constructor(
-		void) {
+__attribute__((constructor)) static void saNtfNotificationSend_constructor(void)
+{
 	test_suite_add(6, "Producer API 2 allocate");
-	test_case_add(6, saNtfAlarmNotificationAllocate_01, "saNtfAlarmNotificationAllocate SA_AIS_OK");
-	test_case_add(6, saNtfAlarmNotificationAllocate_02, "saNtfAlarmNotificationAllocate SA_AIS_ERR_BAD_HANDLE");
-	test_case_add(6, saNtfAlarmNotificationAllocate_03, "saNtfAlarmNotificationAllocate SA_AIS_ERR_INVALID_PARAM");
+	test_case_add(6, saNtfAlarmNotificationAllocate_01,
+		      "saNtfAlarmNotificationAllocate SA_AIS_OK");
+	test_case_add(6, saNtfAlarmNotificationAllocate_02,
+		      "saNtfAlarmNotificationAllocate SA_AIS_ERR_BAD_HANDLE");
+	test_case_add(
+	    6, saNtfAlarmNotificationAllocate_03,
+	    "saNtfAlarmNotificationAllocate SA_AIS_ERR_INVALID_PARAM");
 }
-

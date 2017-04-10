@@ -32,7 +32,6 @@
 #include "base/ncssysf_ipc.h"
 #include "base/ncssysf_tmr.h"
 
-
 /* Self node information */
 typedef struct node_detail_t {
   SaUint32T node_id;
@@ -45,22 +44,20 @@ typedef struct clmna_cb_t {
   int clms_sync_awaited;
   NCS_SEL_OBJ clms_sync_sel;
   MDS_HDL mds_hdl;
-  MDS_DEST clms_mds_dest;         /* CLMS absolute/virtual address */
+  MDS_DEST clms_mds_dest; /* CLMS absolute/virtual address */
   SYSF_MBX mbx;           /* CLMNA's Mail Box */
   NCS_SEL_OBJ mbx_fd;
-  SaNameT comp_name;      /* My AMF name */
-  SaAmfHandleT amf_hdl;   /* Handle obtained from AMF */
+  SaNameT comp_name;              /* My AMF name */
+  SaAmfHandleT amf_hdl;           /* Handle obtained from AMF */
   SaSelectionObjectT amf_sel_obj; /* AMF provided selection object */
-  SaAmfHAStateT ha_state; /* My current AMF HA state */
+  SaAmfHAStateT ha_state;         /* My current AMF HA state */
   SaBoolT server_synced;
   NODE_INFO node_info;
   tmr_t scale_out_retry_tmr;
   bool is_scale_out_retry_tmr_running;
   bool try_again_received;
-  bool nid_started;       /**< true if started by NID */
+  bool nid_started; /**< true if started by NID */
   void* election_starter;
 } CLMNA_CB;
 
-
 #endif  // CLM_CLMND_CB_H_
-

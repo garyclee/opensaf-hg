@@ -25,7 +25,8 @@
 #include "msg/msgd/mqd.h"
 
 SaAisErrorT mqd_imm_initialize(MQD_CB *cb);
-SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immOiHandle);
+SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode,
+                                        SaImmOiHandleT immOiHandle);
 void mqd_runtime_update_grpmembers_attr(MQD_CB *pMqd, MQD_OBJ_NODE *pObjNode);
 
 #endif  // MSG_MSGD_MQD_IMM_H_

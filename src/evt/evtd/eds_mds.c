@@ -20,20 +20,20 @@
 #include "base/logtrace.h"
 
 MDS_CLIENT_MSG_FORMAT_VER
- EDS_WRT_EDA_MSG_FMT_ARRAY[EDS_WRT_EDA_SUBPART_VER_RANGE] = {
-	1 /*msg format version for EDA subpart version 1 */
+EDS_WRT_EDA_MSG_FMT_ARRAY[EDS_WRT_EDA_SUBPART_VER_RANGE] = {
+    1 /*msg format version for EDA subpart version 1 */
 };
 
 /****************************************************************************
   Name          : eds_dec_initialize_msg
- 
+
   Description   : This routine decodes an initialize API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_dec_initialize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
@@ -61,14 +61,14 @@ static uint32_t eds_dec_initialize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_dec_finalize_msg
- 
+
   Description   : This routine decodes a finalize API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_dec_finalize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
@@ -93,21 +93,22 @@ static uint32_t eds_dec_finalize_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_dec_chan_open_sync_msg
- 
+
   Description   : This routine decodes a chan open sync API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_dec_chan_open_sync_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	EDSV_EDA_CHAN_OPEN_SYNC_PARAM *param = &msg->info.api_info.param.chan_open_sync;
+	EDSV_EDA_CHAN_OPEN_SYNC_PARAM *param =
+	    &msg->info.api_info.param.chan_open_sync;
 	uint8_t local_data[256];
 
 	if (uba == NULL) {
@@ -129,7 +130,8 @@ static uint32_t eds_dec_chan_open_sync_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	total_bytes += 2;
 
 	/* chan_name */
-	ncs_decode_n_octets_from_uba(uba, param->chan_name.value, (uint32_t)param->chan_name.length);
+	ncs_decode_n_octets_from_uba(uba, param->chan_name.value,
+				     (uint32_t)param->chan_name.length);
 	total_bytes += (uint32_t)param->chan_name.length;
 
 	return total_bytes;
@@ -137,21 +139,22 @@ static uint32_t eds_dec_chan_open_sync_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_dec_chan_open_async_msg
- 
+
   Description   : This routine decodes a chan open async API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_dec_chan_open_async_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	EDSV_EDA_CHAN_OPEN_ASYNC_PARAM *param = &msg->info.api_info.param.chan_open_async;
+	EDSV_EDA_CHAN_OPEN_ASYNC_PARAM *param =
+	    &msg->info.api_info.param.chan_open_async;
 	uint8_t local_data[256];
 
 	if (uba == NULL) {
@@ -169,7 +172,8 @@ static uint32_t eds_dec_chan_open_async_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	total_bytes += 15;
 
 	/* chan_name */
-	ncs_decode_n_octets_from_uba(uba, param->chan_name.value, (uint32_t)param->chan_name.length);
+	ncs_decode_n_octets_from_uba(uba, param->chan_name.value,
+				     (uint32_t)param->chan_name.length);
 	total_bytes += (uint32_t)param->chan_name.length;
 
 	return total_bytes;
@@ -177,14 +181,14 @@ static uint32_t eds_dec_chan_open_async_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_dec_chan_close_msg
- 
+
   Description   : This routine decodes a chan close API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_dec_chan_close_msg(NCS_UBAID *uba, EDSV_MSG *msg)
@@ -212,21 +216,22 @@ static uint32_t eds_dec_chan_close_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_dec_chan_unlink_msg
- 
+
   Description   : This routine decodes a chan unlink API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_dec_chan_unlink_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	EDSV_EDA_CHAN_UNLINK_PARAM *param = &msg->info.api_info.param.chan_unlink;
+	EDSV_EDA_CHAN_UNLINK_PARAM *param =
+	    &msg->info.api_info.param.chan_unlink;
 	uint8_t local_data[256];
 
 	if (uba == NULL) {
@@ -247,7 +252,8 @@ static uint32_t eds_dec_chan_unlink_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	total_bytes += 2;
 
 	/* chan_name */
-	ncs_decode_n_octets_from_uba(uba, param->chan_name.value, (uint32_t)param->chan_name.length);
+	ncs_decode_n_octets_from_uba(uba, param->chan_name.value,
+				     (uint32_t)param->chan_name.length);
 	total_bytes += (uint32_t)param->chan_name.length;
 
 	return total_bytes;
@@ -255,14 +261,14 @@ static uint32_t eds_dec_chan_unlink_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_dec_publish_msg
- 
+
   Description   : This routine decodes a publish API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
@@ -326,7 +332,8 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 	}
 	param->pattern_array->patternsNumber = num_patterns;
 	if (num_patterns) {
-		param->pattern_array->patterns = m_MMGR_ALLOC_EVENT_PATTERNS((uint32_t)num_patterns);
+		param->pattern_array->patterns =
+		    m_MMGR_ALLOC_EVENT_PATTERNS((uint32_t)num_patterns);
 		if (!param->pattern_array->patterns) {
 			LOG_CR("malloc failed");
 			return (0);
@@ -348,18 +355,22 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
 			fake_value = ncs_decode_32bit(&p8);
 			if (fake_value != 0)
-				TRACE_3("Non zero size for zero length pattern");
+				TRACE_3(
+				    "Non zero size for zero length pattern");
 			pattern_ptr->pattern = m_MMGR_ALLOC_EDSV_EVENT_DATA(0);
 			ncs_dec_skip_space(uba, 4);
 			total_bytes += 4;
 		} else {
 			/* pattern */
-			pattern_ptr->pattern = m_MMGR_ALLOC_EDSV_EVENT_DATA((uint32_t)pattern_ptr->patternSize);
+			pattern_ptr->pattern = m_MMGR_ALLOC_EDSV_EVENT_DATA(
+			    (uint32_t)pattern_ptr->patternSize);
 			if (!pattern_ptr->pattern) {
 				LOG_CR("malloc failed");
 				return (0);
 			}
-			ncs_decode_n_octets_from_uba(uba, pattern_ptr->pattern, (uint32_t)pattern_ptr->patternSize);
+			ncs_decode_n_octets_from_uba(
+			    uba, pattern_ptr->pattern,
+			    (uint32_t)pattern_ptr->patternSize);
 			total_bytes += (uint32_t)pattern_ptr->patternSize;
 		}
 		pattern_ptr++;
@@ -379,7 +390,8 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 	total_bytes += 2;
 
 	/* publisher_name */
-	ncs_decode_n_octets_from_uba(uba, param->publisher_name.value, (uint32_t)param->publisher_name.length);
+	ncs_decode_n_octets_from_uba(uba, param->publisher_name.value,
+				     (uint32_t)param->publisher_name.length);
 	total_bytes += (uint32_t)param->publisher_name.length;
 
 	/* event_id */
@@ -396,13 +408,15 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 
 	/* data */
 	if ((uint32_t)param->data_len) {
-		param->data = m_MMGR_ALLOC_EDSV_EVENT_DATA((uint32_t)param->data_len);
+		param->data =
+		    m_MMGR_ALLOC_EDSV_EVENT_DATA((uint32_t)param->data_len);
 		if (!param->data) {
 			LOG_CR("malloc failed");
 			return (0);
 		}
 
-		ncs_decode_n_octets_from_uba(uba, param->data, (uint32_t)param->data_len);
+		ncs_decode_n_octets_from_uba(uba, param->data,
+					     (uint32_t)param->data_len);
 	} else
 		param->data = NULL;
 
@@ -411,7 +425,8 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 	/* If checkpoint data, decode publish time */
 	if (ckpt_flag == true) {
 		p8 = ncs_dec_flatten_space(uba, local_data, 8);
-		ckpt_msg->ckpt_rec.retain_evt_rec.pubtime = ncs_decode_64bit(&p8);
+		ckpt_msg->ckpt_rec.retain_evt_rec.pubtime =
+		    ncs_decode_64bit(&p8);
 		ncs_dec_skip_space(uba, 8);
 		total_bytes += 8;
 	}
@@ -421,14 +436,14 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 
 /****************************************************************************
   Name          : eds_dec_subscribe_msg
- 
+
   Description   : This routine decodes a subscribe API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
@@ -497,7 +512,8 @@ uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 
 	/* Allocate all the filter structures needed */
 	if (num_filters) {
-		param->filter_array->filters = m_MMGR_ALLOC_EVENT_FILTERS((uint32_t)num_filters);
+		param->filter_array->filters =
+		    m_MMGR_ALLOC_EVENT_FILTERS((uint32_t)num_filters);
 		if (!param->filter_array->filters)
 			LOG_CR("malloc failed");
 	} else {
@@ -524,20 +540,24 @@ uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 			p8 = ncs_dec_flatten_space(uba, local_data, 4);
 			fake_value = ncs_decode_32bit(&p8);
 			if (fake_value != 0)
-				TRACE_3("nonzero filtersize for zero length filter!");
-			filter_ptr->filter.pattern = m_MMGR_ALLOC_EDSV_EVENT_DATA(0);
+				TRACE_3(
+				    "nonzero filtersize for zero length filter!");
+			filter_ptr->filter.pattern =
+			    m_MMGR_ALLOC_EDSV_EVENT_DATA(0);
 			ncs_dec_skip_space(uba, 4);
 			total_bytes += 4;
 		} else {
 			/* pattern */
 			filter_ptr->filter.pattern =
-			    m_MMGR_ALLOC_EDSV_EVENT_DATA((uint32_t)filter_ptr->filter.patternSize);
+			    m_MMGR_ALLOC_EDSV_EVENT_DATA(
+				(uint32_t)filter_ptr->filter.patternSize);
 			if (NULL == filter_ptr->filter.pattern) {
 				LOG_CR("malloc failed");
 				return (0);
 			}
-			ncs_decode_n_octets_from_uba(uba, filter_ptr->filter.pattern,
-						     (uint32_t)filter_ptr->filter.patternSize);
+			ncs_decode_n_octets_from_uba(
+			    uba, filter_ptr->filter.pattern,
+			    (uint32_t)filter_ptr->filter.patternSize);
 			total_bytes += (uint32_t)filter_ptr->filter.patternSize;
 		}
 
@@ -549,21 +569,22 @@ uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 
 /****************************************************************************
   Name          : eds_dec_unsubscribe_msg
- 
+
   Description   : This routine decodes a unsubscribe API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_dec_unsubscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	EDSV_EDA_UNSUBSCRIBE_PARAM *param = &msg->info.api_info.param.unsubscribe;
+	EDSV_EDA_UNSUBSCRIBE_PARAM *param =
+	    &msg->info.api_info.param.unsubscribe;
 	uint8_t local_data[24];
 
 	if (uba == NULL) {
@@ -584,21 +605,22 @@ static uint32_t eds_dec_unsubscribe_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_dec_retention_time_clr_msg
- 
+
   Description   : This routine decodes a retention time clear API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_dec_retention_time_clr_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	EDSV_EDA_RETENTION_TIME_CLR_PARAM *param = &msg->info.api_info.param.rettimeclr;
+	EDSV_EDA_RETENTION_TIME_CLR_PARAM *param =
+	    &msg->info.api_info.param.rettimeclr;
 	uint8_t local_data[24];
 
 	if (uba == NULL) {
@@ -620,21 +642,22 @@ static uint32_t eds_dec_retention_time_clr_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_enc_initialize_rsp_msg
- 
+
   Description   : This routine encodes an initialize resp msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_enc_initialize_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	EDSV_EDA_INITIALIZE_RSP *param = &msg->info.api_resp_info.param.init_rsp;
+	EDSV_EDA_INITIALIZE_RSP *param =
+	    &msg->info.api_resp_info.param.init_rsp;
 
 	if (uba == NULL) {
 		TRACE_4("uba is NULL");
@@ -657,14 +680,14 @@ static uint32_t eds_enc_initialize_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_enc_limit_get_rsp_msg
- 
+
   Description   : This routine encodes an Limit Get resp msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 
@@ -672,7 +695,8 @@ static uint32_t eds_enc_limit_get_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	EDSV_EDA_LIMIT_GET_RSP *param = &msg->info.api_resp_info.param.limit_get_rsp;
+	EDSV_EDA_LIMIT_GET_RSP *param =
+	    &msg->info.api_resp_info.param.limit_get_rsp;
 
 	if (uba == NULL) {
 		return 0;
@@ -697,21 +721,22 @@ static uint32_t eds_enc_limit_get_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_enc_chan_open_sync_rsp_msg
- 
+
   Description   : This routine decodes a chan open sync resp msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_enc_chan_open_sync_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	EDSV_EDA_CHAN_OPEN_SYNC_RSP *param = &msg->info.api_resp_info.param.chan_open_rsp;
+	EDSV_EDA_CHAN_OPEN_SYNC_RSP *param =
+	    &msg->info.api_resp_info.param.chan_open_rsp;
 
 	if (uba == NULL) {
 		TRACE_4("uba is NULL");
@@ -733,21 +758,22 @@ static uint32_t eds_enc_chan_open_sync_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_enc_chan_open_cbk_msg
- 
+
   Description   : This routine encodes a chan open callback msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_enc_chan_open_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	EDSV_EDA_CHAN_OPEN_CBK_PARAM *param = &msg->info.cbk_info.param.chan_open_cbk;
+	EDSV_EDA_CHAN_OPEN_CBK_PARAM *param =
+	    &msg->info.cbk_info.param.chan_open_cbk;
 
 	if (uba == NULL) {
 		TRACE_4("uba is NULL");
@@ -764,7 +790,8 @@ static uint32_t eds_enc_chan_open_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	total_bytes += 2;
 
 	/* chan_name */
-	ncs_encode_n_octets_in_uba(uba, param->chan_name.value, (uint32_t)param->chan_name.length);
+	ncs_encode_n_octets_in_uba(uba, param->chan_name.value,
+				   (uint32_t)param->chan_name.length);
 	total_bytes += (uint32_t)param->chan_name.length;
 
 	/* chan_id, chan_open_id, chan_open_flags, eda_chan_hdl, error */
@@ -785,14 +812,14 @@ static uint32_t eds_enc_chan_open_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 
 /****************************************************************************
   Name          : eds_enc_delv_evt_cbk_msg
- 
+
   Description   : This routine encodes an event callback msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  EDSV_MSG *msg
-                  
+		  EDSV_MSG *msg
+
   Return Values : uns32
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
@@ -801,7 +828,8 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uint32_t x;
 	uint32_t total_bytes = 0;
 	SaEvtEventPatternT *pattern_ptr;
-	EDSV_EDA_EVT_DELIVER_CBK_PARAM *param = &msg->info.cbk_info.param.evt_deliver_cbk;
+	EDSV_EDA_EVT_DELIVER_CBK_PARAM *param =
+	    &msg->info.cbk_info.param.evt_deliver_cbk;
 
 	if (uba == NULL) {
 		TRACE_4("uba is NULL");
@@ -852,7 +880,9 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 			ncs_enc_claim_space(uba, 4);
 			total_bytes += 4;
 		} else {
-			ncs_encode_n_octets_in_uba(uba, pattern_ptr->pattern, (uint32_t)pattern_ptr->patternSize);
+			ncs_encode_n_octets_in_uba(
+			    uba, pattern_ptr->pattern,
+			    (uint32_t)pattern_ptr->patternSize);
 			total_bytes += (uint32_t)pattern_ptr->patternSize;
 		}
 		pattern_ptr++;
@@ -877,7 +907,8 @@ static uint32_t eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	total_bytes += 2;
 
 	/* publisher name */
-	ncs_encode_n_octets_in_uba(uba, param->publisher_name.value, (uint32_t)param->publisher_name.length);
+	ncs_encode_n_octets_in_uba(uba, param->publisher_name.value,
+				   (uint32_t)param->publisher_name.length);
 	total_bytes += (uint32_t)param->publisher_name.length;
 
 	/* publish_time,  eda_event_id */
@@ -915,7 +946,8 @@ static uint32_t eds_enc_clm_status_cbk_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	EDSV_EDA_CLM_STATUS_CBK_PARAM *param = &msg->info.cbk_info.param.clm_status_cbk;
+	EDSV_EDA_CLM_STATUS_CBK_PARAM *param =
+	    &msg->info.cbk_info.param.clm_status_cbk;
 
 	if (uba == NULL) {
 		TRACE_4("uba is NULL");
@@ -972,11 +1004,13 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
 	uint32_t total_bytes = 0;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
-	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
-						EDS_WRT_EDA_SUBPART_VER_AT_MIN_MSG_FMT,
-						EDS_WRT_EDA_SUBPART_VER_AT_MAX_MSG_FMT, EDS_WRT_EDA_MSG_FMT_ARRAY);
+	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(
+	    info->info.enc.i_rem_svc_pvt_ver,
+	    EDS_WRT_EDA_SUBPART_VER_AT_MIN_MSG_FMT,
+	    EDS_WRT_EDA_SUBPART_VER_AT_MAX_MSG_FMT, EDS_WRT_EDA_MSG_FMT_ARRAY);
 	if (0 == msg_fmt_version) {
-		LOG_ER("mds encode failed: Invalid message format version: %hu", msg_fmt_version);
+		LOG_ER("mds encode failed: Invalid message format version: %hu",
+		       msg_fmt_version);
 		return NCSCC_RC_FAILURE;
 	}
 	info->info.enc.o_msg_fmt_ver = msg_fmt_version;
@@ -988,7 +1022,7 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
 		return NCSCC_RC_FAILURE;
 	}
 
-   /** encode the type of message **/
+	/** encode the type of message **/
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
 		LOG_WA("encode reserve space failed");
@@ -998,7 +1032,7 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
 	total_bytes += 4;
 
 	if (EDSV_EDA_API_RESP_MSG == msg->type) {
-     /** encode the API RSP msg subtype **/
+		/** encode the API RSP msg subtype **/
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
 			LOG_WA("encode reserve space failed");
@@ -1033,11 +1067,12 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
 			total_bytes += eds_enc_limit_get_rsp_msg(uba, msg);
 			break;
 		default:
-			LOG_WA("MDS encode: Invalid API message response: %u", msg->info.api_resp_info.type.api_rsp);
+			LOG_WA("MDS encode: Invalid API message response: %u",
+			       msg->info.api_resp_info.type.api_rsp);
 			break;
 		}
 	} else if (EDSV_EDS_CBK_MSG == msg->type) {
-     /** encode the API RSP msg subtype **/
+		/** encode the API RSP msg subtype **/
 		p8 = ncs_enc_reserve_space(uba, 16);
 		if (!p8) {
 			LOG_WA("encode reserve space failed");
@@ -1061,7 +1096,9 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
 			total_bytes += eds_enc_clm_status_cbk_msg(uba, msg);
 			break;
 		default:
-			LOG_WA("MDS encode: Invalid callback message response type: %u", msg->info.api_resp_info.type.cbk);
+			LOG_WA(
+			    "MDS encode: Invalid callback message response type: %u",
+			    msg->info.api_resp_info.type.cbk);
 			break;
 		}
 	} else {
@@ -1078,7 +1115,7 @@ static uint32_t eds_mds_enc(struct ncsmds_callback_info *info)
  *
  * Description   : MDS decode
  *
- * Arguments     : pointer to ncsmds_callback_info 
+ * Arguments     : pointer to ncsmds_callback_info
  *
  * Return Values : NCSCC_RC_SUCCESS/Error Code.
  *
@@ -1095,15 +1132,17 @@ static uint32_t eds_mds_dec(struct ncsmds_callback_info *info)
 	long msg_hdl = 0;
 	EDSV_MSG *msg = NULL;
 
-	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
-					   EDS_WRT_EDA_SUBPART_VER_AT_MIN_MSG_FMT,
-					   EDS_WRT_EDA_SUBPART_VER_AT_MAX_MSG_FMT, EDS_WRT_EDA_MSG_FMT_ARRAY)) {
+	if (0 ==
+	    m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
+				      EDS_WRT_EDA_SUBPART_VER_AT_MIN_MSG_FMT,
+				      EDS_WRT_EDA_SUBPART_VER_AT_MAX_MSG_FMT,
+				      EDS_WRT_EDA_MSG_FMT_ARRAY)) {
 		LOG_ER("mds encode failed: Invalid message format version: %hu",
-							info->info.dec.i_msg_fmt_ver);
+		       info->info.dec.i_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
 
-   /** allocate an EDSV_EDS_EVENT now **/
+	/** allocate an EDSV_EDS_EVENT now **/
 	if (NULL == (evt = m_MMGR_ALLOC_EDSV_EDS_EVT)) {
 		LOG_CR("malloc failed for EDS global event");
 		return NCSCC_RC_FAILURE;
@@ -1130,49 +1169,60 @@ static uint32_t eds_mds_dec(struct ncsmds_callback_info *info)
 
 		switch (evt->info.msg.info.api_info.type) {
 		case EDSV_EDA_INITIALIZE:
-			total_bytes += eds_dec_initialize_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    eds_dec_initialize_msg(uba, &evt->info.msg);
 			break;
 		case EDSV_EDA_FINALIZE:
-			total_bytes += eds_dec_finalize_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    eds_dec_finalize_msg(uba, &evt->info.msg);
 			break;
 		case EDSV_EDA_CHAN_OPEN_SYNC:
-			total_bytes += eds_dec_chan_open_sync_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    eds_dec_chan_open_sync_msg(uba, &evt->info.msg);
 			break;
 		case EDSV_EDA_CHAN_OPEN_ASYNC:
-			total_bytes += eds_dec_chan_open_async_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    eds_dec_chan_open_async_msg(uba, &evt->info.msg);
 			break;
 		case EDSV_EDA_CHAN_CLOSE:
-			total_bytes += eds_dec_chan_close_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    eds_dec_chan_close_msg(uba, &evt->info.msg);
 			break;
 		case EDSV_EDA_CHAN_UNLINK:
-			total_bytes += eds_dec_chan_unlink_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    eds_dec_chan_unlink_msg(uba, &evt->info.msg);
 			break;
 		case EDSV_EDA_PUBLISH:
 			msg = &evt->info.msg;
-			msg_hdl = (long)msg;	/* Pass the handle */
+			msg_hdl = (long)msg; /* Pass the handle */
 			total_bytes += eds_dec_publish_msg(uba, msg_hdl, false);
 			break;
 		case EDSV_EDA_SUBSCRIBE:
 			msg = &evt->info.msg;
-			msg_hdl = (long)msg;	/* Pass the handle */
-			total_bytes += eds_dec_subscribe_msg(uba, msg_hdl, false);
+			msg_hdl = (long)msg; /* Pass the handle */
+			total_bytes +=
+			    eds_dec_subscribe_msg(uba, msg_hdl, false);
 			break;
 		case EDSV_EDA_UNSUBSCRIBE:
-			total_bytes += eds_dec_unsubscribe_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    eds_dec_unsubscribe_msg(uba, &evt->info.msg);
 			break;
 		case EDSV_EDA_RETENTION_TIME_CLR:
-			total_bytes += eds_dec_retention_time_clr_msg(uba, &evt->info.msg);
+			total_bytes +=
+			    eds_dec_retention_time_clr_msg(uba, &evt->info.msg);
 			break;
 		case EDSV_EDA_LIMIT_GET:
 			/* Nothing to be decoded here */
 			break;
 		default:
-			LOG_ER("MDS Decode: Invalid API message type: %u", evt->info.msg.info.api_info.type);
+			LOG_ER("MDS Decode: Invalid API message type: %u",
+			       evt->info.msg.info.api_info.type);
 			break;
 		}
 	}
 
-	TRACE("Total bytes decoded from message: %u, msgtype: %u", total_bytes, evt->info.msg.info.api_info.type);
+	TRACE("Total bytes decoded from message: %u, msgtype: %u", total_bytes,
+	      evt->info.msg.info.api_info.type);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1251,14 +1301,16 @@ static uint32_t eds_mds_rcv(struct ncsmds_callback_info *mds_info)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* retrieve EDS CB */
-	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, (uint32_t)mds_info->i_yr_svc_hdl))) {
+	if (NULL ==
+	    (eds_cb = (EDS_CB *)ncshm_take_hdl(
+		 NCS_SERVICE_ID_EDS, (uint32_t)mds_info->i_yr_svc_hdl))) {
 		LOG_ER("Take handle failed in mds receive");
 		eds_evt_destroy(edsv_evt);
 		rc = NCSCC_RC_FAILURE;
 		return rc;
 	}
 
-   /** Initialize the Event here **/
+	/** Initialize the Event here **/
 	edsv_evt->evt_type = EDSV_EDS_EDSV_MSG;
 	edsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 	edsv_evt->fr_node_id = mds_info->info.receive.i_node_id;
@@ -1266,13 +1318,16 @@ static uint32_t eds_mds_rcv(struct ncsmds_callback_info *mds_info)
 	edsv_evt->rcvd_prio = mds_info->info.receive.i_priority;
 	edsv_evt->mds_ctxt = mds_info->info.receive.i_msg_ctxt;
 
-   /** The ESV_MSG has already been decoded into the event earlier 
-    **/
+	/** The ESV_MSG has already been decoded into the event earlier
+	 **/
 
 	/* Push the event and we are done */
-	if (NCSCC_RC_FAILURE == (rc = m_NCS_IPC_SEND(&eds_cb->mbx, edsv_evt, mds_info->info.receive.i_priority))) {
-		LOG_WA("Mailbox IPC send failed for event type: %u, from node_id: %u", edsv_evt->evt_type,
-								 mds_info->info.receive.i_node_id);
+	if (NCSCC_RC_FAILURE ==
+	    (rc = m_NCS_IPC_SEND(&eds_cb->mbx, edsv_evt,
+				 mds_info->info.receive.i_priority))) {
+		LOG_WA(
+		    "Mailbox IPC send failed for event type: %u, from node_id: %u",
+		    edsv_evt->evt_type, mds_info->info.receive.i_node_id);
 		eds_evt_destroy(edsv_evt);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1304,14 +1359,17 @@ static uint32_t eds_mds_svc_event(struct ncsmds_callback_info *info)
 	eds_cb_hdl = (uint32_t)info->i_yr_svc_hdl;
 
 	/* Take the hdl */
-	if ((eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, eds_cb_hdl)) == NULL) {
+	if ((eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS,
+					       eds_cb_hdl)) == NULL) {
 		LOG_ER("EDS global handle take failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* First make sure that this event is indeed for us */
 	if (info->info.svc_evt.i_your_id != NCSMDS_SVC_ID_EDS) {
-		LOG_CR("The event does not belong to EDS. Invalid service_id: %u", info->info.svc_evt.i_your_id);
+		LOG_CR(
+		    "The event does not belong to EDS. Invalid service_id: %u",
+		    info->info.svc_evt.i_your_id);
 		goto give_hdl;
 	}
 
@@ -1327,26 +1385,30 @@ static uint32_t eds_mds_svc_event(struct ncsmds_callback_info *info)
 			memset(evt, '\0', sizeof(EDSV_EDS_EVT));
 			evt->evt_type = EDSV_EDS_EVT_EDA_DOWN;
 
-	 /** Initialize the Event Header **/
+			/** Initialize the Event Header **/
 			evt->cb_hdl = eds_cb_hdl;
 			evt->fr_node_id = info->info.svc_evt.i_node_id;
 			evt->fr_dest = info->info.svc_evt.i_dest;
 
-	 /** Initialize the MDS portion of the header **/
-			evt->info.mds_info.node_id = info->info.svc_evt.i_node_id;
-			evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
+			/** Initialize the MDS portion of the header **/
+			evt->info.mds_info.node_id =
+			    info->info.svc_evt.i_node_id;
+			evt->info.mds_info.mds_dest_id =
+			    info->info.svc_evt.i_dest;
 
 			/* Push the event and we are done */
-			if (m_NCS_IPC_SEND(&eds_cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) == NCSCC_RC_FAILURE) {
-				LOG_WA("Mailbox IPC send failed for eda_down event, from node_id: %u",
-								 	evt->info.mds_info.node_id);
+			if (m_NCS_IPC_SEND(&eds_cb->mbx, evt,
+					   NCS_IPC_PRIORITY_NORMAL) ==
+			    NCSCC_RC_FAILURE) {
+				LOG_WA(
+				    "Mailbox IPC send failed for eda_down event, from node_id: %u",
+				    evt->info.mds_info.node_id);
 				eds_evt_destroy(evt);
 				goto give_hdl;
 			}
-
 		}
 	}
- give_hdl:
+give_hdl:
 	/* Give the hdl back */
 	ncshm_give_hdl((uint32_t)eds_cb_hdl);
 
@@ -1370,7 +1432,6 @@ static uint32_t eds_mds_sys_event(struct ncsmds_callback_info *mds_info)
 
 	/* Not supported now */
 	return NCSCC_RC_FAILURE;
-
 }
 
 /****************************************************************************
@@ -1391,7 +1452,7 @@ static uint32_t eds_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 	EDSV_EDS_EVT *edsv_evt;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-   	/** allocate an EDSV_EDS_EVENT now **/
+	/** allocate an EDSV_EDS_EVENT now **/
 	if (NULL == (edsv_evt = m_MMGR_ALLOC_EDSV_EDS_EVT)) {
 		LOG_CR("malloc failed for EDS event");
 		return NCSCC_RC_FAILURE;
@@ -1399,7 +1460,9 @@ static uint32_t eds_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 	memset(edsv_evt, '\0', sizeof(EDSV_EDS_EVT));
 
 	/* retrieve EDS CB */
-	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, (uint32_t)mds_info->i_yr_svc_hdl))) {
+	if (NULL ==
+	    (eds_cb = (EDS_CB *)ncshm_take_hdl(
+		 NCS_SERVICE_ID_EDS, (uint32_t)mds_info->i_yr_svc_hdl))) {
 		LOG_ER("EDS global handle take failed");
 		rc = NCSCC_RC_FAILURE;
 		eds_evt_destroy(edsv_evt);
@@ -1407,17 +1470,21 @@ static uint32_t eds_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 	}
 
 	if (eds_cb->is_quisced_set == true) {
-      /** Initialize the Event here **/
+		/** Initialize the Event here **/
 		edsv_evt->evt_type = EDSV_EVT_QUIESCED_ACK;
 		edsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 
-      /** The ESV_MSG has already been decoded into the event earlier 
-      **/
+		/** The ESV_MSG has already been decoded into the event earlier
+		 **/
 
 		/* Push the event and we are done */
-		if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&eds_cb->mbx, edsv_evt, NCS_IPC_PRIORITY_NORMAL)) {
-			LOG_WA("Mailbox IPC send failed for event type: %u, from node_id: %u", edsv_evt->evt_type,
-								 mds_info->info.receive.i_node_id);
+		if (NCSCC_RC_FAILURE ==
+		    m_NCS_IPC_SEND(&eds_cb->mbx, edsv_evt,
+				   NCS_IPC_PRIORITY_NORMAL)) {
+			LOG_WA(
+			    "Mailbox IPC send failed for event type: %u, from node_id: %u",
+			    edsv_evt->evt_type,
+			    mds_info->info.receive.i_node_id);
 			ncshm_give_hdl((uint32_t)mds_info->i_yr_svc_hdl);
 			eds_evt_destroy(edsv_evt);
 			return NCSCC_RC_FAILURE;
@@ -1449,19 +1516,19 @@ static uint32_t eds_mds_callback(struct ncsmds_callback_info *info)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
-		eds_mds_cpy,	/* MDS_CALLBACK_COPY      */
-		eds_mds_enc,	/* MDS_CALLBACK_ENC       */
-		eds_mds_dec,	/* MDS_CALLBACK_DEC       */
-		eds_mds_enc_flat,	/* MDS_CALLBACK_ENC_FLAT  */
-		eds_mds_dec_flat,	/* MDS_CALLBACK_DEC_FLAT  */
-		eds_mds_rcv,	/* MDS_CALLBACK_RECEIVE   */
-		eds_mds_svc_event,	/* MDS_CALLBACK_SVC_EVENT */
-		eds_mds_sys_event,	/* MDS_CALLBACK_SYS_EVENT */
-		eds_mds_quiesced_ack	/* MDS_CALLBACK_QUIESCED_ACK */
+	    eds_mds_cpy,	 /* MDS_CALLBACK_COPY      */
+	    eds_mds_enc,	 /* MDS_CALLBACK_ENC       */
+	    eds_mds_dec,	 /* MDS_CALLBACK_DEC       */
+	    eds_mds_enc_flat,    /* MDS_CALLBACK_ENC_FLAT  */
+	    eds_mds_dec_flat,    /* MDS_CALLBACK_DEC_FLAT  */
+	    eds_mds_rcv,	 /* MDS_CALLBACK_RECEIVE   */
+	    eds_mds_svc_event,   /* MDS_CALLBACK_SVC_EVENT */
+	    eds_mds_sys_event,   /* MDS_CALLBACK_SYS_EVENT */
+	    eds_mds_quiesced_ack /* MDS_CALLBACK_QUIESCED_ACK */
 	};
 
 	if (info->i_op <= MDS_CALLBACK_QUIESCED_ACK) {
-		rc = (*cb_set[info->i_op]) (info);
+		rc = (*cb_set[info->i_op])(info);
 		return rc;
 	} else {
 		return NCSCC_RC_SUCCESS;
@@ -1491,18 +1558,21 @@ uint32_t eds_mds_vdest_create(EDS_CB *eds_cb)
 #endif
 	vda_info.req = NCSVDA_VDEST_CREATE;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	vda_info.info.vdest_create.i_persistent = false;	/* Up-to-the application */
-	/*  vda_info.info.vdest_create.i_persistent = true; * Up-to-the application */
-	/*  vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC; */
+	vda_info.info.vdest_create.i_persistent =
+	    false; /* Up-to-the application */
+	/*  vda_info.info.vdest_create.i_persistent = true; * Up-to-the
+	 * application */
+	/*  vda_info.info.vdest_create.i_create_type =
+	 * NCSVDA_VDEST_CREATE_SPECIFIC; */
 	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 
-#if 1				/* Commented for named vdest */
+#if 1 /* Commented for named vdest */
 	/* We are using fixed values here for now */
 	vda_info.info.vdest_create.info.specified.i_vdest = eds_cb->vaddr;
 #endif
 	/* Create the VDEST address */
 	if (NCSCC_RC_SUCCESS != (rc = ncsvda_api(&vda_info))) {
-		LOG_ER("mds vdest create failed");	
+		LOG_ER("mds vdest create failed");
 		return rc;
 	}
 
@@ -1516,8 +1586,8 @@ uint32_t eds_mds_vdest_create(EDS_CB *eds_cb)
 /****************************************************************************
  * Name          : eds_mds_init
  *
- * Description   : This function creates the VDEST for eds and installs/suscribes
- *                 into MDS.
+ * Description   : This function creates the VDEST for eds and
+ *installs/suscribes into MDS.
  *
  * Arguments     : cb   : EDS control Block pointer.
  *
@@ -1559,7 +1629,8 @@ uint32_t eds_mds_init(EDS_CB *cb)
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	mds_info.info.svc_install.i_svc_cb = eds_mds_callback;
 	mds_info.info.svc_install.i_mds_q_ownership = false;
-	mds_info.info.svc_install.i_mds_svc_pvt_ver = EDS_SVC_PVT_SUBPART_VERSION;
+	mds_info.info.svc_install.i_mds_svc_pvt_ver =
+	    EDS_SVC_PVT_SUBPART_VERSION;
 
 	if (NCSCC_RC_SUCCESS != (rc = ncsmds_api(&mds_info))) {
 		LOG_ER("MDS Install failed");
@@ -1588,7 +1659,7 @@ uint32_t eds_mds_init(EDS_CB *cb)
 /****************************************************************************
  * Name          : eds_mds_change_role
  *
- * Description   : This function informs mds of our vdest role change 
+ * Description   : This function informs mds of our vdest role change
  *
  * Arguments     : cb   : EDS control Block pointer.
  *
@@ -1679,23 +1750,24 @@ uint32_t eds_mds_finalize(EDS_CB *cb)
 
 /****************************************************************************
   Name          : eds_mds_msg_send
- 
-  Description   : This routine sends the EDA message to EDS. The send 
-                  operation may be a 'normal' send or a synchronous call that 
-                  blocks until the response is received from EDS.
- 
+
+  Description   : This routine sends the EDA message to EDS. The send
+		  operation may be a 'normal' send or a synchronous call that
+		  blocks until the response is received from EDS.
+
   Arguments     : cb  - ptr to the EDA CB
-                  i_msg - ptr to the EDSv message
-                  dest  - MDS destination to send to.
-                  mds_ctxt - ctxt for synch mds req-resp.
- 
+		  i_msg - ptr to the EDSv message
+		  dest  - MDS destination to send to.
+		  mds_ctxt - ctxt for synch mds req-resp.
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE/timeout
- 
+
   Notes         : None.
 ******************************************************************************/
 
-uint32_t eds_mds_msg_send(EDS_CB *cb,
-		       EDSV_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio)
+uint32_t eds_mds_msg_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST *dest,
+			  MDS_SYNC_SND_CTXT *mds_ctxt,
+			  MDS_SEND_PRIORITY_TYPE prio)
 {
 	NCSMDS_INFO mds_info;
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
@@ -1710,7 +1782,7 @@ uint32_t eds_mds_msg_send(EDS_CB *cb,
 
 	send_info->i_msg = msg;
 	send_info->i_to_svc = NCSMDS_SVC_ID_EDA;
-	send_info->i_priority = prio;	/* Discuss the priority assignments TBD */
+	send_info->i_priority = prio; /* Discuss the priority assignments TBD */
 
 	if (NULL == mds_ctxt || 0 == mds_ctxt->length) {
 		/* regular send */
@@ -1730,27 +1802,29 @@ uint32_t eds_mds_msg_send(EDS_CB *cb,
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS)
-		LOG_ER("MDS send failed. Dest vdest: %" PRIx64 ", node_id: %u", *dest, m_NCS_NODE_ID_FROM_MDS_DEST(*dest));
+		LOG_ER("MDS send failed. Dest vdest: %" PRIx64 ", node_id: %u",
+		       *dest, m_NCS_NODE_ID_FROM_MDS_DEST(*dest));
 	return rc;
 }
 
 /****************************************************************************
   Name          : eds_mds_ack_send
- 
-  Description   : This routine sends the EDA message to EDS. The send 
-                  operation blocks until an MDS ack is received from EDS.
- 
+
+  Description   : This routine sends the EDA message to EDS. The send
+		  operation blocks until an MDS ack is received from EDS.
+
   Arguments     : cb  - ptr to the EDA CB
-                  msg - ptr to the EDSv message
-                  dest - MDS dest to send to.
-                  timeout - time to wait for the ack from EDA. 
-                  prio - priority of the message to send.
+		  msg - ptr to the EDSv message
+		  dest - MDS dest to send to.
+		  timeout - time to wait for the ack from EDA.
+		  prio - priority of the message to send.
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE/timeout
- 
+
   Notes         : None.
 ******************************************************************************/
 
-uint32_t eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, SaTimeT timeout, uint32_t prio)
+uint32_t eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest,
+			  SaTimeT timeout, uint32_t prio)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -1768,12 +1842,15 @@ uint32_t eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, SaTimeT time
 	mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SNDACK;
 
 	/* fill the sub send rsp strcuture */
-	mds_info.info.svc_send.info.sndack.i_time_to_wait = timeout;	/* timeto wait in 10ms */
-	mds_info.info.svc_send.info.sndack.i_to_dest = dest;	/* This dest is eda's. */
+	mds_info.info.svc_send.info.sndack.i_time_to_wait =
+	    timeout; /* timeto wait in 10ms */
+	mds_info.info.svc_send.info.sndack.i_to_dest =
+	    dest; /* This dest is eda's. */
 
 	/* send the message */
 	if (NCSCC_RC_SUCCESS != (rc = ncsmds_api(&mds_info))) {
-		LOG_ER("MDS send failed. Dest vdest: %" PRIx64 ", node_id: %u", dest, m_NCS_NODE_ID_FROM_MDS_DEST(dest));
+		LOG_ER("MDS send failed. Dest vdest: %" PRIx64 ", node_id: %u",
+		       dest, m_NCS_NODE_ID_FROM_MDS_DEST(dest));
 	}
 
 	return rc;

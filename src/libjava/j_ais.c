@@ -29,19 +29,19 @@
 #include <stdio.h>
 #include <jni.h>
 #include "j_utils.h"
-#include "jni_ais.h"		// not really needed, but good for syntax checking!
+#include "jni_ais.h" // not really needed, but good for syntax checking!
 
 /**************************************************************************
  * Constants
  *************************************************************************/
 
 const char *AIS_ERR_LIBRARY_MSG =
-	"An unexpected problem occurred: the library cannot be used anymore.";
+    "An unexpected problem occurred: the library cannot be used anymore.";
 const char *AIS_ERR_VERSION_MSG = "Incompatible version parameter.";
 const char *AIS_ERR_INIT_MSG =
-	"A required callback function has not been supplied during initialisation.";
+    "A required callback function has not been supplied during initialisation.";
 const char *AIS_ERR_TIMEOUT_MSG =
-	"A timeout occurred before the call could complete.";
+    "A timeout occurred before the call could complete.";
 const char *AIS_ERR_TRY_AGAIN_MSG = "The service currently cannot be provided.";
 const char *AIS_ERR_INVALID_PARAM_MSG = "A parameter is not set correctly.";
 const char *AIS_ERR_NO_MEMORY_MSG = "The service is out of memory.";
@@ -52,21 +52,21 @@ const char *AIS_ERR_NOT_EXIST_MSG = "The entity does not exist.";
 const char *AIS_ERR_NAME_TOO_LONG_MSG = "Name exceeds maximum length.";
 const char *AIS_ERR_EXIST_MSG = "The entity already exists.";
 const char *AIS_ERR_NO_SPACE_MSG =
-	"The buffer provided by the component is too small.";
+    "The buffer provided by the component is too small.";
 const char *AIS_ERR_INTERRUPT_MSG =
-	"The request was canceled by a timeout or other interrupt.";
+    "The request was canceled by a timeout or other interrupt.";
 const char *AIS_ERR_NAME_NOT_FOUND_MSG = "The name could not be found.";
 const char *AIS_ERR_NOT_SUPPORTED_MSG =
-	"The requested function is not supported.";
+    "The requested function is not supported.";
 const char *AIS_ERR_BAD_OPERATION_MSG =
-	"The requested operation is not allowed.";
+    "The requested operation is not allowed.";
 const char *AIS_ERR_FAILED_OPERATION_MSG = "The component reported an error.";
 const char *AIS_ERR_NO_RESOURCES_MSG = "Not enough resources.";
 const char *AIS_ERR_MESSAGE_ERROR_MSG = "A communication error occurred.";
 const char *AIS_ERR_QUEUE_FULL_MSG =
-	"Not enough space in the queue for the message.";
+    "Not enough space in the queue for the message.";
 const char *AIS_ERR_QUEUE_NOT_AVAILABLE_MSG =
-	"The destination queue is not available.";
+    "The destination queue is not available.";
 const char *AIS_ERR_BAD_FLAGS_MSG = "The flags are invalid.";
 const char *AIS_ERR_TOO_BIG_MSG = "A value is larger than permitted.";
 const char *AIS_ERR_NO_SECTIONS_MSG = "No or no more sections.";
@@ -77,8 +77,9 @@ const char *AIS_ERR_UNAVAILABLE_MSG = "Service Unavailable.";
  *************************************************************************/
 
 /*
-  #define SA_TRACK_CHANGES_MASK          ( SA_TRACK_CHANGES | SA_TRACK_CHANGES_ONLY ) // 00000110
-  #define SA_TRACK_CHANGES_INVALID_MASK  ( ~ SA_TRACK_CHANGES_MASK ) // 11111001
+  #define SA_TRACK_CHANGES_MASK          ( SA_TRACK_CHANGES |
+  SA_TRACK_CHANGES_ONLY ) // 00000110 #define SA_TRACK_CHANGES_INVALID_MASK  ( ~
+  SA_TRACK_CHANGES_MASK ) // 11111001
 */
 
 /**************************************************************************
@@ -119,9 +120,9 @@ static jboolean JNU_TrackFlags_initIDs_FromClass_OK(JNIEnv *jniEnv,
 
 /* ENUM ais.CallbackResponse */
 jboolean JNU_CallbackResponse_initIDs_OK(JNIEnv *jniEnv);
-static jboolean JNU_CallbackResponse_initIDs_FromClass_OK(JNIEnv *jniEnv,
-							  jclass
-							  enumCallbackResponse);
+static jboolean
+JNU_CallbackResponse_initIDs_FromClass_OK(JNIEnv *jniEnv,
+					  jclass enumCallbackResponse);
 
 // MISC
 /*
@@ -166,7 +167,7 @@ jboolean JNU_Version_initIDs_OK(JNIEnv *jniEnv)
 
 		_TRACE2("NATIVE ERROR: ClassVersion is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 	// get IDs
 	return JNU_Version_initIDs_FromClass_OK(jniEnv, ClassVersion);
@@ -189,40 +190,36 @@ static jboolean JNU_Version_initIDs_FromClass_OK(JNIEnv *jniEnv,
 	_TRACE2("NATIVE: Executing JNU_Version_initIDs_FromClass_OK(...)\n");
 
 	// get field IDs
-	FID_releaseCode = (*jniEnv)->GetFieldID(jniEnv,
-						classVersion,
-						"releaseCode", "C");
+	FID_releaseCode =
+	    (*jniEnv)->GetFieldID(jniEnv, classVersion, "releaseCode", "C");
 	if (FID_releaseCode == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_releaseCode is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
-	FID_majorVersion = (*jniEnv)->GetFieldID(jniEnv,
-						 classVersion,
-						 "majorVersion", "S");
+	FID_majorVersion =
+	    (*jniEnv)->GetFieldID(jniEnv, classVersion, "majorVersion", "S");
 	if (FID_majorVersion == NULL) {
 
 		_TRACE2("NATIVE: FID_majorVersion is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
-	FID_minorVersion = (*jniEnv)->GetFieldID(jniEnv,
-						 classVersion,
-						 "minorVersion", "S");
+	FID_minorVersion =
+	    (*jniEnv)->GetFieldID(jniEnv, classVersion, "minorVersion", "S");
 	if (FID_minorVersion == NULL) {
 
 		_TRACE2("NATIVE: FID_minorVersion is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 
-	CID_Version_constructor = (*jniEnv)->GetMethodID(jniEnv,
-							 classVersion,
-							 "<init>", "(CSS)V");
+	CID_Version_constructor =
+	    (*jniEnv)->GetMethodID(jniEnv, classVersion, "<init>", "(CSS)V");
 
-	_TRACE2
-		("NATIVE: JNU_Version_initIDs_FromClass_OK(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: JNU_Version_initIDs_FromClass_OK(...) returning normally\n");
 
 	return JNI_TRUE;
 }
@@ -254,16 +251,15 @@ jboolean JNU_TrackFlags_initIDs_OK(JNIEnv *jniEnv)
 	  "org/saforum/ais/TrackFlags" )
 	  ); */
 	EnumTrackFlags =
-		JNU_GetGlobalClassRef(jniEnv, "org/saforum/ais/TrackFlags");
+	    JNU_GetGlobalClassRef(jniEnv, "org/saforum/ais/TrackFlags");
 	if (EnumTrackFlags == NULL) {
 
 		_TRACE2("NATIVE ERROR: EnumTrackFlags is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 	// get IDs
 	return JNU_TrackFlags_initIDs_FromClass_OK(jniEnv, EnumTrackFlags);
-
 }
 
 /**************************************************************************
@@ -283,17 +279,17 @@ static jboolean JNU_TrackFlags_initIDs_FromClass_OK(JNIEnv *jniEnv,
 	_TRACE2("NATIVE: Executing JNU_TrackFlags_initIDs_FromClass_OK(...)\n");
 
 	// get field IDs
-	FID_TF_value = (*jniEnv)->GetFieldID(jniEnv,
-					     enumTrackFlags, "value", "I");
+	FID_TF_value =
+	    (*jniEnv)->GetFieldID(jniEnv, enumTrackFlags, "value", "I");
 	if (FID_TF_value == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_TF_value is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 
-	_TRACE2
-		("NATIVE: JNU_TrackFlags_initIDs_FromClass_OK(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: JNU_TrackFlags_initIDs_FromClass_OK(...) returning normally\n");
 
 	return JNI_TRUE;
 }
@@ -356,13 +352,13 @@ jboolean JNU_CallbackResponse_initIDs_OK(JNIEnv *jniEnv)
 	/* get CallbackResponse class & create a global reference right away */
 
 	EnumCallbackResponse =
-		JNU_GetGlobalClassRef(jniEnv, "org/saforum/ais/CallbackResponse");
+	    JNU_GetGlobalClassRef(jniEnv, "org/saforum/ais/CallbackResponse");
 
 	if (EnumCallbackResponse == NULL) {
 
 		_TRACE2("NATIVE ERROR: EnumCallbackResponse is NULL\n");
 
-		return JNI_FALSE;	/* EXIT POINT! */
+		return JNI_FALSE; /* EXIT POINT! */
 	}
 
 	/* get IDs */
@@ -380,28 +376,27 @@ jboolean JNU_CallbackResponse_initIDs_OK(JNIEnv *jniEnv)
  *   returns:     JNI_FALSE if an error occured, JNI_TRUE otherwise
  * NOTE: If JNI_FALSE is returned, then an exception is already pending!
  *************************************************************************/
-static jboolean JNU_CallbackResponse_initIDs_FromClass_OK(JNIEnv *jniEnv,
-							  jclass
-							  enumCallbackResponse)
+static jboolean
+JNU_CallbackResponse_initIDs_FromClass_OK(JNIEnv *jniEnv,
+					  jclass enumCallbackResponse)
 {
 
-	_TRACE2
-		("NATIVE: Executing JNU_CallbackResponse_initIDs_FromClass_OK(..)\n");
+	_TRACE2(
+	    "NATIVE: Executing JNU_CallbackResponse_initIDs_FromClass_OK(..)\n");
 
 	/* get field IDs */
 
-	FID_CR_value = (*jniEnv)->GetFieldID(jniEnv,
-					     enumCallbackResponse,
-					     "value", "I");
+	FID_CR_value =
+	    (*jniEnv)->GetFieldID(jniEnv, enumCallbackResponse, "value", "I");
 	if (FID_CR_value == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_CR_value is NULL\n");
 
-		return JNI_FALSE;	/* EXIT POINT!  */
+		return JNI_FALSE; /* EXIT POINT!  */
 	}
 
-	_TRACE2
-		("NATIVE: JNU_CallbackResponse_initIDs_FromClass_OK(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: JNU_CallbackResponse_initIDs_FromClass_OK(...) returning normally\n");
 
 	return JNI_TRUE;
 }

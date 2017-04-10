@@ -12,7 +12,7 @@
  * licensing terms.
  *
  * Author(s): Genband
- * 
+ *
  */
 #ifndef CKPT_CKPTND_CPND_SEC_H_
 #define CKPT_CKPTND_CPND_SEC_H_
@@ -25,24 +25,22 @@ void cpnd_ckpt_sec_map_init(CPND_CKPT_REPLICA_INFO *);
 
 void cpnd_ckpt_sec_map_destroy(CPND_CKPT_REPLICA_INFO *);
 
-CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_get_first(const CPND_CKPT_REPLICA_INFO *);
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_first(const CPND_CKPT_REPLICA_INFO *);
 
-CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_get_next(const CPND_CKPT_REPLICA_INFO *,
-                       const CPND_CKPT_SECTION_INFO *);
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_next(const CPND_CKPT_REPLICA_INFO *,
+                                               const CPND_CKPT_SECTION_INFO *);
 
-CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_get(const CPND_CKPT_NODE *, const SaCkptSectionIdT *);
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(const CPND_CKPT_NODE *,
+                                          const SaCkptSectionIdT *);
 
-CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_get_create(const CPND_CKPT_NODE *, const SaCkptSectionIdT *);
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_create(const CPND_CKPT_NODE *,
+                                                 const SaCkptSectionIdT *);
 
-CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *, SaCkptSectionIdT *, bool hdr_update);
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *,
+                                          SaCkptSectionIdT *, bool hdr_update);
 
-CPND_CKPT_SECTION_INFO *
-cpnd_get_sect_with_id(const CPND_CKPT_NODE *, uint32_t lcl_sec_id);
+CPND_CKPT_SECTION_INFO *cpnd_get_sect_with_id(const CPND_CKPT_NODE *,
+                                              uint32_t lcl_sec_id);
 
 uint32_t cpnd_ckpt_sec_find(const CPND_CKPT_NODE *, const SaCkptSectionIdT *);
 

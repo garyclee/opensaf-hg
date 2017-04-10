@@ -19,19 +19,19 @@
 #define MSG_MSGD_MQD_TMR_H_
 
 typedef enum mqdq_tmr_type {
-	MQD_TMR_TYPE_RETENTION = 1,
-	MQD_ND_TMR_TYPE_EXPIRY,
-	MQD_CTRL_EVT_TMR_EXPIRY,
-	MQD_TMR_TYPE_MAX = MQD_CTRL_EVT_TMR_EXPIRY
+  MQD_TMR_TYPE_RETENTION = 1,
+  MQD_ND_TMR_TYPE_EXPIRY,
+  MQD_CTRL_EVT_TMR_EXPIRY,
+  MQD_TMR_TYPE_MAX = MQD_CTRL_EVT_TMR_EXPIRY
 } MQD_TMR_TYPE;
 
 typedef struct mqd_tmr {
-	MQD_TMR_TYPE type;
-	tmr_t tmr_id;
-	NODE_ID nodeid;
-	uint32_t uarg;
-	bool is_active;
-	bool is_expired;
+  MQD_TMR_TYPE type;
+  tmr_t tmr_id;
+  NODE_ID nodeid;
+  uint32_t uarg;
+  bool is_active;
+  bool is_expired;
 } MQD_TMR;
 
 uint32_t mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration);

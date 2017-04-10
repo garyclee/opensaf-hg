@@ -32,7 +32,7 @@
 #ifndef BASE_NCS_SAF_H_
 #define BASE_NCS_SAF_H_
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -94,40 +94,39 @@ extern "C" {
 #define m_HTON_SANAMET_LEN(snamet_len) (htons(snamet_len))
 #define m_NTOH_SANAMET_LEN(snamet_len) (ntohs(snamet_len))
 
-#define m_CMP_NORDER_SANAMET_LEN(sanamet_len1, sanamet_len2)    \
+#define m_CMP_NORDER_SANAMET_LEN(sanamet_len1, sanamet_len2) \
   (memcmp(&(sanamet_len1), &(sanamet_len2), 2))
 
 /* memcmp avoided to allow  m_CMP_HORDER_SANAMET_LEN(x, 256) */
-#define m_CMP_HORDER_SANAMET_LEN(sanamet_len1, sanamet_len2)    \
-  (((sanamet_len1) > (sanamet_len2))? 1:                        \
-   (((sanamet_len1) < (sanamet_len2))?-1:0))
+#define m_CMP_HORDER_SANAMET_LEN(sanamet_len1, sanamet_len2) \
+  (((sanamet_len1) > (sanamet_len2))                         \
+       ? 1                                                   \
+       : (((sanamet_len1) < (sanamet_len2)) ? -1 : 0))
 
 /* Note: The following macro assumes that bytes beyond the name-length
    are all set to zero (PATRICIA will expect the same for get-next
    operations).
 */
-#define m_CMP_NORDER_SANAMET(sanamet1, sanamet2)                        \
-  (memcmp(&(sanamet1), &(sanamet2), (ntohs((sanamet1).length) + m_OFFSET_VAL_SANAMET)))
+#define m_CMP_NORDER_SANAMET(sanamet1, sanamet2) \
+  (memcmp(&(sanamet1), &(sanamet2),              \
+          (ntohs((sanamet1).length) + m_OFFSET_VAL_SANAMET)))
 
-#define m_CMP_HORDER_SANAMET(sanamet1, sanamet2)                        \
-  (                                                                     \
-      ((sanamet1).length > (sanamet2).length)? 1:                       \
-      (                                                                 \
-          ((sanamet1).length < (sanamet2).length)?-1:                   \
-          memcmp(&(sanamet1).value, &(sanamet2).value, (sanamet1).length) \
-       )                                                                \
-   )
+#define m_CMP_HORDER_SANAMET(sanamet1, sanamet2)             \
+  (((sanamet1).length > (sanamet2).length)                   \
+       ? 1                                                   \
+       : (((sanamet1).length < (sanamet2).length)            \
+              ? -1                                           \
+              : memcmp(&(sanamet1).value, &(sanamet2).value, \
+                       (sanamet1).length)))
 
-#define m_CMP_HORDER_SAHCKEY(hckey1, hckey2)                    \
-  (                                                             \
-      ((hckey1).keyLen > (hckey2).keyLen) ? 1:                  \
-      (                                                         \
-          ((hckey1).keyLen < (hckey2).keyLen) ? -1:             \
-          memcmp(&(hckey1).key, &(hckey2).key, (hckey1).keyLen) \
-       )                                                        \
-   )
+#define m_CMP_HORDER_SAHCKEY(hckey1, hckey2)  \
+  (((hckey1).keyLen > (hckey2).keyLen)        \
+       ? 1                                    \
+       : (((hckey1).keyLen < (hckey2).keyLen) \
+              ? -1                            \
+              : memcmp(&(hckey1).key, &(hckey2).key, (hckey1).keyLen)))
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

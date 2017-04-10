@@ -24,11 +24,11 @@
 TEST(OsafClockGettime, ReadRealtimeClock) {
   time_t sec = 123456789;
   long nsec = 987654321;
-  realtime_clock = { sec, nsec };
-  monotonic_clock = { 0, 0 };
+  realtime_clock = {sec, nsec};
+  monotonic_clock = {0, 0};
   mock_clock_gettime.return_value = 0;
 
-  struct timespec ts = { 0, 0 };
+  struct timespec ts = {0, 0};
   osaf_clock_gettime(CLOCK_REALTIME, &ts);
 
   EXPECT_EQ(ts.tv_sec, sec);
@@ -38,11 +38,11 @@ TEST(OsafClockGettime, ReadRealtimeClock) {
 TEST(OsafClockGettime, ReadMonotonicClock) {
   time_t sec = 212121212;
   long nsec = 565656565;
-  realtime_clock = { 0, 0 };
-  monotonic_clock = { sec, nsec };
+  realtime_clock = {0, 0};
+  monotonic_clock = {sec, nsec};
   mock_clock_gettime.return_value = 0;
 
-  struct timespec ts = { 0, 0 };
+  struct timespec ts = {0, 0};
   osaf_clock_gettime(CLOCK_MONOTONIC, &ts);
 
   EXPECT_EQ(ts.tv_sec, sec);
@@ -53,7 +53,8 @@ TEST(OsafClockGettimeDeathTest, FailWithEFAULT) {
   mock_clock_gettime.return_value = -1;
   mock_clock_gettime.errno_value = EFAULT;
 
-  ASSERT_EXIT(osaf_clock_gettime(CLOCK_REALTIME, NULL), ::testing::KilledBySignal(SIGABRT), "");
+  ASSERT_EXIT(osaf_clock_gettime(CLOCK_REALTIME, NULL),
+              ::testing::KilledBySignal(SIGABRT), "");
 }
 
 TEST(OsafClockGettimeDeathTest, FailWithEINVAL) {
@@ -61,7 +62,8 @@ TEST(OsafClockGettimeDeathTest, FailWithEINVAL) {
   mock_clock_gettime.errno_value = EINVAL;
 
   struct timespec ts;
-  ASSERT_EXIT(osaf_clock_gettime(CLOCK_REALTIME, &ts), ::testing::KilledBySignal(SIGABRT), "");
+  ASSERT_EXIT(osaf_clock_gettime(CLOCK_REALTIME, &ts),
+              ::testing::KilledBySignal(SIGABRT), "");
 }
 
 TEST(OsafClockGettimeDeathTest, FailWithEPERM) {
@@ -69,5 +71,6 @@ TEST(OsafClockGettimeDeathTest, FailWithEPERM) {
   mock_clock_gettime.errno_value = EPERM;
 
   struct timespec ts;
-  ASSERT_EXIT(osaf_clock_gettime(CLOCK_REALTIME, &ts), ::testing::KilledBySignal(SIGABRT), "");
+  ASSERT_EXIT(osaf_clock_gettime(CLOCK_REALTIME, &ts),
+              ::testing::KilledBySignal(SIGABRT), "");
 }

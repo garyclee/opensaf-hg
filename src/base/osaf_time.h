@@ -38,7 +38,7 @@
 #include <stdbool.h>
 #include "base/osaf_utility.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -270,7 +270,8 @@ static inline void osaf_set_millis_timeout(uint64_t i_millis,
  */
 static inline bool osaf_is_timeout(const struct timespec* i_ts);
 
-static inline void osaf_clock_gettime(clockid_t i_clk_id, struct timespec* o_ts) {
+static inline void osaf_clock_gettime(clockid_t i_clk_id,
+                                      struct timespec* o_ts) {
   if (clock_gettime(i_clk_id, o_ts) != 0) osaf_abort(i_clk_id);
 }
 
@@ -332,7 +333,7 @@ static inline void osaf_timespec_to_timeval(const struct timespec* i_ts,
 static inline void osaf_timeval_to_timespec(const struct timeval* i_tv,
                                             struct timespec* o_ts) {
   time_t sec = i_tv->tv_sec;
-  long nsec = ((long) i_tv->tv_usec) * (kNanosPerSec / kMicrosPerSec);
+  long nsec = ((long)i_tv->tv_usec) * (kNanosPerSec / kMicrosPerSec);
   o_ts->tv_sec = sec;
   o_ts->tv_nsec = nsec;
 }
@@ -340,15 +341,13 @@ static inline void osaf_timeval_to_timespec(const struct timeval* i_tv,
 static inline void osaf_millis_to_timespec(uint64_t i_millis,
                                            struct timespec* o_ts) {
   o_ts->tv_sec = i_millis / kMillisPerSec;
-  o_ts->tv_nsec = (i_millis % kMillisPerSec) * (kNanosPerSec /
-                                                kMillisPerSec);
+  o_ts->tv_nsec = (i_millis % kMillisPerSec) * (kNanosPerSec / kMillisPerSec);
 }
 
 static inline void osaf_micros_to_timespec(uint64_t i_micros,
                                            struct timespec* o_ts) {
   o_ts->tv_sec = i_micros / kMicrosPerSec;
-  o_ts->tv_nsec = (i_micros % kMicrosPerSec) * (kNanosPerSec /
-                                                kMicrosPerSec);
+  o_ts->tv_nsec = (i_micros % kMicrosPerSec) * (kNanosPerSec / kMicrosPerSec);
 }
 
 static inline void osaf_nanos_to_timespec(uint64_t i_nanos,
@@ -370,21 +369,21 @@ static inline void osaf_double_to_timespec(double i_seconds,
 }
 
 static inline uint64_t osaf_timespec_to_millis(const struct timespec* i_ts) {
-  return i_ts->tv_sec * (uint64_t) kMillisPerSec + i_ts->tv_nsec /
-      (kNanosPerSec / kMillisPerSec);
+  return i_ts->tv_sec * (uint64_t)kMillisPerSec +
+         i_ts->tv_nsec / (kNanosPerSec / kMillisPerSec);
 }
 
 static inline uint64_t osaf_timespec_to_micros(const struct timespec* i_ts) {
-  return i_ts->tv_sec * (uint64_t) kMicrosPerSec + i_ts->tv_nsec /
-      (kNanosPerSec / kMicrosPerSec);
+  return i_ts->tv_sec * (uint64_t)kMicrosPerSec +
+         i_ts->tv_nsec / (kNanosPerSec / kMicrosPerSec);
 }
 
 static inline uint64_t osaf_timespec_to_nanos(const struct timespec* i_ts) {
-  return i_ts->tv_sec * (uint64_t) kNanosPerSec + i_ts->tv_nsec;
+  return i_ts->tv_sec * (uint64_t)kNanosPerSec + i_ts->tv_nsec;
 }
 
 static inline double osaf_timespec_to_double(const struct timespec* i_ts) {
-  return i_ts->tv_sec + i_ts->tv_nsec / (double) kNanosPerSec;
+  return i_ts->tv_sec + i_ts->tv_nsec / (double)kNanosPerSec;
 }
 
 static inline void osaf_set_millis_timeout(uint64_t i_millis,
@@ -420,7 +419,7 @@ static inline uint64_t osaf_timeout_time_left(const struct timespec* i_ts) {
   return time_left;
 }
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

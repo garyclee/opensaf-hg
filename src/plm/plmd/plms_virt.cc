@@ -31,48 +31,43 @@
 
 typedef std::map<SaNameT /*config*/, PlmsVmConfig *, ltSaNameT> PlmsVmConfigMap;
 typedef std::map<SaNameT /*config*/, PlmsVmmConfig *, ltSaNameT>
-  PlmsVmmConfigMap;
+    PlmsVmmConfigMap;
 
 typedef std::map<SaNameT /*SaPlmEE*/, PlmsVmm *, ltSaNameT> PlmsVmmMap;
 typedef std::set<SaNameT /*SaPlmEE*/, ltSaNameT> SavedEEList;
 
-static PlmsVmConfigMap  plmsVmConfigMap;
+static PlmsVmConfigMap plmsVmConfigMap;
 static PlmsVmmConfigMap plmsVmmConfigMap;
 
 static PlmsVmmMap plmsVmmMap;
 static SavedEEList savedEEList;
 
-static PLMS_ENTITY *
-getEE(const SaNameT& eeName) {
-  PLMS_ENTITY *ee(reinterpret_cast<PLMS_ENTITY *>(
-    ncs_patricia_tree_get(&plms_cb->entity_info,
-                          reinterpret_cast<const SaUint8T *>(&eeName))));
+static PLMS_ENTITY *getEE(const SaNameT &eeName) {
+  PLMS_ENTITY *ee(reinterpret_cast<PLMS_ENTITY *>(ncs_patricia_tree_get(
+      &plms_cb->entity_info, reinterpret_cast<const SaUint8T *>(&eeName))));
   return ee;
 }
 
-static PLMS_ENTITY *
-getEE(const std::string& name) {
-  SaNameT eeName = { 0, 0 };
+static PLMS_ENTITY *getEE(const std::string &name) {
+  SaNameT eeName = {0, 0};
   eeName.length = name.length();
   memcpy(eeName.value, name.c_str(), eeName.length);
 
   return getEE(eeName);
 }
 
-static bool
-check_ee_presence_state(const PLMS_ENTITY& ee) {
+static bool check_ee_presence_state(const PLMS_ENTITY &ee) {
   bool status(true);
 
   if (ee.entity.ee_entity.saPlmEEPresenceState !=
-        SA_PLM_EE_PRESENCE_UNINSTANTIATED) {
+      SA_PLM_EE_PRESENCE_UNINSTANTIATED) {
     status = false;
   }
 
   return status;
 }
 
-static bool
-isInCcb(SaImmOiCcbIdT ccbId, const SaNameT& attr_value) {
+static bool isInCcb(SaImmOiCcbIdT ccbId, const SaNameT &attr_value) {
   CcbUtilOperationData_t *opdata(0);
 
   while ((opdata = ccbutil_getNextCcbOp(ccbId, opdata))) {
@@ -85,29 +80,25 @@ isInCcb(SaImmOiCcbIdT ccbId, const SaNameT& attr_value) {
   return opdata;
 }
 
-static void
-find_hypervisor_ee(const SaNameT& vm, SaNameT *hypervisor) {
+static void find_hypervisor_ee(const SaNameT &vm, SaNameT *hypervisor) {
   // given a vm EE, locate the hypervisor EE
-  const char *vmmBegin(static_cast<const char *>(memchr(vm.value,
-                                                        ',',
-                                                        vm.length)) + 1);
+  const char *vmmBegin(
+      static_cast<const char *>(memchr(vm.value, ',', vm.length)) + 1);
 
   memset(hypervisor, 0, sizeof(SaNameT));
 
-  memcpy(hypervisor->value,
-         vmmBegin,
-         hypervisor->length = vm.length -
-           (vmmBegin - reinterpret_cast<const char *>(vm.value)));
+  memcpy(hypervisor->value, vmmBegin,
+         hypervisor->length =
+             vm.length - (vmmBegin - reinterpret_cast<const char *>(vm.value)));
 }
 
-extern "C" void
-plms_ee_vm_save(const SaNameT *ee) {
+extern "C" void plms_ee_vm_save(const SaNameT *ee) {
   TRACE("adding %s to savedEEList", ee->value);
   std::pair<SavedEEList::iterator, bool> p(savedEEList.insert(*ee));
 }
 
-extern "C" void
-plms_create_vmm_obj(const SaNameT *name, SaImmAttrValuesT_2 **attrs) {
+extern "C" void plms_create_vmm_obj(const SaNameT *name,
+                                    SaImmAttrValuesT_2 **attrs) {
   const SaNameT *saPlmEE(0);
   const char *session(0);
 
@@ -129,7 +120,7 @@ plms_create_vmm_obj(const SaNameT *name, SaImmAttrValuesT_2 **attrs) {
     PlmsVmm *vmm(new PlmsVmm(session));
 
     std::pair<PlmsVmmMap::iterator, bool> p(
-      plmsVmmMap.insert(std::make_pair(*saPlmEE, vmm)));
+        plmsVmmMap.insert(std::make_pair(*saPlmEE, vmm)));
   }
 
   // add to the config map
@@ -138,18 +129,18 @@ plms_create_vmm_obj(const SaNameT *name, SaImmAttrValuesT_2 **attrs) {
   if (cfgIt == plmsVmmConfigMap.end()) {
     TRACE("creating new virtual machine monitor config");
 
-    PlmsVmmConfig *vmmConfig(new PlmsVmmConfig(reinterpret_cast<const char *>
-      (saPlmEE->value), session));
+    PlmsVmmConfig *vmmConfig(new PlmsVmmConfig(
+        reinterpret_cast<const char *>(saPlmEE->value), session));
 
     std::pair<PlmsVmmConfigMap::iterator, bool> p(
-      plmsVmmConfigMap.insert(std::make_pair(*name, vmmConfig)));
+        plmsVmmConfigMap.insert(std::make_pair(*name, vmmConfig)));
   }
 
   TRACE_LEAVE();
 }
 
-extern "C" void
-plms_create_vm_obj(const SaNameT *name, SaImmAttrValuesT_2 **attrs) {
+extern "C" void plms_create_vm_obj(const SaNameT *name,
+                                   SaImmAttrValuesT_2 **attrs) {
   const SaNameT *saPlmEE(0);
   const char *domainName(0);
 
@@ -176,8 +167,7 @@ plms_create_vm_obj(const SaNameT *name, SaImmAttrValuesT_2 **attrs) {
     SavedEEList::iterator savedEEIt(savedEEList.find(*saPlmEE));
 
     if (savedEEIt != savedEEList.end()) {
-      TRACE("setting up vm %s in tree with parent %s",
-            saPlmEE->value,
+      TRACE("setting up vm %s in tree with parent %s", saPlmEE->value,
             vmm.value);
 
       PLMS_ENTITY *vmmEE(getEE(vmm));
@@ -191,8 +181,7 @@ plms_create_vm_obj(const SaNameT *name, SaImmAttrValuesT_2 **attrs) {
       } else {
         PLMS_ENTITY *tmp(vmmEE->leftmost_child);
 
-        while (tmp->right_sibling)
-          tmp = tmp->right_sibling;
+        while (tmp->right_sibling) tmp = tmp->right_sibling;
 
         tmp->right_sibling = vmEE;
       }
@@ -209,24 +198,22 @@ plms_create_vm_obj(const SaNameT *name, SaImmAttrValuesT_2 **attrs) {
       TRACE("creating new virtual machine config");
 
       PlmsVmConfig *vmConfig(new PlmsVmConfig(
-        reinterpret_cast<const char *>(saPlmEE->value), domainName));
+          reinterpret_cast<const char *>(saPlmEE->value), domainName));
 
       std::pair<PlmsVmConfigMap::iterator, bool> p(
-        plmsVmConfigMap.insert(std::make_pair(*name, vmConfig)));
+          plmsVmConfigMap.insert(std::make_pair(*name, vmConfig)));
     }
   } else {
-    LOG_ER("unable to add VM %s: cannot find VMM %s",
-           saPlmEE->value,
+    LOG_ER("unable to add VM %s: cannot find VMM %s", saPlmEE->value,
            vmm.value);
   }
 
   TRACE_LEAVE();
 }
 
-extern "C" SaAisErrorT
-plms_validate_modify_vmm_obj(SaImmOiCcbIdT ccbId,
-                             const SaNameT *name,
-                             const SaImmAttrModificationT_2 **attrs) {
+extern "C" SaAisErrorT plms_validate_modify_vmm_obj(
+    SaImmOiCcbIdT ccbId, const SaNameT *name,
+    const SaImmAttrModificationT_2 **attrs) {
   TRACE_ENTER();
 
   SaAisErrorT rc(SA_AIS_OK);
@@ -240,8 +227,9 @@ plms_validate_modify_vmm_obj(SaImmOiCcbIdT ccbId,
       assert(ee);
 
       if (!check_ee_presence_state(*ee)) {
-        LOG_ER("cannot modify hypervisor config as its corresponding current EE"
-               " presence state is not UNINSTANTIATED");
+        LOG_ER(
+            "cannot modify hypervisor config as its corresponding current EE"
+            " presence state is not UNINSTANTIATED");
         rc = SA_AIS_ERR_BAD_OPERATION;
         break;
       }
@@ -251,15 +239,16 @@ plms_validate_modify_vmm_obj(SaImmOiCcbIdT ccbId,
 
         if (strcmp(attr_name, "saPlmEE") == 0) {
           // does the new EE exist in the model?
-          const SaNameT *eeName(static_cast<const SaNameT *>
-                       (*attrs[i]->modAttr.attrValues));
+          const SaNameT *eeName(
+              static_cast<const SaNameT *>(*attrs[i]->modAttr.attrValues));
 
           ee = getEE(*eeName);
 
           if (ee) {
             if (!check_ee_presence_state(*ee)) {
-              LOG_ER("cannot modify hypervisor config as its corresponding new "
-                    "EE presence state is not UNINSTANTIATED");
+              LOG_ER(
+                  "cannot modify hypervisor config as its corresponding new "
+                  "EE presence state is not UNINSTANTIATED");
               rc = SA_AIS_ERR_BAD_OPERATION;
               break;
             }
@@ -289,10 +278,9 @@ plms_validate_modify_vmm_obj(SaImmOiCcbIdT ccbId,
   return rc;
 }
 
-extern "C" SaAisErrorT
-plms_validate_modify_vm_obj(SaImmOiCcbIdT ccbId,
-                            const SaNameT *name,
-                            const SaImmAttrModificationT_2 **attrs) {
+extern "C" SaAisErrorT plms_validate_modify_vm_obj(
+    SaImmOiCcbIdT ccbId, const SaNameT *name,
+    const SaImmAttrModificationT_2 **attrs) {
   TRACE_ENTER();
 
   SaAisErrorT rc(SA_AIS_OK);
@@ -306,8 +294,9 @@ plms_validate_modify_vm_obj(SaImmOiCcbIdT ccbId,
       assert(ee);
 
       if (!check_ee_presence_state(*ee)) {
-        LOG_ER("cannot modify vm config as its corresponding current EE"
-               " presence state is not UNINSTANTIATED");
+        LOG_ER(
+            "cannot modify vm config as its corresponding current EE"
+            " presence state is not UNINSTANTIATED");
         rc = SA_AIS_ERR_BAD_OPERATION;
         break;
       }
@@ -317,14 +306,15 @@ plms_validate_modify_vm_obj(SaImmOiCcbIdT ccbId,
 
         if (strcmp(attr_name, "saPlmEE") == 0) {
           // does the new EE exist in the model?
-          const SaNameT *eeName(static_cast<const SaNameT *>
-                       (*attrs[i]->modAttr.attrValues));
+          const SaNameT *eeName(
+              static_cast<const SaNameT *>(*attrs[i]->modAttr.attrValues));
           ee = getEE(*eeName);
 
           if (ee) {
             if (!check_ee_presence_state(*ee)) {
-              LOG_ER("cannot modify vm config as its corresponding new EE "
-                     "presence state is not UNINSTANTIATED");
+              LOG_ER(
+                  "cannot modify vm config as its corresponding new EE "
+                  "presence state is not UNINSTANTIATED");
               rc = SA_AIS_ERR_BAD_OPERATION;
               break;
             }
@@ -353,8 +343,7 @@ plms_validate_modify_vm_obj(SaImmOiCcbIdT ccbId,
   return rc;
 }
 
-extern "C" SaAisErrorT
-plms_validate_delete_vmm_obj(const SaNameT *name) {
+extern "C" SaAisErrorT plms_validate_delete_vmm_obj(const SaNameT *name) {
   TRACE_ENTER();
 
   SaAisErrorT rc(SA_AIS_OK);
@@ -371,8 +360,9 @@ plms_validate_delete_vmm_obj(const SaNameT *name) {
        * will be, too.
        */
       if (ee && !check_ee_presence_state(*ee)) {
-        LOG_ER("cannot delete hypervisor config as its corresponding EE "
-               "presence state is not UNINSTANTIATED");
+        LOG_ER(
+            "cannot delete hypervisor config as its corresponding EE "
+            "presence state is not UNINSTANTIATED");
         rc = SA_AIS_ERR_BAD_OPERATION;
         break;
       }
@@ -386,8 +376,7 @@ plms_validate_delete_vmm_obj(const SaNameT *name) {
   return rc;
 }
 
-extern "C" SaAisErrorT
-plms_validate_delete_vm_obj(const SaNameT *name) {
+extern "C" SaAisErrorT plms_validate_delete_vm_obj(const SaNameT *name) {
   TRACE_ENTER();
 
   SaAisErrorT rc(SA_AIS_OK);
@@ -401,8 +390,9 @@ plms_validate_delete_vm_obj(const SaNameT *name) {
       assert(ee);
 
       if (!check_ee_presence_state(*ee)) {
-        LOG_ER("cannot delete vm config as its corresponding EE presence state "
-               "is not UNINSTANTIATED");
+        LOG_ER(
+            "cannot delete vm config as its corresponding EE presence state "
+            "is not UNINSTANTIATED");
         rc = SA_AIS_ERR_BAD_OPERATION;
         break;
       }
@@ -415,8 +405,8 @@ plms_validate_delete_vm_obj(const SaNameT *name) {
   return rc;
 }
 
-extern "C" void
-plms_modify_vmm_obj(const SaNameT *name, SaImmAttrModificationT_2 **attrs) {
+extern "C" void plms_modify_vmm_obj(const SaNameT *name,
+                                    SaImmAttrModificationT_2 **attrs) {
   TRACE_ENTER();
 
   PlmsVmmConfigMap::iterator it(plmsVmmConfigMap.find(*name));
@@ -432,8 +422,8 @@ plms_modify_vmm_obj(const SaNameT *name, SaImmAttrModificationT_2 **attrs) {
         ee.length = it->second->getEE().length();
         memcpy(ee.value, it->second->getEE().c_str(), ee.length);
 
-        it->second->setEE(reinterpret_cast<const char *>(static_cast<SaNameT *>
-          (*attrs[i]->modAttr.attrValues)->value));
+        it->second->setEE(reinterpret_cast<const char *>(
+            static_cast<SaNameT *>(*attrs[i]->modAttr.attrValues)->value));
 
         // EE changed -- update map
         PlmsVmmMap::iterator vmmIt(plmsVmmMap.find(ee));
@@ -453,8 +443,8 @@ plms_modify_vmm_obj(const SaNameT *name, SaImmAttrModificationT_2 **attrs) {
           assert(false);
         }
       } else if (strcmp(attr_name, "libVirtSession") == 0) {
-        it->second->setSession(*static_cast<SaStringT *>
-          (*attrs[i]->modAttr.attrValues));
+        it->second->setSession(
+            *static_cast<SaStringT *>(*attrs[i]->modAttr.attrValues));
       } else {
         LOG_ER("unhandled attr type in modify vm");
       }
@@ -467,8 +457,8 @@ plms_modify_vmm_obj(const SaNameT *name, SaImmAttrModificationT_2 **attrs) {
   TRACE_LEAVE();
 }
 
-extern "C" void
-plms_modify_vm_obj(const SaNameT *name, SaImmAttrModificationT_2 **attrs) {
+extern "C" void plms_modify_vm_obj(const SaNameT *name,
+                                   SaImmAttrModificationT_2 **attrs) {
   TRACE_ENTER();
 
   PlmsVmConfigMap::iterator it(plmsVmConfigMap.find(*name));
@@ -482,11 +472,11 @@ plms_modify_vm_obj(const SaNameT *name, SaImmAttrModificationT_2 **attrs) {
       SaStringT attr_name(attrs[i]->modAttr.attrName);
       TRACE_2("attr_name: %s, mod_type: %u", attr_name, attrs[i]->modType);
       if (strcmp(attr_name, "saPlmEE") == 0) {
-        it->second->setEE(reinterpret_cast<const char *>(static_cast<SaNameT *>
-          (*attrs[i]->modAttr.attrValues)->value));
+        it->second->setEE(reinterpret_cast<const char *>(
+            static_cast<SaNameT *>(*attrs[i]->modAttr.attrValues)->value));
       } else if (strcmp(attr_name, "libVirtDomainName") == 0) {
-        it->second->setDomainName(*static_cast<SaStringT *>
-          (*attrs[i]->modAttr.attrValues));
+        it->second->setDomainName(
+            *static_cast<SaStringT *>(*attrs[i]->modAttr.attrValues));
       } else {
         LOG_ER("unhandled attr type in modify vm");
       }
@@ -512,15 +502,14 @@ plms_modify_vm_obj(const SaNameT *name, SaImmAttrModificationT_2 **attrs) {
   TRACE_LEAVE();
 }
 
-extern "C" void
-plms_delete_vmm_obj(const SaNameT *name) {
+extern "C" void plms_delete_vmm_obj(const SaNameT *name) {
   TRACE_ENTER();
 
   PlmsVmmConfigMap::iterator it(plmsVmmConfigMap.find(*name));
 
   if (it != plmsVmmConfigMap.end()) {
     // remove the hypervisor from the VMM map, too
-    SaNameT eeName = { 0, 0 };
+    SaNameT eeName = {0, 0};
     eeName.length = it->second->getEE().length();
     memcpy(eeName.value, it->second->getEE().c_str(), eeName.length);
 
@@ -540,15 +529,14 @@ plms_delete_vmm_obj(const SaNameT *name) {
   TRACE_LEAVE();
 }
 
-extern "C" void
-plms_delete_vm_obj(const SaNameT *name) {
+extern "C" void plms_delete_vm_obj(const SaNameT *name) {
   TRACE_ENTER();
 
   PlmsVmConfigMap::iterator it(plmsVmConfigMap.find(*name));
 
   if (it != plmsVmConfigMap.end()) {
     // remove the VM from the VMM's map, too
-    SaNameT eeName = { 0, 0 };
+    SaNameT eeName = {0, 0};
     eeName.length = it->second->getEE().length();
     memcpy(eeName.value, it->second->getEE().c_str(), eeName.length);
 
@@ -558,8 +546,7 @@ plms_delete_vm_obj(const SaNameT *name) {
 
     PlmsVmmMap::iterator vmmIt(plmsVmmMap.find(vmm));
 
-    if (vmmIt != plmsVmmMap.end())
-      vmmIt->second->removeVm(eeName);
+    if (vmmIt != plmsVmmMap.end()) vmmIt->second->removeVm(eeName);
 
     delete it->second;
 
@@ -569,8 +556,7 @@ plms_delete_vm_obj(const SaNameT *name) {
   TRACE_LEAVE();
 }
 
-extern "C" SaUint32T
-plms_ee_instantiate_vm(const PLMS_ENTITY *entity) {
+extern "C" SaUint32T plms_ee_instantiate_vm(const PLMS_ENTITY *entity) {
   int rc(NCSCC_RC_FAILURE);
 
   TRACE_ENTER();
@@ -590,8 +576,8 @@ plms_ee_instantiate_vm(const PLMS_ENTITY *entity) {
   return rc;
 }
 
-extern "C" SaUint32T
-plms_ee_hypervisor_instantiated(const PLMS_ENTITY *entity) {
+extern "C" SaUint32T plms_ee_hypervisor_instantiated(
+    const PLMS_ENTITY *entity) {
   int rc(NCSCC_RC_FAILURE);
 
   TRACE_ENTER();
@@ -609,50 +595,43 @@ plms_ee_hypervisor_instantiated(const PLMS_ENTITY *entity) {
   return rc;
 }
 
-extern "C" SaUint32T
-plms_ee_restart_vm(const PLMS_ENTITY *entity) {
+extern "C" SaUint32T plms_ee_restart_vm(const PLMS_ENTITY *entity) {
   int rc(NCSCC_RC_FAILURE);
 
   TRACE_ENTER();
 
   // find the hypervisor and tell it to restart the vm
-  PlmsVmmMap::iterator vmmIt(
-    plmsVmmMap.find(entity->parent->dn_name));
+  PlmsVmmMap::iterator vmmIt(plmsVmmMap.find(entity->parent->dn_name));
 
-  if (vmmIt != plmsVmmMap.end())
-    rc = vmmIt->second->restart(entity->dn_name);
+  if (vmmIt != plmsVmmMap.end()) rc = vmmIt->second->restart(entity->dn_name);
 
   TRACE_LEAVE();
 
   return rc;
 }
 
-extern "C" SaUint32T
-plms_ee_isolate_vm(const PLMS_ENTITY *entity) {
+extern "C" SaUint32T plms_ee_isolate_vm(const PLMS_ENTITY *entity) {
   int rc(NCSCC_RC_FAILURE);
 
   TRACE_ENTER();
 
   // find the hypervisor and tell it to terminate the vm
-  PlmsVmmMap::iterator vmmIt(
-    plmsVmmMap.find(entity->parent->dn_name));
+  PlmsVmmMap::iterator vmmIt(plmsVmmMap.find(entity->parent->dn_name));
 
-  if (vmmIt != plmsVmmMap.end())
-    rc = vmmIt->second->isolate(entity->dn_name);
+  if (vmmIt != plmsVmmMap.end()) rc = vmmIt->second->isolate(entity->dn_name);
 
   TRACE_LEAVE();
 
   return rc;
 }
 
-PlmsVmmConfig::PlmsVmmConfig(const std::string& e, const std::string& s)
-  : ee(e), session(s) {}
+PlmsVmmConfig::PlmsVmmConfig(const std::string &e, const std::string &s)
+    : ee(e), session(s) {}
 
-PlmsVmConfig::PlmsVmConfig(const std::string& e, const std::string& d)
-  : ee(e), domainName(d) {}
+PlmsVmConfig::PlmsVmConfig(const std::string &e, const std::string &d)
+    : ee(e), domainName(d) {}
 
-PlmsVmm::PlmsVmm(const char *session)
-  : libVirtSession(session), vPtr(0) {
+PlmsVmm::PlmsVmm(const char *session) : libVirtSession(session), vPtr(0) {
   TRACE_ENTER();
 
   int rc(virInitialize());
@@ -679,14 +658,12 @@ PlmsVmm::~PlmsVmm(void) {
   for (VmMap::iterator it(vmMap.begin()); it != vmMap.end(); ++it)
     delete it->second;
 
-  if (vPtr)
-    virConnectClose(vPtr);
+  if (vPtr) virConnectClose(vPtr);
 
   TRACE_LEAVE();
 }
 
-int
-PlmsVmm::instantiated(void) {
+int PlmsVmm::instantiated(void) {
   int rc(NCSCC_RC_SUCCESS);
 
   TRACE_ENTER2("hypervisor at %s instantiated", libVirtSession.c_str());
@@ -703,8 +680,7 @@ PlmsVmm::instantiated(void) {
   return rc;
 }
 
-void
-PlmsVmm::addVm(const SaNameT& name, const char *domainName) {
+void PlmsVmm::addVm(const SaNameT &name, const char *domainName) {
   TRACE_ENTER();
 
   PlmsVm *vm(new PlmsVm(domainName));
@@ -716,8 +692,7 @@ PlmsVmm::addVm(const SaNameT& name, const char *domainName) {
   TRACE_LEAVE();
 }
 
-void
-PlmsVmm::removeVm(const SaNameT& name) {
+void PlmsVmm::removeVm(const SaNameT &name) {
   TRACE_ENTER();
 
   VmMap::iterator it(vmMap.find(name));
@@ -731,8 +706,7 @@ PlmsVmm::removeVm(const SaNameT& name) {
   TRACE_LEAVE();
 }
 
-int
-PlmsVmm::instantiate(const SaNameT& name) {
+int PlmsVmm::instantiate(const SaNameT &name) {
   int rc(NCSCC_RC_FAILURE);
 
   TRACE_ENTER();
@@ -743,11 +717,9 @@ PlmsVmm::instantiate(const SaNameT& name) {
     if (vmIt != vmMap.end()) {
       virDomainPtr domain(getDomainPtr(*vmIt->second));
 
-      if (!domain)
-        break;
+      if (!domain) break;
 
-      if (vmIt->second->instantiate(domain) == 0)
-        rc = NCSCC_RC_SUCCESS;
+      if (vmIt->second->instantiate(domain) == 0) rc = NCSCC_RC_SUCCESS;
 
       virDomainFree(domain);
     } else {
@@ -760,8 +732,7 @@ PlmsVmm::instantiate(const SaNameT& name) {
   return rc;
 }
 
-int
-PlmsVmm::restart(const SaNameT& name) {
+int PlmsVmm::restart(const SaNameT &name) {
   int rc(NCSCC_RC_FAILURE);
 
   TRACE_ENTER();
@@ -772,11 +743,9 @@ PlmsVmm::restart(const SaNameT& name) {
     if (vmIt != vmMap.end()) {
       virDomainPtr domain(getDomainPtr(*vmIt->second));
 
-      if (!domain)
-        break;
+      if (!domain) break;
 
-      if (vmIt->second->restart(domain) == 0)
-        rc = NCSCC_RC_SUCCESS;
+      if (vmIt->second->restart(domain) == 0) rc = NCSCC_RC_SUCCESS;
 
       virDomainFree(domain);
     } else {
@@ -789,8 +758,7 @@ PlmsVmm::restart(const SaNameT& name) {
   return rc;
 }
 
-int
-PlmsVmm::isolate(const SaNameT& name) {
+int PlmsVmm::isolate(const SaNameT &name) {
   int rc(NCSCC_RC_FAILURE);
 
   TRACE_ENTER();
@@ -803,11 +771,9 @@ PlmsVmm::isolate(const SaNameT& name) {
     if (vmIt != vmMap.end()) {
       virDomainPtr domain(getDomainPtr(*vmIt->second));
 
-      if (!domain)
-        break;
+      if (!domain) break;
 
-      if (vmIt->second->isolate(domain) == 0)
-        rc = NCSCC_RC_SUCCESS;
+      if (vmIt->second->isolate(domain) == 0) rc = NCSCC_RC_SUCCESS;
 
       virDomainFree(domain);
     } else {
@@ -820,8 +786,7 @@ PlmsVmm::isolate(const SaNameT& name) {
   return rc;
 }
 
-void
-PlmsVmm::connect(void) {
+void PlmsVmm::connect(void) {
   TRACE_ENTER2("attempting to connect to libvirtd with session: %s",
                libVirtSession.c_str());
 
@@ -834,8 +799,7 @@ PlmsVmm::connect(void) {
   TRACE_LEAVE();
 }
 
-virDomainPtr
-PlmsVmm::getDomainPtr(const PlmsVm& vm) {
+virDomainPtr PlmsVmm::getDomainPtr(const PlmsVm &vm) {
   TRACE_ENTER();
 
   virDomainPtr domain(virDomainLookupByName(vPtr, vm.getDomainName().c_str()));
@@ -850,8 +814,7 @@ PlmsVmm::getDomainPtr(const PlmsVm& vm) {
   return domain;
 }
 
-void
-PlmsVmm::updateVM(const SaNameT& oldEE, const PlmsVmConfig& config) {
+void PlmsVmm::updateVM(const SaNameT &oldEE, const PlmsVmConfig &config) {
   VmMap::iterator it(vmMap.find(oldEE));
 
   if (it != vmMap.end()) {
@@ -872,22 +835,15 @@ PlmsVmm::updateVM(const SaNameT& oldEE, const PlmsVmConfig& config) {
   }
 }
 
-void
-PlmsVmm::libVirtError(void *userData, virErrorPtr error) {
-  LOG_ER("libvirt error code: %i message: %s domain: %i",
-         error->code,
-         error->message,
-         error->domain);
+void PlmsVmm::libVirtError(void *userData, virErrorPtr error) {
+  LOG_ER("libvirt error code: %i message: %s domain: %i", error->code,
+         error->message, error->domain);
 }
 
-
 // PLMS VM
-PlmsVm::PlmsVm(const char *d)
-  : domainName(d)
-{}
+PlmsVm::PlmsVm(const char *d) : domainName(d) {}
 
-int
-PlmsVm::instantiate(virDomainPtr domain) {
+int PlmsVm::instantiate(virDomainPtr domain) {
   TRACE_ENTER();
 
   int rc(-1);
@@ -897,23 +853,20 @@ PlmsVm::instantiate(virDomainPtr domain) {
 
     rc = virDomainGetInfo(domain, &info);
 
-    if (rc < 0)
-      break;
+    if (rc < 0) break;
 
     if (info.state == VIR_DOMAIN_RUNNING) {
       TRACE("vm is already running: restarting it");
 
       rc = restart(domain);
 
-      if (rc < 0)
-        break;
+      if (rc < 0) break;
     } else {
       TRACE("calling virDomainCreate to instantiate vm");
 
       rc = virDomainCreate(domain);
 
-      if (rc < 0)
-        break;
+      if (rc < 0) break;
     }
   } while (false);
 
@@ -922,14 +875,12 @@ PlmsVm::instantiate(virDomainPtr domain) {
   return rc;
 }
 
-int
-PlmsVm::restart(virDomainPtr domain) {
+int PlmsVm::restart(virDomainPtr domain) {
   TRACE("calling virDomainReset to restart vm");
   return virDomainReset(domain, 0);
 }
 
-int
-PlmsVm::isolate(virDomainPtr domain) {
+int PlmsVm::isolate(virDomainPtr domain) {
   TRACE("calling virDomainDestroy to isolate vm");
   return virDomainDestroy(domain);
 }

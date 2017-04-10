@@ -25,4 +25,3 @@ void saLogDispatch_01(void)
 	test_validate(rc, SA_AIS_OK);
 	logFinalize();
 }
-

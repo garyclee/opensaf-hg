@@ -21,8 +21,8 @@
 ..............................................................................
 
   DESCRIPTION: This file includes following routines:
-   
-   cpd_saf_hlth_chk_cb................CPD health check callback 
+
+   cpd_saf_hlth_chk_cb................CPD health check callback
    cpd_saf_readiness_state_cb.........CPD rediness state callback
    cpd_saf_csi_set_cb.................CPD component state callback
    cpd_saf_pend_oper_confirm_cb.......CPD pending operation callback
@@ -36,88 +36,89 @@
 #include "osaf/immutil/immutil.h"
 #include "ckpt/ckptd/cpd_imm.h"
 #define NCS_2_0 1
-#if NCS_2_0			/* Required for NCS 2.0 */
+#if NCS_2_0 /* Required for NCS 2.0 */
 extern uint32_t gl_cpd_cb_hdl;
 extern const SaImmOiImplementerNameT implementer_name;
-
 
 /****************************************************************************
  PROCEDURE NAME : cpd_saf_hlth_chk_cb
 
- DESCRIPTION    : This function SAF callback function which will be called 
-                  when the AMF framework needs to health for the component.
- 
- ARGUMENTS      : invocation     - This parameter designated a particular 
-                                   invocation of this callback function. The
-                                   invoke process return invocation when it 
-                                   responds to the Avilability Management 
-                                   FrameWork using the saAmfResponse() 
-                                   function.
-                  compName       - A pointer to the name of the component 
-                                   whose readiness stae the Availability 
-                                   Management Framework is setting.
-                  checkType      - The type of healthcheck to be executed. 
- 
-  RETURNS       : None 
+ DESCRIPTION    : This function SAF callback function which will be called
+		  when the AMF framework needs to health for the component.
+
+ ARGUMENTS      : invocation     - This parameter designated a particular
+				   invocation of this callback function. The
+				   invoke process return invocation when it
+				   responds to the Avilability Management
+				   FrameWork using the saAmfResponse()
+				   function.
+		  compName       - A pointer to the name of the component
+				   whose readiness stae the Availability
+				   Management Framework is setting.
+		  checkType      - The type of healthcheck to be executed.
+
+  RETURNS       : None
   NOTES         : At present we are just support a simple liveness check.
 *****************************************************************************/
-void cpd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
+void cpd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName,
+			 SaAmfHealthcheckKeyT *checkType)
 {
 	CPD_CB *cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
-	
+
 	/* Get the COntrol Block Pointer */
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
 	if (cb) {
 		saAmfResponse(cb->amf_hdl, invocation, saErr);
 		ncshm_give_hdl(cb->cpd_hdl);
 	} else {
-		LOG_ER("Failed to retrieve cpd handle %u",gl_cpd_cb_hdl);
+		LOG_ER("Failed to retrieve cpd handle %u", gl_cpd_cb_hdl);
 	}
 	return;
-}	/* End of cpd_saf_hlth_chk_cb() */
+} /* End of cpd_saf_hlth_chk_cb() */
 
 /****************************************************************************\
  PROCEDURE NAME : cpd_saf_csi_set_cb
- 
- DESCRIPTION    : This function SAF callback function which will be called 
-                  when there is any change in the HA state.
- 
- ARGUMENTS      : invocation     - This parameter designated a particular 
-                                  invocation of this callback function. The 
-                                  invoke process return invocation when it 
-                                  responds to the Avilability Management 
-                                  FrameWork using the saAmfResponse() 
-                                  function.
-                 compName       - A pointer to the name of the component 
-                                  whose readiness stae the Availability 
-                                  Management Framework is setting.
-                 csiName        - A pointer to the name of the new component
-                                  service instance to be supported by the 
-                                  component or of an alreadt supported 
-                                  component service instance whose HA state 
-                                  is to be changed.
-                 csiFlags       - A value of the choiceflag type which 
-                                  indicates whether the HA state change must
-                                  be applied to a new component service 
-                                  instance or to all component service 
-                                  instance currently supported by the 
-                                  component.
-                 haState        - The new HA state to be assumeb by the 
-                                  component service instance identified by 
-                                  csiName.
-                 activeCompName - A pointer to the name of the component that
-                                  currently has the active state or had the
-                                  active state for this component serivce 
-                                  insance previously. 
-                 transitionDesc - This will indicate whether or not the 
-                                  component service instance for 
-                                  ativeCompName went through quiescing.
+
+ DESCRIPTION    : This function SAF callback function which will be called
+		  when there is any change in the HA state.
+
+ ARGUMENTS      : invocation     - This parameter designated a particular
+				  invocation of this callback function. The
+				  invoke process return invocation when it
+				  responds to the Avilability Management
+				  FrameWork using the saAmfResponse()
+				  function.
+		 compName       - A pointer to the name of the component
+				  whose readiness stae the Availability
+				  Management Framework is setting.
+		 csiName        - A pointer to the name of the new component
+				  service instance to be supported by the
+				  component or of an alreadt supported
+				  component service instance whose HA state
+				  is to be changed.
+		 csiFlags       - A value of the choiceflag type which
+				  indicates whether the HA state change must
+				  be applied to a new component service
+				  instance or to all component service
+				  instance currently supported by the
+				  component.
+		 haState        - The new HA state to be assumeb by the
+				  component service instance identified by
+				  csiName.
+		 activeCompName - A pointer to the name of the component that
+				  currently has the active state or had the
+				  active state for this component serivce
+				  insance previously.
+		 transitionDesc - This will indicate whether or not the
+				  component service instance for
+				  ativeCompName went through quiescing.
  RETURNS       : None.
 \*****************************************************************************/
 
-void cpd_saf_csi_set_cb(SaInvocationT invocation,
-			const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
+void cpd_saf_csi_set_cb(SaInvocationT invocation, const SaNameT *compName,
+			SaAmfHAStateT haState,
+			SaAmfCSIDescriptorT csiDescriptor)
 {
 	CPD_CB *cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
@@ -133,31 +134,38 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 	if (cb) {
 		if ((rc = initialize_for_assignment(cb, haState)) !=
 		    NCSCC_RC_SUCCESS) {
-			LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+			LOG_ER("initialize_for_assignment FAILED %u",
+			       (unsigned)rc);
 			saErr = SA_AIS_ERR_FAILED_OPERATION;
 			saAmfResponse(cb->amf_hdl, invocation, saErr);
 			ncshm_give_hdl(cb->cpd_hdl);
-			m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,
-					"cpd_saf_csi_set_cb: Initialization failed");
+			m_CPSV_DBG_SINK(
+			    NCSCC_RC_FAILURE,
+			    "cpd_saf_csi_set_cb: Initialization failed");
 			return;
 		}
 
-		if ((cb->ha_state == SA_AMF_HA_STANDBY) && (haState == SA_AMF_HA_ACTIVE)) {
+		if ((cb->ha_state == SA_AMF_HA_STANDBY) &&
+		    (haState == SA_AMF_HA_ACTIVE)) {
 			if (cb->cold_or_warm_sync_on == true) {
-				TRACE("STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == true ");
+				TRACE(
+				    "STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == true ");
 				saErr = SA_AIS_ERR_TRY_AGAIN;
 				saAmfResponse(cb->amf_hdl, invocation, saErr);
 				ncshm_give_hdl(cb->cpd_hdl);
 				TRACE_4("cpd vdest change role failed");
-				m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,
-						"cpd_role_change: Failed to send Error report to AMF for Active role assignment during Cold-Sync");
+				m_CPSV_DBG_SINK(
+				    NCSCC_RC_FAILURE,
+				    "cpd_role_change: Failed to send Error report to AMF for Active role assignment during Cold-Sync");
 				return;
 			}
 		}
 
-		if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (haState == SA_AMF_HA_QUIESCED)) {
+		if ((cb->ha_state == SA_AMF_HA_ACTIVE) &&
+		    (haState == SA_AMF_HA_QUIESCED)) {
 			if (cb->cold_or_warm_sync_on == true) {
-				TRACE("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == true ");
+				TRACE(
+				    "ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == true ");
 			}
 		}
 
@@ -165,15 +173,17 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 
 		/*     saAmfResponse(cb->amf_hdl, invocation, saErr); */
 
-   		if (SA_AMF_HA_ACTIVE == haState) {
-		        /** Change the MDS role **/
+		if (SA_AMF_HA_ACTIVE == haState) {
+			/** Change the MDS role **/
 			cb->ha_state = haState;
 			mds_role = V_DEST_RL_ACTIVE;
 			TRACE("ACTIVE STATE");
 
-			/* If this is the active server, become implementer again. */
+			/* If this is the active server, become implementer
+			 * again. */
 			/* If this is the active Director, become implementer */
-			cpd_imm_declare_implementer(&cb->immOiHandle, &cb->imm_sel_obj);
+			cpd_imm_declare_implementer(&cb->immOiHandle,
+						    &cb->imm_sel_obj);
 			/*   anchor   = cb->cpd_anc; */
 		} else if (SA_AMF_HA_QUIESCED == haState) {
 			mds_role = V_DEST_RL_QUIESCED;
@@ -198,8 +208,8 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			TRACE_LEAVE();
 			return;
 		} else {
-      		        /** Change the MDS role **/
-		        cb->ha_state = haState;
+			/** Change the MDS role **/
+			cb->ha_state = haState;
 			mds_role = V_DEST_RL_STANDBY;
 			TRACE("STANDBY STATE");
 			/*   anchor   = cb->cpd_anc; */
@@ -228,16 +238,18 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 		ncshm_give_hdl(cb->cpd_hdl);
 
 		if (SA_AMF_HA_ACTIVE == cb->ha_state) {
-			cpd_cpnd_info_node_getnext(&cb->cpnd_tree, NULL, &node_info);
+			cpd_cpnd_info_node_getnext(&cb->cpnd_tree, NULL,
+						   &node_info);
 			while (node_info) {
 				prev_dest = node_info->cpnd_dest;
 				if (node_info->timer_state == 2) {
-					TRACE	
-						("THE TIMER STATE IS 2 MEANS TIMER EXPIRED BUT STILL DID NOT GET ACTIVE STATE");
-					cpd_process_cpnd_down(cb, &node_info->cpnd_dest);
+					TRACE(
+					    "THE TIMER STATE IS 2 MEANS TIMER EXPIRED BUT STILL DID NOT GET ACTIVE STATE");
+					cpd_process_cpnd_down(
+					    cb, &node_info->cpnd_dest);
 				}
-				cpd_cpnd_info_node_getnext(&cb->cpnd_tree, &prev_dest, &node_info);
-
+				cpd_cpnd_info_node_getnext(
+				    &cb->cpnd_tree, &prev_dest, &node_info);
 			}
 			TRACE_2("cpd csi set cb success I AM ACTIVE ");
 		}
@@ -249,12 +261,12 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 	}
 	TRACE_LEAVE();
 	return;
-}	/* End of cpd_saf_csi_set_cb() */
+} /* End of cpd_saf_csi_set_cb() */
 
 /****************************************************************************
  * Name          : cpd_amf_init
  *
- * Description   : CPD initializes AMF for involking process and registers 
+ * Description   : CPD initializes AMF for involking process and registers
  *                 the various callback functions.
  *
  * Arguments     : cpd_cb  - CPD control block pointer.
@@ -275,7 +287,8 @@ uint32_t cpd_amf_init(CPD_CB *cpd_cb)
 
 	amfCallbacks.saAmfHealthcheckCallback = cpd_saf_hlth_chk_cb;
 	amfCallbacks.saAmfCSISetCallback = cpd_saf_csi_set_cb;
-	amfCallbacks.saAmfComponentTerminateCallback = cpd_amf_comp_terminate_callback;
+	amfCallbacks.saAmfComponentTerminateCallback =
+	    cpd_amf_comp_terminate_callback;
 	amfCallbacks.saAmfCSIRemoveCallback = cpd_amf_csi_rmv_callback;
 
 	m_CPSV_GET_AMF_VER(amf_version);
@@ -283,7 +296,7 @@ uint32_t cpd_amf_init(CPD_CB *cpd_cb)
 	error = saAmfInitialize(&cpd_cb->amf_hdl, &amfCallbacks, &amf_version);
 
 	if (error != SA_AIS_OK) {
-		LOG_ER("saAmfInitialize failed with Error:%u",error);
+		LOG_ER("saAmfInitialize failed with Error:%u", error);
 		res = NCSCC_RC_FAILURE;
 	}
 	if (error == SA_AIS_OK)
@@ -328,16 +341,19 @@ uint32_t cpd_amf_register(CPD_CB *cpd_cb)
 	/* get the component name */
 	error = saAmfComponentNameGet(cpd_cb->amf_hdl, &cpd_cb->comp_name);
 	if (error != SA_AIS_OK) {
-		LOG_ER("cpd amf compname get failed with Error: %u",error);
+		LOG_ER("cpd amf compname get failed with Error: %u", error);
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (saAmfComponentRegister(cpd_cb->amf_hdl, &cpd_cb->comp_name, (SaNameT *)NULL) == SA_AIS_OK) {
-		TRACE_LEAVE2("cpd amf register success for %s", osaf_extended_name_borrow(&cpd_cb->comp_name));
+	if (saAmfComponentRegister(cpd_cb->amf_hdl, &cpd_cb->comp_name,
+				   (SaNameT *)NULL) == SA_AIS_OK) {
+		TRACE_LEAVE2("cpd amf register success for %s",
+			     osaf_extended_name_borrow(&cpd_cb->comp_name));
 		return NCSCC_RC_SUCCESS;
 	} else {
-		TRACE_LEAVE2("cpd Amf component register failed for %s",osaf_extended_name_borrow(&cpd_cb->comp_name));
+		TRACE_LEAVE2("cpd Amf component register failed for %s",
+			     osaf_extended_name_borrow(&cpd_cb->comp_name));
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -357,7 +373,8 @@ uint32_t cpd_amf_deregister(CPD_CB *cpd_cb)
 {
 	SaNameT comp_name;
 	osaf_extended_name_lend("CPD", &comp_name);
-	if (saAmfComponentUnregister(cpd_cb->amf_hdl, &comp_name, (SaNameT *)NULL) == SA_AIS_OK)
+	if (saAmfComponentUnregister(cpd_cb->amf_hdl, &comp_name,
+				     (SaNameT *)NULL) == SA_AIS_OK)
 		return NCSCC_RC_SUCCESS;
 	else
 		return NCSCC_RC_FAILURE;
@@ -366,25 +383,26 @@ uint32_t cpd_amf_deregister(CPD_CB *cpd_cb)
 /****************************************************************************
  * Name          : cpd_amf_comp_terminate_callback
  *
- * Description   : This function SAF callback function which will be called 
+ * Description   : This function SAF callback function which will be called
  *                 when the AMF framework needs to terminate GLSV. This does
  *                 all required to destroy GLSV(except to unregister from AMF)
  *
- * Arguments     : invocation     - This parameter designated a particular 
+ * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
+ *                                  invoke process return invocation when it
+ *                                  responds to the Avilability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
  *
  * Return Values : None
  *
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
-void cpd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
+void cpd_amf_comp_terminate_callback(SaInvocationT invocation,
+				     const SaNameT *compName)
 {
 	CPD_CB *cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
@@ -405,11 +423,10 @@ void cpd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
  * Description   : TBD
  *
  *
- * Return Values : None 
+ * Return Values : None
  *****************************************************************************/
-	void
-cpd_amf_csi_rmv_callback(SaInvocationT invocation,
-		const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
+void cpd_amf_csi_rmv_callback(SaInvocationT invocation, const SaNameT *compName,
+			      const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
 {
 	CPD_CB *cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
@@ -420,7 +437,7 @@ cpd_amf_csi_rmv_callback(SaInvocationT invocation,
 		saAmfResponse(cb->amf_hdl, invocation, saErr);
 		ncshm_give_hdl(cb->cpd_hdl);
 	}
-	
+
 	TRACE_2("cpd amf csi rmv cb invoked");
 	TRACE_LEAVE();
 	return;

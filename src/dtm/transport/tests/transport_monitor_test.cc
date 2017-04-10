@@ -28,13 +28,9 @@
 
 class TransportMonitorTest : public ::testing::Test {
  protected:
-  TransportMonitorTest() :
-      tmpdir_{},
-      monitor_{nullptr} {
-  }
+  TransportMonitorTest() : tmpdir_{}, monitor_{nullptr} {}
 
-  virtual ~TransportMonitorTest() {
-  }
+  virtual ~TransportMonitorTest() {}
 
   virtual void SetUp() {
     char tmpdir[] = "/tmp/transport_monitor_test_XXXXXX";
@@ -64,8 +60,8 @@ class TransportMonitorTest : public ::testing::Test {
   }
 
   void CreatePidFile(const char* daemon_name, pid_t pid, bool newline) {
-    std::ofstream str(tmpdir_ + std::string("/") + std::string(daemon_name)
-                      + std::string(".pid"));
+    std::ofstream str(tmpdir_ + std::string("/") + std::string(daemon_name) +
+                      std::string(".pid"));
     ASSERT_TRUE(str.good());
     str << pid;
     ASSERT_TRUE(str.good());

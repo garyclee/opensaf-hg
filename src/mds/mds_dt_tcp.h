@@ -27,7 +27,6 @@
 
 #include "mds_dt_tcp_disc.h"
 
-
 #define MDTM_TCP_POLL_TIMEOUT 20000
 #define MDS_TCP_PREFIX 0x56000000
 
@@ -36,7 +35,8 @@ typedef struct mdtm_tcp_cb {
 
   void *mdtm_hdle_task;
   uint64_t adest;
-  char adest_details[MDS_MAX_PROCESS_NAME_LEN]; /* <node[slotno]:processname[pid]> */
+  char adest_details
+      [MDS_MAX_PROCESS_NAME_LEN]; /* <node[slotno]:processname[pid]> */
 
   SYSF_MBX tmr_mbx;
   int tmr_fd;
@@ -64,16 +64,12 @@ typedef enum mds_mdtm_dtm_msg_types {
   MDS_MDTM_DTM_MESSAGE_TYPE
 } MDS_MDTM_DTM_MSG_TYPE;
 
-
 typedef struct mds_mdtm_processid_msg {
   NODE_ID node_id;
   uint32_t process_id;
 } MDS_MDTM_PROCESSID_MSG;
 
-
-
 typedef struct mds_mdtm_dtm_msg {
-
   uint16_t size;
   uint32_t mds_indentifire;
   uint8_t mds_version;
@@ -89,9 +85,6 @@ typedef struct mds_mdtm_dtm_msg {
     MDS_MDTM_NODE_UNSUBSCRIBE_MSG node_unsubscribe;
   } info;
 } MDS_MDTM_DTM_MSG;
-
-
-
 
 uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tipc_ref);
 uint32_t mds_mdtm_destroy_tcp(void);

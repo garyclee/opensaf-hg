@@ -42,7 +42,7 @@ const char invalidFmtDest[] = "test";
 const char invalidNameDest[] = "destA?abc;UNIX_SOCKET;";
 // Same "name" must go with same "dest" and vice versa.
 const char invalidDuplicatedDest[] =
-	"destb;UNIX_SOCKET;/var/lib/opensaf/mds_log.sock";
+    "destb;UNIX_SOCKET;/var/lib/opensaf/mds_log.sock";
 const char nilname[] = "destc";
 
 // Configure destination command
@@ -55,11 +55,11 @@ void cfgOneValidDest(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
+	sprintf(command, "%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
 	rc = systemCall(command);
 
 	// Cleanup by removing all values
-	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	sprintf(command, "%s='' %s", kSetDestConf, cfgObjDn);
 	systemCall(command);
 
 	rc_validate(rc, 0);
@@ -71,7 +71,7 @@ void cfgMultiValidDest(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", kSetDestConf, multiDest1, cfgObjDn);
+	sprintf(command, "%s=\"%s\" %s", kSetDestConf, multiDest1, cfgObjDn);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -79,11 +79,11 @@ void cfgMultiValidDest(void)
 	}
 
 	// Multiple configuration
-	sprintf(command,"%s+=\"%s\" %s", kSetDestConf, multiDest2, cfgObjDn);
+	sprintf(command, "%s+=\"%s\" %s", kSetDestConf, multiDest2, cfgObjDn);
 	rc = systemCall(command);
 
 	// Cleanup by removing all values
-	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	sprintf(command, "%s='' %s", kSetDestConf, cfgObjDn);
 	systemCall(command);
 
 	rc_validate(rc, 0);
@@ -95,7 +95,7 @@ void delOneDest(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", kSetDestConf, multiDest1, cfgObjDn);
+	sprintf(command, "%s=\"%s\" %s", kSetDestConf, multiDest1, cfgObjDn);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -103,7 +103,7 @@ void delOneDest(void)
 	}
 
 	// Add multiple configuration
-	sprintf(command,"%s+=\"%s\" %s", kSetDestConf, multiDest2, cfgObjDn);
+	sprintf(command, "%s+=\"%s\" %s", kSetDestConf, multiDest2, cfgObjDn);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -111,11 +111,11 @@ void delOneDest(void)
 	}
 
 	// Delete one configuration
-	sprintf(command,"%s-=\"%s\" %s", kSetDestConf, multiDest2, cfgObjDn);
+	sprintf(command, "%s-=\"%s\" %s", kSetDestConf, multiDest2, cfgObjDn);
 	rc = systemCall(command);
 
 	// Cleanup by removing all values
-	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	sprintf(command, "%s='' %s", kSetDestConf, cfgObjDn);
 	systemCall(command);
 
 	rc_validate(rc, 0);
@@ -127,7 +127,7 @@ void delCfgDest(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=  %s", kSetDestConf, cfgObjDn);
+	sprintf(command, "%s=  %s", kSetDestConf, cfgObjDn);
 	rc = systemCall(command);
 
 	rc_validate(rc, 0);
@@ -139,8 +139,8 @@ void invalidTypeDestFn(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s 2> /dev/null",
-		kSetDestConf, invalidTypeDest, cfgObjDn);
+	sprintf(command, "%s=\"%s\" %s 2> /dev/null", kSetDestConf,
+		invalidTypeDest, cfgObjDn);
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 1);
 }
@@ -152,8 +152,8 @@ void invalidFmtDestFn(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s 2> /dev/null",
-		kSetDestConf, invalidFmtDest, cfgObjDn);
+	sprintf(command, "%s=\"%s\" %s 2> /dev/null", kSetDestConf,
+		invalidFmtDest, cfgObjDn);
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 1);
 }
@@ -164,8 +164,8 @@ void invalidNameDestFn(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s 2> /dev/null",
-		kSetDestConf, invalidNameDest, cfgObjDn);
+	sprintf(command, "%s=\"%s\" %s 2> /dev/null", kSetDestConf,
+		invalidNameDest, cfgObjDn);
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 1);
 }
@@ -177,19 +177,19 @@ void duplicatedDestFn(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", kSetDestConf, multiDest1, cfgObjDn);
+	sprintf(command, "%s=\"%s\" %s", kSetDestConf, multiDest1, cfgObjDn);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
 		return;
 	}
 
-	sprintf(command,"%s+=\"%s\" %s 2> /dev/null",
-		kSetDestConf, invalidDuplicatedDest, cfgObjDn);
+	sprintf(command, "%s+=\"%s\" %s 2> /dev/null", kSetDestConf,
+		invalidDuplicatedDest, cfgObjDn);
 	rc = system(command);
 
 	// Cleanup by removing all values
-	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	sprintf(command, "%s='' %s", kSetDestConf, cfgObjDn);
 	systemCall(command);
 
 	rc_validate(WEXITSTATUS(rc), 1);
@@ -214,11 +214,12 @@ void cfgOneDestName(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", kSetDestStreamConf, validName, systemDN);
+	sprintf(command, "%s=\"%s\" %s", kSetDestStreamConf, validName,
+		systemDN);
 	rc = systemCall(command);
 
 	// Cleanup by removing all values
-	sprintf(command,"%s='' %s", kSetDestStreamConf, systemDN);
+	sprintf(command, "%s='' %s", kSetDestStreamConf, systemDN);
 	systemCall(command);
 
 	rc_validate(rc, 0);
@@ -230,18 +231,20 @@ void cfgMultiDestName(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", kSetDestStreamConf, validName, systemDN);
+	sprintf(command, "%s=\"%s\" %s", kSetDestStreamConf, validName,
+		systemDN);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
 		return;
 	}
 
-	sprintf(command,"%s+=\"%s\" %s", kSetDestStreamConf, multiName, systemDN);
+	sprintf(command, "%s+=\"%s\" %s", kSetDestStreamConf, multiName,
+		systemDN);
 	rc = systemCall(command);
 
 	// Cleanup by removing all values
-	sprintf(command,"%s='' %s", kSetDestStreamConf, systemDN);
+	sprintf(command, "%s='' %s", kSetDestStreamConf, systemDN);
 	systemCall(command);
 
 	rc_validate(rc, 0);
@@ -253,7 +256,7 @@ void delDestName(void)
 	int rc;
 	char command[1000];
 
-	sprintf(command,"%s= %s", kSetDestStreamConf, systemDN);
+	sprintf(command, "%s= %s", kSetDestStreamConf, systemDN);
 	rc = systemCall(command);
 
 	rc_validate(rc, 0);
@@ -266,7 +269,8 @@ void invalidDestName(void)
 	SaAisErrorT rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s 2>/dev/null", kSetDestStreamConf, invalidName, systemDN);
+	sprintf(command, "%s=\"%s\" %s 2>/dev/null", kSetDestStreamConf,
+		invalidName, systemDN);
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 1);
 }
@@ -290,7 +294,7 @@ const char mdsLogPath[] = "/var/log/opensaf/mds.log";
 bool is_executed_on_active_node()
 {
 	char node[256];
-	sprintf(node,"SC-%d", get_active_sc());
+	sprintf(node, "SC-%d", get_active_sc());
 	return (strcmp(node, hostname()) == 0);
 }
 
@@ -303,15 +307,18 @@ void writeToDest(void)
 	SaConstStringT s_stdout = "1> /dev/null";
 
 	if (is_executed_on_active_node() == false) {
-		fprintf(stdout, "Should perform this test case on active node. Report PASSED\n");
+		fprintf(
+		    stdout,
+		    "Should perform this test case on active node. Report PASSED\n");
 		rc_validate(0, 0);
 		return;
 	}
 
-	if (getenv("LOGTEST_ENABLE_STDOUT")) disable_stdout = false;
+	if (getenv("LOGTEST_ENABLE_STDOUT"))
+		disable_stdout = false;
 
 	// 1) Configure an valid destination
-	sprintf(command,"%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
+	sprintf(command, "%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -319,7 +326,8 @@ void writeToDest(void)
 	}
 
 	// 2) Configure an valid destination name
-	sprintf(command,"%s=\"%s\" %s", kSetDestStreamConf, validName, systemDN);
+	sprintf(command, "%s=\"%s\" %s", kSetDestStreamConf, validName,
+		systemDN);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -330,7 +338,7 @@ void writeToDest(void)
 	int r = rand();
 
 	// 3) Send an log record to system log stream
-	sprintf(command,"%s \"%s_%d\"", sendCmd, sendMsg, r);
+	sprintf(command, "%s \"%s_%d\"", sendCmd, sendMsg, r);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -338,14 +346,15 @@ void writeToDest(void)
 	}
 
 	// 5) Verify if that sent msg comes to the end
-	sprintf(command,"grep \"%s_%d\" %s %s", sendMsg, r, mdsLogPath,
+	sprintf(command, "grep \"%s_%d\" %s %s", sendMsg, r, mdsLogPath,
 		disable_stdout ? s_stdout : "");
 
 	int count = 0;
 tryagain:
 	rc = system(command);
 	if (WEXITSTATUS(rc) != 0) {
-		sleep(1); count++;
+		sleep(1);
+		count++;
 		if (count < 20) {
 			goto tryagain;
 		} else {
@@ -357,16 +366,17 @@ tryagain:
 
 clear_attr:
 	// Cleanup by removing all values
-	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	sprintf(command, "%s='' %s", kSetDestConf, cfgObjDn);
 	systemCall(command);
 
-	sprintf(command,"%s='' %s", kSetDestStreamConf, systemDN);
+	sprintf(command, "%s='' %s", kSetDestStreamConf, systemDN);
 	systemCall(command);
 }
 
 // Verify if the record comes to destination or not
 // if no destination name set
-const char sendMsgNoDest[] = "[No dest name set] writing a record to destination";
+const char sendMsgNoDest[] =
+    "[No dest name set] writing a record to destination";
 void writeToNoDestName(void)
 {
 	int rc;
@@ -375,15 +385,18 @@ void writeToNoDestName(void)
 	SaConstStringT s_stdout = "1> /dev/null";
 
 	if (is_executed_on_active_node() == false) {
-		fprintf(stdout, "Should perform this test case on active node. Report PASSED\n");
+		fprintf(
+		    stdout,
+		    "Should perform this test case on active node. Report PASSED\n");
 		rc_validate(0, 0);
 		return;
 	}
 
-	if (getenv("LOGTEST_ENABLE_STDOUT")) disable_stdout = false;
+	if (getenv("LOGTEST_ENABLE_STDOUT"))
+		disable_stdout = false;
 
 	// 1) Configure an valid destination
-	sprintf(command,"%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
+	sprintf(command, "%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -391,7 +404,7 @@ void writeToNoDestName(void)
 	}
 
 	// 2) Delete Destination name
-	sprintf(command,"%s= %s", kSetDestStreamConf, systemDN);
+	sprintf(command, "%s= %s", kSetDestStreamConf, systemDN);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -402,7 +415,7 @@ void writeToNoDestName(void)
 	int r = rand();
 
 	// 3) Send an log record to system log stream
-	sprintf(command,"%s \"%s_%d\"", sendCmd, sendMsg, r);
+	sprintf(command, "%s \"%s_%d\"", sendCmd, sendMsg, r);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -414,7 +427,7 @@ void writeToNoDestName(void)
 	sleep(2);
 
 	// 5) Verify if that sent msg comes to the end
-	sprintf(command,"grep \"%s_%d\" %s %s", sendMsgNoDest, r, mdsLogPath,
+	sprintf(command, "grep \"%s_%d\" %s %s", sendMsgNoDest, r, mdsLogPath,
 		disable_stdout ? s_stdout : "");
 	rc = system(command);
 	if (WEXITSTATUS(rc) == 0) {
@@ -425,13 +438,14 @@ void writeToNoDestName(void)
 
 clear_attr:
 	// Cleanup by removing all values
-	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	sprintf(command, "%s='' %s", kSetDestConf, cfgObjDn);
 	systemCall(command);
 }
 
 // Verify if the record comes to destination or not
 // if destination name is set but no destination configured to that name.
-const char sendMsgNil[] = "[Dest name with nil configuration] writing a record to destination";
+const char sendMsgNil[] =
+    "[Dest name with nil configuration] writing a record to destination";
 void writeToNilDestCfg(void)
 {
 	int rc;
@@ -440,15 +454,18 @@ void writeToNilDestCfg(void)
 	SaConstStringT s_stdout = "1> /dev/null";
 
 	if (is_executed_on_active_node() == false) {
-		fprintf(stdout, "Should perform this test case on active node. Report PASSED\n");
+		fprintf(
+		    stdout,
+		    "Should perform this test case on active node. Report PASSED\n");
 		rc_validate(0, 0);
 		return;
 	}
 
-	if (getenv("LOGTEST_ENABLE_STDOUT")) disable_stdout = false;
+	if (getenv("LOGTEST_ENABLE_STDOUT"))
+		disable_stdout = false;
 
 	// 1) Configure an valid destination
-	sprintf(command,"%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
+	sprintf(command, "%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -456,7 +473,7 @@ void writeToNilDestCfg(void)
 	}
 
 	// 2) Add a nil destination
-	sprintf(command,"%s+=\"%s\" %s", kSetDestConf, nildest, cfgObjDn);
+	sprintf(command, "%s+=\"%s\" %s", kSetDestConf, nildest, cfgObjDn);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -464,7 +481,7 @@ void writeToNilDestCfg(void)
 	}
 
 	// 3) Add destination name with nil destination configuation.
-	sprintf(command,"%s=\"%s\" %s", kSetDestStreamConf, nilname, systemDN);
+	sprintf(command, "%s=\"%s\" %s", kSetDestStreamConf, nilname, systemDN);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -475,7 +492,7 @@ void writeToNilDestCfg(void)
 	int r = rand();
 
 	// 4) Send an log record to system log stream
-	sprintf(command,"%s \"%s_%d\"", sendCmd, sendMsg, r);
+	sprintf(command, "%s \"%s_%d\"", sendCmd, sendMsg, r);
 	rc = systemCall(command);
 	if (rc != 0) {
 		rc_validate(rc, 0);
@@ -487,7 +504,7 @@ void writeToNilDestCfg(void)
 	sleep(2);
 
 	// 5) Verify if that sent msg comes to the end
-	sprintf(command,"grep \"%s_%d\" %s %s", sendMsgNil, r, mdsLogPath,
+	sprintf(command, "grep \"%s_%d\" %s %s", sendMsgNil, r, mdsLogPath,
 		disable_stdout ? s_stdout : "");
 	rc = system(command);
 	if (WEXITSTATUS(rc) == 0) {
@@ -498,35 +515,47 @@ void writeToNilDestCfg(void)
 
 clear_attr:
 	// Cleanup by removing all values
-	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	sprintf(command, "%s='' %s", kSetDestConf, cfgObjDn);
 	systemCall(command);
 
-	sprintf(command,"%s='' %s", kSetDestStreamConf, systemDN);
+	sprintf(command, "%s='' %s", kSetDestStreamConf, systemDN);
 	systemCall(command);
 }
 
-__attribute__ ((constructor)) static void cfgDest_constructor(void)
+__attribute__((constructor)) static void cfgDest_constructor(void)
 {
 	/* Test suite for testing #2258 */
 	// Normal test cases verify `logRecordDestinationConfiguration`
 	test_suite_add(18, "LOG OI tests, configure alternative destinations");
-	test_case_add(18, cfgOneValidDest, "Configure one valid destination, OK");
-	test_case_add(18, cfgMultiValidDest, "Configure multi valid destinations, OK");
+	test_case_add(18, cfgOneValidDest,
+		      "Configure one valid destination, OK");
+	test_case_add(18, cfgMultiValidDest,
+		      "Configure multi valid destinations, OK");
 	test_case_add(18, delOneDest, "Delete one destinations, OK");
 	test_case_add(18, delCfgDest, "Delete all configure, OK");
 	// Abnormal test cases
-	test_case_add(18, invalidTypeDestFn, "Set destination with invalid type, NOK");
-	test_case_add(18, invalidFmtDestFn, "Set destination with invalid format, NOK");
-	test_case_add(18, invalidNameDestFn, "Set destination with invalid name, NOK");
-	test_case_add(18, duplicatedDestFn, "Set destination with duplicated info, NOK");
+	test_case_add(18, invalidTypeDestFn,
+		      "Set destination with invalid type, NOK");
+	test_case_add(18, invalidFmtDestFn,
+		      "Set destination with invalid format, NOK");
+	test_case_add(18, invalidNameDestFn,
+		      "Set destination with invalid name, NOK");
+	test_case_add(18, duplicatedDestFn,
+		      "Set destination with duplicated info, NOK");
 	// Normal test cases verify `saLogRecordDestination`
-	test_case_add(18, cfgOneDestName, "Configure one valid destination name, OK");
-	test_case_add(18, cfgMultiDestName, "Configure multi valid destination names, OK");
+	test_case_add(18, cfgOneDestName,
+		      "Configure one valid destination name, OK");
+	test_case_add(18, cfgMultiDestName,
+		      "Configure multi valid destination names, OK");
 	test_case_add(18, delDestName, "Delete all destination names, OK");
 	// Abnormal
-	test_case_add(18, invalidDestName, "Configure an invalid destination name, NOK");
+	test_case_add(18, invalidDestName,
+		      "Configure an invalid destination name, NOK");
 	// Write log record to destination
 	test_case_add(18, writeToDest, "Write a log record to destination, OK");
-	test_case_add(18, writeToNoDestName, "Write to stream with no destination name set, OK");
-	test_case_add(18, writeToNilDestCfg, "Write to stream with destination name set but nil cfg, OK");
+	test_case_add(18, writeToNoDestName,
+		      "Write to stream with no destination name set, OK");
+	test_case_add(
+	    18, writeToNilDestCfg,
+	    "Write to stream with destination name set but nil cfg, OK");
 }

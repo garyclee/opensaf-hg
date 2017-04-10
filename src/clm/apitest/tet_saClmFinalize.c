@@ -18,33 +18,38 @@
 
 void saClmFinalize_01(void)
 {
-    safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1), SA_AIS_OK);
-    rc = saClmFinalize(clmHandle);
-    test_validate(rc, SA_AIS_OK);
-    safassert(saClmInitialize_4(&clmHandle, &clmCallbacks_4, &clmVersion_4), SA_AIS_OK);
-    rc = saClmFinalize(clmHandle);
-    test_validate(rc, SA_AIS_OK);
+	safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1),
+		  SA_AIS_OK);
+	rc = saClmFinalize(clmHandle);
+	test_validate(rc, SA_AIS_OK);
+	safassert(saClmInitialize_4(&clmHandle, &clmCallbacks_4, &clmVersion_4),
+		  SA_AIS_OK);
+	rc = saClmFinalize(clmHandle);
+	test_validate(rc, SA_AIS_OK);
 }
 
 void saClmFinalize_02(void)
 {
-    rc = saClmFinalize(-1);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	rc = saClmFinalize(-1);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
 void saClmFinalize_03(void)
 {
-    safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1), SA_AIS_OK);
-    safassert(saClmFinalize(clmHandle), SA_AIS_OK);
-    rc = saClmFinalize(clmHandle);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1),
+		  SA_AIS_OK);
+	safassert(saClmFinalize(clmHandle), SA_AIS_OK);
+	rc = saClmFinalize(clmHandle);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
-
-__attribute__ ((constructor)) static void saClmFinalize_constructor(void)
+__attribute__((constructor)) static void saClmFinalize_constructor(void)
 {
-        test_suite_add(2, "Test case for saClmFinalize");
+	test_suite_add(2, "Test case for saClmFinalize");
 	test_case_add(2, saClmFinalize_01, "saClmFinalize SA_AIS_OK");
-	test_case_add(2, saClmFinalize_02, "saClmFinalize SA_AIS_ERR_BAD_HANDLE - invalid handle");
-	test_case_add(2, saClmFinalize_03, "saClmFinalize SA_AIS_ERR_BAD_HANDLE - handle already returned");
+	test_case_add(2, saClmFinalize_02,
+		      "saClmFinalize SA_AIS_ERR_BAD_HANDLE - invalid handle");
+	test_case_add(
+	    2, saClmFinalize_03,
+	    "saClmFinalize SA_AIS_ERR_BAD_HANDLE - handle already returned");
 }

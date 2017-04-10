@@ -50,14 +50,9 @@
 extern "C" {
 #endif
 
-enum {
-  OSAF_TFD_CLOEXEC = 0x80000,
-  OSAF_TFD_NONBLOCK = 0x800
-};
+enum { OSAF_TFD_CLOEXEC = 0x80000, OSAF_TFD_NONBLOCK = 0x800 };
 
-enum {
-  OSAF_TFD_TIMER_ABSTIME = 0x1
-};
+enum { OSAF_TFD_TIMER_ABSTIME = 0x1 };
 
 #define OSAF_TFD_CLOEXEC OSAF_TFD_CLOEXEC
 #define OSAF_TFD_NONBLOCK OSAF_TFD_NONBLOCK
@@ -83,7 +78,7 @@ enum {
  * osaf_timerfd_close().
  */
 extern int osaf_timerfd_create(clockid_t clock_id, int flags)
-    __attribute__ ((__nothrow__, __leaf__));
+    __attribute__((__nothrow__, __leaf__));
 
 /**
  * @brief Start, stop or change the time-out value of a timer.
@@ -102,7 +97,7 @@ extern int osaf_timerfd_create(clockid_t clock_id, int flags)
 extern void osaf_timerfd_settime(int ufd, int flags,
                                  const struct itimerspec* utmr,
                                  struct itimerspec* otmr)
-    __attribute__ ((__nothrow__, __leaf__));
+    __attribute__((__nothrow__, __leaf__));
 
 /**
  * @brief Start, stop or change the time-out value of a timer.
@@ -113,7 +108,7 @@ extern void osaf_timerfd_settime(int ufd, int flags,
  * with timers created using the osaf_timerfd_create() function.
  */
 extern void osaf_timerfd_gettime(int ufd, struct itimerspec* otmr)
-    __attribute__ ((__nothrow__, __leaf__));
+    __attribute__((__nothrow__, __leaf__));
 
 /**
  * @brief Delete a timer.

@@ -32,37 +32,30 @@
 #include "base/logtrace.h"
 #include "base/getenv.h"
 
-const char* const ElectionStarter::service_name_[2] = {
-  "Node",
-  "Controller"
-};
+const char* const ElectionStarter::service_name_[2] = {"Node", "Controller"};
 
 ElectionStarter::NodeCollection::NodeCollection()
-    : last_change(base::ReadMonotonicClock()) {
-}
+    : last_change(base::ReadMonotonicClock()) {}
 
 ElectionStarter::ElectionStarter(bool is_nid_started, uint32_t own_node_id)
-    : election_delay_time_(
-          base::MillisToTimespec(
-              base::GetEnv("CLMNA_ELECTION_DELAY_TIME",
-                           kDefaultElectionDelayTime))),
+    : election_delay_time_(base::MillisToTimespec(base::GetEnv(
+          "CLMNA_ELECTION_DELAY_TIME", kDefaultElectionDelayTime))),
       is_nid_started_{is_nid_started},
       starting_election_{false},
       last_election_start_attempt_(base::ReadMonotonicClock()),
       own_node_id_{own_node_id},
       controller_nodes_{},
       nodes_with_lower_node_id_{},
-      nodes_with_greater_or_equal_node_id_{} {
-}
+      nodes_with_greater_or_equal_node_id_{} {}
 
 void ElectionStarter::StartElection() {
   TRACE_ENTER();
   if (starting_election_ == false) {
     LOG_NO("Starting to promote this node to a system controller");
     starting_election_ = true;
-    if (is_nid_started_ && nid_notify(const_cast<char*>("CLMNA"),
-                                      NCSCC_RC_SUCCESS, nullptr) !=
-        NCSCC_RC_SUCCESS) {
+    if (is_nid_started_ &&
+        nid_notify(const_cast<char*>("CLMNA"), NCSCC_RC_SUCCESS, nullptr) !=
+            NCSCC_RC_SUCCESS) {
       LOG_ER("nid notify failed");
     }
   }
@@ -96,8 +89,8 @@ void ElectionStarter::UpEvent(uint32_t node_id, ServiceType service_type) {
   TRACE_ENTER2("%s up event on node %" PRIx32, service_name_[service_type],
                node_id);
   NodeCollection& nodes = GetNodeCollection(node_id, service_type);
-  std::pair<std::set<uint32_t>::iterator, bool> result = nodes.tree.insert(
-      node_id);
+  std::pair<std::set<uint32_t>::iterator, bool> result =
+      nodes.tree.insert(node_id);
   if (result.second) nodes.last_change = base::ReadMonotonicClock();
   TRACE_LEAVE();
 }
@@ -144,6 +137,8 @@ timespec ElectionStarter::CalculateTimeRemainingUntilNextEvent() const {
 timespec ElectionStarter::CalculateTimeRemainingUntil(
     const timespec& time_stamp) {
   timespec current_time = base::ReadMonotonicClock();
-  if (time_stamp >= current_time) return time_stamp - current_time;
-  else return base::kZeroSeconds;
+  if (time_stamp >= current_time)
+    return time_stamp - current_time;
+  else
+    return base::kZeroSeconds;
 }

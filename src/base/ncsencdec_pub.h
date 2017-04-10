@@ -98,7 +98,7 @@
 #include "base/ncsusrbuf.h"
 #include "base/ncs_svd.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -159,20 +159,19 @@ void osaf_encode_satimet(NCS_UBAID *ub, SaTimeT time);
 void osaf_decode_satimet(NCS_UBAID *ub, SaTimeT *time);
 void osaf_encode_bool(NCS_UBAID *ub, bool value);
 void osaf_decode_bool(NCS_UBAID *ub, bool *to);
-void osaf_encode_saclmnodeaddresst(NCS_UBAID *ub, const SaClmNodeAddressT *addr);
+void osaf_encode_saclmnodeaddresst(NCS_UBAID *ub,
+                                   const SaClmNodeAddressT *addr);
 void osaf_decode_saclmnodeaddresst(NCS_UBAID *ub, SaClmNodeAddressT *addr);
 
 /* encode float */
-#define m_NCS_ENCODE_FLOAT(f, enc) {                    \
-    *((uint32_t *)(enc)) = htonl(*((uint32_t *)&(f)));  \
-  }
+#define m_NCS_ENCODE_FLOAT(f, enc) \
+  { *((uint32_t *)(enc)) = htonl(*((uint32_t *)&(f))); }
 
 /* decode float */
-#define m_NCS_DECODE_FLOAT(n, dec) {            \
-    *((uint32_t *) (dec)) = (n);                \
-  }
+#define m_NCS_DECODE_FLOAT(n, dec) \
+  { *((uint32_t *)(dec)) = (n); }
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

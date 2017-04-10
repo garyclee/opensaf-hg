@@ -30,9 +30,7 @@ namespace base {
 template <size_t Capacity>
 class Buffer {
  public:
-  Buffer() :
-      size_{0} {
-  }
+  Buffer() : size_{0} {}
   // Reset the write position to the start of the buffer.
   void clear() { size_ = 0; }
   // Returns true if the buffer is empty.
@@ -80,9 +78,7 @@ class Buffer {
     size_ += bytes_to_copy;
   }
   // Append a NUL-terminated string to the end of the buffer.
-  void AppendString(const char* str) {
-    AppendString(str, strlen(str));
-  }
+  void AppendString(const char* str) { AppendString(str, strlen(str)); }
 
  private:
   size_t size_;

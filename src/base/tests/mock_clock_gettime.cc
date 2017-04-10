@@ -38,8 +38,11 @@ int clock_gettime(clockid_t clock_id, struct timespec* tp) {
     return -1;
   }
   if (tp != nullptr && clock_source != nullptr) *tp = *clock_source;
-  osaf_timespec_add(&realtime_clock, &mock_clock_gettime.execution_time, &realtime_clock);
-  osaf_timespec_add(&monotonic_clock, &mock_clock_gettime.execution_time, &monotonic_clock);
-  if (mock_clock_gettime.return_value < 0) errno = mock_clock_gettime.errno_value;
+  osaf_timespec_add(&realtime_clock, &mock_clock_gettime.execution_time,
+                    &realtime_clock);
+  osaf_timespec_add(&monotonic_clock, &mock_clock_gettime.execution_time,
+                    &monotonic_clock);
+  if (mock_clock_gettime.return_value < 0)
+    errno = mock_clock_gettime.errno_value;
   return mock_clock_gettime.return_value;
 }

@@ -52,95 +52,87 @@
 #include "ckpt/common/cpsv_mem.h"
 /* CPSV Common Macros */
 /*** Macro used to get the AMF version used ****/
-#define m_CPSV_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
+#define m_CPSV_GET_AMF_VER(amf_ver) \
+  amf_ver.releaseCode = 'B';        \
+  amf_ver.majorVersion = 0x01;      \
+  amf_ver.minorVersion = 0x01;
 
-#define m_COMPARE_CREATE_ATTR(attr1, attr2)                       \
-  (((attr1)->creationFlags == (attr2)->creationFlags) &&          \
-   ((attr1)->checkpointSize == (attr2)->checkpointSize) &&        \
-   ((attr1)->maxSections == (attr2)->maxSections) &&              \
-   ((attr1)->maxSectionSize == (attr2)->maxSectionSize) &&        \
-   ((attr1)->maxSectionIdSize == (attr2)->maxSectionIdSize))      \
+#define m_COMPARE_CREATE_ATTR(attr1, attr2)                \
+  (((attr1)->creationFlags == (attr2)->creationFlags) &&   \
+   ((attr1)->checkpointSize == (attr2)->checkpointSize) && \
+   ((attr1)->maxSections == (attr2)->maxSections) &&       \
+   ((attr1)->maxSectionSize == (attr2)->maxSectionSize) && \
+   ((attr1)->maxSectionIdSize == (attr2)->maxSectionIdSize))
 
-#define m_COMPARE_CREATE_ATTR_B_1_1(attr1, attr2)                       \
-  (((attr1)->creationFlags == (attr2)->creationFlags) &&          \
-   ((attr1)->checkpointSize == (attr2)->checkpointSize) &&        \
-   ((attr1)->retentionDuration == (attr2)->retentionDuration) &&  \
-   ((attr1)->maxSections == (attr2)->maxSections) &&              \
-   ((attr1)->maxSectionSize == (attr2)->maxSectionSize) &&        \
-   ((attr1)->maxSectionIdSize == (attr2)->maxSectionIdSize))      \
+#define m_COMPARE_CREATE_ATTR_B_1_1(attr1, attr2)                \
+  (((attr1)->creationFlags == (attr2)->creationFlags) &&         \
+   ((attr1)->checkpointSize == (attr2)->checkpointSize) &&       \
+   ((attr1)->retentionDuration == (attr2)->retentionDuration) && \
+   ((attr1)->maxSections == (attr2)->maxSections) &&             \
+   ((attr1)->maxSectionSize == (attr2)->maxSectionSize) &&       \
+   ((attr1)->maxSectionIdSize == (attr2)->maxSectionIdSize))
 
-#define m_CPA_VER_IS_ABOVE_B_1_1(ver) \
-  ((((ver)->releaseCode == 'B') || \
-    ((ver)->releaseCode > 'B') )&& \
-    ((ver)->majorVersion > 0x01 ) && \
-    ((ver)->minorVersion > 0x01 ) )
+#define m_CPA_VER_IS_ABOVE_B_1_1(ver)                             \
+  ((((ver)->releaseCode == 'B') || ((ver)->releaseCode > 'B')) && \
+   ((ver)->majorVersion > 0x01) && ((ver)->minorVersion > 0x01))
 
-#define m_CPA_VER_IS_BELOW_B_2_3(ver) \
-	(((ver)->releaseCode != 'B') || \
-	((ver)->majorVersion != 0x02 ) || \
-	((ver)->minorVersion < 0x03 ) )
+#define m_CPA_VER_IS_BELOW_B_2_3(ver)                              \
+  (((ver)->releaseCode != 'B') || ((ver)->majorVersion != 0x02) || \
+   ((ver)->minorVersion < 0x03))
 
+#define m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(attr) \
+  ((attr)->creationFlags & SA_CKPT_CHECKPOINT_COLLOCATED)
 
-#define m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(attr)                  \
-    ((attr)->creationFlags & SA_CKPT_CHECKPOINT_COLLOCATED)
+#define m_IS_ASYNC_UPDATE_OPTION(attr) \
+  ((attr)->creationFlags &             \
+   (SA_CKPT_WR_ACTIVE_REPLICA | SA_CKPT_WR_ACTIVE_REPLICA_WEAK))
 
-#define m_IS_ASYNC_UPDATE_OPTION(attr)                            \
-   ((attr)->creationFlags & (SA_CKPT_WR_ACTIVE_REPLICA | SA_CKPT_WR_ACTIVE_REPLICA_WEAK))
+#define FUNC_NAME(DS) cpsv_edp_##DS##_info
 
-#define FUNC_NAME(DS) \
-       cpsv_edp_##DS##_info
+#define ARRAY_NAME(DS) cpsv_edp_##DS##_rules
 
-#define ARRAY_NAME(DS) \
-       cpsv_edp_##DS##_rules
+#define TEST_FUNC(DS) cpsv_edp_##DS##_fnc
 
-#define TEST_FUNC(DS) \
-       cpsv_edp_##DS##_fnc
+#define FUNC_DECLARATION(DS)                                                   \
+  uint32_t FUNC_NAME(DS)(EDU_HDL * edu_hdl, EDU_TKN * edu_tkn, NCSCONTEXT ptr, \
+                         uint32_t * ptr_data_len, EDU_BUF_ENV * buf_env,       \
+                         EDP_OP_TYPE op, EDU_ERR * o_err)
 
-#define FUNC_DECLARATION(DS)   uint32_t \
-                   FUNC_NAME(DS)(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, \
-                   NCSCONTEXT ptr, uint32_t *ptr_data_len, \
-                   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, \
-                   EDU_ERR *o_err)
-
-#define TEST_FUNC_DECLARATION(DS) uint32_t \
-                         TEST_FUNC(DS)(NCSCONTEXT arg)
+#define TEST_FUNC_DECLARATION(DS) uint32_t TEST_FUNC(DS)(NCSCONTEXT arg)
 
 #define NCS_ENC_DEC_DECLARATION(DS) \
-                 uint32_t rc = NCSCC_RC_SUCCESS; \
-                 DS   *struct_ptr = NULL, **d_ptr = NULL
+  uint32_t rc = NCSCC_RC_SUCCESS;   \
+  DS *struct_ptr = NULL, **d_ptr = NULL
 
-#define NCS_ENC_DEC_ARRAY(DS) \
-         EDU_INST_SET      ARRAY_NAME(DS)[] =
+#define NCS_ENC_DEC_ARRAY(DS) EDU_INST_SET ARRAY_NAME(DS)[] =
 
-#define NCS_ENC_DEC_REM_FLOW(DS)  \
- \
-   switch (op) \
-   { \
-      case EDP_OP_TYPE_ENC: \
-         struct_ptr = (DS *)ptr; \
-         break; \
-                 \
-      case EDP_OP_TYPE_DEC: \
-          d_ptr = (DS **)ptr;  \
-          if(*d_ptr == NULL)                          \
-          { \
-             *o_err = EDU_ERR_MEM_FAIL;               \
-             return NCSCC_RC_FAILURE;                 \
-          }                                           \
-          memset(*d_ptr, '\0', sizeof(DS)); \
-          struct_ptr = *d_ptr;                                \
-         break; \
-                   \
-      default:  \
-         struct_ptr = ptr;                                   \
-         break; \
-      }  \
-   \
-   rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,ARRAY_NAME(DS), \
-       struct_ptr, ptr_data_len, buf_env, op, o_err); \
-   \
-   return rc;
+#define NCS_ENC_DEC_REM_FLOW(DS)                                         \
+                                                                         \
+  switch (op) {                                                          \
+    case EDP_OP_TYPE_ENC:                                                \
+      struct_ptr = (DS *)ptr;                                            \
+      break;                                                             \
+                                                                         \
+    case EDP_OP_TYPE_DEC:                                                \
+      d_ptr = (DS **)ptr;                                                \
+      if (*d_ptr == NULL) {                                              \
+        *o_err = EDU_ERR_MEM_FAIL;                                       \
+        return NCSCC_RC_FAILURE;                                         \
+      }                                                                  \
+      memset(*d_ptr, '\0', sizeof(DS));                                  \
+      struct_ptr = *d_ptr;                                               \
+      break;                                                             \
+                                                                         \
+    default:                                                             \
+      struct_ptr = ptr;                                                  \
+      break;                                                             \
+  }                                                                      \
+                                                                         \
+  rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ARRAY_NAME(DS), struct_ptr, \
+                           ptr_data_len, buf_env, op, o_err);            \
+                                                                         \
+  return rc;
 
-#define m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000)	/* 10^7 */
+#define m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(t) (t) / (10000000) /* 10^7 */
 
 #endif  // CKPT_COMMON_CPSV_H_

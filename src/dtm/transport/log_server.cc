@@ -24,20 +24,16 @@
 
 LogServer::LogServer(int term_fd)
     : term_fd_{term_fd},
-      log_socket_{base::GetEnv<std::string>("pkglocalstatedir",
-          PKGLOCALSTATEDIR) + "/mds_log.sock"},
-      log_writer_{} {
-}
+      log_socket_{
+          base::GetEnv<std::string>("pkglocalstatedir", PKGLOCALSTATEDIR) +
+          "/mds_log.sock"},
+      log_writer_{} {}
 
-LogServer::~LogServer() {
-}
+LogServer::~LogServer() {}
 
 void LogServer::Run() {
-  struct pollfd pfd[2] = {
-    {term_fd_, POLLIN, 0},
-    {log_socket_.fd(), POLLIN, 0}
-  };
-  struct timespec last_flush{};
+  struct pollfd pfd[2] = {{term_fd_, POLLIN, 0}, {log_socket_.fd(), POLLIN, 0}};
+  struct timespec last_flush {};
   do {
     if (log_writer_.empty()) last_flush = base::ReadMonotonicClock();
     for (int i = 0; i < 256; ++i) {

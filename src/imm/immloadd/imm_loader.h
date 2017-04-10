@@ -27,51 +27,45 @@
 #include "imm/common/immsv_api.h"
 #include "osaf/saf/saAis.h"
 
-struct AttrInfo
-{
-	std::string attrName;
-	SaImmValueTypeT attrValueType;
-	SaImmAttrFlagsT attrFlags;
+struct AttrInfo {
+  std::string attrName;
+  SaImmValueTypeT attrValueType;
+  SaImmAttrFlagsT attrFlags;
 };
 
 typedef std::vector<AttrInfo*> AttrInfoVector;
 
-struct ClassInfo
-{
-	std::string className;
-	AttrInfoVector attrInfoVector;
-	SaImmClassCategoryT class_category;
+struct ClassInfo {
+  std::string className;
+  AttrInfoVector attrInfoVector;
+  SaImmClassCategoryT class_category;
 };
 
-typedef	std::map<std::string, ClassInfo*>  ClassInfoMap;
+typedef std::map<std::string, ClassInfo*> ClassInfoMap;
 
 /* Prototypes */
 
 /* Helper functions */
-void addClassAttributeDefinition(SaImmAttrNameT attrName, 
-	SaImmValueTypeT attrValueType,
-	SaImmAttrFlagsT attrFlags,
-	SaImmAttrValueT attrDefaultValueBuffer,
-	std::list<SaImmAttrDefinitionT_2> *attrDefinitions);
+void addClassAttributeDefinition(
+    SaImmAttrNameT attrName, SaImmValueTypeT attrValueType,
+    SaImmAttrFlagsT attrFlags, SaImmAttrValueT attrDefaultValueBuffer,
+    std::list<SaImmAttrDefinitionT_2>* attrDefinitions);
 
-void addObjectAttributeDefinition(SaImmClassNameT objectClass,
-	SaImmAttrNameT attrName, std::list<char*> *attrValueBuffers,
-	SaImmValueTypeT attrType,
-	std::list<SaImmAttrValuesT_2> *attrValuesList);
+void addObjectAttributeDefinition(
+    SaImmClassNameT objectClass, SaImmAttrNameT attrName,
+    std::list<char*>* attrValueBuffers, SaImmValueTypeT attrType,
+    std::list<SaImmAttrValuesT_2>* attrValuesList);
 
-bool createImmClass(SaImmHandleT immHandle,
-	const SaImmClassNameT className, 
-	SaImmClassCategoryT classCategory,
-	std::list<SaImmAttrDefinitionT_2>* attrDefinitions,
-	bool* pbeCorrupted = NULL);
+bool createImmClass(SaImmHandleT immHandle, const SaImmClassNameT className,
+                    SaImmClassCategoryT classCategory,
+                    std::list<SaImmAttrDefinitionT_2>* attrDefinitions,
+                    bool* pbeCorrupted = NULL);
 
-bool createImmObject(SaImmClassNameT className,
-	char * objectName,
-	std::list<SaImmAttrValuesT_2> *attrValuesList,
-	SaImmCcbHandleT ccbHandle,
-	std::map<std::string, SaImmAttrValuesT_2> *classRDNMap,
-	bool* pbeCorrupted = NULL);
-
+bool createImmObject(SaImmClassNameT className, char* objectName,
+                     std::list<SaImmAttrValuesT_2>* attrValuesList,
+                     SaImmCcbHandleT ccbHandle,
+                     std::map<std::string, SaImmAttrValuesT_2>* classRDNMap,
+                     bool* pbeCorrupted = NULL);
 
 void escalatePbe(std::string dir, std::string file);
 
@@ -81,9 +75,10 @@ void* checkPbeRepositoryInit(std::string dir, std::string file);
 
 int loadImmFromPbe(void* pbeHandle, bool preload, bool* pbeCorrupted);
 
-void sendPreloadParams(SaImmHandleT immHandle, SaImmAdminOwnerHandleT ownerHandle, 
-	SaUint32T epoch, SaUint32T maxCcbId, SaUint32T maxCommitTime,
-	SaUint64T maxWeakCcbId, SaUint32T maxWeakCommitTime);
+void sendPreloadParams(SaImmHandleT immHandle,
+                       SaImmAdminOwnerHandleT ownerHandle, SaUint32T epoch,
+                       SaUint32T maxCcbId, SaUint32T maxCommitTime,
+                       SaUint64T maxWeakCcbId, SaUint32T maxWeakCommitTime);
 
 bool opensafPbeRtClassCreate(SaImmHandleT immHandle);
 

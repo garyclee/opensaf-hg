@@ -24,8 +24,8 @@ long nsec = 1000;
 struct timespec ts_expresult = {0, 0};
 
 void setupTest(uint64_t timeout_ms) {
-  realtime_clock = { 0, 0 };
-  monotonic_clock = { sec, nsec };
+  realtime_clock = {0, 0};
+  monotonic_clock = {sec, nsec};
   mock_clock_gettime.return_value = 0;
 
   struct timespec ts_add = {0, 0};
@@ -46,7 +46,7 @@ void advanceTime(uint64_t i_millis) {
 TEST(OsafSetMillisTimeout, FiveSecTimeout) {
   setupTest(5000);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(5000, &ts_timeout);
 
   EXPECT_EQ(ts_timeout.tv_sec, ts_expresult.tv_sec);
@@ -56,7 +56,7 @@ TEST(OsafSetMillisTimeout, FiveSecTimeout) {
 TEST(OsafSetMillisTimeout, ZeroSecTimeout) {
   setupTest(0);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(0, &ts_timeout);
 
   EXPECT_EQ(ts_timeout.tv_sec, ts_expresult.tv_sec);
@@ -66,7 +66,7 @@ TEST(OsafSetMillisTimeout, ZeroSecTimeout) {
 TEST(OsafSetMillisTimeout, OneMSecTimeout) {
   setupTest(1);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(1, &ts_timeout);
 
   EXPECT_EQ(ts_timeout.tv_sec, ts_expresult.tv_sec);
@@ -74,9 +74,9 @@ TEST(OsafSetMillisTimeout, OneMSecTimeout) {
 }
 
 TEST(OsafCheckIsTimeout, NotTimeutOneSecLeft) {
-    setupTest(5000);
+  setupTest(5000);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(5000, &ts_timeout);
   advanceTime(4000);
   bool rc_timeout = true;
@@ -86,9 +86,9 @@ TEST(OsafCheckIsTimeout, NotTimeutOneSecLeft) {
 }
 
 TEST(OsafCheckIsTimeout, NotTimeutOneMilliSecLeft) {
-    setupTest(5000);
+  setupTest(5000);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(5000, &ts_timeout);
   advanceTime(4999);
   bool rc_timeout = true;
@@ -98,9 +98,9 @@ TEST(OsafCheckIsTimeout, NotTimeutOneMilliSecLeft) {
 }
 
 TEST(OsafCheckIsTimeout, TimeutZeroMilliSecLeft) {
-    setupTest(5000);
+  setupTest(5000);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(5000, &ts_timeout);
   advanceTime(5000);
   bool rc_timeout = true;
@@ -110,9 +110,9 @@ TEST(OsafCheckIsTimeout, TimeutZeroMilliSecLeft) {
 }
 
 TEST(OsafCheckIsTimeout, TimeutTimePassed) {
-    setupTest(5000);
+  setupTest(5000);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(5000, &ts_timeout);
   advanceTime(5500);
   bool rc_timeout = true;
@@ -122,9 +122,9 @@ TEST(OsafCheckIsTimeout, TimeutTimePassed) {
 }
 
 TEST(OsafCheckTimeLeft, TimeutFourSecLeft) {
-    setupTest(5000);
+  setupTest(5000);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(5000, &ts_timeout);
   advanceTime(1000);
   uint64_t time_left = 0;
@@ -134,9 +134,9 @@ TEST(OsafCheckTimeLeft, TimeutFourSecLeft) {
 }
 
 TEST(OsafCheckTimeLeft, TimeutOneMsLeft) {
-    setupTest(5000);
+  setupTest(5000);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(5000, &ts_timeout);
   advanceTime(4999);
   uint64_t time_left = 0;
@@ -146,9 +146,9 @@ TEST(OsafCheckTimeLeft, TimeutOneMsLeft) {
 }
 
 TEST(OsafCheckTimeLeft, TimeutZeroMsLeft) {
-    setupTest(5000);
+  setupTest(5000);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(5000, &ts_timeout);
   advanceTime(5000);
   uint64_t time_left = 0;
@@ -158,9 +158,9 @@ TEST(OsafCheckTimeLeft, TimeutZeroMsLeft) {
 }
 
 TEST(OsafCheckTimeLeft, TimeutPassedTimeout) {
-    setupTest(5000);
+  setupTest(5000);
 
-  struct timespec ts_timeout = { 0, 0 };
+  struct timespec ts_timeout = {0, 0};
   osaf_set_millis_timeout(5000, &ts_timeout);
   advanceTime(5500);
   uint64_t time_left = 0;

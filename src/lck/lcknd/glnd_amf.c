@@ -25,7 +25,7 @@
 
 #include "lck/lcknd/glnd.h"
 
-/* 
+/*
   DESCRIPTION: GLND AMF callback routines.
 
   FUNCTIONS INCLUDED in this module:
@@ -37,40 +37,45 @@
 #include "lck/lcknd/glnd.h"
 #include "osaf/configmake.h"
 
-void glnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
+void glnd_amf_comp_terminate_callback(SaInvocationT invocation,
+				      const SaNameT *compName);
 void glnd_saf_health_chk_callback(SaInvocationT invocation,
-				  const SaNameT *compName, const SaAmfHealthcheckKeyT *checkType);
+				  const SaNameT *compName,
+				  const SaAmfHealthcheckKeyT *checkType);
 
-void glnd_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHAStateT haState,
+void glnd_amf_CSI_set_callback(SaInvocationT invocation,
+			       const SaNameT *compName, SaAmfHAStateT haState,
 			       SaAmfCSIDescriptorT csiDescriptor);
 
 void glnd_amf_csi_rmv_callback(SaInvocationT invocation,
-			       const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags);
+			       const SaNameT *compName, const SaNameT *csiName,
+			       SaAmfCSIFlagsT csiFlags);
 
 static const char *term_state_file = PKGPIDDIR "/osaflcknd_termstate";
 /****************************************************************************
  * Name          : glnd_saf_health_chk_callback
  *
- * Description   : This function SAF callback function which will be called 
+ * Description   : This function SAF callback function which will be called
  *                 when the AMF framework needs to health for the component.
  *
- * Arguments     : invocation     - This parameter designated a particular 
+ * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Availability Management 
- *                                  FrameWork using the saAmfResponse() 
+ *                                  invoke process return invocation when it
+ *                                  responds to the Availability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
- *                 checkType      - The type of healthcheck to be executed. 
+ *                 checkType      - The type of healthcheck to be executed.
  *
  * Return Values : None
  *
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
 void glnd_saf_health_chk_callback(SaInvocationT invocation,
-				  const SaNameT *compName, const SaAmfHealthcheckKeyT *checkType)
+				  const SaNameT *compName,
+				  const SaAmfHealthcheckKeyT *checkType)
 {
 	GLND_CB *glnd_cb;
 	SaAisErrorT error = SA_AIS_OK;
@@ -92,7 +97,7 @@ end:
 }
 
 /****************************************************************************
- * Name          :glnd_amf_comp_terminate_callback 
+ * Name          :glnd_amf_comp_terminate_callback
  *
  * Description   : This function SAF callback function which will be called
  *                 when the AMF framework needs to terminate GLSV. This does
@@ -112,7 +117,8 @@ end:
  *
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
-void glnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
+void glnd_amf_comp_terminate_callback(SaInvocationT invocation,
+				      const SaNameT *compName)
 {
 	GLND_CB *glnd_cb;
 	SaAisErrorT error = SA_AIS_OK;
@@ -127,13 +133,14 @@ void glnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *c
 
 		fd = open(term_state_file, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 
-		if (fd >=0)
+		if (fd >= 0)
 			(void)close(fd);
 		else
 			LOG_NO("cannot create termstate file %s: %s",
-					term_state_file, strerror(errno));
+			       term_state_file, strerror(errno));
 
-		if (saAmfResponse(glnd_cb->amf_hdl, invocation, error) != SA_AIS_OK)
+		if (saAmfResponse(glnd_cb->amf_hdl, invocation, error) !=
+		    SA_AIS_OK)
 			LOG_ER("GLND amf response failed");
 		/* giveup the handle */
 		m_GLND_GIVEUP_GLND_CB;
@@ -148,7 +155,7 @@ void glnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *c
 /****************************************************************************
  * Name          : glnd_amf_init
  *
- * Description   : GLD initializes AMF for involking process and registers 
+ * Description   : GLD initializes AMF for involking process and registers
  *                 the various callback functions.
  *
  * Arguments     : glnd_cb  - Ifsv control block pointer.
@@ -167,9 +174,11 @@ uint32_t glnd_amf_init(GLND_CB *glnd_cb)
 
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
-	amfCallbacks.saAmfHealthcheckCallback = (SaAmfHealthcheckCallbackT)glnd_saf_health_chk_callback;
+	amfCallbacks.saAmfHealthcheckCallback =
+	    (SaAmfHealthcheckCallbackT)glnd_saf_health_chk_callback;
 	amfCallbacks.saAmfCSISetCallback = glnd_amf_CSI_set_callback;
-	amfCallbacks.saAmfComponentTerminateCallback = glnd_amf_comp_terminate_callback;
+	amfCallbacks.saAmfComponentTerminateCallback =
+	    glnd_amf_comp_terminate_callback;
 	amfCallbacks.saAmfCSIRemoveCallback = glnd_amf_csi_rmv_callback;
 
 	m_GLSV_GET_AMF_VER(amf_version);
@@ -187,32 +196,34 @@ uint32_t glnd_amf_init(GLND_CB *glnd_cb)
 		TRACE_2("saAmfComponentNameGet api failed");
 	}
 end:
-	TRACE_LEAVE2("%s return value %d", (res == NCSCC_RC_SUCCESS)?"SUCCESS":"FAILURE",res);
+	TRACE_LEAVE2("%s return value %d",
+		     (res == NCSCC_RC_SUCCESS) ? "SUCCESS" : "FAILURE", res);
 	return res;
 }
 
 /****************************************************************************\
- PROCEDURE NAME :glnd_amf_CSI_set_callback 
+ PROCEDURE NAME :glnd_amf_CSI_set_callback
 
  DESCRIPTION    : This function SAF callback function which will be called
-                  when there is any change in the HA state.
+		  when there is any change in the HA state.
 
  ARGUMENTS      : invocation     - This parameter designated a particular
-                                  invocation of this callback function. The
-                                  invoke process return invocation when it
-                                  responds to the Avilability Management
-                                  FrameWork using the saAmfResponse()
-                                  function.
-                 compName       - A pointer to the name of the component
-                                  whose readiness stae the Availability
-                                  Management Framework is setting.
-                 haState        - The new HA state to be assumeb by the
-                                  component service instance identified by
-                                  csiName.
+				  invocation of this callback function. The
+				  invoke process return invocation when it
+				  responds to the Avilability Management
+				  FrameWork using the saAmfResponse()
+				  function.
+		 compName       - A pointer to the name of the component
+				  whose readiness stae the Availability
+				  Management Framework is setting.
+		 haState        - The new HA state to be assumeb by the
+				  component service instance identified by
+				  csiName.
  RETURNS       : None.
 \*****************************************************************************/
 void glnd_amf_CSI_set_callback(SaInvocationT invocation,
-			       const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
+			       const SaNameT *compName, SaAmfHAStateT haState,
+			       SaAmfCSIDescriptorT csiDescriptor)
 {
 	GLND_CB *glnd_cb = NULL;
 	SaAisErrorT saErr = SA_AIS_OK;
@@ -228,9 +239,9 @@ void glnd_amf_CSI_set_callback(SaInvocationT invocation,
 	}
 
 	if (glnd_cb) {
-		glnd_cb->ha_state = haState;	/* Set the HA State */
-		TRACE("glnd_amf_CSI_set_callback setting the state as %d", haState);
-
+		glnd_cb->ha_state = haState; /* Set the HA State */
+		TRACE("glnd_amf_CSI_set_callback setting the state as %d",
+		      haState);
 	}
 
 	saAmfResponse(glnd_cb->amf_hdl, invocation, saErr);
@@ -251,7 +262,8 @@ end:
  * Return Values : None
  *****************************************************************************/
 void glnd_amf_csi_rmv_callback(SaInvocationT invocation,
-			       const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
+			       const SaNameT *compName, const SaNameT *csiName,
+			       SaAmfCSIFlagsT csiFlags)
 {
 	GLND_CB *glnd_cb;
 	SaAisErrorT error = SA_AIS_OK;
@@ -302,7 +314,8 @@ void glnd_amf_de_init(GLND_CB *glnd_cb)
  *****************************************************************************/
 uint32_t glnd_amf_register(GLND_CB *glnd_cb)
 {
-	if (saAmfComponentRegister(glnd_cb->amf_hdl, &glnd_cb->comp_name, (SaNameT *)NULL) == SA_AIS_OK)
+	if (saAmfComponentRegister(glnd_cb->amf_hdl, &glnd_cb->comp_name,
+				   (SaNameT *)NULL) == SA_AIS_OK)
 		return NCSCC_RC_SUCCESS;
 	else
 		return NCSCC_RC_FAILURE;
@@ -321,7 +334,8 @@ uint32_t glnd_amf_register(GLND_CB *glnd_cb)
  *****************************************************************************/
 uint32_t glnd_amf_deregister(GLND_CB *glnd_cb)
 {
-	if (saAmfComponentUnregister(glnd_cb->amf_hdl, &glnd_cb->comp_name, (SaNameT *)NULL) == SA_AIS_OK)
+	if (saAmfComponentUnregister(glnd_cb->amf_hdl, &glnd_cb->comp_name,
+				     (SaNameT *)NULL) == SA_AIS_OK)
 		return NCSCC_RC_SUCCESS;
 	else
 		return NCSCC_RC_FAILURE;

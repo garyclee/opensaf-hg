@@ -49,7 +49,7 @@ uint32_t machineEndianness()
 	uint32_t i = 1;
 	char *p = (char *)&i;
 
-	if (p[0] == 1)		/* Lowest address contains the least significant byte */
+	if (p[0] == 1) /* Lowest address contains the least significant byte */
 		return MQSV_LITTLE_ENDIAN;
 	else
 		return MQSV_BIG_ENDIAN;
@@ -69,7 +69,8 @@ uint32_t mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
 	if (!listenerHandle)
 		return NCSCC_RC_SUCCESS;
 
-	/* Get actual queue size and usage stats. This is needed to determine if queue size needs to be increased */
+	/* Get actual queue size and usage stats. This is needed to determine if
+	 * queue size needs to be increased */
 	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
 	info.req = NCS_OS_POSIX_MQ_REQ_GET_ATTR;
 	info.info.attr.i_mqd = listenerHandle;
@@ -85,7 +86,8 @@ uint32_t mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
 		info.req = NCS_OS_POSIX_MQ_REQ_RESIZE;
 		info.info.resize.mqd = listenerHandle;
 
-		/* Increase queue size so that its able to hold 5 such messages */
+		/* Increase queue size so that its able to hold 5 such messages
+		 */
 		info.info.resize.i_newqsize = actual_qsize + 10000;
 
 		if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)

@@ -22,15 +22,15 @@
 #include "base/logtrace.h"
 
 /****************************************************************************
- * Name          : fm_rda_init 
+ * Name          : fm_rda_init
  *
- * Description   : Initializes RDA interface, Get a role and Register Callback. 
+ * Description   : Initializes RDA interface, Get a role and Register Callback.
  *
- * Arguments     : Pointer to Control Block 
+ * Arguments     : Pointer to Control Block
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- * 
- * Notes         : None. 
+ *
+ * Notes         : None.
  *****************************************************************************/
 uint32_t fm_rda_init(FM_CB *fm_cb)
 {
@@ -38,9 +38,9 @@ uint32_t fm_rda_init(FM_CB *fm_cb)
 	SaAmfHAStateT ha_state;
 	TRACE_ENTER();
 	if ((rc = rda_get_role(&ha_state)) != NCSCC_RC_SUCCESS) {
- 		LOG_ER("rda_get_role FAILED");
- 		goto done;
- 	}
+		LOG_ER("rda_get_role FAILED");
+		goto done;
+	}
 	switch (ha_state) {
 	case SA_AMF_HA_ACTIVE:
 		fm_cb->role = PCS_RDA_ACTIVE;
@@ -68,8 +68,8 @@ done:
  * Arguments     :  Pointer to Control block and role.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- * 
- * Notes         : None. 
+ *
+ * Notes         : None.
  *****************************************************************************/
 uint32_t fm_rda_set_role(FM_CB *fm_cb, PCS_RDA_ROLE role)
 {
@@ -83,9 +83,10 @@ uint32_t fm_rda_set_role(FM_CB *fm_cb, PCS_RDA_ROLE role)
 
 	rc = pcs_rda_request(&rda_req);
 	if (rc != PCSRDA_RC_SUCCESS) {
-		syslog(LOG_INFO,
-		       "fm_rda_set_role() Failed: CurrentState: %s, AskedState: %s",
-		       role_string[fm_cb->role], role_string[role]);
+		syslog(
+		    LOG_INFO,
+		    "fm_rda_set_role() Failed: CurrentState: %s, AskedState: %s",
+		    role_string[fm_cb->role], role_string[role]);
 		return NCSCC_RC_FAILURE;
 	}
 

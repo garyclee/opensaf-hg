@@ -23,7 +23,7 @@
   DESCRIPTION:
 
   This file lists EDP(EDU program) definitions for AVD-AVND data structures.
-  
+
 ******************************************************************************
 */
 
@@ -37,44 +37,48 @@
 extern "C" {
 #endif
 
-uint32_t avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t avsv_edp_param_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t avsv_edp_clm_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t avsv_edp_clm_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                          uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                          EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_param_info(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                             uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                             EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_clm_info(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                           uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                           EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_clm_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                               uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                               EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uint32_t avsv_edp_su_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t avsv_edp_comp_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				      NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t avsv_edp_susi_asgn(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				  NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_su_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                              uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                              EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_comp_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                                uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                                EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_susi_asgn(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                            uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                            EDP_OP_TYPE op, EDU_ERR *o_err);
 
 uint32_t avsv_edp_sisu_state_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+                                      NCSCONTEXT ptr, uint32_t *ptr_data_len,
+                                      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+                                      EDU_ERR *o_err);
 
 uint32_t avsv_edp_su_state_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+                                    NCSCONTEXT ptr, uint32_t *ptr_data_len,
+                                    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+                                    EDU_ERR *o_err);
 
 uint32_t avsv_edp_csicomp_state_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+                                         NCSCONTEXT ptr, uint32_t *ptr_data_len,
+                                         EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+                                         EDU_ERR *o_err);
 
 uint32_t avsv_edp_comp_state_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+                                      NCSCONTEXT ptr, uint32_t *ptr_data_len,
+                                      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+                                      EDU_ERR *o_err);
 
 int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg);
 

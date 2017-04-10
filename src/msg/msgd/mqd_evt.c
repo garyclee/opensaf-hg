@@ -40,31 +40,31 @@
 extern MQDLIB_INFO gl_mqdinfo;
 
 MQD_EVT_HANDLER mqd_evt_tbl[MQSV_EVT_MAX] = {
-	mqd_asapi_evt_hdlr,
-	0,
-	0,
-	0,
-	mqd_ctrl_evt_hdlr,
+    mqd_asapi_evt_hdlr, 0, 0, 0, mqd_ctrl_evt_hdlr,
 };
 
 static uint32_t mqd_user_evt_process(MQD_CB *, MDS_DEST *);
 static uint32_t mqd_comp_evt_process(MQD_CB *, bool *);
-static uint32_t mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisced_info);
+static uint32_t mqd_quisced_process(MQD_CB *pMqd,
+				    MQD_QUISCED_STATE_INFO *quisced_info);
 static uint32_t mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt);
-static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_info);
+static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd,
+					  MQD_ND_STATUS_INFO *nd_info);
 static uint32_t mqd_cb_dump(void);
 static void mqd_dump_timer_info(MQD_TMR tmr);
 static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode);
 static void mqd_dump_nodedb_node(MQD_ND_DB_NODE *qnode);
-static bool mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE **o_node);
-static bool mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_DB_NODE **o_node);
+static bool mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name,
+				  MQD_OBJ_NODE **o_node);
+static bool mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id,
+				     MQD_ND_DB_NODE **o_node);
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_evt_process
-  
+
  DESCRIPTION    : This is the function which is called when MQD receives any
-                  event. Depending on the MQD events it received, the 
-                  corresponding callback will be called.
+		  event. Depending on the MQD events it received, the
+		  corresponding callback will be called.
 
  ARGUMENTS      : evt  - This is the pointer which holds the event structure.
 
@@ -87,14 +87,15 @@ uint32_t mqd_evt_process(MQSV_EVT *pEvt)
 	/* Get the Event Handler */
 	hdlr = mqd_evt_tbl[pEvt->type - 1];
 	if (hdlr) {
-		if ((pEvt->type == MQSV_EVT_MQD_CTRL) && (SA_AMF_HA_QUIESCED == pMqd->ha_state)) {
+		if ((pEvt->type == MQSV_EVT_MQD_CTRL) &&
+		    (SA_AMF_HA_QUIESCED == pMqd->ha_state)) {
 			rc = hdlr(pEvt, pMqd);
 		} else if (SA_AMF_HA_ACTIVE == pMqd->ha_state) {
 			rc = hdlr(pEvt, pMqd);
-		} else
-		    if (SA_AMF_HA_STANDBY == pMqd->ha_state &&
-			(MQD_ND_STATUS_INFO_TYPE == pEvt->msg.mqd_ctrl.type
-			 || MQD_MSG_TMR_EXPIRY == pEvt->msg.mqd_ctrl.type)) {
+		} else if (SA_AMF_HA_STANDBY == pMqd->ha_state &&
+			   (MQD_ND_STATUS_INFO_TYPE ==
+				pEvt->msg.mqd_ctrl.type ||
+			    MQD_MSG_TMR_EXPIRY == pEvt->msg.mqd_ctrl.type)) {
 			rc = hdlr(pEvt, pMqd);
 		}
 	}
@@ -108,7 +109,7 @@ uint32_t mqd_evt_process(MQSV_EVT *pEvt)
 	ncshm_give_hdl(pMqd->hdl);
 	TRACE_LEAVE();
 	return rc;
-}	/* End of mqd_evt_process() */
+} /* End of mqd_evt_process() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_ctrl_evt_hdlr
@@ -116,7 +117,7 @@ uint32_t mqd_evt_process(MQSV_EVT *pEvt)
  DESCRIPTION    : This is the callback handler for MQD Controll events.
 
  ARGUMENTS      : pEvt - This is the pointer which holds the event structure.
-                  pMqd - MQD Controll block
+		  pMqd - MQD Controll block
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
@@ -132,11 +133,14 @@ uint32_t mqd_ctrl_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
 		rc = mqd_comp_evt_process(pMqd, &pEvt->msg.mqd_ctrl.info.init);
 	}
 	if (MQD_MSG_TMR_EXPIRY == pEvt->msg.mqd_ctrl.type) {
-		rc = mqd_timer_expiry_evt_process(pMqd, &pEvt->msg.mqd_ctrl.info.tmr_info.nodeid);
+		rc = mqd_timer_expiry_evt_process(
+		    pMqd, &pEvt->msg.mqd_ctrl.info.tmr_info.nodeid);
 	} else if (MQD_ND_STATUS_INFO_TYPE == pEvt->msg.mqd_ctrl.type) {
-		rc = mqd_nd_status_evt_process(pMqd, &pEvt->msg.mqd_ctrl.info.nd_info);
+		rc = mqd_nd_status_evt_process(
+		    pMqd, &pEvt->msg.mqd_ctrl.info.nd_info);
 	} else if (MQD_QUISCED_STATE_INFO_TYPE == pEvt->msg.mqd_ctrl.type) {
-		rc = mqd_quisced_process(pMqd, &pEvt->msg.mqd_ctrl.info.quisced_info);
+		rc = mqd_quisced_process(pMqd,
+					 &pEvt->msg.mqd_ctrl.info.quisced_info);
 	} else if (MQD_CB_DUMP_INFO_TYPE == pEvt->msg.mqd_ctrl.type) {
 		rc = mqd_cb_dump();
 	} else if (MQD_QGRP_CNT_GET == pEvt->msg.mqd_ctrl.type) {
@@ -144,7 +148,7 @@ uint32_t mqd_ctrl_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
 	}
 	TRACE_LEAVE2(" return code %u", rc);
 	return rc;
-}	/* End of mqd_ctrl_evt_hdlr() */
+} /* End of mqd_ctrl_evt_hdlr() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_user_evt_process
@@ -152,7 +156,7 @@ uint32_t mqd_ctrl_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
  DESCRIPTION    : This routine process the user specific message.
 
  ARGUMENTS      : pMqd - MQD Control block pointer
-                  dest - MDS_DEST pointer                  
+		  dest - MDS_DEST pointer
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
@@ -160,28 +164,29 @@ static uint32_t mqd_user_evt_process(MQD_CB *pMqd, MDS_DEST *dest)
 {
 	MQD_A2S_USER_EVENT_INFO user_evt;
 	if ((pMqd->active) && (pMqd->ha_state == SA_AMF_HA_ACTIVE)) {
-		/* We need to scan the entire database and remove the track inforamtion
-		 * pertaining to the user
+		/* We need to scan the entire database and remove the track
+		 * inforamtion pertaining to the user
 		 */
 		mqd_user_evt_track_delete(pMqd, dest);
 		memcpy(&user_evt.dest, dest, sizeof(MDS_DEST));
 		/* Send async update to the stand by for MQD redundancy */
-		mqd_a2s_async_update(pMqd, MQD_A2S_MSG_TYPE_USEREVT, (void *)&user_evt);
+		mqd_a2s_async_update(pMqd, MQD_A2S_MSG_TYPE_USEREVT,
+				     (void *)&user_evt);
 
 		return NCSCC_RC_SUCCESS;
 	}
 	LOG_ER("%s:%u: AMF is Not in Active State", __FILE__, __LINE__);
 	return NCSCC_RC_FAILURE;
-}	/* End of mqd_user_evt_process() */
+} /* End of mqd_user_evt_process() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_user_evt_track_delete
 
  DESCRIPTION    : This routine updates the database.It deletes the
-                  track information of the given destination.
+		  track information of the given destination.
 
  ARGUMENTS      : pMqd - MQD Control block pointer
-                  dest - MDS_DEST pointer                  
+		  dest - MDS_DEST pointer
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
@@ -191,14 +196,16 @@ uint32_t mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest)
 	/* We need to scan the entire database and remove the track inforamtion
 	 * pertaining to the user
 	 */
-	for (pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)0); pNode;
-	     pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, pNode->node.key_info)) {
+	for (pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb,
+							       (uint8_t *)0);
+	     pNode; pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(
+			&pMqd->qdb, pNode->node.key_info)) {
 
 		/* Delete the track information for the user */
 		mqd_track_del(&pNode->oinfo.tlist, dest);
 	}
 	return NCSCC_RC_SUCCESS;
-}	/* End of mqd_user_evt_track_delete() */
+} /* End of mqd_user_evt_track_delete() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_comp_evt_process
@@ -206,7 +213,7 @@ uint32_t mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest)
  DESCRIPTION    : This routine process the comp specific message.
 
  ARGUMENTS      : pMqd - MQD Control block pointer
-                  init - Component Initializtion flag                  
+		  init - Component Initializtion flag
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
@@ -215,7 +222,7 @@ static uint32_t mqd_comp_evt_process(MQD_CB *pMqd, bool *init)
 	/* Set the Component status to ACTIVE */
 	pMqd->active = *init;
 	return NCSCC_RC_SUCCESS;
-}	/* End of mqd_comp_evt_process() */
+} /* End of mqd_comp_evt_process() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_timer_expiry_evt_process
@@ -223,7 +230,7 @@ static uint32_t mqd_comp_evt_process(MQD_CB *pMqd, bool *init)
  DESCRIPTION    : This routine process the comp specific message.
 
  ARGUMENTS      : pMqd - MQD Control block pointer
-                  nodeid - NODE ID
+		  nodeid - NODE ID
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
@@ -235,11 +242,12 @@ uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 	SaImmOiHandleT immOiHandle;
 	SaImmOiImplementerNameT implementer_name;
 	char i_name[256] = {0};
-	SaVersionT imm_version = {'A',0x02,0x01};
+	SaVersionT imm_version = {'A', 0x02, 0x01};
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("The Timer expired with node id %u", *nodeid);
 
-	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uint8_t *)nodeid);
+	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db,
+							  (uint8_t *)nodeid);
 
 	/* We need to scan the entire database and remove the track inforamtion
 	 * pertaining to the user
@@ -251,23 +259,31 @@ uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 		return rc;
 	}
 	if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
-		rc = immutil_saImmOiInitialize_2(&immOiHandle, NULL, &imm_version);
+		rc = immutil_saImmOiInitialize_2(&immOiHandle, NULL,
+						 &imm_version);
 		if (rc != SA_AIS_OK)
-			LOG_ER("saImmOiInitialize_2 failed with return value=%d",rc);
+			LOG_ER(
+			    "saImmOiInitialize_2 failed with return value=%d",
+			    rc);
 
-		snprintf(i_name, SA_MAX_NAME_LENGTH, "%s%u", "MsgQueueService", *nodeid);
+		snprintf(i_name, SA_MAX_NAME_LENGTH, "%s%u", "MsgQueueService",
+			 *nodeid);
 		implementer_name = i_name;
 
-		rc = immutil_saImmOiImplementerSet(immOiHandle, implementer_name);
+		rc = immutil_saImmOiImplementerSet(immOiHandle,
+						   implementer_name);
 		if (rc != SA_AIS_OK)
-			LOG_ER("saImmOiImplementerSet failed with return value=%d",rc);
+			LOG_ER(
+			    "saImmOiImplementerSet failed with return value=%d",
+			    rc);
 
 		if (pNdNode->info.timer.tmr_id != TMR_T_NULL) {
 			m_NCS_TMR_DESTROY(pNdNode->info.timer.tmr_id);
 			pNdNode->info.timer.tmr_id = TMR_T_NULL;
 		}
 
-		pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)0);
+		pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb,
+								  (uint8_t *)0);
 		while (pNode) {
 			ASAPi_DEREG_INFO dereg;
 			SaNameT name;
@@ -276,26 +292,34 @@ uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 
 			name = pNode->oinfo.name;
 
-			if (m_NCS_NODE_ID_FROM_MDS_DEST(pNode->oinfo.info.q.dest) == pNdNode->info.nodeid) {
+			if (m_NCS_NODE_ID_FROM_MDS_DEST(
+				pNode->oinfo.info.q.dest) ==
+			    pNdNode->info.nodeid) {
 				dereg.objtype = ASAPi_OBJ_QUEUE;
 				dereg.queue = pNode->oinfo.name;
-				rc = immutil_saImmOiRtObjectDelete(immOiHandle, &dereg.queue);
+				rc = immutil_saImmOiRtObjectDelete(
+				    immOiHandle, &dereg.queue);
 				if (rc != NCSCC_RC_SUCCESS)
-					LOG_ER("Deleting MsgQGrp object %s FAILED with error %u", dereg.queue.value,rc);
+					LOG_ER(
+					    "Deleting MsgQGrp object %s FAILED with error %u",
+					    dereg.queue.value, rc);
 				rc = mqd_asapi_dereg_hdlr(pMqd, &dereg, NULL);
 			}
 
-			pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&name);
+			pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(
+			    &pMqd->qdb, (uint8_t *)&name);
 		}
 		rc = immutil_saImmOiFinalize(immOiHandle);
 		if (rc != NCSCC_RC_SUCCESS)
-			LOG_ER("saImmOiFinalize failed with return value=%d",rc);	
+			LOG_ER("saImmOiFinalize failed with return value=%d",
+			       rc);
 		/* Send an async Update to the standby */
 		memset(&msg, 0, sizeof(MQD_A2S_MSG));
 		msg.type = MQD_A2S_MSG_TYPE_MQND_TIMER_EXPEVT;
 		msg.info.nd_tmr_exp_evt.nodeid = pNdNode->info.nodeid;
 		/* Send async update to the standby for MQD redundancy */
-		mqd_a2s_async_update(pMqd, MQD_A2S_MSG_TYPE_MQND_TIMER_EXPEVT, (void *)(&msg.info.nd_tmr_exp_evt));
+		mqd_a2s_async_update(pMqd, MQD_A2S_MSG_TYPE_MQND_TIMER_EXPEVT,
+				     (void *)(&msg.info.nd_tmr_exp_evt));
 
 		if (pNdNode)
 			mqd_red_db_node_del(pMqd, pNdNode);
@@ -306,7 +330,7 @@ uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 	}
 	TRACE_LEAVE();
 	return rc;
-}	/* End of mqd_timer_expiry_evt_process() */
+} /* End of mqd_timer_expiry_evt_process() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_nd_status_evt_process
@@ -314,32 +338,38 @@ uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
  DESCRIPTION    : This routine process the MQND status event.
 
  ARGUMENTS      : pMqd - MQD Control block pointer
-                  nd_info - ND information                  
+		  nd_info - ND information
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_info)
+static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd,
+					  MQD_ND_STATUS_INFO *nd_info)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_ND_DB_NODE *pNdNode = 0;
-	SaTimeT timeout = m_NCS_CONVERT_SATIME_TO_TEN_MILLI_SEC(MQD_ND_EXPIRY_TIME_STANDBY);
+	SaTimeT timeout =
+	    m_NCS_CONVERT_SATIME_TO_TEN_MILLI_SEC(MQD_ND_EXPIRY_TIME_STANDBY);
 	NODE_ID node_id = 0;
 	MQD_A2S_MSG msg;
-	TRACE_ENTER2("MQND status:MDS EVT :processing %d", m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest));
+	TRACE_ENTER2("MQND status:MDS EVT :processing %d",
+		     m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest));
 
 	/* Process MQND Related events */
 	if (nd_info->is_up == false) {
 		node_id = m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
-		pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uint8_t *)&node_id);
+		pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(
+		    &pMqd->node_db, (uint8_t *)&node_id);
 		if (!pNdNode) {
 			pNdNode = m_MMGR_ALLOC_MQD_ND_DB_NODE;
 			if (pNdNode == NULL) {
-				LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
+				LOG_CR("%s:%u: Failed To Allocate Memory",
+				       __FILE__, __LINE__);
 				rc = NCSCC_RC_FAILURE;
 				return rc;
 			}
 			memset(pNdNode, 0, sizeof(MQD_ND_DB_NODE));
-			pNdNode->info.nodeid = m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
+			pNdNode->info.nodeid =
+			    m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
 			pNdNode->info.is_restarted = false;
 			pNdNode->info.timer.type = MQD_ND_TMR_TYPE_EXPIRY;
 			pNdNode->info.timer.tmr_id = 0;
@@ -359,22 +389,28 @@ static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_i
 		TRACE_1("MDS DOWN PROCESSED ON %d DONE", pMqd->ha_state);
 	} else {
 		node_id = m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
-		pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uint8_t *)&node_id);
+		pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(
+		    &pMqd->node_db, (uint8_t *)&node_id);
 		if (pNdNode) {
 			mqd_tmr_stop(&pNdNode->info.timer);
 			pNdNode->info.is_restarted = true;
 			pNdNode->info.dest = nd_info->dest;
 			if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
 				mqd_red_db_node_del(pMqd, pNdNode);
-				mqd_nd_restart_update_dest_info(pMqd, nd_info->dest);
+				mqd_nd_restart_update_dest_info(pMqd,
+								nd_info->dest);
 				/* Send an async update event to standby MQD */
 				memset(&msg, 0, sizeof(MQD_A2S_MSG));
 				msg.type = MQD_A2S_MSG_TYPE_MQND_STATEVT;
-				msg.info.nd_stat_evt.nodeid = m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
-				msg.info.nd_stat_evt.is_restarting = nd_info->is_up;
-				msg.info.nd_stat_evt.downtime = nd_info->event_time;
-				mqd_a2s_async_update(pMqd, MQD_A2S_MSG_TYPE_MQND_STATEVT,
-						     (void *)(&msg.info.nd_stat_evt));
+				msg.info.nd_stat_evt.nodeid =
+				    m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
+				msg.info.nd_stat_evt.is_restarting =
+				    nd_info->is_up;
+				msg.info.nd_stat_evt.downtime =
+				    nd_info->event_time;
+				mqd_a2s_async_update(
+				    pMqd, MQD_A2S_MSG_TYPE_MQND_STATEVT,
+				    (void *)(&msg.info.nd_stat_evt));
 			}
 		}
 		TRACE_1("MDS UP PROCESSED ON %d DONE", pMqd->ha_state);
@@ -389,11 +425,12 @@ static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_i
  DESCRIPTION    : This routine process the Quisced ack event.
 
  ARGUMENTS      : pMqd - MQD Control block pointer
-                  quisced_info - MQD_QUISCED_STATE_INFO structure pointer
+		  quisced_info - MQD_QUISCED_STATE_INFO structure pointer
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-static uint32_t mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisced_info)
+static uint32_t mqd_quisced_process(MQD_CB *pMqd,
+				    MQD_QUISCED_STATE_INFO *quisced_info)
 {
 	SaAisErrorT saErr = SA_AIS_OK;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -403,7 +440,8 @@ static uint32_t mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisce
 		pMqd->ha_state = SA_AMF_HA_QUIESCED;
 		rc = mqd_mbcsv_chgrole(pMqd);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE_4("Quiesced Processing at MQD ,MBCSV Changerole failed");
+			TRACE_4(
+			    "Quiesced Processing at MQD ,MBCSV Changerole failed");
 			return rc;
 		}
 		saAmfResponse(pMqd->amf_hdl, quisced_info->invocation, saErr);
@@ -422,7 +460,7 @@ static uint32_t mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisce
  DESCRIPTION    : This routine prints the Control Block elements.
 
  ARGUMENTS      :
-                 
+
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
@@ -444,7 +482,8 @@ static uint32_t mqd_cb_dump(void)
 	TRACE("**** Global Control Block Details ***************");
 
 	TRACE(" Self MDS Handle is : %u ", (uint32_t)pMqd->my_mds_hdl);
-	TRACE("MQD MDS dest Nodeid is : %u", m_NCS_NODE_ID_FROM_MDS_DEST(pMqd->my_dest));
+	TRACE("MQD MDS dest Nodeid is : %u",
+	      m_NCS_NODE_ID_FROM_MDS_DEST(pMqd->my_dest));
 	TRACE("MQD MDS dest is        : %" PRIu64, pMqd->my_dest);
 	TRACE("Service ID of MQD is : %u ", pMqd->my_svc_id);
 	TRACE("Component name of MQD: %s ", pMqd->my_name);
@@ -459,12 +498,14 @@ static uint32_t mqd_cb_dump(void)
 	TRACE("CB Structure Handle is :%u ", pMqd->hdl);
 	TRACE("Component Active flag is:%u ", pMqd->active);
 	TRACE(" Invocation of Quisced State is:%llu ", pMqd->invocation);
-	TRACE(" IS the invocation from the Quisced state set :%u ", pMqd->is_quisced_set);
+	TRACE(" IS the invocation from the Quisced state set :%u ",
+	      pMqd->is_quisced_set);
 
 	TRACE("********* Printing the Queue Data base********** ");
 	if (pMqd->qdb_up) {
 		TRACE("Queue Data Base is Ready ");
-		TRACE("Total number of nodes in main database :%u ", pMqd->qdb.n_nodes);
+		TRACE("Total number of nodes in main database :%u ",
+		      pMqd->qdb.n_nodes);
 		mqd_obj_next_validate(pMqd, NULL, &qnode);
 		while (qnode) {
 			mqd_dump_obj_node(qnode);
@@ -491,12 +532,12 @@ static uint32_t mqd_cb_dump(void)
 }
 
 /****************************************************************************\
- PROCEDURE NAME : mqd_qgrp_cnt_get_evt_process 
+ PROCEDURE NAME : mqd_qgrp_cnt_get_evt_process
 
  DESCRIPTION    : This routine process the qcount get event .
 
  ARGUMENTS      : pMqd - MQD Control block pointer
-                  pEvt - Event structure
+		  pEvt - Event structure
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
@@ -505,7 +546,8 @@ static uint32_t mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt)
 	MQD_OBJ_NODE *pObjNode = 0;
 	MQSV_EVT rsp;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	MQSV_CTRL_EVT_QGRP_CNT *qgrp_cnt_info = &pevt->msg.mqd_ctrl.info.qgrp_cnt_info;
+	MQSV_CTRL_EVT_QGRP_CNT *qgrp_cnt_info =
+	    &pevt->msg.mqd_ctrl.info.qgrp_cnt_info;
 	TRACE_ENTER();
 
 	memset(&rsp, 0, sizeof(MQSV_EVT));
@@ -513,15 +555,20 @@ static uint32_t mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt)
 	if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
 		rsp.type = MQSV_EVT_MQND_CTRL;
 		rsp.msg.mqnd_ctrl.type = MQND_CTRL_EVT_QGRP_CNT_RSP;
-		rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.info.queueName = qgrp_cnt_info->info.queueName;
+		rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.info.queueName =
+		    qgrp_cnt_info->info.queueName;
 
-		pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (uint8_t *)&qgrp_cnt_info->info.queueName);
+		pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_get(
+		    &pMqd->qdb, (uint8_t *)&qgrp_cnt_info->info.queueName);
 		if (pObjNode) {
 			rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.error = SA_AIS_OK;
-			rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.info.noOfQueueGroupMemOf = pObjNode->oinfo.ilist.count;
+			rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.info
+			    .noOfQueueGroupMemOf = pObjNode->oinfo.ilist.count;
 		} else {
-			rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.error = SA_AIS_ERR_NOT_EXIST;
-			rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.info.noOfQueueGroupMemOf = 0;
+			rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.error =
+			    SA_AIS_ERR_NOT_EXIST;
+			rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.info
+			    .noOfQueueGroupMemOf = 0;
 		}
 		rc = mqd_mds_send_rsp(pMqd, &pevt->sinfo, &rsp);
 	}
@@ -532,51 +579,56 @@ static uint32_t mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt)
 /****************************************************************************\
  PROCEDURE NAME : mqd_obj_next_validate
 
- DESCRIPTION    : This routine will give the next node of the MQD Queue database.
+ DESCRIPTION    : This routine will give the next node of the MQD Queue
+database.
 
  ARGUMENTS      :pMqd - Control Block pointer
-                 name - Name of the queue or the queuegroup
-                 o_node- The pointer to the next node if available
+		 name - Name of the queue or the queuegroup
+		 o_node- The pointer to the next node if available
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
 
-static bool mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE **o_node)
+static bool mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name,
+				  MQD_OBJ_NODE **o_node)
 {
 	MQD_OBJ_NODE *pObjNode = 0;
 
 	/* Get hold of the MQD controll block */
-	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)name);
+	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb,
+							     (uint8_t *)name);
 
 	*o_node = pObjNode;
 	if (pObjNode)
 		return true;
 	return false;
-}	/* End of mqd_obj_next_validate() */
+} /* End of mqd_obj_next_validate() */
 
 /****************************************************************************\
 
  DESCRIPTION    : mqd_nodedb_next_validate
 
  ARGUMENTS      :pMqd - Control block pointer
-                 node_id- Node id of the node
-                 o_node - Pointer to the next Queue Node database node 
+		 node_id- Node id of the node
+		 o_node - Pointer to the next Queue Node database node
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
 
-static bool mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_DB_NODE **o_node)
+static bool mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id,
+				     MQD_ND_DB_NODE **o_node)
 {
 	MQD_ND_DB_NODE *pNdNode = 0;
 
 	/* Get hold of the MQD controll block */
-	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uint8_t *)node_id);
+	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(
+	    &pMqd->node_db, (uint8_t *)node_id);
 
 	*o_node = pNdNode;
 	if (pNdNode)
 		return true;
 	return false;
-}	/* End of mqd_nodedb_next_validate() */
+} /* End of mqd_nodedb_next_validate() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_dump_nodedb_node
@@ -584,7 +636,7 @@ static bool mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_DB_N
  DESCRIPTION    : This routine prints the Node Database node information.
 
  ARGUMENTS      : qnode - MQD Node database node
-                 
+
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
@@ -604,7 +656,7 @@ static void mqd_dump_nodedb_node(MQD_ND_DB_NODE *qnode)
  DESCRIPTION    : This routine prints the MQD timer information of that node.
 
  ARGUMENTS      :tmr - MQD Timer structure
-                 
+
 
  RETURNS        :
 \*****************************************************************************/
@@ -624,7 +676,7 @@ static void mqd_dump_timer_info(MQD_TMR tmr)
  DESCRIPTION    : This routine prints the MQD timer information of that node.
 
  ARGUMENTS      :tmr - MQD Timer structure
-                 
+
 
  RETURNS        :
 \*****************************************************************************/
@@ -662,12 +714,15 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
 		TRACE("Queue Name is : %s", qnode->oinfo.name.value);
 		if (qnode->oinfo.info.q.send_state == MSG_QUEUE_AVAILABLE)
 			TRACE("The sending state is : MSG_QUEUE_AVAILABLE ");
-		else if (qnode->oinfo.info.q.send_state == MSG_QUEUE_UNAVAILABLE)
+		else if (qnode->oinfo.info.q.send_state ==
+			 MSG_QUEUE_UNAVAILABLE)
 			TRACE("The sending state is : MSG_QUEUE_UNAVAILABLE ");
-		TRACE(" Retention Time is : %llu ", qnode->oinfo.info.q.retentionTime);
-		TRACE(" MDS Destination is : %" PRIu64, qnode->oinfo.info.q.dest);
+		TRACE(" Retention Time is : %llu ",
+		      qnode->oinfo.info.q.retentionTime);
+		TRACE(" MDS Destination is : %" PRIu64,
+		      qnode->oinfo.info.q.dest);
 		TRACE(" Node id from the MDS Destination of the queue is :%u ",
-			m_NCS_NODE_ID_FROM_MDS_DEST(qnode->oinfo.info.q.dest));
+		      m_NCS_NODE_ID_FROM_MDS_DEST(qnode->oinfo.info.q.dest));
 		switch (qnode->oinfo.info.q.owner) {
 		case MQSV_QUEUE_OWN_STATE_ORPHAN:
 			TRACE(" Ownership is: MQSV_QUEUE_OWN_STATE_ORPHAN ");
@@ -686,26 +741,34 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
 			TRACE(" Advertisement flag is set ");
 		else
 			TRACE(" Advertisement flag is not set ");
-		TRACE(" Is mqnd down for this queue is :%d ", qnode->oinfo.info.q.is_mqnd_down);
-		TRACE(" Creation time for this queue is :%llu ", qnode->oinfo.creationTime);
+		TRACE(" Is mqnd down for this queue is :%d ",
+		      qnode->oinfo.info.q.is_mqnd_down);
+		TRACE(" Creation time for this queue is :%llu ",
+		      qnode->oinfo.creationTime);
 	}
 	TRACE(" *********************Printing the ilist******************* ");
 	memset(&itr, 0, sizeof(NCS_Q_ITR));
 	itr.state = 0;
-	while ((pilist = (MQD_OBJECT_ELEM *)ncs_walk_items(&qnode->oinfo.ilist, &itr))) {
-		TRACE(" The ilist member pointer value is: %p ", pilist->pObject);
-		TRACE(" The ilist member Name is : %s ", pilist->pObject->name.value);
+	while ((pilist = (MQD_OBJECT_ELEM *)ncs_walk_items(&qnode->oinfo.ilist,
+							   &itr))) {
+		TRACE(" The ilist member pointer value is: %p ",
+		      pilist->pObject);
+		TRACE(" The ilist member Name is : %s ",
+		      pilist->pObject->name.value);
 	}
 	TRACE("********** End of the ilist************* ");
 	TRACE("********** Printing the track list************* ");
 	memset(&itr, 0, sizeof(NCS_Q_ITR));
 	itr.state = 0;
-	while ((pTrack = (MQD_TRACK_OBJ *)ncs_walk_items(&qnode->oinfo.tlist, &itr))) {
+	while ((pTrack = (MQD_TRACK_OBJ *)ncs_walk_items(&qnode->oinfo.tlist,
+							 &itr))) {
 		TRACE(" To service is :%u ", pTrack->to_svc);
-		TRACE(" The MDSdest destination of the track subscibed element is: %" PRIu64, pTrack->dest);
-		TRACE(" The Nodeid from MDSdest of the track subscibed element is: %u ",
-			m_NCS_NODE_ID_FROM_MDS_DEST(pTrack->dest));
+		TRACE(
+		    " The MDSdest destination of the track subscibed element is: %" PRIu64,
+		    pTrack->dest);
+		TRACE(
+		    " The Nodeid from MDSdest of the track subscibed element is: %u ",
+		    m_NCS_NODE_ID_FROM_MDS_DEST(pTrack->dest));
 	}
 	TRACE("********** End of the track list************* ");
-
 }

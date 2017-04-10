@@ -44,7 +44,7 @@
 
 #include "base/ncs_svd.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -92,23 +92,23 @@ extern "C" {
  ***************************************************************************/
 
 #define NCS_LOCKS_NEEDED 1
-#define NCS_LOCK_READ    1
-#define NCS_LOCK_WRITE   2
+#define NCS_LOCK_READ 1
+#define NCS_LOCK_WRITE 2
 
-#if (NCSSYSM_LOCK_DBG_ENABLE != 0)      /* Debug locks.. Check for existence */
+#if (NCSSYSM_LOCK_DBG_ENABLE != 0) /* Debug locks.. Check for existence */
 
 #define NCS_LOCK_EXISTS 0xAABBCCDD
 
 typedef struct ncs_lock_dbg {
-  uint32_t exists;        /* exists marker   */
-  NCS_OS_LOCK lock;       /* the 'real' lock */
+  uint32_t exists;  /* exists marker   */
+  NCS_OS_LOCK lock; /* the 'real' lock */
 
 } NCS_LOCK_DBG;
 
-#define NCS_LOCK  NCS_LOCK_DBG
+#define NCS_LOCK NCS_LOCK_DBG
 #else
 
-#define NCS_LOCK  NCS_OS_LOCK
+#define NCS_LOCK NCS_OS_LOCK
 #endif
 
 /****************************************************************************
@@ -130,13 +130,13 @@ typedef struct ncs_lock_dbg {
  ***************************************************************************/
 
 #if (NCSSYSM_LOCK_DBG_ENABLE != 0)
-#define m_NCS_LOCK_INIT(lock)                   \
-  ncs_lock_init(lock, 0, 0, __LINE__, __FILE__)
-#define m_NCS_LOCK_INIT_V2(lock,sid,lid)                \
+#define m_NCS_LOCK_INIT(lock) ncs_lock_init(lock, 0, 0, __LINE__, __FILE__)
+#define m_NCS_LOCK_INIT_V2(lock, sid, lid) \
   ncs_lock_init(lock, sid, lid, __LINE__, __FILE__)
 #else
-#define m_NCS_LOCK_INIT(lock)            m_NCS_OS_LOCK(lock,NCS_OS_LOCK_CREATE,0)
-#define m_NCS_LOCK_INIT_V2(lock,sid,lid) m_NCS_OS_LOCK(lock,NCS_OS_LOCK_CREATE,0)
+#define m_NCS_LOCK_INIT(lock) m_NCS_OS_LOCK(lock, NCS_OS_LOCK_CREATE, 0)
+#define m_NCS_LOCK_INIT_V2(lock, sid, lid) \
+  m_NCS_OS_LOCK(lock, NCS_OS_LOCK_CREATE, 0)
 #endif
 
 /****************************************************************************
@@ -158,13 +158,14 @@ typedef struct ncs_lock_dbg {
  ***************************************************************************/
 
 #if (NCSSYSM_LOCK_DBG_ENABLE != 0)
-#define m_NCS_LOCK_DESTROY(lock)                        \
+#define m_NCS_LOCK_DESTROY(lock) \
   ncs_lock_destroy(lock, 0, 0, __LINE__, __FILE__)
-#define m_NCS_LOCK_DESTROY_V2(lock,sid,lid)             \
+#define m_NCS_LOCK_DESTROY_V2(lock, sid, lid) \
   ncs_lock_destroy(lock, sid, lid, __LINE__, __FILE__)
 #else
-#define m_NCS_LOCK_DESTROY(lock)            m_NCS_OS_LOCK(lock,NCS_OS_LOCK_RELEASE,0)
-#define m_NCS_LOCK_DESTROY_V2(lock,sid,lid) m_NCS_OS_LOCK(lock,NCS_OS_LOCK_RELEASE,0)
+#define m_NCS_LOCK_DESTROY(lock) m_NCS_OS_LOCK(lock, NCS_OS_LOCK_RELEASE, 0)
+#define m_NCS_LOCK_DESTROY_V2(lock, sid, lid) \
+  m_NCS_OS_LOCK(lock, NCS_OS_LOCK_RELEASE, 0)
 #endif
 
 /****************************************************************************
@@ -197,11 +198,13 @@ typedef struct ncs_lock_dbg {
  *
  ***************************************************************************/
 #if (NCSSYSM_LOCK_DBG_ENABLE != 0)
-#define m_NCS_LOCK(lock, flag)           ncs_lock(lock,flag,0,0,__LINE__,__FILE__)
-#define m_NCS_LOCK_V2(lock,flag,sid,lid) ncs_lock(lock,flag,sid,lid,__LINE__,__FILE__)
+#define m_NCS_LOCK(lock, flag) ncs_lock(lock, flag, 0, 0, __LINE__, __FILE__)
+#define m_NCS_LOCK_V2(lock, flag, sid, lid) \
+  ncs_lock(lock, flag, sid, lid, __LINE__, __FILE__)
 #else
-#define m_NCS_LOCK(lock, flag)           m_NCS_OS_LOCK(lock,NCS_OS_LOCK_LOCK,flag)
-#define m_NCS_LOCK_V2(lock,flag,sid,lid) m_NCS_OS_LOCK(lock,NCS_OS_LOCK_LOCK,flag)
+#define m_NCS_LOCK(lock, flag) m_NCS_OS_LOCK(lock, NCS_OS_LOCK_LOCK, flag)
+#define m_NCS_LOCK_V2(lock, flag, sid, lid) \
+  m_NCS_OS_LOCK(lock, NCS_OS_LOCK_LOCK, flag)
 #endif
 
 /****************************************************************************
@@ -225,11 +228,14 @@ Your code
 *
 ***************************************************************************/
 #if (NCSSYSM_LOCK_DBG_ENABLE != 0)
-#define m_NCS_UNLOCK(lock, flag)           ncs_unlock(lock,flag,0,0,__LINE__,__FILE__)
-#define m_NCS_UNLOCK_V2(lock,flag,sid,lid) ncs_unlock(lock,flag,sid,lid,__LINE__,__FILE__)
+#define m_NCS_UNLOCK(lock, flag) \
+  ncs_unlock(lock, flag, 0, 0, __LINE__, __FILE__)
+#define m_NCS_UNLOCK_V2(lock, flag, sid, lid) \
+  ncs_unlock(lock, flag, sid, lid, __LINE__, __FILE__)
 #else
-#define m_NCS_UNLOCK(lock,flag)            m_NCS_OS_LOCK(lock,NCS_OS_LOCK_UNLOCK,flag)
-#define m_NCS_UNLOCK_V2(lock,flag,sid,lid) m_NCS_OS_LOCK(lock,NCS_OS_LOCK_UNLOCK,flag)
+#define m_NCS_UNLOCK(lock, flag) m_NCS_OS_LOCK(lock, NCS_OS_LOCK_UNLOCK, flag)
+#define m_NCS_UNLOCK_V2(lock, flag, sid, lid) \
+  m_NCS_OS_LOCK(lock, NCS_OS_LOCK_UNLOCK, flag)
 #endif
 
 /****************************************************************************
@@ -255,33 +261,31 @@ Your code
  ****************************************************************************
  ***************************************************************************/
 
-#define m_NCS_ATOMIC_INC(c)  m_NCS_OS_ATOMIC_INC(c)
-#define m_NCS_ATOMIC_DEC(c)  m_NCS_OS_ATOMIC_DEC(c)
+#define m_NCS_ATOMIC_INC(c) m_NCS_OS_ATOMIC_INC(c)
+#define m_NCS_ATOMIC_DEC(c) m_NCS_OS_ATOMIC_DEC(c)
 
 #if (NCSSYSM_LOCK_DBG_ENABLE != 0)
-unsigned int ncs_lock_init(NCS_LOCK * lock,
-                           NCS_SERVICE_ID service_id,
-                           unsigned int local_id, unsigned int line, char *file);
+unsigned int ncs_lock_init(NCS_LOCK *lock, NCS_SERVICE_ID service_id,
+                           unsigned int local_id, unsigned int line,
+                           char *file);
 
-unsigned int ncs_lock_destroy(NCS_LOCK * lock,
-                              NCS_SERVICE_ID service_id,
-                              unsigned int local_id, unsigned int line, char *file);
+unsigned int ncs_lock_destroy(NCS_LOCK *lock, NCS_SERVICE_ID service_id,
+                              unsigned int local_id, unsigned int line,
+                              char *file);
 
-unsigned int ncs_lock(NCS_LOCK * lock,
-                      unsigned int flag,
-                      NCS_SERVICE_ID service_id,
-                      unsigned int local_id, unsigned int line, char *file);
+unsigned int ncs_lock(NCS_LOCK *lock, unsigned int flag,
+                      NCS_SERVICE_ID service_id, unsigned int local_id,
+                      unsigned int line, char *file);
 
-unsigned int ncs_unlock(NCS_LOCK * lock,
-                        unsigned int flag,
-                        NCS_SERVICE_ID service_id,
-                        unsigned int local_id, unsigned int line, char *file);
+unsigned int ncs_unlock(NCS_LOCK *lock, unsigned int flag,
+                        NCS_SERVICE_ID service_id, unsigned int local_id,
+                        unsigned int line, char *file);
 #endif
 uint32_t ncs_lock_get_init_count(NCS_SERVICE_ID service_id);
 uint32_t ncs_lock_get_destroy_count(NCS_SERVICE_ID service_id);
 void ncs_lock_stats(char *filename);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -19,16 +19,19 @@
 
 void saImmOiFinalize_01(void)
 {
-    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
-    rc = saImmOiFinalize(immOiHandle);
-    test_validate(rc, SA_AIS_OK);
+	safassert(
+	    saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion),
+	    SA_AIS_OK);
+	rc = saImmOiFinalize(immOiHandle);
+	test_validate(rc, SA_AIS_OK);
 }
 
 void saImmOiFinalize_02(void)
 {
-    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
-    rc = saImmOiFinalize(-1);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
-    safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+	safassert(
+	    saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion),
+	    SA_AIS_OK);
+	rc = saImmOiFinalize(-1);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
 }
-

@@ -53,24 +53,22 @@ extern JavaVM *cachedJVM;
 
 extern jstring JNU_NewStringNative(JNIEnv *env, const char *str);
 extern char *JNU_GetStringNativeChars(JNIEnv *env, jstring jstr);
-extern void JNU_throwNewByName(JNIEnv *jniEnv,
-			       const char *className, const char *msg);
+extern void JNU_throwNewByName(JNIEnv *jniEnv, const char *className,
+                               const char *msg);
 extern void JNU_ExceptionDescribeDoNotClear(JNIEnv *jniEnv);
 extern jstring JNU_newStringFromSaNameT(JNIEnv *jniEnv,
-					const SaNameT *saNamePtr);
-extern jboolean JNU_copyFromStringToSaNameT(JNIEnv *jniEnv,
-					    jstring fromStr,
-					    SaNameT **toSaNamePtrPtr);
+                                        const SaNameT *saNamePtr);
+extern jboolean JNU_copyFromStringToSaNameT(JNIEnv *jniEnv, jstring fromStr,
+                                            SaNameT **toSaNamePtrPtr);
 extern jboolean JNU_copyFromStringToSaNameT_NotNull(JNIEnv *jniEnv,
-						    jstring fromStr,
-						    SaNameT *toSaNamePtr);
-extern jstring JNU_newStringFromSaNodeAddressT(JNIEnv *jniEnv,
-					       const SaClmNodeAddressT
-					       *saClmNodeAddressPtr);
+                                                    jstring fromStr,
+                                                    SaNameT *toSaNamePtr);
+extern jstring JNU_newStringFromSaNodeAddressT(
+    JNIEnv *jniEnv, const SaClmNodeAddressT *saClmNodeAddressPtr);
 extern jboolean JNU_jByteArray_link(JNIEnv *jniEnv, jbyteArray byteArray,
-				    SaSizeT *saSizePtr, void **saBufferPtr);
+                                    SaSizeT *saSizePtr, void **saBufferPtr);
 extern void JNU_jByteArray_unlink(JNIEnv *jniEnv, jbyteArray byteArray,
-				  void *saBuffer);
+                                  void *saBuffer);
 extern jint JNU_GetEnvForCallback(JavaVM *vmPtr, JNIEnv **envPtrPtr);
 jclass JNU_GetGlobalClassRef(JNIEnv *jniEnv, const char *className);
 

@@ -32,22 +32,17 @@
 #include "base/time.h"
 
 namespace {
-char path_environment_variable[] = "PATH=/usr/local/sbin:" \
+char path_environment_variable[] =
+    "PATH=/usr/local/sbin:"
     "/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
 }
 
 namespace base {
 
-Process::Process() :
-    mutex_{},
-    timer_id_{},
-    is_timer_created_{false},
-    process_group_id_{0} {
-}
+Process::Process()
+    : mutex_{}, timer_id_{}, is_timer_created_{false}, process_group_id_{0} {}
 
-Process::~Process() {
-  StopTimer();
-}
+Process::~Process() { StopTimer(); }
 
 void Process::Kill(int sig_no, const Duration& wait_time) {
   pid_t pgid;
@@ -60,13 +55,13 @@ void Process::Kill(int sig_no, const Duration& wait_time) {
 }
 
 void Process::KillProc(pid_t pid, int sig_no, const Duration& wait_time) {
-  LOG_NO("Sending signal %d to PID %d", sig_no, (int) pid);
+  LOG_NO("Sending signal %d to PID %d", sig_no, (int)pid);
   if (kill(pid, sig_no) == 0) {
     TimePoint timeout = Clock::now() + wait_time;
     for (;;) {
       int status;
       pid_t wait_pid = waitpid(pid, &status, WNOHANG);
-      if (wait_pid == (pid_t) -1) {
+      if (wait_pid == (pid_t)-1) {
         if (errno == ECHILD) break;
         if (errno != EINTR) osaf_abort(pid);
       }
@@ -74,7 +69,7 @@ void Process::KillProc(pid_t pid, int sig_no, const Duration& wait_time) {
         if (sig_no == SIGTERM) {
           KillProc(pid, SIGKILL, wait_time);
         } else {
-          LOG_WA("Failed to kill %d", (int) pid);
+          LOG_WA("Failed to kill %d", (int)pid);
         }
         break;
       }
@@ -83,28 +78,28 @@ void Process::KillProc(pid_t pid, int sig_no, const Duration& wait_time) {
       }
     }
   } else if (errno == EPERM) {
-    LOG_WA("kill(%d, %d) failed due to EPERM", (int) pid, sig_no);
+    LOG_WA("kill(%d, %d) failed due to EPERM", (int)pid, sig_no);
   } else if (errno != ESRCH) {
     osaf_abort(pid);
   }
 }
 
-void Process::Execute(int argc, char *argv[], const Duration& timeout) {
+void Process::Execute(int argc, char* argv[], const Duration& timeout) {
   struct rlimit rlim;
   int nofile = 1024;
-  char *const env[] = { path_environment_variable, nullptr };
+  char* const env[] = {path_environment_variable, nullptr};
 
   TRACE_ENTER();
   osafassert(argc >= 1 && argv[argc] == nullptr);
   LOG_NO("Running '%s' with %d argument(s)", argv[0], argc - 1);
 
   if (getrlimit(RLIMIT_NOFILE, &rlim) == 0) {
-    if (rlim.rlim_cur != RLIM_INFINITY &&
-        rlim.rlim_cur <= INT_MAX && (int) rlim.rlim_cur >= 0) {
+    if (rlim.rlim_cur != RLIM_INFINITY && rlim.rlim_cur <= INT_MAX &&
+        (int)rlim.rlim_cur >= 0) {
       nofile = rlim.rlim_cur;
     } else {
       LOG_ER("RLIMIT_NOFILE is out of bounds: %llu",
-             (unsigned long long) rlim.rlim_cur);
+             (unsigned long long)rlim.rlim_cur);
     }
   } else {
     LOG_ER("getrlimit(RLIMIT_NOFILE) failed: %s", strerror(errno));
@@ -116,10 +111,9 @@ void Process::Execute(int argc, char *argv[], const Duration& timeout) {
     for (int fd = 3; fd < nofile; ++fd) close(fd);
     execve(argv[0], argv, env);
     _Exit(123);
-  } else if (child_pid != (pid_t) -1 && child_pid != 1) {
+  } else if (child_pid != (pid_t)-1 && child_pid != 1) {
     if (setpgid(child_pid, 0) != 0) {
-      LOG_WA("setpgid(%u, 0) failed: %s",
-             (unsigned) child_pid, strerror(errno));
+      LOG_WA("setpgid(%u, 0) failed: %s", (unsigned)child_pid, strerror(errno));
     }
     {
       Lock lock(mutex_);
@@ -130,7 +124,7 @@ void Process::Execute(int argc, char *argv[], const Duration& timeout) {
     pid_t wait_pid;
     do {
       wait_pid = waitpid(child_pid, &status, 0);
-    } while (wait_pid == (pid_t) -1 && errno == EINTR);
+    } while (wait_pid == (pid_t)-1 && errno == EINTR);
     bool killed;
     {
       Lock lock(mutex_);
@@ -139,28 +133,26 @@ void Process::Execute(int argc, char *argv[], const Duration& timeout) {
       process_group_id_ = 0;
     }
     bool successful = false;
-    if (!killed && wait_pid != (pid_t) -1) {
+    if (!killed && wait_pid != (pid_t)-1) {
       if (!WIFEXITED(status)) {
         LOG_ER("'%s' terminated abnormally", argv[0]);
       } else if (WEXITSTATUS(status) != 0) {
         if (WEXITSTATUS(status) == 123) {
           LOG_ER("'%s' could not be executed", argv[0]);
         } else {
-          LOG_ER("'%s' failed with exit code %d", argv[0],
-                 WEXITSTATUS(status));
+          LOG_ER("'%s' failed with exit code %d", argv[0], WEXITSTATUS(status));
         }
       } else {
         LOG_IN("'%s' exited successfully", argv[0]);
         successful = true;
       }
     } else if (!killed) {
-      LOG_ER("'%s' failed in waitpid(%u): %s",
-             argv[0], (unsigned) child_pid, strerror(errno));
+      LOG_ER("'%s' failed in waitpid(%u): %s", argv[0], (unsigned)child_pid,
+             strerror(errno));
     }
     if (!successful) KillProc(-child_pid, SIGTERM, std::chrono::seconds(2));
   } else {
-    LOG_ER("'%s' failed in fork(): %s", argv[0],
-           strerror(errno));
+    LOG_ER("'%s' failed in fork(): %s", argv[0], strerror(errno));
   }
   TRACE_LEAVE();
 }
@@ -205,5 +197,4 @@ void Process::TimerExpirationEvent(sigval notification_data) {
   instance->Kill(SIGTERM, std::chrono::seconds(2));
 }
 
-} // namespace base
-
+}  // namespace base

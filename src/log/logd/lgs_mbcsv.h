@@ -17,7 +17,6 @@
  *
  */
 
-
 #ifndef LOG_LOGD_LGS_MBCSV_H_
 #define LOG_LOGD_LGS_MBCSV_H_
 
@@ -70,15 +69,16 @@ typedef enum {
  * Used during cold and async updates.
  */
 typedef struct {
-  lgsv_ckpt_msg_type_t ckpt_rec_type;     /* Type of lgs data carried in this checkpoint */
-  uint32_t num_ckpt_records;      /* =1 for async updates,>=1 for cold sync */
-  uint32_t data_len;              /* Total length of encoded checkpoint data of this type */
+  lgsv_ckpt_msg_type_t
+      ckpt_rec_type;         /* Type of lgs data carried in this checkpoint */
+  uint32_t num_ckpt_records; /* =1 for async updates,>=1 for cold sync */
+  uint32_t data_len; /* Total length of encoded checkpoint data of this type */
 } lgsv_ckpt_header_t;
 
 /* Initialize checkpoint record, used in cold/async checkpoint updates */
 typedef struct {
-  uint32_t client_id;     /* Client Id at Active */
-  MDS_DEST mds_dest;      /* Handy when an LGA instance goes away */
+  uint32_t client_id; /* Client Id at Active */
+  MDS_DEST mds_dest;  /* Handy when an LGA instance goes away */
   lgs_stream_list_t *stream_list;
 } lgs_ckpt_initialize_msg_t;
 
@@ -86,12 +86,12 @@ typedef struct {
   uint32_t streamId;
   uint32_t clientId;
   /* correspond to SaLogFileCreateAttributes */
-  char *logFile;          /* log file name */
-  char *logPath;          /* log file path */
-  uint64_t maxFileSize;   /* max file size configurable */
-  int32_t maxLogRecordSize;       /* constant size of the records */
+  char *logFile;            /* log file name */
+  char *logPath;            /* log file path */
+  uint64_t maxFileSize;     /* max file size configurable */
+  int32_t maxLogRecordSize; /* constant size of the records */
   SaLogFileFullActionT logFileFullAction;
-  int32_t maxFilesRotated;        /* max number of rotation files configurable */
+  int32_t maxFilesRotated; /* max number of rotation files configurable */
   char *fileFmt;
   /* end correspond to SaLogFileCreateAttributes */
   char *logStreamName;
@@ -100,7 +100,7 @@ typedef struct {
   char *logFileCurrent;
   char *dest_names;
   logStreamTypeT streamType;
-  uint32_t logRecordId;   /* log record identifier increased for each record */
+  uint32_t logRecordId; /* log record identifier increased for each record */
 } lgs_ckpt_stream_open_t;
 
 uint32_t lgs_mbcsv_init(lgs_cb_t *lgs_cb, SaAmfHAStateT ha_state);
@@ -115,20 +115,21 @@ uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 void lgs_free_edu_mem(char *ptr);
 uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream,
                                   lgs_ckpt_stream_open_t *stream_open);
-uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                           NCSCONTEXT ptr, uint32_t *ptr_data_len,
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                           uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                           EDP_OP_TYPE op, EDU_ERR *o_err);
 int32_t ckpt_msg_test_type(NCSCONTEXT arg);
 
-uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                            NCSCONTEXT ptr, uint32_t *ptr_data_len,
-                            EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                        NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                            uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                            EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                        uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
                         EDP_OP_TYPE op, EDU_ERR *o_err);
 uint32_t lgs_ckpt_send_async(lgs_cb_t *cb, void *ckpt_rec, uint32_t action);
 uint32_t edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                                 NCSCONTEXT ptr, uint32_t *ptr_data_len,
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+                                EDU_ERR *o_err);
 
 #endif  // LOG_LOGD_LGS_MBCSV_H_

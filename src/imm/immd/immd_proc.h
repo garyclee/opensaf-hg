@@ -19,20 +19,22 @@
 #define IMM_IMMD_IMMD_PROC_H_
 
 /* IMMD definitions */
-#define IMMD_MBCSV_MAX_MSG_CNT  10
+#define IMMD_MBCSV_MAX_MSG_CNT 10
 
 /* Event Handler */
 void immd_process_evt(void);
 
 uint32_t immd_amf_init(IMMD_CB *immd_cb);
-uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo, bool dealocate);
+uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt,
+                                IMMSV_SEND_INFO *sinfo, bool dealocate);
 bool immd_proc_elect_coord(IMMD_CB *immd_cb, bool new_active);
 void immd_proc_arbitrate_2pbe_preload(IMMD_CB *immd_cb);
 void immd_proc_rebroadcast_fevs(IMMD_CB *immd_cb, uint16_t back_count);
 
 /* AMF Function Declerations */
 
-uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node, bool active);
+uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node,
+                                 bool active);
 
 void immd_pending_discards(IMMD_CB *cb);
 

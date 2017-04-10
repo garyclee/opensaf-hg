@@ -42,8 +42,7 @@ class Role {
   static const uint64_t kDefaultPreActiveScriptTimeout = 5000;
   void ExecutePreActiveScript();
   void ResetElectionTimer();
-  uint32_t UpdateMdsRegistration(PCS_RDA_ROLE new_role,
-                                 PCS_RDA_ROLE old_role);
+  uint32_t UpdateMdsRegistration(PCS_RDA_ROLE new_role, PCS_RDA_ROLE old_role);
 
   PCS_RDA_ROLE role_;
   NODE_ID own_node_id_;
@@ -51,8 +50,8 @@ class Role {
   timespec election_end_time_;
   uint64_t discover_peer_timeout_;
   uint64_t pre_active_script_timeout_;
-  static const char *const role_names_[];
-  static const char *const pre_active_script_;
+  static const char* const role_names_[];
+  static const char* const pre_active_script_;
 
   DELETE_COPY_AND_MOVE_OPERATORS(Role);
 };

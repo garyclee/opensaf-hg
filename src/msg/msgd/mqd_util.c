@@ -21,7 +21,7 @@
 ..............................................................................
 
   DESCRIPTION: This file inclused following routines:
-   
+
    mqd_db_node_add......................Routine to add DB node
    mqd_db_node_del......................Routine to del DB node
    mqd_db_node_create...................Routine to create DB node
@@ -47,28 +47,29 @@ static bool mqd_track_obj_cmp(void *key, void *elem);
    PROCEDURE NAME :  mqd_db_node_add
 
    DESCRIPTION    :  This routines adds the Object node into the Tree
-                   
+
    ARGUMENTS      :  pMqd  - MQD Controll block pointer
-                     pNode - Object Node 
+		     pNode - Object Node
 
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something.
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
 uint32_t mqd_db_node_add(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
 {
 	/*m_HTON_SANAMET_LEN(pNode->oinfo.name.length); */
 	pNode->node.key_info = (uint8_t *)&pNode->oinfo.name;
-	return ncs_patricia_tree_add(&pMqd->qdb, (NCS_PATRICIA_NODE *)&pNode->node);
-}	/* End of mqd_db_node_add() */
+	return ncs_patricia_tree_add(&pMqd->qdb,
+				     (NCS_PATRICIA_NODE *)&pNode->node);
+} /* End of mqd_db_node_add() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_db_node_del
 
-   DESCRIPTION    :  This routines deletes the Object node from the Tree, and 
-                     free's all the resources.
-                   
+   DESCRIPTION    :  This routines deletes the Object node from the Tree, and
+		     free's all the resources.
+
    ARGUMENTS      :  pMqd  - MQD Controll block pointer
-                     pNode - Object Node 
+		     pNode - Object Node
 
    RETURNS        :  none
 \****************************************************************************/
@@ -92,19 +93,19 @@ void mqd_db_node_del(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
 	/* Remove the object node from the tree */
 	ncs_patricia_tree_del(&pMqd->qdb, (NCS_PATRICIA_NODE *)&pNode->node);
 	m_MMGR_FREE_MQD_OBJ_NODE(pNode);
-}	/* End of mqd_db_node_del() */
+} /* End of mqd_db_node_del() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_db_node_create
 
-   DESCRIPTION    :  This routines create the Object node from the Tree, and 
-                     initializes all the resources.
-                   
+   DESCRIPTION    :  This routines create the Object node from the Tree, and
+		     initializes all the resources.
+
    ARGUMENTS      :  pMqd  - MQD Controll block pointer
-                     pNode - Object Node 
+		     pNode - Object Node
 
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something.
+		     FAILURE - internal processing didn't like something.
 \****************************************************************************/
 uint32_t mqd_db_node_create(MQD_CB *pMqd, MQD_OBJ_NODE **o_pnode)
 {
@@ -125,15 +126,15 @@ uint32_t mqd_db_node_create(MQD_CB *pMqd, MQD_OBJ_NODE **o_pnode)
 	*o_pnode = pNode;
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
-}	/* End of mqd_db_node_create() */
+} /* End of mqd_db_node_create() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_qparam_upd
 
    DESCRIPTION    :  This routines updates the queue parameter.
-                   
+
    ARGUMENTS      :  pNode - Object Node
-                     param - queue param
+		     param - queue param
 
    RETURNS        :  none
 \****************************************************************************/
@@ -146,16 +147,17 @@ void mqd_qparam_upd(MQD_OBJ_NODE *pNode, ASAPi_QUEUE_PARAM *qparam)
 	pNode->oinfo.info.q.dest = qparam->addr;
 	pNode->oinfo.info.q.hdl = qparam->hdl;
 	pNode->oinfo.info.q.creationFlags = qparam->creationFlags;
-	memcpy(pNode->oinfo.info.q.size, qparam->size, sizeof(SaSizeT) * (SA_MSG_MESSAGE_LOWEST_PRIORITY + 1));
-}	/* End of mqd_qparam_upd() */
+	memcpy(pNode->oinfo.info.q.size, qparam->size,
+	       sizeof(SaSizeT) * (SA_MSG_MESSAGE_LOWEST_PRIORITY + 1));
+} /* End of mqd_qparam_upd() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_qparam_fill
 
    DESCRIPTION    :  This routines fills the queue parameter.
-                   
+
    ARGUMENTS      :  pParam - Param Node
-                     o_param - queue param
+		     o_param - queue param
 
    RETURNS        :  none
 \****************************************************************************/
@@ -169,22 +171,23 @@ void mqd_qparam_fill(MQD_QUEUE_PARAM *pParam, ASAPi_QUEUE_PARAM *pQparam)
 	pQparam->hdl = pParam->hdl;
 	pQparam->is_mqnd_down = pParam->is_mqnd_down;
 	pQparam->creationFlags = pParam->creationFlags;
-	memcpy(pQparam->size, pParam->size, sizeof(SaSizeT) * (SA_MSG_MESSAGE_LOWEST_PRIORITY + 1));
+	memcpy(pQparam->size, pParam->size,
+	       sizeof(SaSizeT) * (SA_MSG_MESSAGE_LOWEST_PRIORITY + 1));
 
-}	/* End of mqd_qparam_fill() */
+} /* End of mqd_qparam_fill() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_track_add
 
    DESCRIPTION    :  This routines and an entry into the track list associated
-                     with the object. 
-                   
+		     with the object.
+
    ARGUMENTS      :  list - Track List
-                     dest - destination value 
+		     dest - destination value
 
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something.
-                     <ERR_CODE> Specific errors
+		     FAILURE - internal processing didn't like something.
+		     <ERR_CODE> Specific errors
 \****************************************************************************/
 uint32_t mqd_track_add(NCS_QUEUE *list, MDS_DEST *dest, MDS_SVC_ID svc)
 {
@@ -196,31 +199,32 @@ uint32_t mqd_track_add(NCS_QUEUE *list, MDS_DEST *dest, MDS_SVC_ID svc)
 	if (!pObj) {
 		pObj = m_MMGR_ALLOC_MQD_TRACK_OBJ;
 		if (!pObj) {
-			LOG_CR("ERR_MEMORY: MQD_TRACK_OBJ Memory Allocation failed");
+			LOG_CR(
+			    "ERR_MEMORY: MQD_TRACK_OBJ Memory Allocation failed");
 			return SA_AIS_ERR_NO_MEMORY;
 		}
 
-		pObj->dest = *dest;	/* Set the destination value */
-		pObj->to_svc = svc;	/* Set the service id */
+		pObj->dest = *dest; /* Set the destination value */
+		pObj->to_svc = svc; /* Set the service id */
 
 		/* Add the object to the list */
 		ncs_enqueue(list, pObj);
 	}
 	return rc;
-}	/* End of mqd_track_add() */
+} /* End of mqd_track_add() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_track_del
 
-   DESCRIPTION    :  This routines delets an entry from the track list associated
-                     with the object. 
-                   
+   DESCRIPTION    :  This routines delets an entry from the track list
+associated with the object.
+
    ARGUMENTS      :  list - Track List
-                     dest - destination value 
+		     dest - destination value
 
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something.
-                     <ERR_CODE> Specific errors
+		     FAILURE - internal processing didn't like something.
+		     <ERR_CODE> Specific errors
 \****************************************************************************/
 uint32_t mqd_track_del(NCS_QUEUE *list, MDS_DEST *dest)
 {
@@ -230,24 +234,25 @@ uint32_t mqd_track_del(NCS_QUEUE *list, MDS_DEST *dest)
 	/* Check whether the destination object already exist */
 	pObj = ncs_remove_item(list, dest, mqd_track_obj_cmp);
 	if (!pObj) {
-		LOG_ER("ERR_NOT_EXIST: Track list associated with the object not found"); 
+		LOG_ER(
+		    "ERR_NOT_EXIST: Track list associated with the object not found");
 		return SA_AIS_ERR_NOT_EXIST;
 	}
 
 	m_MMGR_FREE_MQD_TRACK_OBJ(pObj);
 	return rc;
-}	/* End of mqd_track_del() */
+} /* End of mqd_track_del() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_track_obj_cmp
 
-   DESCRIPTION    :  This routines is invoked to compare the MDS value of the 
-                     track object in the list 
-   
+   DESCRIPTION    :  This routines is invoked to compare the MDS value of the
+		     track object in the list
+
    ARGUMENTS      :  key   - what to match
-                     elem  - with whom to match
-   
-   RETURNS        :  true(If sucessfully matched)/FALSE(No match)                     
+		     elem  - with whom to match
+
+   RETURNS        :  true(If sucessfully matched)/FALSE(No match)
 \****************************************************************************/
 static bool mqd_track_obj_cmp(void *key, void *elem)
 {
@@ -257,8 +262,8 @@ static bool mqd_track_obj_cmp(void *key, void *elem)
 		return true;
 	}
 	return false;
-}	/* End of mqd_track_obj_cmp() */
-#else				/* (NCS_MQD != 0) */
+} /* End of mqd_track_obj_cmp() */
+#else /* (NCS_MQD != 0) */
 extern int dummy;
 
 #endif

@@ -33,10 +33,10 @@
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_validate_pwe_hdl(MDS_PWE_HDL pwe_hdl)
@@ -44,9 +44,11 @@ uint32_t mds_validate_pwe_hdl(MDS_PWE_HDL pwe_hdl)
 	uint32_t status = NCSCC_RC_SUCCESS;
 	m_MDS_ENTER();
 
-	status = mds_pwe_tbl_query(m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(m_MDS_GET_VDEST_ID_FROM_PWE_HDL(pwe_hdl)),
-				   m_MDS_GET_PWE_ID_FROM_PWE_HDL(pwe_hdl));
-	m_MDS_LEAVE();	
+	status =
+	    mds_pwe_tbl_query(m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(
+				  m_MDS_GET_VDEST_ID_FROM_PWE_HDL(pwe_hdl)),
+			      m_MDS_GET_PWE_ID_FROM_PWE_HDL(pwe_hdl));
+	m_MDS_LEAVE();
 	return status;
 }
 
@@ -66,10 +68,10 @@ uint32_t mds_validate_pwe_hdl(MDS_PWE_HDL pwe_hdl)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_vdest_create(NCSMDS_ADMOP_INFO *info)
@@ -78,12 +80,14 @@ uint32_t mds_mcm_vdest_create(NCSMDS_ADMOP_INFO *info)
 	MDS_SUBTN_REF_VAL subtn_ref_ptr;
 	MDS_VDEST_ID vdest_id;
 	m_MDS_ENTER();
-/* STEP 1: Create VDEST-Table Entry  */
+	/* STEP 1: Create VDEST-Table Entry  */
 
 	vdest_id = (MDS_VDEST_ID)info->info.vdest_create.i_vdest;
 
 	if ((vdest_id > NCSMDS_MAX_VDEST) || (vdest_id == 0)) {
-		m_MDS_LOG_ERR("MCM:API: Vdest_create : FAILED : VDEST id = %d not in prescribed range ", vdest_id);
+		m_MDS_LOG_ERR(
+		    "MCM:API: Vdest_create : FAILED : VDEST id = %d not in prescribed range ",
+		    vdest_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -92,18 +96,21 @@ uint32_t mds_mcm_vdest_create(NCSMDS_ADMOP_INFO *info)
 	status = mds_vdest_tbl_query(vdest_id);
 	if (status == NCSCC_RC_SUCCESS) {
 		/* VDEST already exist */
-		m_MDS_LOG_ERR("MCM:API: vdest_create : VDEST id = %d Already exist", vdest_id);
+		m_MDS_LOG_ERR(
+		    "MCM:API: vdest_create : VDEST id = %d Already exist",
+		    vdest_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
 		/* Add vdest in to table */
 
-		mds_vdest_tbl_add(vdest_id, info->info.vdest_create.i_policy,
-				  (MDS_VDEST_HDL *)&info->info.vdest_create.o_mds_vdest_hdl);
+		mds_vdest_tbl_add(
+		    vdest_id, info->info.vdest_create.i_policy,
+		    (MDS_VDEST_HDL *)&info->info.vdest_create.o_mds_vdest_hdl);
 	}
 
-/* STEP 2: IF Policy is MxN *
-             call mdtm_vdest_subscribe (uint32_t i_vdest_id) */
+	/* STEP 2: IF Policy is MxN *
+		     call mdtm_vdest_subscribe (uint32_t i_vdest_id) */
 
 	if (info->info.vdest_create.i_policy == NCS_VDEST_TYPE_MxN) {
 		status = mds_mdtm_vdest_subscribe(vdest_id, &subtn_ref_ptr);
@@ -113,8 +120,9 @@ uint32_t mds_mcm_vdest_create(NCSMDS_ADMOP_INFO *info)
 			/* Remove VDEST info from MCM Database */
 			mds_vdest_tbl_del(vdest_id);
 
-			m_MDS_LOG_ERR("MCM:API: vdest_create : VDEST id = %d can't subscribe : MDTM Returned Failure ",
-				      vdest_id);
+			m_MDS_LOG_ERR(
+			    "MCM:API: vdest_create : VDEST id = %d can't subscribe : MDTM Returned Failure ",
+			    vdest_id);
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
@@ -123,9 +131,12 @@ uint32_t mds_mcm_vdest_create(NCSMDS_ADMOP_INFO *info)
 	}
 
 	/* Fill output handle parameter */
-	info->info.vdest_create.o_mds_vdest_hdl = (MDS_HDL)m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(vdest_id);
+	info->info.vdest_create.o_mds_vdest_hdl =
+	    (MDS_HDL)m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(vdest_id);
 
-	m_MDS_LOG_INFO("MCM:API: vdest_create : VDEST id = %d Created Successfully", vdest_id);
+	m_MDS_LOG_INFO(
+	    "MCM:API: vdest_create : VDEST id = %d Created Successfully",
+	    vdest_id);
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -136,10 +147,10 @@ uint32_t mds_mcm_vdest_create(NCSMDS_ADMOP_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_vdest_destroy(NCSMDS_ADMOP_INFO *info)
@@ -156,12 +167,15 @@ uint32_t mds_mcm_vdest_destroy(NCSMDS_ADMOP_INFO *info)
 	/* Check whether VDEST already exist */
 
 	/* Get Vdest_id */
-	local_vdest_id = m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->info.vdest_destroy.i_vdest_hdl);
+	local_vdest_id = m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(
+	    info->info.vdest_destroy.i_vdest_hdl);
 
 	status = mds_vdest_tbl_query(local_vdest_id);
 	if (status == NCSCC_RC_FAILURE) {
 		/* VDEST Doesn't exist */
-		m_MDS_LOG_ERR("MCM:API: vdest_destroy : VDEST id = %d Doesn't exist", local_vdest_id);
+		m_MDS_LOG_ERR(
+		    "MCM:API: vdest_destroy : VDEST id = %d Doesn't exist",
+		    local_vdest_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -171,30 +185,34 @@ uint32_t mds_mcm_vdest_destroy(NCSMDS_ADMOP_INFO *info)
 	mds_vdest_tbl_get_policy(local_vdest_id, &local_vdest_policy);
 	mds_vdest_tbl_get_subtn_ref_val(local_vdest_id, &subtn_ref_val);
 
-/* STEP 1: For all PWEs on this DEST
-            Call mds_mcm_pwe_destroy (pwe_hdl) */
+	/* STEP 1: For all PWEs on this DEST
+		    Call mds_mcm_pwe_destroy (pwe_hdl) */
 
 	pwe_destroy_info.i_op = MDS_ADMOP_PWE_DESTROY;
 
-	while (mds_vdest_tbl_get_first(local_vdest_id, &pwe_hdl) != NCSCC_RC_FAILURE) {
-		pwe_destroy_info.info.pwe_destroy.i_mds_pwe_hdl = (MDS_HDL)pwe_hdl;
+	while (mds_vdest_tbl_get_first(local_vdest_id, &pwe_hdl) !=
+	       NCSCC_RC_FAILURE) {
+		pwe_destroy_info.info.pwe_destroy.i_mds_pwe_hdl =
+		    (MDS_HDL)pwe_hdl;
 		mds_mcm_pwe_destroy(&pwe_destroy_info);
 	}
 
-/* STEP 2: IF VDEST is Active
-            Call mdtm_vdest_uninstall (vdest_id)
-            To inform other VDEST about its going to Standby state. */
+	/* STEP 2: IF VDEST is Active
+		    Call mdtm_vdest_uninstall (vdest_id)
+		    To inform other VDEST about its going to Standby state. */
 
-/* STEP 3: Call mdtm_vdest_unsubscribe(vdest_id)
-            To Subscribe to active VDEST instance */
+	/* STEP 3: Call mdtm_vdest_unsubscribe(vdest_id)
+		    To Subscribe to active VDEST instance */
 
 	if (local_vdest_policy == NCS_VDEST_TYPE_MxN) {
 		/* Unsubscribe for this vdest */
-		status = mds_mdtm_vdest_unsubscribe(local_vdest_id, subtn_ref_val);
+		status =
+		    mds_mdtm_vdest_unsubscribe(local_vdest_id, subtn_ref_val);
 		if (status != NCSCC_RC_SUCCESS) {
 			/* VDEST Unsubscription Failed */
-			m_MDS_LOG_ERR("MCM:API:  VDEST id = %d can't Unsubscribe MDTM Returned Failure",
-			     local_vdest_id);
+			m_MDS_LOG_ERR(
+			    "MCM:API:  VDEST id = %d can't Unsubscribe MDTM Returned Failure",
+			    local_vdest_id);
 		}
 
 		/* If current role is active uninstall it */
@@ -202,21 +220,23 @@ uint32_t mds_mcm_vdest_destroy(NCSMDS_ADMOP_INFO *info)
 			status = mds_mdtm_vdest_uninstall(local_vdest_id);
 			if (status != NCSCC_RC_SUCCESS) {
 				/* VDEST Uninstalled Failed */
-				m_MDS_LOG_ERR("MCM:API:  VDEST id = %d can't UnInstall  MDTM Returned Failure",
-				     local_vdest_id);
+				m_MDS_LOG_ERR(
+				    "MCM:API:  VDEST id = %d can't UnInstall  MDTM Returned Failure",
+				    local_vdest_id);
 			}
 		}
-
 	}
 
-/* STEP 4: Delete DEST from VDEST-table entry */
+	/* STEP 4: Delete DEST from VDEST-table entry */
 
-	status = mds_vdest_tbl_del(m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->info.vdest_destroy.i_vdest_hdl));
+	status = mds_vdest_tbl_del(m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(
+	    info->info.vdest_destroy.i_vdest_hdl));
 
-	m_MDS_LOG_INFO("MCM:API: vdest_destroy : VDEST id = %d Destroyed Successfully", local_vdest_id);
+	m_MDS_LOG_INFO(
+	    "MCM:API: vdest_destroy : VDEST id = %d Destroyed Successfully",
+	    local_vdest_id);
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /****************************************************************************
@@ -245,16 +265,21 @@ uint32_t mds_mcm_vdest_query(NCSMDS_ADMOP_INFO *info)
 
 		/* Dummy statements as vdest_id is same as vdest_hdl */
 
-		info->info.vdest_query.o_local_vdest_hdl = (MDS_HDL)m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(local_vdest_id);
+		info->info.vdest_query.o_local_vdest_hdl =
+		    (MDS_HDL)m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(local_vdest_id);
 
-		info->info.vdest_query.o_local_vdest_anc = (V_DEST_QA)m_MDS_GET_ADEST;
+		info->info.vdest_query.o_local_vdest_anc =
+		    (V_DEST_QA)m_MDS_GET_ADEST;
 
-		m_MDS_LOG_INFO("MCM:API: vdest_query for VDEST id = %d Successful", local_vdest_id);
+		m_MDS_LOG_INFO(
+		    "MCM:API: vdest_query for VDEST id = %d Successful",
+		    local_vdest_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	} else {
 		/* VDEST Doesn't exist */
-		m_MDS_LOG_INFO("MCM:API: vdest_query for VDEST id = %d FAILED", local_vdest_id);
+		m_MDS_LOG_INFO("MCM:API: vdest_query for VDEST id = %d FAILED",
+			       local_vdest_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -266,10 +291,10 @@ uint32_t mds_mcm_vdest_query(NCSMDS_ADMOP_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_vdest_chg_role(NCSMDS_ADMOP_INFO *info)
@@ -282,45 +307,49 @@ uint32_t mds_mcm_vdest_chg_role(NCSMDS_ADMOP_INFO *info)
 	MDS_SVC_INFO *svc_info = NULL;
 	m_MDS_ENTER();
 
-/* 
-From Dest_Hdl get the Current Role of VDEST
+	/*
+	From Dest_Hdl get the Current Role of VDEST
 
-if (Current Role = Active && New Role = Quiesced)
-    {
-        STEP 1: Call mdtm_vdest_uninstall(vdest_id)
-        (To unbind to intimate other VDEST with same id about its Role change.)
+	if (Current Role = Active && New Role = Quiesced)
+	    {
+		STEP 1: Call mdtm_vdest_uninstall(vdest_id)
+		(To unbind to intimate other VDEST with same id about its Role
+	change.)
 
-        STEP 2: Update New Role = Quiesced in Local VDEST table.
+		STEP 2: Update New Role = Quiesced in Local VDEST table.
 
-        STEP 3: For each service on this VDEST (obtained by a join on VDEST TABLE, PWE TABLE,SVC-TABLE)
-                Call mdtm_svc_install(svc_hdl, NEW ROLE=Quiesced)
-                Call mdtm_svc_uninstall(svc_hdl, Current ROLE)
+		STEP 3: For each service on this VDEST (obtained by a join on
+	VDEST TABLE, PWE TABLE,SVC-TABLE) Call mdtm_svc_install(svc_hdl, NEW
+	ROLE=Quiesced) Call mdtm_svc_uninstall(svc_hdl, Current ROLE)
 
-        STEP 4: Start Quiesced timer
-    }
+		STEP 4: Start Quiesced timer
+	    }
 
-if  (Current Role = Quiesced && New Role = Standby)
-    {
-        STEP 1: Update New Role = Standby in Local VDEST table.
-    }
-if (New Role = Active)
-    {
-        STEP 1: Call mdtm_vdest_install(vdest_id)
-                 (To unbind to intimate other VDEST with same id about its Role change)
-    }
-if (new Role = Active / Standby)
-    {
-        STEP 1: For each service on this VDEST (obtained by a join on VDEST TABLE, PWE TABLE,SVC-TABLE)
-                Call mdtm_svc_uninstall(svc_hdl, Current ROLE)
-                Call mdtm_svc_install(svc_hdl, NEW ROLE=Active/Standby)
-    }
-*/
+	if  (Current Role = Quiesced && New Role = Standby)
+	    {
+		STEP 1: Update New Role = Standby in Local VDEST table.
+	    }
+	if (New Role = Active)
+	    {
+		STEP 1: Call mdtm_vdest_install(vdest_id)
+			 (To unbind to intimate other VDEST with same id about
+	its Role change)
+	    }
+	if (new Role = Active / Standby)
+	    {
+		STEP 1: For each service on this VDEST (obtained by a join on
+	VDEST TABLE, PWE TABLE,SVC-TABLE) Call mdtm_svc_uninstall(svc_hdl,
+	Current ROLE) Call mdtm_svc_install(svc_hdl, NEW ROLE=Active/Standby)
+	    }
+	*/
 	local_vdest_id = (MDS_VDEST_ID)info->info.vdest_query.i_local_vdest;
 
 	status = mds_vdest_tbl_query(local_vdest_id);
 	if (status == NCSCC_RC_FAILURE) {
 		/* Vdest Doesn't exist */
-		m_MDS_LOG_ERR("MCM:API: vdest_chg_role : VDEST id = %d Doesn't exist", local_vdest_id);
+		m_MDS_LOG_ERR(
+		    "MCM:API: vdest_chg_role : VDEST id = %d Doesn't exist",
+		    local_vdest_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -331,171 +360,241 @@ if (new Role = Active / Standby)
 	/* Get Policy of Vdest */
 	mds_vdest_tbl_get_policy(local_vdest_id, &local_vdest_policy);
 
-	if (current_role == V_DEST_RL_ACTIVE && info->info.vdest_config.i_new_role == V_DEST_RL_QUIESCED) {
+	if (current_role == V_DEST_RL_ACTIVE &&
+	    info->info.vdest_config.i_new_role == V_DEST_RL_QUIESCED) {
 
 		/* Bad: Directly accessing service tree */
-		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, NULL);
+		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(
+		    &gl_mds_mcm_cb->svc_list, NULL);
 		while (svc_info != NULL) {
-			vdest_id = m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_info->svc_hdl);
+			vdest_id =
+			    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_info->svc_hdl);
 			if (local_vdest_id == vdest_id) {
-				mds_mdtm_svc_install(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     svc_info->install_scope,
-						     V_DEST_RL_STANDBY,
-						     local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
-				mds_mdtm_svc_uninstall(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       svc_info->install_scope,
-						       V_DEST_RL_ACTIVE,
-						       local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
-				mds_mdtm_svc_uninstall(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       svc_info->install_scope,
-						       V_DEST_RL_ACTIVE,
-						       local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_install(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope, V_DEST_RL_STANDBY,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_uninstall(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope, V_DEST_RL_ACTIVE,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_uninstall(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope, V_DEST_RL_ACTIVE,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
 			}
-			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
+			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(
+			    &gl_mds_mcm_cb->svc_list,
+			    (uint8_t *)&svc_info->svc_hdl);
 		}
 
-		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_QUIESCED, true);
+		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_QUIESCED,
+					  true);
 		/* timer started in tbl_update */
 
 		if (local_vdest_policy == NCS_VDEST_TYPE_MxN) {
 			mds_mdtm_vdest_uninstall(local_vdest_id);
 		}
-		m_MDS_LOG_INFO("MCM:API: vdest_chg_role: VDEST id = %d : Role Changed : Active -> Quiesced",
-				 local_vdest_id);
-	} else if (current_role == V_DEST_RL_QUIESCED && info->info.vdest_config.i_new_role == V_DEST_RL_ACTIVE) {
+		m_MDS_LOG_INFO(
+		    "MCM:API: vdest_chg_role: VDEST id = %d : Role Changed : Active -> Quiesced",
+		    local_vdest_id);
+	} else if (current_role == V_DEST_RL_QUIESCED &&
+		   info->info.vdest_config.i_new_role == V_DEST_RL_ACTIVE) {
 		/* Bad: Directly accessing service tree */
-		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, NULL);
+		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(
+		    &gl_mds_mcm_cb->svc_list, NULL);
 		while (svc_info != NULL) {
-			vdest_id = m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_info->svc_hdl);
+			vdest_id =
+			    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_info->svc_hdl);
 			if (local_vdest_id == vdest_id) {
-				mds_mdtm_svc_install(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     svc_info->install_scope,
-						     V_DEST_RL_ACTIVE,
-						     local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
-				mds_mdtm_svc_uninstall(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       svc_info->install_scope,
-						       V_DEST_RL_STANDBY,
-						       local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
-				mds_mdtm_svc_install(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     svc_info->install_scope,
-						     V_DEST_RL_ACTIVE,
-						     local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_install(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope, V_DEST_RL_ACTIVE,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_uninstall(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope, V_DEST_RL_STANDBY,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_install(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope, V_DEST_RL_ACTIVE,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
 			}
-			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
+			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(
+			    &gl_mds_mcm_cb->svc_list,
+			    (uint8_t *)&svc_info->svc_hdl);
 		}
 
-		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_ACTIVE, true);
+		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_ACTIVE,
+					  true);
 		/* timer started in tbl_update */
 
 		if (local_vdest_policy == NCS_VDEST_TYPE_MxN) {
 			mds_mdtm_vdest_install(local_vdest_id);
 		}
-		m_MDS_LOG_INFO("MCM:API: vdest_chg_role: VDEST id = %d : Role Changed : Quiesced -> Active",
-				 local_vdest_id);
+		m_MDS_LOG_INFO(
+		    "MCM:API: vdest_chg_role: VDEST id = %d : Role Changed : Quiesced -> Active",
+		    local_vdest_id);
 
-	} else if (current_role == V_DEST_RL_QUIESCED && info->info.vdest_config.i_new_role == V_DEST_RL_STANDBY) {
+	} else if (current_role == V_DEST_RL_QUIESCED &&
+		   info->info.vdest_config.i_new_role == V_DEST_RL_STANDBY) {
 		/* Just update the role */
-		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_STANDBY, true);
+		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_STANDBY,
+					  true);
 		/* timer stopped in tbl_update */
 
-		m_MDS_LOG_INFO("MCM:API:vdest_chg_role: VDEST id = %d : Role Changed : Quiesced -> Standby",
-				 local_vdest_id);
+		m_MDS_LOG_INFO(
+		    "MCM:API:vdest_chg_role: VDEST id = %d : Role Changed : Quiesced -> Standby",
+		    local_vdest_id);
 
-	} else if (current_role == V_DEST_RL_STANDBY && info->info.vdest_config.i_new_role == V_DEST_RL_QUIESCED) {
-		m_MDS_LOG_ERR("MCM:API:vdest_chg_role: VDEST id = %d : Role Changed : Standby -> Quiesced : NOT POSSIBLE",
-		     local_vdest_id);
+	} else if (current_role == V_DEST_RL_STANDBY &&
+		   info->info.vdest_config.i_new_role == V_DEST_RL_QUIESCED) {
+		m_MDS_LOG_ERR(
+		    "MCM:API:vdest_chg_role: VDEST id = %d : Role Changed : Standby -> Quiesced : NOT POSSIBLE",
+		    local_vdest_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
-	} else if (current_role == V_DEST_RL_STANDBY && info->info.vdest_config.i_new_role == V_DEST_RL_ACTIVE) {
+	} else if (current_role == V_DEST_RL_STANDBY &&
+		   info->info.vdest_config.i_new_role == V_DEST_RL_ACTIVE) {
 
 		/* Bad: Directly accessing service tree */
-		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, NULL);
+		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(
+		    &gl_mds_mcm_cb->svc_list, NULL);
 		while (svc_info != NULL) {
-			vdest_id = m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_info->svc_hdl);
+			vdest_id =
+			    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_info->svc_hdl);
 			if (local_vdest_id == vdest_id) {
-				mds_mdtm_svc_install(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     svc_info->install_scope,
-						     info->info.vdest_config.i_new_role,
-						     local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
-				mds_mdtm_svc_uninstall(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       svc_info->install_scope,
-						       current_role,
-						       local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
-				mds_mdtm_svc_install(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     svc_info->install_scope,
-						     info->info.vdest_config.i_new_role,
-						     local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_install(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope,
+				    info->info.vdest_config.i_new_role,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_uninstall(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope, current_role,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_install(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope,
+				    info->info.vdest_config.i_new_role,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
 			}
-			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
+			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(
+			    &gl_mds_mcm_cb->svc_list,
+			    (uint8_t *)&svc_info->svc_hdl);
 		}
 		/* Update the role */
-		mds_vdest_tbl_update_role(local_vdest_id, info->info.vdest_config.i_new_role, true);
+		mds_vdest_tbl_update_role(
+		    local_vdest_id, info->info.vdest_config.i_new_role, true);
 
 		if (local_vdest_policy == NCS_VDEST_TYPE_MxN) {
 			/* Install vdest instance */
 			mds_mdtm_vdest_install(local_vdest_id);
 		}
 
-		m_MDS_LOG_INFO("MCM:API:vdest_chg_role: VDEST id = %d : Role Changed : Standby -> Active",
-				 local_vdest_id);
+		m_MDS_LOG_INFO(
+		    "MCM:API:vdest_chg_role: VDEST id = %d : Role Changed : Standby -> Active",
+		    local_vdest_id);
 
-	} else if (current_role == V_DEST_RL_ACTIVE && info->info.vdest_config.i_new_role == V_DEST_RL_STANDBY) {
+	} else if (current_role == V_DEST_RL_ACTIVE &&
+		   info->info.vdest_config.i_new_role == V_DEST_RL_STANDBY) {
 
 		/* Bad: Directly accessing service tree */
 		svc_info = NULL;
-		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, NULL);
+		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(
+		    &gl_mds_mcm_cb->svc_list, NULL);
 		while (svc_info != NULL) {
-			vdest_id = m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_info->svc_hdl);
+			vdest_id =
+			    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_info->svc_hdl);
 			if (local_vdest_id == vdest_id) {
-				mds_mdtm_svc_install(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						     svc_info->install_scope,
-						     info->info.vdest_config.i_new_role,
-						     local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
-				mds_mdtm_svc_uninstall(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       svc_info->install_scope,
-						       current_role,
-						       local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
-				mds_mdtm_svc_uninstall(m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
-						       svc_info->install_scope,
-						       current_role,
-						       local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_install(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope,
+				    info->info.vdest_config.i_new_role,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_uninstall(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope, current_role,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
+				mds_mdtm_svc_uninstall(
+				    m_MDS_GET_PWE_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					svc_info->svc_hdl),
+				    svc_info->install_scope, current_role,
+				    local_vdest_id, local_vdest_policy,
+				    svc_info->svc_sub_part_ver);
 			}
-			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
+			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(
+			    &gl_mds_mcm_cb->svc_list,
+			    (uint8_t *)&svc_info->svc_hdl);
 		}
 
 		/* Update the role */
-		mds_vdest_tbl_update_role(local_vdest_id, info->info.vdest_config.i_new_role, true);
+		mds_vdest_tbl_update_role(
+		    local_vdest_id, info->info.vdest_config.i_new_role, true);
 
 		if (local_vdest_policy == NCS_VDEST_TYPE_MxN) {
 			/* Install vdest instance */
 			mds_mdtm_vdest_uninstall(local_vdest_id);
 		}
 
-		m_MDS_LOG_INFO("MCM:API:vdest_chg_role: VDEST id = %d : Role Changed : Active -> Standby",
-				 local_vdest_id);
+		m_MDS_LOG_INFO(
+		    "MCM:API:vdest_chg_role: VDEST id = %d : Role Changed : Active -> Standby",
+		    local_vdest_id);
 
 	} else if (current_role == info->info.vdest_config.i_new_role) {
-		m_MDS_LOG_INFO
-		    ("MCM:API:vdest_chg_role: Role Changed FAILED for VDEST id = %d : OLD_ROLE = NEW_ROLE = %s",
-		     local_vdest_id,
-		     (current_role ==
-		      V_DEST_RL_STANDBY) ? "standby" : ((current_role == V_DEST_RL_ACTIVE) ? "active" : "quieced"));
+		m_MDS_LOG_INFO(
+		    "MCM:API:vdest_chg_role: Role Changed FAILED for VDEST id = %d : OLD_ROLE = NEW_ROLE = %s",
+		    local_vdest_id,
+		    (current_role == V_DEST_RL_STANDBY)
+			? "standby"
+			: ((current_role == V_DEST_RL_ACTIVE) ? "active"
+							      : "quieced"));
 	}
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -507,19 +606,21 @@ if (new Role = Active / Standby)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
-  RETURNS:  
-            
+  RETURNS:
+
 
 *********************************************************/
 uint32_t mds_mcm_pwe_create(NCSMDS_ADMOP_INFO *info)
 {
 
 	m_MDS_ENTER();
-	if ((info->info.pwe_create.i_pwe_id > NCSMDS_MAX_PWES) || (info->info.pwe_create.i_pwe_id == 0)) {
-		m_MDS_LOG_ERR("MCM:API: pwe_create : FAILED : PWE id = %d not in prescribed range ",
-			      info->info.pwe_create.i_pwe_id);
+	if ((info->info.pwe_create.i_pwe_id > NCSMDS_MAX_PWES) ||
+	    (info->info.pwe_create.i_pwe_id == 0)) {
+		m_MDS_LOG_ERR(
+		    "MCM:API: pwe_create : FAILED : PWE id = %d not in prescribed range ",
+		    info->info.pwe_create.i_pwe_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -529,24 +630,30 @@ uint32_t mds_mcm_pwe_create(NCSMDS_ADMOP_INFO *info)
 		/* It is ADEST hdl */
 
 		if (mds_pwe_tbl_query((MDS_VDEST_HDL)m_VDEST_ID_FOR_ADEST_ENTRY,
-				      info->info.pwe_create.i_pwe_id) == NCSCC_RC_SUCCESS) {
+				      info->info.pwe_create.i_pwe_id) ==
+		    NCSCC_RC_SUCCESS) {
 			/* PWE already present */
 
-			m_MDS_LOG_ERR("MCM:API: pwe_create : FAILED : PWE id = %d Already exist on Adest",
-				      info->info.pwe_create.i_pwe_id);
+			m_MDS_LOG_ERR(
+			    "MCM:API: pwe_create : FAILED : PWE id = %d Already exist on Adest",
+			    info->info.pwe_create.i_pwe_id);
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		} else {
-			mds_pwe_tbl_add((MDS_VDEST_HDL)m_VDEST_ID_FOR_ADEST_ENTRY,
-					info->info.pwe_create.i_pwe_id,
-					(MDS_PWE_HDL *)&info->info.pwe_create.o_mds_pwe_hdl);
+			mds_pwe_tbl_add(
+			    (MDS_VDEST_HDL)m_VDEST_ID_FOR_ADEST_ENTRY,
+			    info->info.pwe_create.i_pwe_id,
+			    (MDS_PWE_HDL *)&info->info.pwe_create
+				.o_mds_pwe_hdl);
 
 			/* info->info.pwe_create.o_mds_pwe_hdl = (NCSCONTEXT)
-			   m_MDS_GET_PWE_HDL_FROM_PWE_ID_AND_VDEST_ID(info->info.pwe_create.i_pwe_id, 
-			   m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info.pwe_create.i_mds_dest_hdl)); */
+			   m_MDS_GET_PWE_HDL_FROM_PWE_ID_AND_VDEST_ID(info->info.pwe_create.i_pwe_id,
+			   m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info.pwe_create.i_mds_dest_hdl));
+			 */
 
-			m_MDS_LOG_INFO("MCM:API: PWE id = %d Created Successfully on Adest",
-					 info->info.pwe_create.i_pwe_id);
+			m_MDS_LOG_INFO(
+			    "MCM:API: PWE id = %d Created Successfully on Adest",
+			    info->info.pwe_create.i_pwe_id);
 			m_MDS_LEAVE();
 			return NCSCC_RC_SUCCESS;
 		}
@@ -554,33 +661,43 @@ uint32_t mds_mcm_pwe_create(NCSMDS_ADMOP_INFO *info)
 	} else if ((info->info.pwe_create.i_mds_dest_hdl & 0xffff0000) != 0) {
 		/* It is PWE hdl(pwe+vdest) */
 		/* ERROR ERROR ERROR */
-		m_MDS_LOG_ERR("MCM:API: pwe_create : FAILED : DEST HDL = %"PRId32" passed is already PWE HDL",
-			      info->info.pwe_create.i_mds_dest_hdl);
+		m_MDS_LOG_ERR(
+		    "MCM:API: pwe_create : FAILED : DEST HDL = %" PRId32
+		    " passed is already PWE HDL",
+		    info->info.pwe_create.i_mds_dest_hdl);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
 		/* It is VDEST hdl */
 
-		if (mds_pwe_tbl_query((MDS_VDEST_HDL)info->info.pwe_create.i_mds_dest_hdl,
-				      info->info.pwe_create.i_pwe_id) == NCSCC_RC_SUCCESS) {
+		if (mds_pwe_tbl_query(
+			(MDS_VDEST_HDL)info->info.pwe_create.i_mds_dest_hdl,
+			info->info.pwe_create.i_pwe_id) == NCSCC_RC_SUCCESS) {
 			/* PWE already present */
-			m_MDS_LOG_ERR("MCM:API: pwe_create : FAILED : PWE id = %d Already exist on VDEST id = %d",
-				      info->info.pwe_create.i_pwe_id,
-				      m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->info.pwe_create.i_mds_dest_hdl));
+			m_MDS_LOG_ERR(
+			    "MCM:API: pwe_create : FAILED : PWE id = %d Already exist on VDEST id = %d",
+			    info->info.pwe_create.i_pwe_id,
+			    m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(
+				info->info.pwe_create.i_mds_dest_hdl));
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		} else {
-			mds_pwe_tbl_add((MDS_VDEST_HDL)info->info.pwe_create.i_mds_dest_hdl,
-					info->info.pwe_create.i_pwe_id,
-					(MDS_PWE_HDL *)&info->info.pwe_create.o_mds_pwe_hdl);
+			mds_pwe_tbl_add(
+			    (MDS_VDEST_HDL)info->info.pwe_create.i_mds_dest_hdl,
+			    info->info.pwe_create.i_pwe_id,
+			    (MDS_PWE_HDL *)&info->info.pwe_create
+				.o_mds_pwe_hdl);
 
-			/* info->info.pwe_create.o_mds_pwe_hdl =(NCSCONTEXT) 
-			   m_MDS_GET_PWE_HDL_FROM_PWE_ID_AND_VDEST_ID(info->info.pwe_create.i_pwe_id, 
-			   m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info.pwe_create.i_mds_dest_hdl)); */
+			/* info->info.pwe_create.o_mds_pwe_hdl =(NCSCONTEXT)
+			   m_MDS_GET_PWE_HDL_FROM_PWE_ID_AND_VDEST_ID(info->info.pwe_create.i_pwe_id,
+			   m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info.pwe_create.i_mds_dest_hdl));
+			 */
 
-			m_MDS_LOG_INFO("MCM:API: PWE id = %d Created Successfully on VDEST id = %d",
-					 info->info.pwe_create.i_pwe_id,
-					 m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->info.pwe_create.i_mds_dest_hdl));
+			m_MDS_LOG_INFO(
+			    "MCM:API: PWE id = %d Created Successfully on VDEST id = %d",
+			    info->info.pwe_create.i_pwe_id,
+			    m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(
+				info->info.pwe_create.i_mds_dest_hdl));
 			m_MDS_LEAVE();
 			return NCSCC_RC_SUCCESS;
 		}
@@ -593,10 +710,10 @@ uint32_t mds_mcm_pwe_create(NCSMDS_ADMOP_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_pwe_destroy(NCSMDS_ADMOP_INFO *info)
@@ -610,13 +727,18 @@ uint32_t mds_mcm_pwe_destroy(NCSMDS_ADMOP_INFO *info)
 	MDS_SVC_INFO *svc_info = NULL;
 
 	m_MDS_ENTER();
-	pwe_id = m_MDS_GET_PWE_ID_FROM_PWE_HDL(info->info.pwe_destroy.i_mds_pwe_hdl);
-	vdest_id = m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->info.pwe_destroy.i_mds_pwe_hdl);
+	pwe_id =
+	    m_MDS_GET_PWE_ID_FROM_PWE_HDL(info->info.pwe_destroy.i_mds_pwe_hdl);
+	vdest_id = m_MDS_GET_VDEST_ID_FROM_PWE_HDL(
+	    info->info.pwe_destroy.i_mds_pwe_hdl);
 
-	status = mds_pwe_tbl_query(m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(vdest_id), pwe_id);
+	status = mds_pwe_tbl_query(m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(vdest_id),
+				   pwe_id);
 	if (status == NCSCC_RC_FAILURE) {
 		/* Pwe doesn't exist */
-		m_MDS_LOG_ERR("MCM:API: pwe_destroy : PWE id = %d Doesn't exist on VDEST id = %d", pwe_id, vdest_id);
+		m_MDS_LOG_ERR(
+		    "MCM:API: pwe_destroy : PWE id = %d Doesn't exist on VDEST id = %d",
+		    pwe_id, vdest_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -624,32 +746,40 @@ uint32_t mds_mcm_pwe_destroy(NCSMDS_ADMOP_INFO *info)
 	temp_ncsmds_info.i_op = MDS_UNINSTALL;
 	temp_ncsmds_info.info.svc_uninstall.i_msg_free_cb = NULL;
 
-/* STEP 1: For ever svc on PWE,
-            - Delete subscription entries if any from  
-              LOCAL-UNIQ-SUBSCRIPTION-REQUEST-Table and BLOCK-SEND-Request Table.
-            - Call mdtm_svc_uninstall(svc_hdl, Current Role) */
+	/* STEP 1: For ever svc on PWE,
+		    - Delete subscription entries if any from
+		      LOCAL-UNIQ-SUBSCRIPTION-REQUEST-Table and
+	   BLOCK-SEND-Request Table. - Call mdtm_svc_uninstall(svc_hdl, Current
+	   Role) */
 
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, NULL);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(
+	    &gl_mds_mcm_cb->svc_list, NULL);
 	while (svc_info != NULL) {
-		temp_pwe_hdl = m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_info->svc_hdl);
-		if (temp_pwe_hdl == (MDS_PWE_HDL)info->info.pwe_destroy.i_mds_pwe_hdl) {
-			temp_svc_id = m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl);
-			temp_ncsmds_info.i_mds_hdl = info->info.pwe_destroy.i_mds_pwe_hdl;
+		temp_pwe_hdl =
+		    m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_info->svc_hdl);
+		if (temp_pwe_hdl ==
+		    (MDS_PWE_HDL)info->info.pwe_destroy.i_mds_pwe_hdl) {
+			temp_svc_id =
+			    m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl);
+			temp_ncsmds_info.i_mds_hdl =
+			    info->info.pwe_destroy.i_mds_pwe_hdl;
 			temp_ncsmds_info.i_svc_id = temp_svc_id;
 
 			mds_mcm_svc_uninstall(&temp_ncsmds_info);
 		}
-		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
+		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(
+		    &gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
 	}
 
-/* STEP 2: Delete entry from PWE Table */
-	status = mds_pwe_tbl_del((MDS_PWE_HDL)info->info.pwe_destroy.i_mds_pwe_hdl);
+	/* STEP 2: Delete entry from PWE Table */
+	status =
+	    mds_pwe_tbl_del((MDS_PWE_HDL)info->info.pwe_destroy.i_mds_pwe_hdl);
 
-	m_MDS_LOG_INFO("MCM:API: PWE id = %d on VDEST id = %d Destoryed Successfully", pwe_id, vdest_id);
+	m_MDS_LOG_INFO(
+	    "MCM:API: PWE id = %d on VDEST id = %d Destoryed Successfully",
+	    pwe_id, vdest_id);
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /****************************************************************************
@@ -669,12 +799,14 @@ uint32_t mds_mcm_adm_pwe_query(NCSMDS_ADMOP_INFO *info)
 	uint32_t status = NCSCC_RC_SUCCESS;
 
 	m_MDS_ENTER();
-	status = mds_pwe_tbl_query
-	    (m_MDS_GET_VDEST_HDL_FROM_PWE_HDL(info->info.pwe_query.i_local_dest_hdl), info->info.pwe_query.i_pwe_id);
+	status = mds_pwe_tbl_query(m_MDS_GET_VDEST_HDL_FROM_PWE_HDL(
+				       info->info.pwe_query.i_local_dest_hdl),
+				   info->info.pwe_query.i_pwe_id);
 	if (status == NCSCC_RC_FAILURE) {
 		/* Pwe Already exists */
-		m_MDS_LOG_ERR("MCM:API: pwe_query : FAILURE : PWE id = %d Doesn't Exists",
-			      info->info.pwe_query.i_pwe_id);
+		m_MDS_LOG_ERR(
+		    "MCM:API: pwe_query : FAILURE : PWE id = %d Doesn't Exists",
+		    info->info.pwe_query.i_pwe_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -682,29 +814,40 @@ uint32_t mds_mcm_adm_pwe_query(NCSMDS_ADMOP_INFO *info)
 	if ((uint32_t)info->info.pwe_query.i_local_dest_hdl == m_ADEST_HDL) {
 		/* It is ADEST hdl */
 
-		info->info.pwe_query.o_mds_pwe_hdl = (MDS_HDL)m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID
-		    ((MDS_VDEST_HDL)m_VDEST_ID_FOR_ADEST_ENTRY, info->info.pwe_query.i_pwe_id);
+		info->info.pwe_query.o_mds_pwe_hdl =
+		    (MDS_HDL)m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID(
+			(MDS_VDEST_HDL)m_VDEST_ID_FOR_ADEST_ENTRY,
+			info->info.pwe_query.i_pwe_id);
 
-		m_MDS_LOG_INFO("MCM:API: pwe_query : SUCCESS for PWE id = %d on Adest",
-				 info->info.pwe_query.i_pwe_id);
+		m_MDS_LOG_INFO(
+		    "MCM:API: pwe_query : SUCCESS for PWE id = %d on Adest",
+		    info->info.pwe_query.i_pwe_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_SUCCESS;
-	} else if ((((uint32_t)info->info.pwe_query.i_local_dest_hdl) & 0xffff0000) != 0) {
+	} else if ((((uint32_t)info->info.pwe_query.i_local_dest_hdl) &
+		    0xffff0000) != 0) {
 		/* It is PWE hdl(pwe+vdest) */
 		/* ERROR ERROR ERROR */
-		m_MDS_LOG_ERR("MCM:API: pwe_query : PWE Query Failed for PWE id = %d as DEST hdl = %"PRId32" passed is PWE_HDL",
-		     info->info.pwe_query.i_pwe_id, info->info.pwe_query.i_local_dest_hdl);
+		m_MDS_LOG_ERR(
+		    "MCM:API: pwe_query : PWE Query Failed for PWE id = %d as DEST hdl = %" PRId32
+		    " passed is PWE_HDL",
+		    info->info.pwe_query.i_pwe_id,
+		    info->info.pwe_query.i_local_dest_hdl);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
 		/* It is VDEST hdl */
 
-		info->info.pwe_query.o_mds_pwe_hdl = (MDS_HDL)m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID
-		    (info->info.pwe_query.i_local_dest_hdl, info->info.pwe_query.i_pwe_id);
+		info->info.pwe_query.o_mds_pwe_hdl =
+		    (MDS_HDL)m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID(
+			info->info.pwe_query.i_local_dest_hdl,
+			info->info.pwe_query.i_pwe_id);
 
-		m_MDS_LOG_INFO("MCM:API: pwe_query : SUCCESS for PWE id = %d on VDEST id = %d",
-				 info->info.pwe_query.i_pwe_id,
-				 m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->info.pwe_query.i_local_dest_hdl));
+		m_MDS_LOG_INFO(
+		    "MCM:API: pwe_query : SUCCESS for PWE id = %d on VDEST id = %d",
+		    info->info.pwe_query.i_pwe_id,
+		    m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(
+			info->info.pwe_query.i_local_dest_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
@@ -726,10 +869,10 @@ uint32_t mds_mcm_adm_pwe_query(NCSMDS_ADMOP_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 
@@ -743,112 +886,135 @@ uint32_t mds_mcm_svc_install(NCSMDS_INFO *info)
 
 	m_MDS_ENTER();
 	if ((info->i_svc_id > NCSMDS_MAX_SVCS) || (info->i_svc_id == 0)) {
-		m_MDS_LOG_ERR("MCM:API: svc_install : FAILED : svc_id = %s(%d) not in prescribed range", 
-		get_svc_names(info->i_svc_id), info->i_svc_id);
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_install : FAILED : svc_id = %s(%d) not in prescribed range",
+		    get_svc_names(info->i_svc_id), info->i_svc_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
-	if ((info->info.svc_install.i_install_scope < NCSMDS_SCOPE_INTRANODE)
-	    || (info->info.svc_install.i_install_scope > NCSMDS_SCOPE_NONE)) {
-		m_MDS_LOG_ERR("MCM:API: svc_install : FAILED : svc_id = %s(%d) , Should use the proper scope of installation",
-		     get_svc_names(info->i_svc_id), info->i_svc_id);
+	if ((info->info.svc_install.i_install_scope < NCSMDS_SCOPE_INTRANODE) ||
+	    (info->info.svc_install.i_install_scope > NCSMDS_SCOPE_NONE)) {
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_install : FAILED : svc_id = %s(%d) , Should use the proper scope of installation",
+		    get_svc_names(info->i_svc_id), info->i_svc_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (info->info.svc_install.i_mds_q_ownership == false) {
 		if (info->i_svc_id >= NCSMDS_SVC_ID_EXTERNAL_MIN) {
-			m_MDS_LOG_ERR("MCM:API: svc_install : FAILED : svc_id = %d , Should use the MDS Q Ownership model",
-					info->i_svc_id);
+			m_MDS_LOG_ERR(
+			    "MCM:API: svc_install : FAILED : svc_id = %d , Should use the MDS Q Ownership model",
+			    info->i_svc_id);
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 	}
 
-	status = mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id);
+	status =
+	    mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id);
 	if (status == NCSCC_RC_SUCCESS) {
 		/* Service already exist */
-		m_MDS_LOG_ERR("MCM:API: svc_install : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Already Exist",
-			      get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_install : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Already Exist",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
-/*    STEP 1: Create a SVC-TABLE entry
-        INPUT
-        -   Pwe_Hdl
-        -   SVC_ID
-        -   SCOPE
-        -   Q-ownership Flag
-        -   Selection-obj (if any)
-        -   Callback Ptr.
-        Output
-        -   Svc_Hdl
-*/
+	/*    STEP 1: Create a SVC-TABLE entry
+		INPUT
+		-   Pwe_Hdl
+		-   SVC_ID
+		-   SCOPE
+		-   Q-ownership Flag
+		-   Selection-obj (if any)
+		-   Callback Ptr.
+		Output
+		-   Svc_Hdl
+	*/
 	/* Add new service entry to SVC Table */
 	if (mds_svc_tbl_add(info) != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MCM:API: svc_install : FAILED : svc_id = %s(%d)",
-		 get_svc_names(info->i_svc_id), info->i_svc_id);
+			      get_svc_names(info->i_svc_id), info->i_svc_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
-/*    STEP 2: if (Q-ownership=MDS)
-                Create SYSF_MBX */
+	/*    STEP 2: if (Q-ownership=MDS)
+			Create SYSF_MBX */
 	/* Taken care by db function */
 
-/*    STEP 3: Call mdtm_svc_install(svc_hdl) */
+	/*    STEP 3: Call mdtm_svc_install(svc_hdl) */
 
 	/* Get current role of VDEST */
-	mds_vdest_tbl_get_role(m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->i_mds_hdl), &local_vdest_role);
-	mds_vdest_tbl_get_policy(m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->i_mds_hdl), &local_vdest_policy);
+	mds_vdest_tbl_get_role(
+	    m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->i_mds_hdl),
+	    &local_vdest_role);
+	mds_vdest_tbl_get_policy(
+	    m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->i_mds_hdl),
+	    &local_vdest_policy);
 
 	if (local_vdest_role == V_DEST_RL_QUIESCED) {
 		/* if Current role of VDEST is Quiesced install with Standby */
 		local_vdest_role = V_DEST_RL_STANDBY;
 	}
 	/* Inform MDTM */
-	status = mds_mdtm_svc_install(m_MDS_GET_PWE_ID_FROM_PWE_HDL(info->i_mds_hdl),
-				      info->i_svc_id,
-				      info->info.svc_install.i_install_scope,
-				      local_vdest_role,
-				      m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->i_mds_hdl),
-				      local_vdest_policy, info->info.svc_install.i_mds_svc_pvt_ver);
+	status = mds_mdtm_svc_install(
+	    m_MDS_GET_PWE_ID_FROM_PWE_HDL(info->i_mds_hdl), info->i_svc_id,
+	    info->info.svc_install.i_install_scope, local_vdest_role,
+	    m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->i_mds_hdl),
+	    local_vdest_policy, info->info.svc_install.i_mds_svc_pvt_ver);
 	if (status != NCSCC_RC_SUCCESS) {
 		/* MDTM can't bind the service */
 
 		/* Remove SVC info from MCM database */
-		mds_svc_tbl_del((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, NULL);	/* Last argument is NULL as no one else will be able to add in mailbox without getting lock */
+		mds_svc_tbl_del(
+		    (MDS_PWE_HDL)info->i_mds_hdl,
+		    info->i_svc_id, NULL); /* Last argument is NULL as no one
+					      else will be able to add in
+					      mailbox without getting lock */
 
-		m_MDS_LOG_ERR("MCM:API: svc_install : svc_id = %s(%d) on VDEST id = %d FAILED : MDTM returned Failure",
-			      get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_install : svc_id = %s(%d) on VDEST id = %d FAILED : MDTM returned Failure",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Perform Another bind as current VDEST role is Active */
-	if (local_vdest_role == V_DEST_RL_ACTIVE && local_vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY) {
-		status = mds_mdtm_svc_install(m_MDS_GET_PWE_ID_FROM_PWE_HDL(info->i_mds_hdl),
-					      info->i_svc_id,
-					      info->info.svc_install.i_install_scope,
-					      local_vdest_role,
-					      m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->i_mds_hdl),
-					      local_vdest_policy, info->info.svc_install.i_mds_svc_pvt_ver);
+	if (local_vdest_role == V_DEST_RL_ACTIVE &&
+	    local_vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY) {
+		status = mds_mdtm_svc_install(
+		    m_MDS_GET_PWE_ID_FROM_PWE_HDL(info->i_mds_hdl),
+		    info->i_svc_id, info->info.svc_install.i_install_scope,
+		    local_vdest_role,
+		    m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(info->i_mds_hdl),
+		    local_vdest_policy,
+		    info->info.svc_install.i_mds_svc_pvt_ver);
 		if (status != NCSCC_RC_SUCCESS) {
 			/* MDTM can't bind the service second time */
 
-			/* Neither delete service nor return Failure as first bind is already successful
-			   and second bind any way we ignore on the other end (subscriber end) so impact is minimal */
+			/* Neither delete service nor return Failure as first
+			   bind is already successful and second bind any way we
+			   ignore on the other end (subscriber end) so impact is
+			   minimal */
 
-			m_MDS_LOG_ERR("MCM:API: svc_install : Second install for : svc_id = %s(%d) on VDEST id = %d FAILED : MDTM returned Failure",
-			     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+			m_MDS_LOG_ERR(
+			    "MCM:API: svc_install : Second install for : svc_id = %s(%d) on VDEST id = %d FAILED : MDTM returned Failure",
+			    get_svc_names(info->i_svc_id), info->i_svc_id,
+			    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		}
 	}
 
-	m_MDS_LOG_INFO("MCM:API: svc_id = %s(%d) on VDEST id = %d, SVC_PVT_VER = %d Install Successfull",
-			 get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
-			 info->info.svc_install.i_mds_svc_pvt_ver);
+	m_MDS_LOG_INFO(
+	    "MCM:API: svc_id = %s(%d) on VDEST id = %d, SVC_PVT_VER = %d Install Successfull",
+	    get_svc_names(info->i_svc_id), info->i_svc_id,
+	    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
+	    info->info.svc_install.i_mds_svc_pvt_ver);
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -859,10 +1025,10 @@ uint32_t mds_mcm_svc_install(NCSMDS_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 
@@ -876,7 +1042,7 @@ uint32_t mds_mcm_svc_uninstall(NCSMDS_INFO *info)
 	MDS_VDEST_ID vdest_id;
 	V_DEST_RL vdest_role;
 	NCS_VDEST_TYPE vdest_policy;
-	MDS_SVC_ID svc_id_max1[1];	/* Max 1 element */
+	MDS_SVC_ID svc_id_max1[1]; /* Max 1 element */
 
 	MDS_MCM_SYNC_SEND_QUEUE *q_hdr = NULL, *prev_mem = NULL;
 	MDS_VDEST_ID local_vdest_id = 0;
@@ -884,21 +1050,25 @@ uint32_t mds_mcm_svc_uninstall(NCSMDS_INFO *info)
 	local_vdest_id = m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl);
 
 	m_MDS_ENTER();
-/* STEP 1: From Input get svc_hdl */
-/* STEP 2: Search subscr_hdl from LOCAL-UNIQ-SUBSCRIPTION-REQUEST Table and make PEER_SVC_ID_LIST
+	/* STEP 1: From Input get svc_hdl */
+	/* STEP 2: Search subscr_hdl from LOCAL-UNIQ-SUBSCRIPTION-REQUEST Table
+	and make PEER_SVC_ID_LIST
 
-if (PEER_SVC_ID_LIST != NULL)
-    {
-        call mds_unsubscribe(vdest_hdl/pwe_hdl, svc_id(self),PEER_SVC_ID_LIST)
-             (MDS API)
-    }*/
+	if (PEER_SVC_ID_LIST != NULL)
+	    {
+		call mds_unsubscribe(vdest_hdl/pwe_hdl,
+	svc_id(self),PEER_SVC_ID_LIST) (MDS API)
+	    }*/
 
 	/* Check whether service exist */
-	status = mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id);
+	status =
+	    mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id);
 	if (status == NCSCC_RC_FAILURE) {
 		/* Service Doesn't exist */
-		m_MDS_LOG_ERR("MCM:API: svc_uninstall : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Doesn't Exist",
-			      get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_uninstall : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Doesn't Exist",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -907,23 +1077,31 @@ if (PEER_SVC_ID_LIST != NULL)
 	temp_ncsmds_info.i_svc_id = info->i_svc_id;
 	temp_ncsmds_info.i_op = MDS_CANCEL;
 	temp_ncsmds_info.info.svc_cancel.i_num_svcs = 1;
-	temp_ncsmds_info.info.svc_cancel.i_svc_ids = svc_id_max1;	/* Storage associated */
+	temp_ncsmds_info.info.svc_cancel.i_svc_ids =
+	    svc_id_max1; /* Storage associated */
 
-	svc_hdl = m_MDS_GET_SVC_HDL_FROM_PWE_HDL_AND_SVC_ID((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id);
+	svc_hdl = m_MDS_GET_SVC_HDL_FROM_PWE_HDL_AND_SVC_ID(
+	    (MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id);
 
-	while (mds_svc_tbl_get_first_subscription(svc_hdl, &temp_subtn_info) != NCSCC_RC_FAILURE) {
-		temp_ncsmds_info.info.svc_cancel.i_svc_ids[0] = temp_subtn_info->sub_svc_id;
+	while (mds_svc_tbl_get_first_subscription(svc_hdl, &temp_subtn_info) !=
+	       NCSCC_RC_FAILURE) {
+		temp_ncsmds_info.info.svc_cancel.i_svc_ids[0] =
+		    temp_subtn_info->sub_svc_id;
 		mds_mcm_svc_unsubscribe(&temp_ncsmds_info);
-		/* this will remove subscription entry so it will 
+		/* this will remove subscription entry so it will
 		   get next result in first_subscription query */
 	}
 
-/* STEP 3: mdtm_svc_uninstall(vdest-id, pwe_id, svc_id, svc_hdl) */
+	/* STEP 3: mdtm_svc_uninstall(vdest-id, pwe_id, svc_id, svc_hdl) */
 
-	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, (NCSCONTEXT)&svc_cb)) {
+	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get((MDS_PWE_HDL)info->i_mds_hdl,
+						info->i_svc_id,
+						(NCSCONTEXT)&svc_cb)) {
 		/* Service Doesn't exist */
-		m_MDS_LOG_ERR("MCM:API: svc_uninstall : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Doesn't Exist",
-			      get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_uninstall : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Doesn't Exist",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -932,30 +1110,35 @@ if (PEER_SVC_ID_LIST != NULL)
 	mds_vdest_tbl_get_role(vdest_id, &vdest_role);
 	mds_vdest_tbl_get_policy(vdest_id, &vdest_policy);
 
-	status = mds_mdtm_svc_uninstall(m_MDS_GET_PWE_ID_FROM_PWE_HDL(info->i_mds_hdl),
-					info->i_svc_id,
-					svc_cb->install_scope,
-					vdest_role, vdest_id, vdest_policy, svc_cb->svc_sub_part_ver);
+	status = mds_mdtm_svc_uninstall(
+	    m_MDS_GET_PWE_ID_FROM_PWE_HDL(info->i_mds_hdl), info->i_svc_id,
+	    svc_cb->install_scope, vdest_role, vdest_id, vdest_policy,
+	    svc_cb->svc_sub_part_ver);
 	if (status != NCSCC_RC_SUCCESS) {
 		/* MDTM can't unsubscribe the service */
-		m_MDS_LOG_ERR("MCM:API: svc_install : svc_id = %s(%d) on VDEST id = %d FAILED : MDTM returned Failure",
-			      get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_install : svc_id = %s(%d) on VDEST id = %d FAILED : MDTM returned Failure",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 	}
 	/* Perform Another Unbind as current VDEST role is Active */
-	if (vdest_role == V_DEST_RL_ACTIVE && local_vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY) {
-		status = mds_mdtm_svc_uninstall(m_MDS_GET_PWE_ID_FROM_PWE_HDL(info->i_mds_hdl),
-						info->i_svc_id,
-						svc_cb->install_scope,
-						vdest_role, vdest_id, vdest_policy, svc_cb->svc_sub_part_ver);
+	if (vdest_role == V_DEST_RL_ACTIVE &&
+	    local_vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY) {
+		status = mds_mdtm_svc_uninstall(
+		    m_MDS_GET_PWE_ID_FROM_PWE_HDL(info->i_mds_hdl),
+		    info->i_svc_id, svc_cb->install_scope, vdest_role, vdest_id,
+		    vdest_policy, svc_cb->svc_sub_part_ver);
 		if (status != NCSCC_RC_SUCCESS) {
 			/* MDTM can't unsubscribe the service */
-			m_MDS_LOG_ERR("MCM:API: svc_install : Second Uninstall for : svc_id = %s(%d) on VDEST id = %d FAILED : MDTM returned Failure",
-			     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+			m_MDS_LOG_ERR(
+			    "MCM:API: svc_install : Second Uninstall for : svc_id = %s(%d) on VDEST id = %d FAILED : MDTM returned Failure",
+			    get_svc_names(info->i_svc_id), info->i_svc_id,
+			    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		}
 	}
 
-/* STEP 4: if (Q-ownership==MDS)
-           Destroy SYSF_MBX */
+	/* STEP 4: if (Q-ownership==MDS)
+		   Destroy SYSF_MBX */
 
 	/* Destroying MBX taken care by DB */
 
@@ -969,18 +1152,22 @@ if (PEER_SVC_ID_LIST != NULL)
 	}
 	svc_cb->sync_send_queue = NULL;
 
-/* STEP 5: Delete a SVC-TABLE entry and do the node unsubsribe */
+	/* STEP 5: Delete a SVC-TABLE entry and do the node unsubsribe */
 
 	if (svc_cb->i_node_subscr) {
-		if (mds_mdtm_node_unsubscribe( svc_cb->node_subtn_ref_val) != NCSCC_RC_SUCCESS) {
+		if (mds_mdtm_node_unsubscribe(svc_cb->node_subtn_ref_val) !=
+		    NCSCC_RC_SUCCESS) {
 			m_MDS_LOG_ERR("MCM_API: mds_mdtm_node_unsubscribe \n");
 		}
 	}
 
-	mds_svc_tbl_del((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, info->info.svc_uninstall.i_msg_free_cb);
+	mds_svc_tbl_del((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id,
+			info->info.svc_uninstall.i_msg_free_cb);
 
-	m_MDS_LOG_INFO("MCM:API: svc_id = %s(%d) on VDEST id = %d UnInstall Successful",
-			 get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+	m_MDS_LOG_INFO(
+	    "MCM:API: svc_id = %s(%d) on VDEST id = %d UnInstall Successful",
+	    get_svc_names(info->i_svc_id), info->i_svc_id,
+	    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -991,10 +1178,10 @@ if (PEER_SVC_ID_LIST != NULL)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 
@@ -1008,131 +1195,173 @@ uint32_t mds_mcm_svc_subscribe(NCSMDS_INFO *info)
 	NCSMDS_INFO unsubscribe_info;
 
 	m_MDS_ENTER();
-/* STEP 1: Validation pass: 
-    - Check that "scope" is smaller or equal to install-scope of SVC_ID
-    - For each SVC in PEER_SVCID_LIST, check that there is no subscription already existing (with same or different SCOPE or VIEW). 
-      If any return failure. */
+	/* STEP 1: Validation pass:
+	    - Check that "scope" is smaller or equal to install-scope of SVC_ID
+	    - For each SVC in PEER_SVCID_LIST, check that there is no
+	   subscription already existing (with same or different SCOPE or VIEW).
+	      If any return failure. */
 
-	status = mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id);
+	status =
+	    mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id);
 	if (status == NCSCC_RC_FAILURE) {
 		/* Service doesn't exist */
-		m_MDS_LOG_ERR("MCM:API: svc_subscribe : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Doesn't Exist",
-			      get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_subscribe : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Doesn't Exist",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
-	mds_svc_tbl_get_install_scope((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, &install_scope);
-	if ((info->info.svc_subscribe.i_scope > install_scope)
-	    || (info->info.svc_subscribe.i_scope < NCSMDS_SCOPE_INTRANODE)) {
+	mds_svc_tbl_get_install_scope((MDS_PWE_HDL)info->i_mds_hdl,
+				      info->i_svc_id, &install_scope);
+	if ((info->info.svc_subscribe.i_scope > install_scope) ||
+	    (info->info.svc_subscribe.i_scope < NCSMDS_SCOPE_INTRANODE)) {
 		/* Subscription scope is bigger than Install scope */
 
-		m_MDS_LOG_ERR("MCM:API: svc_subscribe : svc_id = %s(%d) on VDEST id = %d FAILED : Subscripton Scope Mismatch",
-		     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_subscribe : svc_id = %s(%d) on VDEST id = %d FAILED : Subscripton Scope Mismatch",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
-	mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, &svc_hdl);
+	mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id,
+				&svc_hdl);
 	if (info->i_op == MDS_SUBSCRIBE) {
 		view = MDS_VIEW_NORMAL;
-	} else {		/* It is MDS_RED_SUBSCRIBE */
+	} else { /* It is MDS_RED_SUBSCRIBE */
 		view = MDS_VIEW_RED;
 	}
 
-/* STEP 2: For each element of PEER_SVC_IDLIST:
-   if (entry doesn't exist in SUBSCR-TABLE)
-    {
-        STEP 2.a: Create SUBSCR-TABLE entry
-                INPUT
-                -   SUB_SVCID
-                -   PWE_ID
-                -   SCOPE
-                -   VIEW=NORMAL_VIEW/RED_VIEW
-                -   Svc_Hdl
-                OUTPUT
-                -   Subscr_req_hdl
-        STEP 2.b: Start Subscription Timer ( done in DB )
-        STEP 2.c: Call mdtm_svc_subscribe(sub_svc_id, scope, svc_hdl)
-    }
-    else
-    {
-        if(Subscription is Implicit)
-            change the Flag to Explicit.
-    }
-*/
-	/* Validate whether subscription array gives is not null when count is non zero */
-	if (info->info.svc_subscribe.i_num_svcs != 0 && info->info.svc_subscribe.i_svc_ids == NULL) {
-		m_MDS_LOG_ERR("MCM:API: svc_subscribe : svc_id = %s(%d) on VDEST id = %d gave non zero count and NULL Subscription array",
-		     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+	/* STEP 2: For each element of PEER_SVC_IDLIST:
+	   if (entry doesn't exist in SUBSCR-TABLE)
+	    {
+		STEP 2.a: Create SUBSCR-TABLE entry
+			INPUT
+			-   SUB_SVCID
+			-   PWE_ID
+			-   SCOPE
+			-   VIEW=NORMAL_VIEW/RED_VIEW
+			-   Svc_Hdl
+			OUTPUT
+			-   Subscr_req_hdl
+		STEP 2.b: Start Subscription Timer ( done in DB )
+		STEP 2.c: Call mdtm_svc_subscribe(sub_svc_id, scope, svc_hdl)
+	    }
+	    else
+	    {
+		if(Subscription is Implicit)
+		    change the Flag to Explicit.
+	    }
+	*/
+	/* Validate whether subscription array gives is not null when count is
+	 * non zero */
+	if (info->info.svc_subscribe.i_num_svcs != 0 &&
+	    info->info.svc_subscribe.i_svc_ids == NULL) {
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_subscribe : svc_id = %s(%d) on VDEST id = %d gave non zero count and NULL Subscription array",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Subscription Validation */
 	for (i = 0; i < info->info.svc_subscribe.i_num_svcs; i++) {
 
-		if ((info->info.svc_subscribe.i_svc_ids[i] > NCSMDS_MAX_SVCS)
-		    || (info->info.svc_subscribe.i_svc_ids[i] == 0)) {
-			m_MDS_LOG_ERR("MCM:API: svc_subscribe : svc_id = %s(%d) on VDEST id = %d Subscription to svc_id = %s(%d) FAILED | not in prescribed range",
-			     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
-			     get_svc_names(info->info.svc_subscribe.i_svc_ids[i]), info->info.svc_subscribe.i_svc_ids[i]);
+		if ((info->info.svc_subscribe.i_svc_ids[i] > NCSMDS_MAX_SVCS) ||
+		    (info->info.svc_subscribe.i_svc_ids[i] == 0)) {
+			m_MDS_LOG_ERR(
+			    "MCM:API: svc_subscribe : svc_id = %s(%d) on VDEST id = %d Subscription to svc_id = %s(%d) FAILED | not in prescribed range",
+			    get_svc_names(info->i_svc_id), info->i_svc_id,
+			    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
+			    get_svc_names(
+				info->info.svc_subscribe.i_svc_ids[i]),
+			    info->info.svc_subscribe.i_svc_ids[i]);
 			return NCSCC_RC_FAILURE;
 		}
 
 		status = NCSCC_RC_SUCCESS;
-		status = mds_subtn_tbl_query(svc_hdl, info->info.svc_subscribe.i_svc_ids[i]);
+		status = mds_subtn_tbl_query(
+		    svc_hdl, info->info.svc_subscribe.i_svc_ids[i]);
 
 		if (status == NCSCC_RC_SUCCESS) {
-			m_MDS_LOG_ERR("MCM:API: svc_subscribe : svc_id = %s(%d) on VDEST id = %d Subscription to svc_id = %s(%d) FAILED | ALREADY EXIST",
-			     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
-			     get_svc_names(info->info.svc_subscribe.i_svc_ids[i]), info->info.svc_subscribe.i_svc_ids[i]);
+			m_MDS_LOG_ERR(
+			    "MCM:API: svc_subscribe : svc_id = %s(%d) on VDEST id = %d Subscription to svc_id = %s(%d) FAILED | ALREADY EXIST",
+			    get_svc_names(info->i_svc_id), info->i_svc_id,
+			    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
+			    get_svc_names(
+				info->info.svc_subscribe.i_svc_ids[i]),
+			    info->info.svc_subscribe.i_svc_ids[i]);
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
-
 	}
 
 	for (i = 0; i < info->info.svc_subscribe.i_num_svcs; i++) {
 		status = NCSCC_RC_SUCCESS;
-		status = mds_subtn_tbl_query(svc_hdl, info->info.svc_subscribe.i_svc_ids[i]);
+		status = mds_subtn_tbl_query(
+		    svc_hdl, info->info.svc_subscribe.i_svc_ids[i]);
 
 		if (status == NCSCC_RC_NO_CREATION) {
-			/* Implicit subscription already present 
+			/* Implicit subscription already present
 			   so change Implicit flag to explicit */
-			status = mds_subtn_tbl_change_explicit
-			    (svc_hdl, info->info.svc_subscribe.i_svc_ids[i],
-			     (info->i_op) == MDS_SUBSCRIBE ? MDS_VIEW_NORMAL : MDS_VIEW_RED);
-			m_MDS_LOG_INFO("MCM:API: svc_subscribe :svc_id = %s(%d) on VDEST id = %d Subscription to svc_id = %s(%d) : Already Exist Implicitly : Changed to Explicit",
-			     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
-			     get_svc_names(info->info.svc_subscribe.i_svc_ids[i]), info->info.svc_subscribe.i_svc_ids[i]);
-		} else {	/* status = NCSCC_RC_FAILURE (It can't be SUCCESS, as it is verified in Validation) */
+			status = mds_subtn_tbl_change_explicit(
+			    svc_hdl, info->info.svc_subscribe.i_svc_ids[i],
+			    (info->i_op) == MDS_SUBSCRIBE ? MDS_VIEW_NORMAL
+							  : MDS_VIEW_RED);
+			m_MDS_LOG_INFO(
+			    "MCM:API: svc_subscribe :svc_id = %s(%d) on VDEST id = %d Subscription to svc_id = %s(%d) : Already Exist Implicitly : Changed to Explicit",
+			    get_svc_names(info->i_svc_id), info->i_svc_id,
+			    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
+			    get_svc_names(
+				info->info.svc_subscribe.i_svc_ids[i]),
+			    info->info.svc_subscribe.i_svc_ids[i]);
+		} else { /* status = NCSCC_RC_FAILURE (It can't be SUCCESS, as
+			    it is verified in Validation) */
 			/* Add new Subscription entry */
-			status = mds_mcm_subtn_add(svc_hdl,
-						   info->info.svc_subscribe.i_svc_ids[i],
-						   info->info.svc_subscribe.i_scope, view, MDS_SUBTN_EXPLICIT);
+			status = mds_mcm_subtn_add(
+			    svc_hdl, info->info.svc_subscribe.i_svc_ids[i],
+			    info->info.svc_subscribe.i_scope, view,
+			    MDS_SUBTN_EXPLICIT);
 			if (status != NCSCC_RC_SUCCESS) {
-				/* There was some problem while subscribing so rollback all previous subscriptions */
-				m_MDS_LOG_ERR("MCM:API: svc_subscribe :svc_id = %s(%d) on VDEST id = %d Subscription to svc_id = %s(%d) Failed",
-				     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
-				     get_svc_names(info->info.svc_subscribe.i_svc_ids[i]), info->info.svc_subscribe.i_svc_ids[i]);
-				m_MDS_LOG_INFO("MCM:API: svc_subscribe : Rollbacking previous subscriptions");
+				/* There was some problem while subscribing so
+				 * rollback all previous subscriptions */
+				m_MDS_LOG_ERR(
+				    "MCM:API: svc_subscribe :svc_id = %s(%d) on VDEST id = %d Subscription to svc_id = %s(%d) Failed",
+				    get_svc_names(info->i_svc_id),
+				    info->i_svc_id,
+				    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(
+					info->i_mds_hdl),
+				    get_svc_names(
+					info->info.svc_subscribe.i_svc_ids[i]),
+				    info->info.svc_subscribe.i_svc_ids[i]);
+				m_MDS_LOG_INFO(
+				    "MCM:API: svc_subscribe : Rollbacking previous subscriptions");
 
 				/* Unsubscribing the subscribed services */
-				memset(&unsubscribe_info, 0, sizeof(unsubscribe_info));
+				memset(&unsubscribe_info, 0,
+				       sizeof(unsubscribe_info));
 				unsubscribe_info.i_mds_hdl = info->i_mds_hdl;
 				unsubscribe_info.i_svc_id = info->i_svc_id;
 				unsubscribe_info.i_op = MDS_CANCEL;
 				unsubscribe_info.info.svc_cancel.i_num_svcs = i;
-				unsubscribe_info.info.svc_cancel.i_svc_ids = info->info.svc_subscribe.i_svc_ids;
+				unsubscribe_info.info.svc_cancel.i_svc_ids =
+				    info->info.svc_subscribe.i_svc_ids;
 
 				mds_mcm_svc_unsubscribe(&unsubscribe_info);
 				m_MDS_LEAVE();
 				return NCSCC_RC_FAILURE;
 			}
 			/* MDTM subscribe is done in above function */
-			/* Tipc subtn_ref_hdl returned stored in subtn_info in above function */
+			/* Tipc subtn_ref_hdl returned stored in subtn_info in
+			 * above function */
 		}
-		m_MDS_LOG_INFO("MCM:API: svc_subscribe :svc_id = %s(%d) on VDEST id = %d Subscription to svc_id = %s(%d) Successful",
-		     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
-		     get_svc_names(info->info.svc_subscribe.i_svc_ids[i]), info->info.svc_subscribe.i_svc_ids[i]);
+		m_MDS_LOG_INFO(
+		    "MCM:API: svc_subscribe :svc_id = %s(%d) on VDEST id = %d Subscription to svc_id = %s(%d) Successful",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl),
+		    get_svc_names(info->info.svc_subscribe.i_svc_ids[i]),
+		    info->info.svc_subscribe.i_svc_ids[i]);
 	}
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1144,10 +1373,10 @@ uint32_t mds_mcm_svc_subscribe(NCSMDS_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 
@@ -1159,11 +1388,15 @@ uint32_t mds_mcm_svc_unsubscribe(NCSMDS_INFO *info)
 	MDS_SUBTN_REF_VAL subscr_req_hdl;
 
 	m_MDS_ENTER();
-	status = mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id);
+	status =
+	    mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id);
 	if (status == NCSCC_RC_FAILURE) {
 		/* Service doesn't exist */
-		m_MDS_LOG_ERR("MCM:API: svc_unsubscribe : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Doesn't Exist",
-			      get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL((MDS_PWE_HDL)info->i_mds_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_unsubscribe : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Doesn't Exist",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(
+			(MDS_PWE_HDL)info->i_mds_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -1172,23 +1405,27 @@ uint32_t mds_mcm_svc_unsubscribe(NCSMDS_INFO *info)
 	   - SUBTN_REF_VAL
 	   OUTPUT
 	   -   SVC_HDL    */
-	mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, &svc_hdl);
+	mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id,
+				&svc_hdl);
 
-	/* STEP 2: Find all subscription entries from LOCAL-SUBSCRIPTION-REQ-TABLE using "svc-hdl"
-	   INPUT
-	   -   SVC_HDL
-	   OUTPUT
+	/* STEP 2: Find all subscription entries from
+	   LOCAL-SUBSCRIPTION-REQ-TABLE using "svc-hdl" INPUT -   SVC_HDL OUTPUT
 	   - List of "subtn_hdl" */
 
 	/* Subscription Validation */
 	for (i = 0; i < info->info.svc_cancel.i_num_svcs; i++) {
 		status = NCSCC_RC_SUCCESS;
-		status = mds_subtn_tbl_query(svc_hdl, info->info.svc_cancel.i_svc_ids[i]);
+		status = mds_subtn_tbl_query(
+		    svc_hdl, info->info.svc_cancel.i_svc_ids[i]);
 
 		if (status == NCSCC_RC_FAILURE) {
-			m_MDS_LOG_ERR("MCM:API: svc_unsubscribe : svc_id = %s(%d) on VDEST id = %d Unsubscription to svc_id = %s(%d) FAILED : Not Subscribed",
-			     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL((MDS_PWE_HDL)info->i_mds_hdl),
-			     get_svc_names(info->info.svc_cancel.i_svc_ids[i]), info->info.svc_cancel.i_svc_ids[i]);
+			m_MDS_LOG_ERR(
+			    "MCM:API: svc_unsubscribe : svc_id = %s(%d) on VDEST id = %d Unsubscription to svc_id = %s(%d) FAILED : Not Subscribed",
+			    get_svc_names(info->i_svc_id), info->i_svc_id,
+			    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(
+				(MDS_PWE_HDL)info->i_mds_hdl),
+			    get_svc_names(info->info.svc_cancel.i_svc_ids[i]),
+			    info->info.svc_cancel.i_svc_ids[i]);
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
@@ -1197,22 +1434,32 @@ uint32_t mds_mcm_svc_unsubscribe(NCSMDS_INFO *info)
 	for (i = 0; i < info->info.svc_cancel.i_num_svcs; i++) {
 		NCSMDS_SCOPE_TYPE scope = NCSMDS_SCOPE_INTRAPCON;
 
-		status = mds_subtn_tbl_get_ref_hdl(svc_hdl, info->info.svc_cancel.i_svc_ids[i], &subscr_req_hdl, &scope);
+		status = mds_subtn_tbl_get_ref_hdl(
+		    svc_hdl, info->info.svc_cancel.i_svc_ids[i],
+		    &subscr_req_hdl, &scope);
 		if (status == NCSCC_RC_FAILURE) {
 			/* Not able to get subtn ref hdl */
 		} else {
 			/* STEP 3: Call mcm_mdtm_unsubscribe(subtn_hdl) */
 			/* Inform MDTM about unsubscription */
-			mds_mdtm_svc_unsubscribe(m_MDS_GET_PWE_ID_FROM_PWE_HDL((MDS_PWE_HDL)(info->i_mds_hdl)),  
-							info->info.svc_cancel.i_svc_ids[i], scope, subscr_req_hdl);
+			mds_mdtm_svc_unsubscribe(
+			    m_MDS_GET_PWE_ID_FROM_PWE_HDL(
+				(MDS_PWE_HDL)(info->i_mds_hdl)),
+			    info->info.svc_cancel.i_svc_ids[i], scope,
+			    subscr_req_hdl);
 		}
 
 		/* Delete all MDTM entries */
-		mds_subtn_res_tbl_del_all(svc_hdl, info->info.svc_cancel.i_svc_ids[i]);
+		mds_subtn_res_tbl_del_all(svc_hdl,
+					  info->info.svc_cancel.i_svc_ids[i]);
 		mds_subtn_tbl_del(svc_hdl, info->info.svc_cancel.i_svc_ids[i]);
-		m_MDS_LOG_INFO("MCM:API: svc_unsubscribe : svc_id = %s(%d) on VDEST id = %d Unsubscription to svc_id = %s(%d) Successful",
-		     get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL((MDS_PWE_HDL)info->i_mds_hdl),
-		     get_svc_names(info->info.svc_cancel.i_svc_ids[i]), info->info.svc_cancel.i_svc_ids[i]);
+		m_MDS_LOG_INFO(
+		    "MCM:API: svc_unsubscribe : svc_id = %s(%d) on VDEST id = %d Unsubscription to svc_id = %s(%d) Successful",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(
+			(MDS_PWE_HDL)info->i_mds_hdl),
+		    get_svc_names(info->info.svc_cancel.i_svc_ids[i]),
+		    info->info.svc_cancel.i_svc_ids[i]);
 	}
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1224,10 +1471,10 @@ uint32_t mds_mcm_svc_unsubscribe(NCSMDS_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_dest_query(NCSMDS_INFO *info)
@@ -1237,41 +1484,63 @@ uint32_t mds_mcm_dest_query(NCSMDS_INFO *info)
 	MDS_SUBSCRIPTION_RESULTS_INFO *subtn_result_info = NULL;
 
 	m_MDS_ENTER();
-	info->info.query_dest.o_node_id = m_MDS_GET_NODE_ID_FROM_ADEST(info->info.query_dest.i_dest);
-	if (info->info.query_dest.o_node_id == 0) {	/* Destination is VDEST */
+	info->info.query_dest.o_node_id =
+	    m_MDS_GET_NODE_ID_FROM_ADEST(info->info.query_dest.i_dest);
+	if (info->info.query_dest.o_node_id == 0) { /* Destination is VDEST */
 
 		/* Get Service hdl */
-		mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, &local_svc_hdl);
+		mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl,
+					info->i_svc_id, &local_svc_hdl);
 
-		if (info->info.query_dest.i_query_for_role == true) {	/* Return Role given Anchor */
-			status = mds_subtn_res_tbl_get_by_adest(local_svc_hdl, info->info.query_dest.i_svc_id,
-								(MDS_VDEST_ID)info->info.query_dest.i_dest,
-								info->info.query_dest.info.query_for_role.i_anc,
-								&info->info.query_dest.info.query_for_role.o_vdest_rl,
-								&subtn_result_info);
-			if (status == NCSCC_RC_FAILURE) {	/* No such subscription result present */
+		if (info->info.query_dest.i_query_for_role ==
+		    true) { /* Return Role given Anchor */
+			status = mds_subtn_res_tbl_get_by_adest(
+			    local_svc_hdl, info->info.query_dest.i_svc_id,
+			    (MDS_VDEST_ID)info->info.query_dest.i_dest,
+			    info->info.query_dest.info.query_for_role.i_anc,
+			    &info->info.query_dest.info.query_for_role
+				 .o_vdest_rl,
+			    &subtn_result_info);
+			if (status ==
+			    NCSCC_RC_FAILURE) { /* No such subscription result
+						   present */
 				m_MDS_LEAVE();
 				return NCSCC_RC_FAILURE;
 			}
-		} else {	/* Return Anchor given Role */
-			status = mds_subtn_res_tbl_getnext_any(local_svc_hdl, info->info.query_dest.i_svc_id,
-							       &subtn_result_info);
+		} else { /* Return Anchor given Role */
+			status = mds_subtn_res_tbl_getnext_any(
+			    local_svc_hdl, info->info.query_dest.i_svc_id,
+			    &subtn_result_info);
 			while (status != NCSCC_RC_FAILURE) {
-				if (subtn_result_info->key.vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY) {	/* Subscription result table entry is VDEST entry */
+				if (subtn_result_info->key.vdest_id !=
+				    m_VDEST_ID_FOR_ADEST_ENTRY) { /* Subscription
+								     result
+								     table entry
+								     is VDEST
+								     entry */
 
 					if (subtn_result_info->key.vdest_id ==
-					    (MDS_VDEST_ID)info->info.query_dest.i_dest
-					    && subtn_result_info->info.vdest_inst.role ==
-					    info->info.query_dest.info.query_for_anc.i_vdest_rl) {
-						info->info.query_dest.info.query_for_anc.o_anc =
-						    (V_DEST_QA)subtn_result_info->key.adest;
+						(MDS_VDEST_ID)info->info
+						    .query_dest.i_dest &&
+					    subtn_result_info->info.vdest_inst
+						    .role ==
+						info->info.query_dest.info
+						    .query_for_anc.i_vdest_rl) {
+						info->info.query_dest.info
+						    .query_for_anc.o_anc =
+						    (V_DEST_QA)subtn_result_info
+							->key.adest;
 						break;
 					}
 				}
-				status = mds_subtn_res_tbl_getnext_any(local_svc_hdl, info->info.query_dest.i_svc_id,
-								       &subtn_result_info);
+				status = mds_subtn_res_tbl_getnext_any(
+				    local_svc_hdl,
+				    info->info.query_dest.i_svc_id,
+				    &subtn_result_info);
 			}
-			if (status == NCSCC_RC_FAILURE) {	/* while terminated as it didnt find any result */
+			if (status ==
+			    NCSCC_RC_FAILURE) { /* while terminated as it didnt
+						   find any result */
 				m_MDS_LEAVE();
 				return NCSCC_RC_FAILURE;
 			}
@@ -1281,15 +1550,20 @@ uint32_t mds_mcm_dest_query(NCSMDS_INFO *info)
 			info->info.query_dest.o_local = true;
 		else
 			info->info.query_dest.o_local = false;
-		/* Filling node id as previously it was checked for 0 for vdest/adest */
-		info->info.query_dest.o_node_id = m_MDS_GET_NODE_ID_FROM_ADEST(subtn_result_info->key.adest);
+		/* Filling node id as previously it was checked for 0 for
+		 * vdest/adest */
+		info->info.query_dest.o_node_id =
+		    m_MDS_GET_NODE_ID_FROM_ADEST(subtn_result_info->key.adest);
 		info->info.query_dest.o_adest = subtn_result_info->key.adest;
 
-		m_MDS_LOG_INFO("MCM:API: dest_query : Successful for Adest = %s", subtn_result_info->sub_adest_details);
+		m_MDS_LOG_INFO(
+		    "MCM:API: dest_query : Successful for Adest = %s",
+		    subtn_result_info->sub_adest_details);
 		m_MDS_LEAVE();
 		return NCSCC_RC_SUCCESS;
-	} else {		/* Destination is ADEST */
-		m_MDS_LOG_ERR("MCM:API: dest_query : FAILED : Adest  = %"PRIu64" passed is Adest",
+	} else { /* Destination is ADEST */
+		m_MDS_LOG_ERR("MCM:API: dest_query : FAILED : Adest  = %" PRIu64
+			      " passed is Adest",
 			      info->info.query_dest.i_dest);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
@@ -1302,10 +1576,10 @@ uint32_t mds_mcm_dest_query(NCSMDS_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_pwe_query(NCSMDS_INFO *info)
@@ -1313,7 +1587,9 @@ uint32_t mds_mcm_pwe_query(NCSMDS_INFO *info)
 	MDS_VDEST_ID vdest_id;
 
 	m_MDS_ENTER();
-	info->info.query_pwe.o_pwe_id = (PW_ENV_ID)m_MDS_GET_PWE_ID_FROM_PWE_HDL((MDS_PWE_HDL)info->i_mds_hdl);
+	info->info.query_pwe.o_pwe_id =
+	    (PW_ENV_ID)m_MDS_GET_PWE_ID_FROM_PWE_HDL(
+		(MDS_PWE_HDL)info->i_mds_hdl);
 
 	if (((uint32_t)info->i_mds_hdl & m_ADEST_HDL) == m_ADEST_HDL) {
 		/* It is ADEST hdl */
@@ -1322,15 +1598,19 @@ uint32_t mds_mcm_pwe_query(NCSMDS_INFO *info)
 	} else {
 		/* It is VDEST hdl */
 		info->info.query_pwe.o_absolute = 0;
-		vdest_id = m_MDS_GET_VDEST_ID_FROM_PWE_HDL((MDS_PWE_HDL)info->i_mds_hdl);
+		vdest_id = m_MDS_GET_VDEST_ID_FROM_PWE_HDL(
+		    (MDS_PWE_HDL)info->i_mds_hdl);
 
-		info->info.query_pwe.info.virt_info.o_vdest = (MDS_DEST)vdest_id;
-		info->info.query_pwe.info.virt_info.o_anc = (V_DEST_QA)m_MDS_GET_ADEST;
+		info->info.query_pwe.info.virt_info.o_vdest =
+		    (MDS_DEST)vdest_id;
+		info->info.query_pwe.info.virt_info.o_anc =
+		    (V_DEST_QA)m_MDS_GET_ADEST;
 
-		mds_vdest_tbl_get_role(vdest_id, &info->info.query_pwe.info.virt_info.o_role);
-
+		mds_vdest_tbl_get_role(
+		    vdest_id, &info->info.query_pwe.info.virt_info.o_role);
 	}
-	m_MDS_LOG_INFO("MCM:API: query_pwe : Successful for PWE hdl = %"PRId32, info->i_mds_hdl);
+	m_MDS_LOG_INFO("MCM:API: query_pwe : Successful for PWE hdl = %" PRId32,
+		       info->i_mds_hdl);
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -1341,10 +1621,10 @@ uint32_t mds_mcm_pwe_query(NCSMDS_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_node_subscribe(NCSMDS_INFO *info)
@@ -1353,34 +1633,44 @@ uint32_t mds_mcm_node_subscribe(NCSMDS_INFO *info)
 	MDS_SVC_INFO *local_svc_info = NULL;
 
 	m_MDS_ENTER();
-	if (NCSCC_RC_SUCCESS != mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id)) {
+	if (NCSCC_RC_SUCCESS !=
+	    mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id)) {
 		/* Service doesn't exist */
-		m_MDS_LOG_ERR("MCM:API: node_subscribe : svc_id = %s(%d) on VDEST id = %d FAILED : svc_id Doesn't Exist",
-				get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: node_subscribe : svc_id = %s(%d) on VDEST id = %d FAILED : svc_id Doesn't Exist",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
-	mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, &svc_hdl);
+	mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id,
+				&svc_hdl);
 
 	/* Get Service info cb */
-	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_hdl),
-						m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),
-						(NCSCONTEXT)&local_svc_info)) {
+	if (NCSCC_RC_SUCCESS !=
+	    mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_hdl),
+			    m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),
+			    (NCSCONTEXT)&local_svc_info)) {
 		/* Service Doesn't exist */
-		m_MDS_LOG_ERR("MCM: svc_id = %s(%d) doesnt exists, returning from mds_mcm_node_subscribe\n",
-				get_svc_names(info->i_svc_id), info->i_svc_id);
+		m_MDS_LOG_ERR(
+		    "MCM: svc_id = %s(%d) doesnt exists, returning from mds_mcm_node_subscribe\n",
+		    get_svc_names(info->i_svc_id), info->i_svc_id);
 		return NCSCC_RC_FAILURE;
 	}
 
-	if ( local_svc_info->i_node_subscr ) {
-		m_MDS_LOG_ERR("MCM_API: node_subscribe: svc_id = %s(%d) ,VDEST id = %d FAILED : subscription Exist",
-				get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+	if (local_svc_info->i_node_subscr) {
+		m_MDS_LOG_ERR(
+		    "MCM_API: node_subscribe: svc_id = %s(%d) ,VDEST id = %d FAILED : subscription Exist",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		return NCSCC_RC_FAILURE;
-	}
-	else {
-		if (mds_mdtm_node_subscribe( svc_hdl, &local_svc_info->node_subtn_ref_val) != NCSCC_RC_SUCCESS) {
-			m_MDS_LOG_ERR("MCM_API: mds_mdtm_node_subscribe: svc_id = %s(%d) Fail\n",
-			get_svc_names(info->i_svc_id), info->i_svc_id);
+	} else {
+		if (mds_mdtm_node_subscribe(
+			svc_hdl, &local_svc_info->node_subtn_ref_val) !=
+		    NCSCC_RC_SUCCESS) {
+			m_MDS_LOG_ERR(
+			    "MCM_API: mds_mdtm_node_subscribe: svc_id = %s(%d) Fail\n",
+			    get_svc_names(info->i_svc_id), info->i_svc_id);
 			return NCSCC_RC_FAILURE;
 		}
 		local_svc_info->i_node_subscr = 1;
@@ -1395,10 +1685,10 @@ uint32_t mds_mcm_node_subscribe(NCSMDS_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_node_unsubscribe(NCSMDS_INFO *info)
@@ -1407,39 +1697,49 @@ uint32_t mds_mcm_node_unsubscribe(NCSMDS_INFO *info)
 	MDS_SVC_INFO *local_svc_info = NULL;
 
 	m_MDS_ENTER();
-	if (NCSCC_RC_SUCCESS != mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id)) {
+	if (NCSCC_RC_SUCCESS !=
+	    mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id)) {
 		/* Service doesn't exist */
-		m_MDS_LOG_ERR("MCM:API: node_subscribe : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Doesn't Exist",
-			      get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: node_subscribe : svc_id = %s(%d) on VDEST id = %d FAILED : SVC Doesn't Exist",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
-	mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, &svc_hdl);
+	mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id,
+				&svc_hdl);
 
 	/* Get Service info cb */
-	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_hdl),
-						m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),
-						(NCSCONTEXT)&local_svc_info)) {
+	if (NCSCC_RC_SUCCESS !=
+	    mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_hdl),
+			    m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),
+			    (NCSCONTEXT)&local_svc_info)) {
 		/* Service Doesn't exist */
-		m_MDS_LOG_ERR("MCM: svc_id = %s(%d) doesnt exists, returning from mds_mcm_node_subscribe\n",
-				get_svc_names(info->i_svc_id), info->i_svc_id);
+		m_MDS_LOG_ERR(
+		    "MCM: svc_id = %s(%d) doesnt exists, returning from mds_mcm_node_subscribe\n",
+		    get_svc_names(info->i_svc_id), info->i_svc_id);
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (0 == local_svc_info->i_node_subscr ) {
-		m_MDS_LOG_ERR("MCM_API: node_subscribe: svc_id = %s(%d) ,VDEST id = %d FAILED : node subscription doesnt Exist",
-				get_svc_names(info->i_svc_id), info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+	if (0 == local_svc_info->i_node_subscr) {
+		m_MDS_LOG_ERR(
+		    "MCM_API: node_subscribe: svc_id = %s(%d) ,VDEST id = %d FAILED : node subscription doesnt Exist",
+		    get_svc_names(info->i_svc_id), info->i_svc_id,
+		    m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
 		return NCSCC_RC_FAILURE;
-	}
-	else {
-		if (mds_mdtm_node_unsubscribe( local_svc_info->node_subtn_ref_val) != NCSCC_RC_SUCCESS) {
-			m_MDS_LOG_ERR("MCM_API: mds_mdtm_node_unsubscribe: svc_id = %s(%d) Fail\n",
-			get_svc_names(info->i_svc_id), info->i_svc_id);
+	} else {
+		if (mds_mdtm_node_unsubscribe(
+			local_svc_info->node_subtn_ref_val) !=
+		    NCSCC_RC_SUCCESS) {
+			m_MDS_LOG_ERR(
+			    "MCM_API: mds_mdtm_node_unsubscribe: svc_id = %s(%d) Fail\n",
+			    get_svc_names(info->i_svc_id), info->i_svc_id);
 			return NCSCC_RC_FAILURE;
 		}
 		local_svc_info->i_node_subscr = 0;
 		local_svc_info->node_subtn_ref_val = 0;
-        }
+	}
 	m_MDS_LOG_DBG("MCM:API: mds_mcm_node_unsubscribe : S\n");
 	return NCSCC_RC_SUCCESS;
 }
@@ -1460,20 +1760,20 @@ uint32_t mds_mcm_node_unsubscribe(NCSMDS_INFO *info)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 
 uint32_t mds_mcm_svc_up(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
-		     NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest_id,
-		     NCS_VDEST_TYPE vdest_policy, MDS_DEST adest,
-		     bool my_pcon,
-		     MDS_SVC_HDL local_svc_hdl,
-		     MDS_SUBTN_REF_VAL subtn_ref_val,
-		     MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type)
+			NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest_id,
+			NCS_VDEST_TYPE vdest_policy, MDS_DEST adest,
+			bool my_pcon, MDS_SVC_HDL local_svc_hdl,
+			MDS_SUBTN_REF_VAL subtn_ref_val,
+			MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver,
+			MDS_SVC_ARCHWORD_TYPE archword_type)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	NCSMDS_SCOPE_TYPE local_subtn_scope;
@@ -1487,91 +1787,94 @@ uint32_t mds_mcm_svc_up(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 	MDS_SUBSCRIPTION_RESULTS_INFO *next_active_result_info = NULL;
 	MDS_SUBSCRIPTION_RESULTS_INFO *log_subtn_result_info = NULL;
 	m_MDS_ENTER();
-	m_MDS_LOG_DBG("MCM:API: LOCAL SVC INFO  : svc_id = %s(%d) | PWE id = %d | VDEST id = %d |",
-		      get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-		      m_MDS_GET_PWE_ID_FROM_SVC_HDL(local_svc_hdl), m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl));
-	m_MDS_LOG_DBG("MCM:API: REMOTE SVC INFO : svc_id = %s(%d) | PWE id = %d | VDEST id = %d | POLICY = %d | SCOPE = %d | ROLE = %d | MY_PCON = %d |",
-	     get_svc_names(svc_id), svc_id, pwe_id, vdest_id, vdest_policy, scope, role, my_pcon);
+	m_MDS_LOG_DBG(
+	    "MCM:API: LOCAL SVC INFO  : svc_id = %s(%d) | PWE id = %d | VDEST id = %d |",
+	    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)),
+	    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+	    m_MDS_GET_PWE_ID_FROM_SVC_HDL(local_svc_hdl),
+	    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl));
+	m_MDS_LOG_DBG(
+	    "MCM:API: REMOTE SVC INFO : svc_id = %s(%d) | PWE id = %d | VDEST id = %d | POLICY = %d | SCOPE = %d | ROLE = %d | MY_PCON = %d |",
+	    get_svc_names(svc_id), svc_id, pwe_id, vdest_id, vdest_policy,
+	    scope, role, my_pcon);
 
-/*
-For Each Unique Svc_Hdl
-if (entry doesnot exists corresponding to <Svc_Hdl, SVC_ID, PWE_ID, VDEST> in SUBSCRIPTION-RESULT-Table)
-    {
-        - Add entry in  SUBSCRIPTION-RESULT-Table
-        - Call SVC_HDL User Callback function (Event=UP)
-        - Call MDTM_TX_HDL_REGISTER
-            INPUT
-            TX_HDL
-    }
-else (entry exists)
-    {
-      IF MDEST IS VDEST
-          IF VDEST is MxN
-               IF ROLE = ACTIVE
+	/*
+	For Each Unique Svc_Hdl
+	if (entry doesnot exists corresponding to <Svc_Hdl, SVC_ID, PWE_ID,
+	VDEST> in SUBSCRIPTION-RESULT-Table)
+	    {
+		- Add entry in  SUBSCRIPTION-RESULT-Table
+		- Call SVC_HDL User Callback function (Event=UP)
+		- Call MDTM_TX_HDL_REGISTER
+		    INPUT
+		    TX_HDL
+	    }
+	else (entry exists)
+	    {
+	      IF MDEST IS VDEST
+		  IF VDEST is MxN
+		       IF ROLE = ACTIVE
 
-                    IF Current ROLE = ACTIVE 
-                        Discard (Duplicate)
-                    ELSE (Current Role = STANDBY/FORCED-STANDBY)
-                        IF entry exist with ROLE= ACTIVE in 
-                        SUBSCRIPTION-RESULT-Table
-                            - Change ROLE of that entry to FORCED-STANDBY 
-                              and Current Entry to ACTIVE
-                        Else (entry doesnot exist with ROLE=ACTIVE)
-                            - Call SVC_HDL User Callback function (Event=UP)
-                            - Check AWAIT-ACTIVE-Table for entry, IF found
-                                       - Stop Await Active Guard Timer
-                                       - Send queued messages
-                                       - Delete entry from Table                           
+			    IF Current ROLE = ACTIVE
+				Discard (Duplicate)
+			    ELSE (Current Role = STANDBY/FORCED-STANDBY)
+				IF entry exist with ROLE= ACTIVE in
+				SUBSCRIPTION-RESULT-Table
+				    - Change ROLE of that entry to
+	FORCED-STANDBY and Current Entry to ACTIVE Else (entry doesnot exist
+	with ROLE=ACTIVE) - Call SVC_HDL User Callback function (Event=UP) -
+	Check AWAIT-ACTIVE-Table for entry, IF found - Stop Await Active Guard
+	Timer - Send queued messages - Delete entry from Table
 
-               ELSE (ROLE = STANDBY)
-     
-                   IF Current ROLE = STANDBY
-                        Discard (Duplicate)
-                   IF Current ROLE = FORCED-STANDBY
-                            - Change ROLE of that entry to STANDBY                  
-                    ELSE (Current Role = ACTIVE)
-                        - Add an entry to AWAIT-ACTIVE-Table
-                        - Start Await Active Guard Timer
-                        - Call SVC_HDL User Callback function 
-                          (Event=NO_ACTIVE)
+		       ELSE (ROLE = STANDBY)
 
-           IF VDEST is N-Way
-               IF ROLE = ACTIVE
-                   
-                   IF Current ROLE = ACTIVE
-                        Discard (Duplicate)
-                    ELSE (Current Role = STANDBY)
-                        - Change ROLE of entry to ACTIVE
+			   IF Current ROLE = STANDBY
+				Discard (Duplicate)
+			   IF Current ROLE = FORCED-STANDBY
+				    - Change ROLE of that entry to STANDBY
+			    ELSE (Current Role = ACTIVE)
+				- Add an entry to AWAIT-ACTIVE-Table
+				- Start Await Active Guard Timer
+				- Call SVC_HDL User Callback function
+				  (Event=NO_ACTIVE)
 
-                            - Check AWAIT-ACTIVE-Table for entry, IF found
-                                       - Stop Await Active Guard Timer
-                                       - Send queued messages
-                                       - Delete entry from Table                           
-                        - Call SVC_HDL User Callback function (Event=UP)
+		   IF VDEST is N-Way
+		       IF ROLE = ACTIVE
 
-               ELSE (ROLE = STANDBY)
-                   IF Current ROLE = STANDBY
-                        Discard (Duplicate)
-                    ELSE (Current Role = ACTIVE)
-                        - Call SVC_HDL User Callback function 
-                          (Event=NO_ACTIVE)
-                        - IF entry Doesn't exist with ROLE=Active in 
-                         SUBCRIPTION-RESULT-Table
-                               - Add entry to AWAIT-ACTIVE-Table
-                               - Start Await Active Guard Timer.
+			   IF Current ROLE = ACTIVE
+				Discard (Duplicate)
+			    ELSE (Current Role = STANDBY)
+				- Change ROLE of entry to ACTIVE
 
-      ELSE MDEST IS ADEST
-        Discard (Duplicate)
-    }
-*/
+				    - Check AWAIT-ACTIVE-Table for entry, IF
+	found - Stop Await Active Guard Timer - Send queued messages - Delete
+	entry from Table - Call SVC_HDL User Callback function (Event=UP)
 
-	status = mds_svc_tbl_query(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
-				   m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+		       ELSE (ROLE = STANDBY)
+			   IF Current ROLE = STANDBY
+				Discard (Duplicate)
+			    ELSE (Current Role = ACTIVE)
+				- Call SVC_HDL User Callback function
+				  (Event=NO_ACTIVE)
+				- IF entry Doesn't exist with ROLE=Active in
+				 SUBCRIPTION-RESULT-Table
+				       - Add entry to AWAIT-ACTIVE-Table
+				       - Start Await Active Guard Timer.
+
+	      ELSE MDEST IS ADEST
+		Discard (Duplicate)
+	    }
+	*/
+
+	status =
+	    mds_svc_tbl_query(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+			      m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
 
 	if (status == NCSCC_RC_FAILURE) {
-		m_MDS_LOG_ERR("MCM:API: svc_up : Local svc_id = %s(%d) doesn't exist",
-			      get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)),
-				   m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+		m_MDS_LOG_ERR(
+		    "MCM:API: svc_up : Local svc_id = %s(%d) doesn't exist",
+		    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)),
+		    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -1579,865 +1882,1490 @@ else (entry exists)
 	/* clear cbinfo contents */
 	memset(&cbinfo, 0, sizeof(cbinfo));
 
-    /*************** Validation for SCOPE **********************/
+	/*************** Validation for SCOPE **********************/
 
 	/* check the installation scope of service is in subscription scope */
-	status = mds_subtn_tbl_get_details(local_svc_hdl, svc_id, &local_subtn_scope, &local_subtn_view);
+	status = mds_subtn_tbl_get_details(
+	    local_svc_hdl, svc_id, &local_subtn_scope, &local_subtn_view);
 
 	/* There is no check over here for above ,this may cause crash TO DO */
 	status = NCSCC_RC_SUCCESS;
-	status = mds_mcm_validate_scope(local_subtn_scope, scope, adest, svc_id, my_pcon);
+	status = mds_mcm_validate_scope(local_subtn_scope, scope, adest, svc_id,
+					my_pcon);
 
 	if (status == NCSCC_RC_FAILURE) {
 		m_MDS_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
 
-    /*************** Validation for SCOPE **********************/
+	/*************** Validation for SCOPE **********************/
 
-	status = mds_get_subtn_res_tbl_by_adest(local_svc_hdl, svc_id, vdest_id, adest, &log_subtn_result_info);
+	status = mds_get_subtn_res_tbl_by_adest(local_svc_hdl, svc_id, vdest_id,
+						adest, &log_subtn_result_info);
 
-	if (status == NCSCC_RC_FAILURE) {	/* Subscription result tabel entry doesn't exist */
-		
-		if (vdest_id == m_VDEST_ID_FOR_ADEST_ENTRY) {	/* Remote svc is on ADEST */
+	if (status == NCSCC_RC_FAILURE) { /* Subscription result tabel entry
+					     doesn't exist */
+
+		if (vdest_id ==
+		    m_VDEST_ID_FOR_ADEST_ENTRY) { /* Remote svc is on ADEST */
 			char to_adest_details[MDS_MAX_PROCESS_NAME_LEN];
 			memset(to_adest_details, 0, MDS_MAX_PROCESS_NAME_LEN);
 
-			get_subtn_adest_details(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
-					svc_id,	adest, to_adest_details);
+			get_subtn_adest_details(
+			    m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+			    svc_id, adest, to_adest_details);
 
 			mds_subtn_res_tbl_add(local_svc_hdl, svc_id,
-					(MDS_VDEST_ID)vdest_id, adest, role,
-					scope, NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN, svc_sub_part_ver, archword_type);
+					      (MDS_VDEST_ID)vdest_id, adest,
+					      role, scope,
+					      NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
+					      svc_sub_part_ver, archword_type);
 
 			/* Call user call back with UP */
 			status = NCSCC_RC_SUCCESS;
-			status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-							     role, vdest_id, adest, NCSMDS_UP,
-							     svc_sub_part_ver, archword_type);
+			status = mds_mcm_user_event_callback(
+			    local_svc_hdl, pwe_id, svc_id, role, vdest_id,
+			    adest, NCSMDS_UP, svc_sub_part_ver, archword_type);
 
 			if (status != NCSCC_RC_SUCCESS) {
 				/* Callback failure */
-				m_MDS_LOG_ERR("MCM:API: svc_up : UP Callback Failure for svc_id = %s(%d)",
-					      get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), 
-						  m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+				m_MDS_LOG_ERR(
+				    "MCM:API: svc_up : UP Callback Failure for svc_id = %s(%d)",
+				    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					local_svc_hdl)),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					local_svc_hdl));
 				m_MDS_LEAVE();
 				return NCSCC_RC_FAILURE;
 			}
 
-			m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got UP for "
-			"svc_id = %s(%d) on Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-					get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-					m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id,
-					to_adest_details, svc_sub_part_ver, archword_type);
-		} else {	/* Remote svc is on VDEST */
+			m_MDS_LOG_INFO(
+			    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got UP for "
+			    "svc_id = %s(%d) on Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+			    get_svc_names(
+				m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)),
+			    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+			    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl),
+			    get_svc_names(svc_id), svc_id, to_adest_details,
+			    svc_sub_part_ver, archword_type);
+		} else { /* Remote svc is on VDEST */
 
 			if (vdest_policy == NCS_VDEST_TYPE_MxN) {
 				if (role == V_DEST_RL_ACTIVE) {
 					status = NCSCC_RC_SUCCESS;
-					status = mds_subtn_res_tbl_get(local_svc_hdl,
-								       svc_id,
-								       (MDS_VDEST_ID)vdest_id,
-								       &active_adest,
-								       &tmr_running, &subtn_result_info, true);
+					status = mds_subtn_res_tbl_get(
+					    local_svc_hdl, svc_id,
+					    (MDS_VDEST_ID)vdest_id,
+					    &active_adest, &tmr_running,
+					    &subtn_result_info, true);
 					/* check if any other active present */
-					 if (status == NCSCC_RC_FAILURE) {	/* No active present */
-						char to_adest_details[MDS_MAX_PROCESS_NAME_LEN];
-						get_subtn_adest_details(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
-								svc_id, active_adest, to_adest_details);
-						/* Add entry to subscription result table */
-						status = mds_subtn_res_tbl_add(local_svc_hdl,
-									       svc_id,
-									       (MDS_VDEST_ID)vdest_id,
-									       adest,
-									       role, scope, vdest_policy,
-									       svc_sub_part_ver, archword_type);
+					if (status ==
+					    NCSCC_RC_FAILURE) { /* No active
+								   present */
+						char to_adest_details
+						    [MDS_MAX_PROCESS_NAME_LEN];
+						get_subtn_adest_details(
+						    m_MDS_GET_PWE_HDL_FROM_SVC_HDL(
+							local_svc_hdl),
+						    svc_id, active_adest,
+						    to_adest_details);
+						/* Add entry to subscription
+						 * result table */
+						status = mds_subtn_res_tbl_add(
+						    local_svc_hdl, svc_id,
+						    (MDS_VDEST_ID)vdest_id,
+						    adest, role, scope,
+						    vdest_policy,
+						    svc_sub_part_ver,
+						    archword_type);
 
-						/* Call user call back with UP */
+						/* Call user call back with UP
+						 */
 						status = NCSCC_RC_SUCCESS;
-						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-										     role, vdest_id, adest, NCSMDS_UP,
-										     svc_sub_part_ver, archword_type);
-						if (status != NCSCC_RC_SUCCESS) {
+						status =
+						    mds_mcm_user_event_callback(
+							local_svc_hdl, pwe_id,
+							svc_id, role, vdest_id,
+							adest, NCSMDS_UP,
+							svc_sub_part_ver,
+							archword_type);
+						if (status !=
+						    NCSCC_RC_SUCCESS) {
 							/* Callback failure */
-							m_MDS_LOG_ERR("MCM:API: svc_up : UP Callback Failure for svc_id = %s(%d)",
-							     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							m_MDS_LOG_ERR(
+							    "MCM:API: svc_up : UP Callback Failure for svc_id = %s(%d)",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl));
 							m_MDS_LEAVE();
 							return NCSCC_RC_FAILURE;
 						}
-						m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got UP for"
-								"svc_id = %s(%d) on Vdest  id = %d Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-								get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-								m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-								to_adest_details, svc_sub_part_ver, archword_type);
+						m_MDS_LOG_INFO(
+						    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got UP for"
+						    "svc_id = %s(%d) on Vdest  id = %d Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    get_svc_names(svc_id),
+						    svc_id, vdest_id,
+						    to_adest_details,
+						    svc_sub_part_ver,
+						    archword_type);
 
-						/* If subscripton is RED, call RED_UP also */
-						if (local_subtn_view == MDS_VIEW_RED) {
-							status = NCSCC_RC_SUCCESS;
+						/* If subscripton is RED, call
+						 * RED_UP also */
+						if (local_subtn_view ==
+						    MDS_VIEW_RED) {
 							status =
-							    mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-											role, vdest_id, adest,
-											NCSMDS_RED_UP, svc_sub_part_ver,
-											archword_type);
-							if (status != NCSCC_RC_SUCCESS) {
-								/* Callback failure */
-								m_MDS_LOG_ERR("MCM:API: svc_up : RED_UP Callback Failure for svc_id = %s(%d)",
-								     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							    NCSCC_RC_SUCCESS;
+							status =
+							    mds_mcm_user_event_callback(
+								local_svc_hdl,
+								pwe_id, svc_id,
+								role, vdest_id,
+								adest,
+								NCSMDS_RED_UP,
+								svc_sub_part_ver,
+								archword_type);
+							if (status !=
+							    NCSCC_RC_SUCCESS) {
+								/* Callback
+								 * failure */
+								m_MDS_LOG_ERR(
+								    "MCM:API: svc_up : RED_UP Callback Failure for svc_id = %s(%d)",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl));
 								m_MDS_LEAVE();
 								return NCSCC_RC_FAILURE;
-
 							}
-							m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got RED_UP for svc_id = %s(%d) "
-									"on Vdest id = %d Adest = %s , rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-									get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-									m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id,
-									vdest_id, to_adest_details, svc_sub_part_ver, archword_type);
+							m_MDS_LOG_INFO(
+							    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got RED_UP for svc_id = %s(%d) "
+							    "on Vdest id = %d Adest = %s , rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    get_svc_names(
+								svc_id),
+							    svc_id, vdest_id,
+							    to_adest_details,
+							    svc_sub_part_ver,
+							    archword_type);
 						}
 
-					} else {	/* Active/Await-active already present */
-						status = mds_subtn_res_tbl_add(local_svc_hdl,
-									       svc_id,
-									       (MDS_VDEST_ID)vdest_id,
-									       adest,
-									       role, scope,
-									       vdest_policy,
-									       svc_sub_part_ver, archword_type);
-						/* Here Current active if any will get replaced */
+					} else { /* Active/Await-active already
+						    present */
+						status = mds_subtn_res_tbl_add(
+						    local_svc_hdl, svc_id,
+						    (MDS_VDEST_ID)vdest_id,
+						    adest, role, scope,
+						    vdest_policy,
+						    svc_sub_part_ver,
+						    archword_type);
+						/* Here Current active if any
+						 * will get replaced */
 
-						/* If it was Awaiting active give NEW ACTIVE to user */
+						/* If it was Awaiting active
+						 * give NEW ACTIVE to user */
 						if (tmr_running == true) {
-							/* Call user callback UP */
-							status = NCSCC_RC_SUCCESS;
+							/* Call user callback UP
+							 */
 							status =
-							    mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-											role, vdest_id, adest,
-											NCSMDS_NEW_ACTIVE,
-											svc_sub_part_ver,
-											archword_type);
+							    NCSCC_RC_SUCCESS;
+							status =
+							    mds_mcm_user_event_callback(
+								local_svc_hdl,
+								pwe_id, svc_id,
+								role, vdest_id,
+								adest,
+								NCSMDS_NEW_ACTIVE,
+								svc_sub_part_ver,
+								archword_type);
 
-							if (status != NCSCC_RC_SUCCESS) {
-								/* Callback failure */
-								m_MDS_LOG_ERR("MCM:API: svc_up : NEW_ACTIVE Callback Failure for svc_id = %s(%d)",
-								     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							if (status !=
+							    NCSCC_RC_SUCCESS) {
+								/* Callback
+								 * failure */
+								m_MDS_LOG_ERR(
+								    "MCM:API: svc_up : NEW_ACTIVE Callback Failure for svc_id = %s(%d)",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl));
 								m_MDS_LEAVE();
 								return NCSCC_RC_FAILURE;
-
 							}
-							m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got NEW_ACTIVE"
-									"for svc_id = %s(%d) on Vdest id = %d Adest = %s, rem_svc_pvt_ver=%d,"
-									"rem_svc_archword=%d", get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-									m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-									subtn_result_info->sub_adest_details, svc_sub_part_ver, archword_type);
+							m_MDS_LOG_INFO(
+							    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got NEW_ACTIVE"
+							    "for svc_id = %s(%d) on Vdest id = %d Adest = %s, rem_svc_pvt_ver=%d,"
+							    "rem_svc_archword=%d",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    get_svc_names(
+								svc_id),
+							    svc_id, vdest_id,
+							    subtn_result_info
+								->sub_adest_details,
+							    svc_sub_part_ver,
+							    archword_type);
 						}
 
-						/* If subscripton is RED, call RED_UP also */
-						if (local_subtn_view == MDS_VIEW_RED) {
-							status = NCSCC_RC_SUCCESS;
+						/* If subscripton is RED, call
+						 * RED_UP also */
+						if (local_subtn_view ==
+						    MDS_VIEW_RED) {
 							status =
-							    mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-											role, vdest_id, adest,
-											NCSMDS_RED_UP, svc_sub_part_ver,
-											archword_type);
-							if (status != NCSCC_RC_SUCCESS) {
-								/* Callback failure */
-								m_MDS_LOG_ERR("MCM:API: svc_up : RED_UP Callback Failure for svc_id = %s(%d)",
-								     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)),
-									  m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							    NCSCC_RC_SUCCESS;
+							status =
+							    mds_mcm_user_event_callback(
+								local_svc_hdl,
+								pwe_id, svc_id,
+								role, vdest_id,
+								adest,
+								NCSMDS_RED_UP,
+								svc_sub_part_ver,
+								archword_type);
+							if (status !=
+							    NCSCC_RC_SUCCESS) {
+								/* Callback
+								 * failure */
+								m_MDS_LOG_ERR(
+								    "MCM:API: svc_up : RED_UP Callback Failure for svc_id = %s(%d)",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl));
 								m_MDS_LEAVE();
 								return NCSCC_RC_FAILURE;
-
 							}
-							m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got RED_UP for svc_id = %s(%d) "
-								"on  Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-									get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-									m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id,
-									subtn_result_info->sub_adest_details, svc_sub_part_ver, archword_type);
+							m_MDS_LOG_INFO(
+							    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got RED_UP for svc_id = %s(%d) "
+							    "on  Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    get_svc_names(
+								svc_id),
+							    svc_id,
+							    subtn_result_info
+								->sub_adest_details,
+							    svc_sub_part_ver,
+							    archword_type);
 						}
-
 					}
-				} else {	/* role == V_DEST_RL_STANDBY */
-					status = mds_subtn_res_tbl_add(local_svc_hdl,
-								       svc_id,
-								       (MDS_VDEST_ID)vdest_id,
-								       adest,
-								       role, scope, vdest_policy,
-								       svc_sub_part_ver, archword_type);
+				} else { /* role == V_DEST_RL_STANDBY */
+					status = mds_subtn_res_tbl_add(
+					    local_svc_hdl, svc_id,
+					    (MDS_VDEST_ID)vdest_id, adest, role,
+					    scope, vdest_policy,
+					    svc_sub_part_ver, archword_type);
 
-					/* check the type of subscription normal/redundant */
-					if (local_subtn_view == MDS_VIEW_NORMAL) {
+					/* check the type of subscription
+					 * normal/redundant */
+					if (local_subtn_view ==
+					    MDS_VIEW_NORMAL) {
 						/* Dont send UP for Standby */
-					} else {	/* local_subtn_view = MDS_VIEW_RED */
+					} else { /* local_subtn_view =
+						    MDS_VIEW_RED */
 
 						/* Call user callback with UP */
 						status = NCSCC_RC_SUCCESS;
-						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-										     role, vdest_id, adest,
-										     NCSMDS_RED_UP,
-										     svc_sub_part_ver, archword_type);
+						status =
+						    mds_mcm_user_event_callback(
+							local_svc_hdl, pwe_id,
+							svc_id, role, vdest_id,
+							adest, NCSMDS_RED_UP,
+							svc_sub_part_ver,
+							archword_type);
 
-						if (status != NCSCC_RC_SUCCESS) {
+						if (status !=
+						    NCSCC_RC_SUCCESS) {
 							/* Callback failure */
-							m_MDS_LOG_ERR
-							    ("MCM:API: svc_up : RED_UP Callback Failure for SVC_ID = %d",
-							     m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							m_MDS_LOG_ERR(
+							    "MCM:API: svc_up : RED_UP Callback Failure for SVC_ID = %d",
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl));
 							m_MDS_LEAVE();
 							return NCSCC_RC_FAILURE;
-
 						}
 
-						m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got RED_UP for svc_id = %s(%d) "
-							"on Vdest id = %d Adest = <0x%08x, %u>, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-								get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-								m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-								m_MDS_GET_NODE_ID_FROM_ADEST(adest), m_MDS_GET_PROCESS_ID_FROM_ADEST(adest),
-								svc_sub_part_ver, archword_type);
-
+						m_MDS_LOG_INFO(
+						    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got RED_UP for svc_id = %s(%d) "
+						    "on Vdest id = %d Adest = <0x%08x, %u>, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    get_svc_names(svc_id),
+						    svc_id, vdest_id,
+						    m_MDS_GET_NODE_ID_FROM_ADEST(
+							adest),
+						    m_MDS_GET_PROCESS_ID_FROM_ADEST(
+							adest),
+						    svc_sub_part_ver,
+						    archword_type);
 					}
 				}
-			} else {	/* vdest_policy == NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN */
+			} else { /* vdest_policy ==
+				    NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN */
 
 				if (role == V_DEST_RL_ACTIVE) {
 					status = NCSCC_RC_SUCCESS;
 					/* To get whether current entry exist */
-					/* It will just store tmr_running and status */
-					status = mds_subtn_res_tbl_get(local_svc_hdl,
-								       svc_id,
-								       (MDS_VDEST_ID)vdest_id,
-								       &active_adest,
-								       &tmr_running, &subtn_result_info, true);
+					/* It will just store tmr_running and
+					 * status */
+					status = mds_subtn_res_tbl_get(
+					    local_svc_hdl, svc_id,
+					    (MDS_VDEST_ID)vdest_id,
+					    &active_adest, &tmr_running,
+					    &subtn_result_info, true);
 
 					/* Add entry first */
-					mds_subtn_res_tbl_add(local_svc_hdl,
-							      svc_id,
-							      (MDS_VDEST_ID)vdest_id,
-							      adest,
-							      role, scope, vdest_policy,
-							      svc_sub_part_ver, archword_type);
+					mds_subtn_res_tbl_add(
+					    local_svc_hdl, svc_id,
+					    (MDS_VDEST_ID)vdest_id, adest, role,
+					    scope, vdest_policy,
+					    svc_sub_part_ver, archword_type);
 
 					/* check if any other active present */
-					if (status == NCSCC_RC_FAILURE) {	/* No active present or Await Active Entry present */
+					if (status ==
+					    NCSCC_RC_FAILURE) { /* No active
+								   present or
+								   Await Active
+								   Entry present
+								 */
 
 						/* Call user callback UP */
 						status = NCSCC_RC_SUCCESS;
-						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-										     role, vdest_id, adest,
-										     NCSMDS_UP,
-										     svc_sub_part_ver, archword_type);
-						if (status != NCSCC_RC_SUCCESS) {
+						status =
+						    mds_mcm_user_event_callback(
+							local_svc_hdl, pwe_id,
+							svc_id, role, vdest_id,
+							adest, NCSMDS_UP,
+							svc_sub_part_ver,
+							archword_type);
+						if (status !=
+						    NCSCC_RC_SUCCESS) {
 							/* Callback failure */
-							m_MDS_LOG_ERR("MCM:API: svc_up : UP Callback Failure for svc_id = %s(%d)",
-							     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), 
-								 m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							m_MDS_LOG_ERR(
+							    "MCM:API: svc_up : UP Callback Failure for svc_id = %s(%d)",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl));
 							m_MDS_LEAVE();
 							return NCSCC_RC_FAILURE;
-
 						}
 
-						m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got UP for svc_id = %s(%d) "
-								"n  Vdest id = %d Adest = <0x%08x, %u>,"
-								" rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-								get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-								m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-								m_MDS_GET_NODE_ID_FROM_ADEST(adest), m_MDS_GET_PROCESS_ID_FROM_ADEST(adest), svc_sub_part_ver, archword_type);
+						m_MDS_LOG_INFO(
+						    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got UP for svc_id = %s(%d) "
+						    "n  Vdest id = %d Adest = <0x%08x, %u>,"
+						    " rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    get_svc_names(svc_id),
+						    svc_id, vdest_id,
+						    m_MDS_GET_NODE_ID_FROM_ADEST(
+							adest),
+						    m_MDS_GET_PROCESS_ID_FROM_ADEST(
+							adest),
+						    svc_sub_part_ver,
+						    archword_type);
 
-					} else if (tmr_running == true) {	/* Await active entry is present */
+					} else if (
+					    tmr_running ==
+					    true) { /* Await active entry is
+						       present */
 
 						/* Call user callback UP */
 						status = NCSCC_RC_SUCCESS;
-						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-										     role, vdest_id, adest,
-										     NCSMDS_NEW_ACTIVE,
-										     svc_sub_part_ver, archword_type);
-						if (status != NCSCC_RC_SUCCESS) {
+						status =
+						    mds_mcm_user_event_callback(
+							local_svc_hdl, pwe_id,
+							svc_id, role, vdest_id,
+							adest,
+							NCSMDS_NEW_ACTIVE,
+							svc_sub_part_ver,
+							archword_type);
+						if (status !=
+						    NCSCC_RC_SUCCESS) {
 							/* Callback failure */
-							m_MDS_LOG_ERR("MCM:API: svc_up : NEW_ACTIVE Callback Failure for svc_id = %s(%d)",
-							     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							m_MDS_LOG_ERR(
+							    "MCM:API: svc_up : NEW_ACTIVE Callback Failure for svc_id = %s(%d)",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl));
 							m_MDS_LEAVE();
 							return NCSCC_RC_FAILURE;
-
 						}
 
-						m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got NEW_ACTIVE for svc_id = %s(%d) " 
-								"on Vdest id = %d  Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-								get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-								m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-								subtn_result_info->sub_adest_details, svc_sub_part_ver, archword_type);
-
+						m_MDS_LOG_INFO(
+						    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got NEW_ACTIVE for svc_id = %s(%d) "
+						    "on Vdest id = %d  Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    get_svc_names(svc_id),
+						    svc_id, vdest_id,
+						    subtn_result_info
+							->sub_adest_details,
+						    svc_sub_part_ver,
+						    archword_type);
 					}
 
-					/* If subscripton is RED, call RED_UP also */
+					/* If subscripton is RED, call RED_UP
+					 * also */
 					if (local_subtn_view == MDS_VIEW_RED) {
 						status = NCSCC_RC_SUCCESS;
-						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-										     role, vdest_id, adest,
-										     NCSMDS_RED_UP, svc_sub_part_ver,
-										     archword_type);
-						if (status != NCSCC_RC_SUCCESS) {
+						status =
+						    mds_mcm_user_event_callback(
+							local_svc_hdl, pwe_id,
+							svc_id, role, vdest_id,
+							adest, NCSMDS_RED_UP,
+							svc_sub_part_ver,
+							archword_type);
+						if (status !=
+						    NCSCC_RC_SUCCESS) {
 							/* Callback failure */
-							m_MDS_LOG_ERR("MCM:API: svc_up : RED_UP Callback Failure for svc_id = %s(%d)",
-									get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							m_MDS_LOG_ERR(
+							    "MCM:API: svc_up : RED_UP Callback Failure for svc_id = %s(%d)",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl));
 							m_MDS_LEAVE();
 							return NCSCC_RC_FAILURE;
-
 						}
-						m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got RED_UP for svc_id = %s(%d) "
-								"on Vdest id = %d Adest = <0x%08x, %u>, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-								get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-								m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-								m_MDS_GET_NODE_ID_FROM_ADEST(adest), m_MDS_GET_PROCESS_ID_FROM_ADEST(adest), svc_sub_part_ver, archword_type);
+						m_MDS_LOG_INFO(
+						    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got RED_UP for svc_id = %s(%d) "
+						    "on Vdest id = %d Adest = <0x%08x, %u>, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    get_svc_names(svc_id),
+						    svc_id, vdest_id,
+						    m_MDS_GET_NODE_ID_FROM_ADEST(
+							adest),
+						    m_MDS_GET_PROCESS_ID_FROM_ADEST(
+							adest),
+						    svc_sub_part_ver,
+						    archword_type);
 					}
 
-				} else {	/* role == V_DEST_RL_STANDBY */
-					status = mds_subtn_res_tbl_add(local_svc_hdl,
-								       svc_id,
-								       (MDS_VDEST_ID)vdest_id,
-								       adest,
-								       role, scope, vdest_policy,
-								       svc_sub_part_ver, archword_type);
+				} else { /* role == V_DEST_RL_STANDBY */
+					status = mds_subtn_res_tbl_add(
+					    local_svc_hdl, svc_id,
+					    (MDS_VDEST_ID)vdest_id, adest, role,
+					    scope, vdest_policy,
+					    svc_sub_part_ver, archword_type);
 
-					/* check the type of subscription normal/redundant */
-					if (local_subtn_view == MDS_VIEW_NORMAL) {
+					/* check the type of subscription
+					 * normal/redundant */
+					if (local_subtn_view ==
+					    MDS_VIEW_NORMAL) {
 						/* Dont send UP for Standby */
-					} else {	/* local_subtn_view == MDS_VIEW_RED */
+					} else { /* local_subtn_view ==
+						    MDS_VIEW_RED */
 
-						/* Call user callback with UP for Standby */
+						/* Call user callback with UP
+						 * for Standby */
 						status = NCSCC_RC_SUCCESS;
-						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-										     role, vdest_id, adest,
-										     NCSMDS_RED_UP,
-										     svc_sub_part_ver, archword_type);
-						if (status != NCSCC_RC_SUCCESS) {
+						status =
+						    mds_mcm_user_event_callback(
+							local_svc_hdl, pwe_id,
+							svc_id, role, vdest_id,
+							adest, NCSMDS_RED_UP,
+							svc_sub_part_ver,
+							archword_type);
+						if (status !=
+						    NCSCC_RC_SUCCESS) {
 							/* Callback failure */
-							m_MDS_LOG_ERR("MCM:API: svc_up : RED_UP Callback Failure for svc_id = %s(%d)",
-							     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							m_MDS_LOG_ERR(
+							    "MCM:API: svc_up : RED_UP Callback Failure for svc_id = %s(%d)",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl));
 							m_MDS_LEAVE();
 							return NCSCC_RC_FAILURE;
-
 						}
-						m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got RED_UP for svc_id = %s(%d) "
-								"on Vdest id = %d Adest = <0x%08x, %u>, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-								get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-								m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-								m_MDS_GET_NODE_ID_FROM_ADEST(adest), m_MDS_GET_PROCESS_ID_FROM_ADEST(adest),
-								svc_sub_part_ver, archword_type);
+						m_MDS_LOG_INFO(
+						    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got RED_UP for svc_id = %s(%d) "
+						    "on Vdest id = %d Adest = <0x%08x, %u>, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    get_svc_names(svc_id),
+						    svc_id, vdest_id,
+						    m_MDS_GET_NODE_ID_FROM_ADEST(
+							adest),
+						    m_MDS_GET_PROCESS_ID_FROM_ADEST(
+							adest),
+						    svc_sub_part_ver,
+						    archword_type);
 					}
 				}
-
 			}
-		}		/* End : Remote service is on VDEST */
-	} else {		/* Entry exist in subscription result table */
+		} /* End : Remote service is on VDEST */
+	} else {  /* Entry exist in subscription result table */
 
 		if (vdest_id == m_VDEST_ID_FOR_ADEST_ENTRY) {
 			/* Discard as it is already UP */
-		} else {	/* Remote svc is on VDEST */
+		} else { /* Remote svc is on VDEST */
 
 			if (vdest_policy == NCS_VDEST_TYPE_MxN) {
 				if (role == V_DEST_RL_ACTIVE) {
 					status = NCSCC_RC_SUCCESS;
-					status = mds_subtn_res_tbl_get(local_svc_hdl,
-								       svc_id,
-								       (MDS_VDEST_ID)vdest_id,
-								       &active_adest,
-								       &tmr_running, &active_subtn_result_info, true);
+					status = mds_subtn_res_tbl_get(
+					    local_svc_hdl, svc_id,
+					    (MDS_VDEST_ID)vdest_id,
+					    &active_adest, &tmr_running,
+					    &active_subtn_result_info, true);
 
-					if (status == NCSCC_RC_FAILURE) {	/* No other active entry exist */
+					if (status ==
+					    NCSCC_RC_FAILURE) { /* No other
+								   active entry
+								   exist */
 
 						/* Get pointer to this adest */
-						mds_subtn_res_tbl_get_by_adest(local_svc_hdl,
-									       svc_id,
-									       vdest_id,
-									       adest, &dest_role, &subtn_result_info);
-						/* Add Active subtn result table entry */
+						mds_subtn_res_tbl_get_by_adest(
+						    local_svc_hdl, svc_id,
+						    vdest_id, adest, &dest_role,
+						    &subtn_result_info);
+						/* Add Active subtn result table
+						 * entry */
 
-						if (dest_role == V_DEST_RL_STANDBY) {
-							/* Change role to Active */
-							mds_subtn_res_tbl_change_role(local_svc_hdl,
-										      svc_id, vdest_id, adest, role);
+						if (dest_role ==
+						    V_DEST_RL_STANDBY) {
+							/* Change role to Active
+							 */
+							mds_subtn_res_tbl_change_role(
+							    local_svc_hdl,
+							    svc_id, vdest_id,
+							    adest, role);
 
-							/* If subscripton is RED, call CHG_ROLE */
-							if (local_subtn_view == MDS_VIEW_RED) {
-								status = NCSCC_RC_SUCCESS;
+							/* If subscripton is
+							 * RED, call CHG_ROLE */
+							if (local_subtn_view ==
+							    MDS_VIEW_RED) {
 								status =
-								    mds_mcm_user_event_callback(local_svc_hdl, pwe_id,
-												svc_id, role, vdest_id,
-												adest, NCSMDS_CHG_ROLE,
-												svc_sub_part_ver,
-												archword_type);
-								if (status != NCSCC_RC_SUCCESS) {
-									/* Callback failure */
-									m_MDS_LOG_ERR("MCM:API: svc_up : CHG_ROLE Callback Failure for svc_id = %s(%d)",
-									     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+								    NCSCC_RC_SUCCESS;
+								status = mds_mcm_user_event_callback(
+								    local_svc_hdl,
+								    pwe_id,
+								    svc_id,
+								    role,
+								    vdest_id,
+								    adest,
+								    NCSMDS_CHG_ROLE,
+								    svc_sub_part_ver,
+								    archword_type);
+								if (status !=
+								    NCSCC_RC_SUCCESS) {
+									/* Callback
+									 * failure
+									 */
+									m_MDS_LOG_ERR(
+									    "MCM:API: svc_up : CHG_ROLE Callback Failure for svc_id = %s(%d)",
+									    get_svc_names(
+										m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+										    local_svc_hdl)),
+									    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+										local_svc_hdl));
 									m_MDS_LEAVE();
 									return NCSCC_RC_FAILURE;
-
 								}
-								m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got CHG_ROLE for "
-										"svc_id = %s(%d) on Vdest id = %d Adest = %s,"
-										"rem_svc_pvt_ver=%d, rem_svc_archword =%d",
-										get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-								     	m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl),
-										get_svc_names(svc_id), svc_id, vdest_id,
-										subtn_result_info->sub_adest_details,  svc_sub_part_ver, archword_type);
+								m_MDS_LOG_INFO(
+								    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got CHG_ROLE for "
+								    "svc_id = %s(%d) on Vdest id = %d Adest = %s,"
+								    "rem_svc_pvt_ver=%d, rem_svc_archword =%d",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl),
+								    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+									local_svc_hdl),
+								    get_svc_names(
+									svc_id),
+								    svc_id,
+								    vdest_id,
+								    subtn_result_info
+									->sub_adest_details,
+								    svc_sub_part_ver,
+								    archword_type);
 							}
 						}
 
-						mds_subtn_res_tbl_add_active(local_svc_hdl,
-									     svc_id,
-									     vdest_id,
-									     vdest_policy,
-									     subtn_result_info,
-									     svc_sub_part_ver, archword_type);
+						mds_subtn_res_tbl_add_active(
+						    local_svc_hdl, svc_id,
+						    vdest_id, vdest_policy,
+						    subtn_result_info,
+						    svc_sub_part_ver,
+						    archword_type);
 						/* Call user callback UP */
 						status = NCSCC_RC_SUCCESS;
-						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-										     role, vdest_id, adest,
-										     NCSMDS_UP,
-										     svc_sub_part_ver, archword_type);
-						if (status != NCSCC_RC_SUCCESS) {
+						status =
+						    mds_mcm_user_event_callback(
+							local_svc_hdl, pwe_id,
+							svc_id, role, vdest_id,
+							adest, NCSMDS_UP,
+							svc_sub_part_ver,
+							archword_type);
+						if (status !=
+						    NCSCC_RC_SUCCESS) {
 							/* Callback failure */
-							m_MDS_LOG_ERR("MCM:API: svc_up : UP Callback Failure for svc_id = %s(%d)",
-							     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)),
-								  m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							m_MDS_LOG_ERR(
+							    "MCM:API: svc_up : UP Callback Failure for svc_id = %s(%d)",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl));
 							m_MDS_LEAVE();
 							return NCSCC_RC_FAILURE;
-
 						}
-						m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got UP for svc_id = %s(%d) "
-								"on Vdest id = %d Adest = %s , rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-								get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-								m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-								subtn_result_info->sub_adest_details, svc_sub_part_ver, archword_type);
+						m_MDS_LOG_INFO(
+						    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got UP for svc_id = %s(%d) "
+						    "on Vdest id = %d Adest = %s , rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    get_svc_names(svc_id),
+						    svc_id, vdest_id,
+						    subtn_result_info
+							->sub_adest_details,
+						    svc_sub_part_ver,
+						    archword_type);
 
-					} else {	/* Active or Await Active entry exist */
+					} else { /* Active or Await Active entry
+						    exist */
 
-						if (active_adest == adest) {	/* Current Active entry is entry for which we got up */
+						if (active_adest ==
+						    adest) { /* Current Active
+								entry is entry
+								for which we got
+								up */
 
-							/* Discard as it is duplicate */
+							/* Discard as it is
+							 * duplicate */
 
-						} else {	/* Some other Active or Await entry exist */
+						} else { /* Some other Active or
+							    Await entry exist */
 
-							/* Some other entry is active and this one standby */
-							/* so make this one active */
+							/* Some other entry is
+							 * active and this one
+							 * standby */
+							/* so make this one
+							 * active */
 
-							/* Get pointer to this adest */
-							mds_subtn_res_tbl_get_by_adest(local_svc_hdl,
-										       svc_id,
-										       vdest_id,
-										       adest,
-										       &dest_role, &subtn_result_info);
-							if (dest_role == V_DEST_RL_STANDBY) {
-								/* Change role to Active */
-								mds_subtn_res_tbl_change_role(local_svc_hdl,
-											      svc_id,
-											      vdest_id, adest, role);
+							/* Get pointer to this
+							 * adest */
+							mds_subtn_res_tbl_get_by_adest(
+							    local_svc_hdl,
+							    svc_id, vdest_id,
+							    adest, &dest_role,
+							    &subtn_result_info);
+							if (dest_role ==
+							    V_DEST_RL_STANDBY) {
+								/* Change role
+								 * to Active */
+								mds_subtn_res_tbl_change_role(
+								    local_svc_hdl,
+								    svc_id,
+								    vdest_id,
+								    adest,
+								    role);
 
-								/* If subscripton is RED, call CHG_ROLE */
-								if (local_subtn_view == MDS_VIEW_RED) {
-									status = NCSCC_RC_SUCCESS;
+								/* If
+								 * subscripton
+								 * is RED, call
+								 * CHG_ROLE */
+								if (local_subtn_view ==
+								    MDS_VIEW_RED) {
 									status =
-									    mds_mcm_user_event_callback(local_svc_hdl,
-													pwe_id, svc_id,
-													role, vdest_id,
-													adest,
-													NCSMDS_CHG_ROLE,
-													svc_sub_part_ver,
-													archword_type);
-									if (status != NCSCC_RC_SUCCESS) {
+									    NCSCC_RC_SUCCESS;
+									status = mds_mcm_user_event_callback(
+									    local_svc_hdl,
+									    pwe_id,
+									    svc_id,
+									    role,
+									    vdest_id,
+									    adest,
+									    NCSMDS_CHG_ROLE,
+									    svc_sub_part_ver,
+									    archword_type);
+									if (status !=
+									    NCSCC_RC_SUCCESS) {
 										/* Callback failure */
-										m_MDS_LOG_ERR("MCM:API: svc_up: CHG_ROLE Callback Failure for svc_id = %s(%d)",
-											get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+										m_MDS_LOG_ERR(
+										    "MCM:API: svc_up: CHG_ROLE Callback Failure for svc_id = %s(%d)",
+										    get_svc_names(
+											m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+											    local_svc_hdl)),
+										    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+											local_svc_hdl));
 										m_MDS_LEAVE();
 										return NCSCC_RC_FAILURE;
-
 									}
-									m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got CHG_ROLE for " 
-											"svc_id = %s(%d) on Vdest id = %d Adest = %s, "
-											"rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-											get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-											m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl),
-											get_svc_names(svc_id), svc_id, vdest_id,
-											subtn_result_info->sub_adest_details,
-											svc_sub_part_ver, archword_type);
+									m_MDS_LOG_INFO(
+									    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got CHG_ROLE for "
+									    "svc_id = %s(%d) on Vdest id = %d Adest = %s, "
+									    "rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+									    get_svc_names(
+										m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+										    local_svc_hdl)),
+									    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+										local_svc_hdl),
+									    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+										local_svc_hdl),
+									    get_svc_names(
+										svc_id),
+									    svc_id,
+									    vdest_id,
+									    subtn_result_info
+										->sub_adest_details,
+									    svc_sub_part_ver,
+									    archword_type);
 								}
 							}
 
-							/* Make this as active */
-							mds_subtn_res_tbl_change_active(local_svc_hdl,
-											svc_id,
-											(MDS_VDEST_ID)vdest_id,
-											subtn_result_info,
-											svc_sub_part_ver,
-											archword_type);
+							/* Make this as active
+							 */
+							mds_subtn_res_tbl_change_active(
+							    local_svc_hdl,
+							    svc_id,
+							    (MDS_VDEST_ID)
+								vdest_id,
+							    subtn_result_info,
+							    svc_sub_part_ver,
+							    archword_type);
 
-							if ((tmr_running == true)
-							    || (local_subtn_view == MDS_VIEW_NORMAL)) {
-								/* Call user callback UP */
-								status = NCSCC_RC_SUCCESS;
+							if ((tmr_running ==
+							     true) ||
+							    (local_subtn_view ==
+							     MDS_VIEW_NORMAL)) {
+								/* Call user
+								 * callback UP
+								 */
 								status =
-								    mds_mcm_user_event_callback(local_svc_hdl, pwe_id,
-												svc_id, role, vdest_id,
-												adest,
-												NCSMDS_NEW_ACTIVE,
-												svc_sub_part_ver,
-												archword_type);
-								if (status != NCSCC_RC_SUCCESS) {
-									/* Callback failure */
-									m_MDS_LOG_ERR("MCM:API: svc_up : NEW_ACTIVE Callback Failure for svc_id = %s(%d)",
-									     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+								    NCSCC_RC_SUCCESS;
+								status = mds_mcm_user_event_callback(
+								    local_svc_hdl,
+								    pwe_id,
+								    svc_id,
+								    role,
+								    vdest_id,
+								    adest,
+								    NCSMDS_NEW_ACTIVE,
+								    svc_sub_part_ver,
+								    archword_type);
+								if (status !=
+								    NCSCC_RC_SUCCESS) {
+									/* Callback
+									 * failure
+									 */
+									m_MDS_LOG_ERR(
+									    "MCM:API: svc_up : NEW_ACTIVE Callback Failure for svc_id = %s(%d)",
+									    get_svc_names(
+										m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+										    local_svc_hdl)),
+									    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+										local_svc_hdl));
 									m_MDS_LEAVE();
 									return NCSCC_RC_FAILURE;
-
 								}
-								m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got NEW_ACTIVE for " 
-										"svc_id = %s(%d) on Vdest id = %d Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-										get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-										m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl),
-										get_svc_names(svc_id), svc_id, vdest_id,
-										subtn_result_info->sub_adest_details,
-										svc_sub_part_ver, archword_type);
+								m_MDS_LOG_INFO(
+								    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got NEW_ACTIVE for "
+								    "svc_id = %s(%d) on Vdest id = %d Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl),
+								    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+									local_svc_hdl),
+								    get_svc_names(
+									svc_id),
+								    svc_id,
+								    vdest_id,
+								    subtn_result_info
+									->sub_adest_details,
+								    svc_sub_part_ver,
+								    archword_type);
 							}
 						}
 					}
-				} else {	/* role == V_DEST_RL_STANDBY */
-					/* check whether then existing entry is active and
-					   we got UP for standby for same entry */
-					mds_subtn_res_tbl_get(local_svc_hdl,
-							      svc_id,
-							      (MDS_VDEST_ID)vdest_id,
-							      &active_adest, &tmr_running, &subtn_result_info, true);
-					if (active_adest == adest) {	/* This entry is going down */
+				} else { /* role == V_DEST_RL_STANDBY */
+					/* check whether then existing entry is
+					   active and we got UP for standby for
+					   same entry */
+					mds_subtn_res_tbl_get(
+					    local_svc_hdl, svc_id,
+					    (MDS_VDEST_ID)vdest_id,
+					    &active_adest, &tmr_running,
+					    &subtn_result_info, true);
+					if (active_adest ==
+					    adest) { /* This entry is going down
+						      */
 
-						mds_subtn_res_tbl_remove_active(local_svc_hdl,
-										svc_id, (MDS_VDEST_ID)vdest_id);
-						mds_subtn_res_tbl_change_role(local_svc_hdl,
-									      svc_id,
-									      vdest_id, adest, V_DEST_RL_STANDBY);
+						mds_subtn_res_tbl_remove_active(
+						    local_svc_hdl, svc_id,
+						    (MDS_VDEST_ID)vdest_id);
+						mds_subtn_res_tbl_change_role(
+						    local_svc_hdl, svc_id,
+						    vdest_id, adest,
+						    V_DEST_RL_STANDBY);
 
-						/* Call user call back NO ACTIVE */
+						/* Call user call back NO ACTIVE
+						 */
 						status = NCSCC_RC_SUCCESS;
-						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-										     role, vdest_id, 0,
-										     NCSMDS_NO_ACTIVE,
-										     svc_sub_part_ver,
-										     MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+						status = mds_mcm_user_event_callback(
+						    local_svc_hdl, pwe_id,
+						    svc_id, role, vdest_id, 0,
+						    NCSMDS_NO_ACTIVE,
+						    svc_sub_part_ver,
+						    MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
 
-						if (status != NCSCC_RC_SUCCESS) {
+						if (status !=
+						    NCSCC_RC_SUCCESS) {
 							/* Callback failure */
-							m_MDS_LOG_ERR("MCM:API: svc_up : NO_ACTIVE Callback Failure for svc_id = %s(%d)",
-							     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							m_MDS_LOG_ERR(
+							    "MCM:API: svc_up : NO_ACTIVE Callback Failure for svc_id = %s(%d)",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl));
 							m_MDS_LEAVE();
 							return NCSCC_RC_FAILURE;
-
 						}
-						m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got NO_ACTIVE for svc_id = %s(%d) "
-								"on Vdest id = %d Adest = %s, rem_svc_pvt_ver=%d",
-								get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-								m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-								subtn_result_info->sub_adest_details, svc_sub_part_ver);
+						m_MDS_LOG_INFO(
+						    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got NO_ACTIVE for svc_id = %s(%d) "
+						    "on Vdest id = %d Adest = %s, rem_svc_pvt_ver=%d",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    get_svc_names(svc_id),
+						    svc_id, vdest_id,
+						    subtn_result_info
+							->sub_adest_details,
+						    svc_sub_part_ver);
 
-						/* If subscripton is RED, call CHG_ROLE also */
-						if (local_subtn_view == MDS_VIEW_RED) {
-							status = NCSCC_RC_SUCCESS;
+						/* If subscripton is RED, call
+						 * CHG_ROLE also */
+						if (local_subtn_view ==
+						    MDS_VIEW_RED) {
 							status =
-							    mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-											role, vdest_id, adest,
-											NCSMDS_CHG_ROLE,
-											svc_sub_part_ver,
-											archword_type);
-							if (status != NCSCC_RC_SUCCESS) {
-								/* Callback failure */
-								m_MDS_LOG_ERR("MCM:API: svc_up : CHG_ROLE Callback Failure for svc_id = %s(%d)",
-								     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							    NCSCC_RC_SUCCESS;
+							status =
+							    mds_mcm_user_event_callback(
+								local_svc_hdl,
+								pwe_id, svc_id,
+								role, vdest_id,
+								adest,
+								NCSMDS_CHG_ROLE,
+								svc_sub_part_ver,
+								archword_type);
+							if (status !=
+							    NCSCC_RC_SUCCESS) {
+								/* Callback
+								 * failure */
+								m_MDS_LOG_ERR(
+								    "MCM:API: svc_up : CHG_ROLE Callback Failure for svc_id = %s(%d)",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl));
 								m_MDS_LEAVE();
 								return NCSCC_RC_FAILURE;
-
 							}
-							m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got CHG_ROLE for "
-									"svc_id = %s(%d) on VDEST id = %d ADEST = %s, rem_svc_pvt_ver=%d, "
-									"rem_svc_archword=%d",
-									get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-									m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id,
-									vdest_id, subtn_result_info->sub_adest_details, svc_sub_part_ver,
-									archword_type);
+							m_MDS_LOG_INFO(
+							    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got CHG_ROLE for "
+							    "svc_id = %s(%d) on VDEST id = %d ADEST = %s, rem_svc_pvt_ver=%d, "
+							    "rem_svc_archword=%d",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    get_svc_names(
+								svc_id),
+							    svc_id, vdest_id,
+							    subtn_result_info
+								->sub_adest_details,
+							    svc_sub_part_ver,
+							    archword_type);
 						}
-					} else {	/* Some other entry is active */
+					} else { /* Some other entry is active
+						  */
 
-						/* It can be either duplicate in this case we will diacard */
-						/* Or some other entry is forcefully made active due to 
-						   remote VDEST role change in this case we will just change role */
+						/* It can be either duplicate in
+						 * this case we will diacard */
+						/* Or some other entry is
+						   forcefully made active due to
+						   remote VDEST role change in
+						   this case we will just change
+						   role */
 
-						mds_subtn_res_tbl_get_by_adest(local_svc_hdl,
-									       svc_id,
-									       vdest_id,
-									       adest, &dest_role, &subtn_result_info);
+						mds_subtn_res_tbl_get_by_adest(
+						    local_svc_hdl, svc_id,
+						    vdest_id, adest, &dest_role,
+						    &subtn_result_info);
 
-						if (dest_role == V_DEST_RL_ACTIVE) {	/* There is change in role of this service */
+						if (dest_role ==
+						    V_DEST_RL_ACTIVE) { /* There
+									   is
+									   change
+									   in
+									   role
+									   of
+									   this
+									   service
+									 */
 
-							mds_subtn_res_tbl_change_role(local_svc_hdl,
-										      svc_id,
-										      vdest_id,
-										      adest, V_DEST_RL_STANDBY);
+							mds_subtn_res_tbl_change_role(
+							    local_svc_hdl,
+							    svc_id, vdest_id,
+							    adest,
+							    V_DEST_RL_STANDBY);
 
-							/* If subscripton is RED, call CHG_ROLE also */
-							if (local_subtn_view == MDS_VIEW_RED) {
-								status = NCSCC_RC_SUCCESS;
+							/* If subscripton is
+							 * RED, call CHG_ROLE
+							 * also */
+							if (local_subtn_view ==
+							    MDS_VIEW_RED) {
 								status =
-								    mds_mcm_user_event_callback(local_svc_hdl, pwe_id,
-												svc_id, role, vdest_id,
-												adest, NCSMDS_CHG_ROLE,
-												svc_sub_part_ver,
-												archword_type);
-								if (status != NCSCC_RC_SUCCESS) {
-									/* Callback failure */
-									m_MDS_LOG_ERR("MCM:API: svc_up : CHG_ROLE Callback Failure for svc_id = %s(%d)",
-									     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+								    NCSCC_RC_SUCCESS;
+								status = mds_mcm_user_event_callback(
+								    local_svc_hdl,
+								    pwe_id,
+								    svc_id,
+								    role,
+								    vdest_id,
+								    adest,
+								    NCSMDS_CHG_ROLE,
+								    svc_sub_part_ver,
+								    archword_type);
+								if (status !=
+								    NCSCC_RC_SUCCESS) {
+									/* Callback
+									 * failure
+									 */
+									m_MDS_LOG_ERR(
+									    "MCM:API: svc_up : CHG_ROLE Callback Failure for svc_id = %s(%d)",
+									    get_svc_names(
+										m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+										    local_svc_hdl)),
+									    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+										local_svc_hdl));
 									m_MDS_LEAVE();
 									return NCSCC_RC_FAILURE;
-
 								}
-								m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got " 
-										"CHG_ROLE for svc_id = %s(%d) on Vdest id = %d Adest = %s, "
-										"rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-										get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-										m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl),
-										get_svc_names(svc_id), svc_id, vdest_id,
-										subtn_result_info->sub_adest_details, svc_sub_part_ver, archword_type);
+								m_MDS_LOG_INFO(
+								    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got "
+								    "CHG_ROLE for svc_id = %s(%d) on Vdest id = %d Adest = %s, "
+								    "rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl),
+								    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+									local_svc_hdl),
+								    get_svc_names(
+									svc_id),
+								    svc_id,
+								    vdest_id,
+								    subtn_result_info
+									->sub_adest_details,
+								    svc_sub_part_ver,
+								    archword_type);
 							}
 						}
 					}
 				}
-			} else {	/* vdest_policy == NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN */
+			} else { /* vdest_policy ==
+				    NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN */
 
-				mds_subtn_res_tbl_get_by_adest(local_svc_hdl,
-							       svc_id,
-							       (MDS_VDEST_ID)vdest_id,
-							       adest, &dest_role, &subtn_result_info);
+				mds_subtn_res_tbl_get_by_adest(
+				    local_svc_hdl, svc_id,
+				    (MDS_VDEST_ID)vdest_id, adest, &dest_role,
+				    &subtn_result_info);
 
 				if (role == V_DEST_RL_ACTIVE) {
 					if (dest_role == V_DEST_RL_ACTIVE) {
 						/* Discard as it is duplicate */
-					} else {	/* dest_role == V_DEST_RL_STANDBY */
+					} else { /* dest_role ==
+						    V_DEST_RL_STANDBY */
 
 						/* Make it ACTIVE */
-						mds_subtn_res_tbl_change_role(local_svc_hdl,
-									      svc_id,
-									      vdest_id, adest, V_DEST_RL_ACTIVE);
+						mds_subtn_res_tbl_change_role(
+						    local_svc_hdl, svc_id,
+						    vdest_id, adest,
+						    V_DEST_RL_ACTIVE);
 
-						/* If subscripton is RED, call CHG_ROLE also */
-						if (local_subtn_view == MDS_VIEW_RED) {
-							status = NCSCC_RC_SUCCESS;
+						/* If subscripton is RED, call
+						 * CHG_ROLE also */
+						if (local_subtn_view ==
+						    MDS_VIEW_RED) {
 							status =
-							    mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-											role, vdest_id, adest,
-											NCSMDS_CHG_ROLE,
-											svc_sub_part_ver,
-											archword_type);
-							if (status != NCSCC_RC_SUCCESS) {
-								/* Callback failure */
-								m_MDS_LOG_ERR("MCM:API: svc_up : CHG_ROLE Callback Failure for svc_id = %s(%d)",
-								     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							    NCSCC_RC_SUCCESS;
+							status =
+							    mds_mcm_user_event_callback(
+								local_svc_hdl,
+								pwe_id, svc_id,
+								role, vdest_id,
+								adest,
+								NCSMDS_CHG_ROLE,
+								svc_sub_part_ver,
+								archword_type);
+							if (status !=
+							    NCSCC_RC_SUCCESS) {
+								/* Callback
+								 * failure */
+								m_MDS_LOG_ERR(
+								    "MCM:API: svc_up : CHG_ROLE Callback Failure for svc_id = %s(%d)",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl));
 								m_MDS_LEAVE();
 								return NCSCC_RC_FAILURE;
-
 							}
-							m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got CHG_ROLE " 
-									"for svc_id = %s(%d) on Vdest id = %d Adest = %s, "
-									"rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-									get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-									m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id,
-									vdest_id, subtn_result_info->sub_adest_details, svc_sub_part_ver, archword_type);
+							m_MDS_LOG_INFO(
+							    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got CHG_ROLE "
+							    "for svc_id = %s(%d) on Vdest id = %d Adest = %s, "
+							    "rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    get_svc_names(
+								svc_id),
+							    svc_id, vdest_id,
+							    subtn_result_info
+								->sub_adest_details,
+							    svc_sub_part_ver,
+							    archword_type);
 						}
 
-						/* check if Any Active entry exists */
+						/* check if Any Active entry
+						 * exists */
 						status = NCSCC_RC_SUCCESS;
 
-						status = mds_subtn_res_tbl_get(local_svc_hdl,
-									       svc_id,
-									       vdest_id,
-									       &active_adest,
-									       &tmr_running,
-									       &active_subtn_result_info, true);
+						status = mds_subtn_res_tbl_get(
+						    local_svc_hdl, svc_id,
+						    vdest_id, &active_adest,
+						    &tmr_running,
+						    &active_subtn_result_info,
+						    true);
 
-						if (status == NCSCC_RC_SUCCESS) {	/* Active or Await active entry exists */
+						if (status ==
+						    NCSCC_RC_SUCCESS) { /* Active
+									   or
+									   Await
+									   active
+									   entry
+									   exists
+									 */
 
-							if (tmr_running == true) {	/* If Await active exist then point to this one as active */
+							if (tmr_running ==
+							    true) { /* If Await
+								       active
+								       exist
+								       then
+								       point to
+								       this one
+								       as active
+								     */
 
-								mds_subtn_res_tbl_change_active(local_svc_hdl,
-												svc_id,
-												vdest_id,
-												subtn_result_info,
-												svc_sub_part_ver,
-												archword_type);
-								/* Call user callback UP */
-								status = NCSCC_RC_SUCCESS;
+								mds_subtn_res_tbl_change_active(
+								    local_svc_hdl,
+								    svc_id,
+								    vdest_id,
+								    subtn_result_info,
+								    svc_sub_part_ver,
+								    archword_type);
+								/* Call user
+								 * callback UP
+								 */
 								status =
-								    mds_mcm_user_event_callback(local_svc_hdl, pwe_id,
-												svc_id, role, vdest_id,
-												adest,
-												NCSMDS_NEW_ACTIVE,
-												svc_sub_part_ver,
-												archword_type);
-								if (status != NCSCC_RC_SUCCESS) {
-									/* Callback failure */
-									m_MDS_LOG_ERR("MCM:API: svc_up : NEW_ACTIVE Callback Failure for svc_id = %s(%d)",
-									     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+								    NCSCC_RC_SUCCESS;
+								status = mds_mcm_user_event_callback(
+								    local_svc_hdl,
+								    pwe_id,
+								    svc_id,
+								    role,
+								    vdest_id,
+								    adest,
+								    NCSMDS_NEW_ACTIVE,
+								    svc_sub_part_ver,
+								    archword_type);
+								if (status !=
+								    NCSCC_RC_SUCCESS) {
+									/* Callback
+									 * failure
+									 */
+									m_MDS_LOG_ERR(
+									    "MCM:API: svc_up : NEW_ACTIVE Callback Failure for svc_id = %s(%d)",
+									    get_svc_names(
+										m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+										    local_svc_hdl)),
+									    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+										local_svc_hdl));
 									m_MDS_LEAVE();
 									return NCSCC_RC_FAILURE;
-
 								}
-								m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got " 
-										"NEW_ACTIVE for svc_id = %s(%d) on Vdest id = %d Adest = %s,"
-										"rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-										get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-										m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl),
-										get_svc_names(svc_id), svc_id, vdest_id,
-										subtn_result_info->sub_adest_details, svc_sub_part_ver, archword_type);
+								m_MDS_LOG_INFO(
+								    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got "
+								    "NEW_ACTIVE for svc_id = %s(%d) on Vdest id = %d Adest = %s,"
+								    "rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl),
+								    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+									local_svc_hdl),
+								    get_svc_names(
+									svc_id),
+								    svc_id,
+								    vdest_id,
+								    subtn_result_info
+									->sub_adest_details,
+								    svc_sub_part_ver,
+								    archword_type);
 							} else {
-								/* Some other active entry exist so dont disturb it */
-								/* This entry can't be active as earlier it was Standby */
+								/* Some other
+								 * active entry
+								 * exist so dont
+								 * disturb it */
+								/* This entry
+								 * can't be
+								 * active as
+								 * earlier it
+								 * was Standby
+								 */
 							}
 						} else {
 							/* Add Active entry */
-							mds_subtn_res_tbl_add_active(local_svc_hdl,
-										     svc_id,
-										     vdest_id,
-										     vdest_policy,
-										     subtn_result_info,
-										     svc_sub_part_ver, archword_type);
+							mds_subtn_res_tbl_add_active(
+							    local_svc_hdl,
+							    svc_id, vdest_id,
+							    vdest_policy,
+							    subtn_result_info,
+							    svc_sub_part_ver,
+							    archword_type);
 
-							/* Call user callback UP */
-							status = NCSCC_RC_SUCCESS;
+							/* Call user callback UP
+							 */
 							status =
-							    mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-											role, vdest_id, adest,
-											NCSMDS_UP, svc_sub_part_ver,
-											archword_type);
-							if (status != NCSCC_RC_SUCCESS) {
-								/* Callback failure */
-								m_MDS_LOG_ERR("MCM:API: svc_up : UP Callback Failure for svc_id = %s(%d)",
-								    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							    NCSCC_RC_SUCCESS;
+							status =
+							    mds_mcm_user_event_callback(
+								local_svc_hdl,
+								pwe_id, svc_id,
+								role, vdest_id,
+								adest,
+								NCSMDS_UP,
+								svc_sub_part_ver,
+								archword_type);
+							if (status !=
+							    NCSCC_RC_SUCCESS) {
+								/* Callback
+								 * failure */
+								m_MDS_LOG_ERR(
+								    "MCM:API: svc_up : UP Callback Failure for svc_id = %s(%d)",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl));
 								m_MDS_LEAVE();
 								return NCSCC_RC_FAILURE;
-
 							}
-							m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got" 
-									"UP for svc_id = %s(%d) on Vdest id = %d Adest = %s,"
-									"rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-									get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-									m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id,
-									vdest_id, subtn_result_info->sub_adest_details, svc_sub_part_ver, archword_type);
+							m_MDS_LOG_INFO(
+							    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got"
+							    "UP for svc_id = %s(%d) on Vdest id = %d Adest = %s,"
+							    "rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    get_svc_names(
+								svc_id),
+							    svc_id, vdest_id,
+							    subtn_result_info
+								->sub_adest_details,
+							    svc_sub_part_ver,
+							    archword_type);
 						}
 					}
-				} else {	/* role == V_DEST_RL_STANDBY */
+				} else { /* role == V_DEST_RL_STANDBY */
 
 					if (dest_role == V_DEST_RL_STANDBY) {
 						/* Discard as it is duplicate */
-					} else {	/* dest_role == V_DEST_RL_ACTIVE */
+					} else { /* dest_role ==
+						    V_DEST_RL_ACTIVE */
 
-						/* This active entry is going to standby */
+						/* This active entry is going to
+						 * standby */
 
-						/* check if Active entry was referring to the same entry going standby */
+						/* check if Active entry was
+						 * referring to the same entry
+						 * going standby */
 						status = NCSCC_RC_SUCCESS;
-						status = mds_subtn_res_tbl_get(local_svc_hdl,
-									       svc_id,
-									       vdest_id,
-									       &active_adest,
-									       &tmr_running,
-									       &active_subtn_result_info, true);
+						status = mds_subtn_res_tbl_get(
+						    local_svc_hdl, svc_id,
+						    vdest_id, &active_adest,
+						    &tmr_running,
+						    &active_subtn_result_info,
+						    true);
 
-						if (status == NCSCC_RC_SUCCESS) {	/* Active or Await active entry exists */
+						if (status ==
+						    NCSCC_RC_SUCCESS) { /* Active
+									   or
+									   Await
+									   active
+									   entry
+									   exists
+									 */
 
-							if (tmr_running == true) {	/* Timer is running so active entry points to NULL */
+							if (tmr_running ==
+							    true) { /* Timer is
+								       running
+								       so active
+								       entry
+								       points to
+								       NULL */
 								/* Do nothing */
-							} else {	/* Active entry exist */
+							} else { /* Active entry
+								    exist */
 
-								/* check whether the same entry is currently active */
-								if (active_subtn_result_info == subtn_result_info) {
-									/* Point to next active if present */
-									status = NCSCC_RC_SUCCESS;
+								/* check whether
+								 * the same
+								 * entry is
+								 * currently
+								 * active */
+								if (active_subtn_result_info ==
+								    subtn_result_info) {
+									/* Point
+									 * to
+									 * next
+									 * active
+									 * if
+									 * present
+									 */
 									status =
-									    mds_subtn_res_tbl_query_next_active
-									    (local_svc_hdl, svc_id, vdest_id,
-									     subtn_result_info,
-									     &next_active_result_info);
+									    NCSCC_RC_SUCCESS;
+									status = mds_subtn_res_tbl_query_next_active(
+									    local_svc_hdl,
+									    svc_id,
+									    vdest_id,
+									    subtn_result_info,
+									    &next_active_result_info);
 
 									if (subtn_result_info ==
 									    next_active_result_info) {
 										/* No other active present */
-										mds_subtn_res_tbl_remove_active
-										    (local_svc_hdl, svc_id, vdest_id);
+										mds_subtn_res_tbl_remove_active(
+										    local_svc_hdl,
+										    svc_id,
+										    vdest_id);
 										/* No active timer will be started in above function */
 
 										/* Call user callback NO Active */
 
-										status = NCSCC_RC_SUCCESS;
 										status =
-										    mds_mcm_user_event_callback
-										    (local_svc_hdl, pwe_id, svc_id,
-										     role, vdest_id, 0,
-										     NCSMDS_NO_ACTIVE, svc_sub_part_ver,
-										     MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+										    NCSCC_RC_SUCCESS;
+										status = mds_mcm_user_event_callback(
+										    local_svc_hdl,
+										    pwe_id,
+										    svc_id,
+										    role,
+										    vdest_id,
+										    0,
+										    NCSMDS_NO_ACTIVE,
+										    svc_sub_part_ver,
+										    MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
 
-										if (status != NCSCC_RC_SUCCESS) {
+										if (status !=
+										    NCSCC_RC_SUCCESS) {
 											/* Callback failure */
-											m_MDS_LOG_ERR("MCM:API: svc_up : NO_ACTIVE Callback Failure \
+											m_MDS_LOG_ERR(
+											    "MCM:API: svc_up : NO_ACTIVE Callback Failure \
 													for svc_id = %s(%d)",
-													get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+											    get_svc_names(
+												m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+												    local_svc_hdl)),
+											    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+												local_svc_hdl));
 											m_MDS_LEAVE();
 											return NCSCC_RC_FAILURE;
-
 										}
-										m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got " 
-												"NO_ACTIVE for svc_id = %s(%d) on Vdest id = %d "
-												"Adest = %s, rem_svc_pvt_ver=%d",
-												get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-												m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl),
-												get_svc_names(svc_id), svc_id, vdest_id,
-												active_subtn_result_info->sub_adest_details, svc_sub_part_ver);
+										m_MDS_LOG_INFO(
+										    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d got "
+										    "NO_ACTIVE for svc_id = %s(%d) on Vdest id = %d "
+										    "Adest = %s, rem_svc_pvt_ver=%d",
+										    get_svc_names(
+											m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+											    local_svc_hdl)),
+										    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+											local_svc_hdl),
+										    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+											local_svc_hdl),
+										    get_svc_names(
+											svc_id),
+										    svc_id,
+										    vdest_id,
+										    active_subtn_result_info
+											->sub_adest_details,
+										    svc_sub_part_ver);
 									} else {
 										/* Change to Active to point to next active */
-										mds_subtn_res_tbl_change_active
-										    (local_svc_hdl, svc_id, vdest_id,
-										     next_active_result_info,
-										     svc_sub_part_ver, archword_type);
+										mds_subtn_res_tbl_change_active(
+										    local_svc_hdl,
+										    svc_id,
+										    vdest_id,
+										    next_active_result_info,
+										    svc_sub_part_ver,
+										    archword_type);
 									}
 								} else {
-									/* We dont care, and dont disturb other actives */
+									/* We
+									 * dont
+									 * care,
+									 * and
+									 * dont
+									 * disturb
+									 * other
+									 * actives
+									 */
 								}
 							}
 						} else {
-							/* just change role, which is done in step below */
+							/* just change role,
+							 * which is done in step
+							 * below */
 						}
 
 						/* Make this as STANDBY */
-						mds_subtn_res_tbl_change_role(local_svc_hdl,
-									      svc_id,
-									      (MDS_VDEST_ID)vdest_id,
-									      adest, V_DEST_RL_STANDBY);
+						mds_subtn_res_tbl_change_role(
+						    local_svc_hdl, svc_id,
+						    (MDS_VDEST_ID)vdest_id,
+						    adest, V_DEST_RL_STANDBY);
 
-						/* If subscripton is RED, call CHG_ROLE also */
-						if (local_subtn_view == MDS_VIEW_RED) {
-							status = NCSCC_RC_SUCCESS;
+						/* If subscripton is RED, call
+						 * CHG_ROLE also */
+						if (local_subtn_view ==
+						    MDS_VIEW_RED) {
 							status =
-							    mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-											role, vdest_id, adest,
-											NCSMDS_CHG_ROLE,
-											svc_sub_part_ver,
-											archword_type);
-							if (status != NCSCC_RC_SUCCESS) {
-								/* Callback failure */
-								m_MDS_LOG_ERR("MCM:API: svc_up : CHG_ROLE Callback Failure for SVC_ID = %d",
-										m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							    NCSCC_RC_SUCCESS;
+							status =
+							    mds_mcm_user_event_callback(
+								local_svc_hdl,
+								pwe_id, svc_id,
+								role, vdest_id,
+								adest,
+								NCSMDS_CHG_ROLE,
+								svc_sub_part_ver,
+								archword_type);
+							if (status !=
+							    NCSCC_RC_SUCCESS) {
+								/* Callback
+								 * failure */
+								m_MDS_LOG_ERR(
+								    "MCM:API: svc_up : CHG_ROLE Callback Failure for SVC_ID = %d",
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl));
 								m_MDS_LEAVE();
 								return NCSCC_RC_FAILURE;
-
 							}
-							m_MDS_LOG_INFO("MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d " 
-									"got CHG_ROLE for svc_id = %s(%d) on Vdest id = %d Adest = %s, "
-									"rem_svc_pvt_ver=%d, rem_svc_archword=%d",
-									get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-									m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-									active_subtn_result_info->sub_adest_details, svc_sub_part_ver, archword_type);
+							m_MDS_LOG_INFO(
+							    "MCM:API: svc_up : svc_id = %s(%d) on DEST id = %d "
+							    "got CHG_ROLE for svc_id = %s(%d) on Vdest id = %d Adest = %s, "
+							    "rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    get_svc_names(
+								svc_id),
+							    svc_id, vdest_id,
+							    active_subtn_result_info
+								->sub_adest_details,
+							    svc_sub_part_ver,
+							    archword_type);
 						}
 					}
 				}
@@ -2468,11 +3396,13 @@ static void start_mds_down_tmr(MDS_DEST adest, MDS_SVC_ID svc_id)
 
 	tmr_req_info->info.down_event_tmr_info.tmr_id = tmr_id;
 
-	uint32_t tmr_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON,
-		NCS_SERVICE_ID_COMMON, (NCSCONTEXT)(tmr_req_info));
+	uint32_t tmr_hdl =
+	    ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_COMMON,
+			     (NCSCONTEXT)(tmr_req_info));
 
 	tmr_id = ncs_tmr_start(tmr_id, 1000, // 10ms unit
-		(TMR_CALLBACK) mds_tmr_callback, (void *)(long)(tmr_hdl), __FILE__, __LINE__);
+			       (TMR_CALLBACK)mds_tmr_callback,
+			       (void *)(long)(tmr_hdl), __FILE__, __LINE__);
 	assert(tmr_id != NULL);
 }
 
@@ -2482,19 +3412,19 @@ static void start_mds_down_tmr(MDS_DEST adest, MDS_SVC_ID svc_id)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
-		       NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest_id,
-		       NCS_VDEST_TYPE vdest_policy, MDS_DEST adest,
-		       bool my_pcon,
-		       MDS_SVC_HDL local_svc_hdl,
-		       MDS_SUBTN_REF_VAL subtn_ref_val,
-		       MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type)
+			  NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest_id,
+			  NCS_VDEST_TYPE vdest_policy, MDS_DEST adest,
+			  bool my_pcon, MDS_SVC_HDL local_svc_hdl,
+			  MDS_SUBTN_REF_VAL subtn_ref_val,
+			  MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver,
+			  MDS_SVC_ARCHWORD_TYPE archword_type)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	NCSMDS_SCOPE_TYPE local_subtn_scope;
@@ -2506,102 +3436,109 @@ uint32_t mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 	MDS_SUBSCRIPTION_RESULTS_INFO *log_subtn_result_info = NULL;
 	V_DEST_RL dest_role;
 	m_MDS_ENTER();
-	m_MDS_LOG_DBG("MCM:API: LOCAL SVC INFO  : svc_id = %s(%d) | PWE id = %d | VDEST id = %d |",
-		      get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-		      m_MDS_GET_PWE_ID_FROM_SVC_HDL(local_svc_hdl), m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl));
-	m_MDS_LOG_DBG("MCM:API: REMOTE SVC INFO : svc_id = %s(%d) | PWE id = %d | VDEST id = %d | POLICY = %d | SCOPE = %d | ROLE = %d | MY_PCON = %d |",
-	     get_svc_names(svc_id), svc_id, pwe_id, vdest_id, vdest_policy, scope, role, my_pcon);
+	m_MDS_LOG_DBG(
+	    "MCM:API: LOCAL SVC INFO  : svc_id = %s(%d) | PWE id = %d | VDEST id = %d |",
+	    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)),
+	    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+	    m_MDS_GET_PWE_ID_FROM_SVC_HDL(local_svc_hdl),
+	    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl));
+	m_MDS_LOG_DBG(
+	    "MCM:API: REMOTE SVC INFO : svc_id = %s(%d) | PWE id = %d | VDEST id = %d | POLICY = %d | SCOPE = %d | ROLE = %d | MY_PCON = %d |",
+	    get_svc_names(svc_id), svc_id, pwe_id, vdest_id, vdest_policy,
+	    scope, role, my_pcon);
 
-/*
-From subtn_ref_val get Svc_Hdl of service, for which event has received.
+	/*
+	From subtn_ref_val get Svc_Hdl of service, for which event has received.
 
-For Each Unique Svc_Hdl
-if( entry doesnot exists corresponding to <Svc_Hdl, SVC_ID, PWE_ID, VDEST> in SUBSCRIPTION-RESULT-Table)
-  - Discard (Getting Down before getting UP)
-else (entry exists) 
-    {
-  IF MDEST IS VDEST
-      IF VDEST is MxN
-           IF ROLE = STANDBY
+	For Each Unique Svc_Hdl
+	if( entry doesnot exists corresponding to <Svc_Hdl, SVC_ID, PWE_ID,
+	VDEST> in SUBSCRIPTION-RESULT-Table) - Discard (Getting Down before
+	getting UP) else (entry exists)
+	    {
+	  IF MDEST IS VDEST
+	      IF VDEST is MxN
+		   IF ROLE = STANDBY
 
-                IF Current ROLE = STANDBY
-                    - Delete entry from SUBSCRIPTION- 
-                       RESULT-Table.
-                    - Call MDTM_TX_HDL_UNREGISTER
-                 INPUT
-                 TX_HDL
-                IF Current ROLE = FORCED-STANDBY
-                    Discard (if it is in FORCED-STANDBY 
-                ELSE (Current Role = ACTIVE)
-                    Discard (It should never reach here as it will not get 
-                  "Withdraw for Standby" if earlier it is "published with 
-                 Active" from same destination)
+			IF Current ROLE = STANDBY
+			    - Delete entry from SUBSCRIPTION-
+			       RESULT-Table.
+			    - Call MDTM_TX_HDL_UNREGISTER
+			 INPUT
+			 TX_HDL
+			IF Current ROLE = FORCED-STANDBY
+			    Discard (if it is in FORCED-STANDBY
+			ELSE (Current Role = ACTIVE)
+			    Discard (It should never reach here as it will not
+	get "Withdraw for Standby" if earlier it is "published with Active" from
+	same destination)
 
-           ELSE (ROLE = ACTIVE)
- 
-               IF Current ROLE = STANDBY
-                   Discard
-               IF Current ROLE = FORCED_STANDBY / ACTIVE
-                    - Check SUBSCRIPTION-RESULT-Table for any entries 
-                       with ROLE=ACTIVE 
-                               IF NOT FOUND
-                                 - Add an entry to AWAIT-ACTIVE-Table
-                                 - Start Await Active Guard Timer
-                                 - Call SVC_HDL User Callback function 
-                                   (Event=NO_ACTIVE)
-                    - Delete entry from SUBSCRIPTION- RESULT-Table.
-                    - Call MDTM_TX_HDL_UNREGISTER
-                 INPUT
-                 TX_HDL
+		   ELSE (ROLE = ACTIVE)
 
-       IF VDEST is N-Way
-           IF ROLE = ACTIVE              
-               
-                IF Current ROLE = ACTIVE
-                     - Delete entry from SUBSCRIPTION-RESULT-Table.
-                     - Call MDTM_TX_HDL_UNREGISTER
-                 INPUT
-                 TX_HDL
-                    - Check SUBSCRIPTION-RESULT-Table for any entries 
-                       with ROLE=ACTIVE 
-                               IF NOT FOUND
-                                 - Add an entry to AWAIT-ACTIVE-Table
-                                 - Start Await Active Guard Timer
-                                 - Call SVC_HDL User Callback function 
-                                   (Event=NO_ACTIVE)
-                  
-                ELSE (Current Role = Standby)
-                      - DISCARD
- 
-          ELSE (ROLE = Standby)
-                
-                IF Current ROLE = Standby
-                   - Delete entry from SUBSCRIPTION-RESULT-Table.
-                   - Call MDTM_TX_HDL_UNREGISTER
-               INPUT
-               TX_HDL
-                ELSE (Current Role = Active)
-                   - DISCARD
+		       IF Current ROLE = STANDBY
+			   Discard
+		       IF Current ROLE = FORCED_STANDBY / ACTIVE
+			    - Check SUBSCRIPTION-RESULT-Table for any entries
+			       with ROLE=ACTIVE
+				       IF NOT FOUND
+					 - Add an entry to AWAIT-ACTIVE-Table
+					 - Start Await Active Guard Timer
+					 - Call SVC_HDL User Callback function
+					   (Event=NO_ACTIVE)
+			    - Delete entry from SUBSCRIPTION- RESULT-Table.
+			    - Call MDTM_TX_HDL_UNREGISTER
+			 INPUT
+			 TX_HDL
 
-  ELSE MDEST IS ADEST
-       - Delete entry from SUBSCRIPTION-RESULT-Table.
-       - Call MDTM_TX_HDL_UNREGISTER
-    INPUT
-    TX_HDL
-       - Call SVC_HDL User Callback function 
-          (Event=DOWN)
-    }
-*/
+	       IF VDEST is N-Way
+		   IF ROLE = ACTIVE
+
+			IF Current ROLE = ACTIVE
+			     - Delete entry from SUBSCRIPTION-RESULT-Table.
+			     - Call MDTM_TX_HDL_UNREGISTER
+			 INPUT
+			 TX_HDL
+			    - Check SUBSCRIPTION-RESULT-Table for any entries
+			       with ROLE=ACTIVE
+				       IF NOT FOUND
+					 - Add an entry to AWAIT-ACTIVE-Table
+					 - Start Await Active Guard Timer
+					 - Call SVC_HDL User Callback function
+					   (Event=NO_ACTIVE)
+
+			ELSE (Current Role = Standby)
+			      - DISCARD
+
+		  ELSE (ROLE = Standby)
+
+			IF Current ROLE = Standby
+			   - Delete entry from SUBSCRIPTION-RESULT-Table.
+			   - Call MDTM_TX_HDL_UNREGISTER
+		       INPUT
+		       TX_HDL
+			ELSE (Current Role = Active)
+			   - DISCARD
+
+	  ELSE MDEST IS ADEST
+	       - Delete entry from SUBSCRIPTION-RESULT-Table.
+	       - Call MDTM_TX_HDL_UNREGISTER
+	    INPUT
+	    TX_HDL
+	       - Call SVC_HDL User Callback function
+		  (Event=DOWN)
+	    }
+	*/
 
 	/* potentially clean up the process info database */
 	MDS_PROCESS_INFO *info = mds_process_info_get(adest, svc_id);
 	if (info != NULL) {
-		/* Process info exist, delay the cleanup with a timeout to avoid race */
+		/* Process info exist, delay the cleanup with a timeout to avoid
+		 * race */
 		start_mds_down_tmr(adest, svc_id);
 	}
 
-	status = mds_svc_tbl_query(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
-				   m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+	status =
+	    mds_svc_tbl_query(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+			      m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
 
 	if (status == NCSCC_RC_FAILURE) {
 		/* Local Service Doesn't exist */
@@ -2610,258 +3547,407 @@ else (entry exists)
 		return NCSCC_RC_FAILURE;
 	}
 
-    /*************** Validation for SCOPE **********************/
+	/*************** Validation for SCOPE **********************/
 
 	/* check the installation scope of service is in subscription scope */
-	status = mds_subtn_tbl_get_details(local_svc_hdl, svc_id, &local_subtn_scope, &local_subtn_view);
+	status = mds_subtn_tbl_get_details(
+	    local_svc_hdl, svc_id, &local_subtn_scope, &local_subtn_view);
 	status = NCSCC_RC_SUCCESS;
-	status = mds_mcm_validate_scope(local_subtn_scope, scope, adest, svc_id, my_pcon);
+	status = mds_mcm_validate_scope(local_subtn_scope, scope, adest, svc_id,
+					my_pcon);
 
 	if (status == NCSCC_RC_FAILURE) {
 		return NCSCC_RC_SUCCESS;
 	}
-    /*************** Validation for SCOPE **********************/
+	/*************** Validation for SCOPE **********************/
 
-	status = mds_get_subtn_res_tbl_by_adest(local_svc_hdl, svc_id, (MDS_VDEST_ID)vdest_id, adest, &log_subtn_result_info);
-	if (status == NCSCC_RC_FAILURE) {	/* Subscription result tabel entry doesn't exist */
+	status = mds_get_subtn_res_tbl_by_adest(local_svc_hdl, svc_id,
+						(MDS_VDEST_ID)vdest_id, adest,
+						&log_subtn_result_info);
+	if (status == NCSCC_RC_FAILURE) { /* Subscription result tabel entry
+					     doesn't exist */
 
 		/* Discard : Getting down before getting up */
-	} else {		/* Entry exist in subscription result table */
+	} else { /* Entry exist in subscription result table */
 
 		if (vdest_id == m_VDEST_ID_FOR_ADEST_ENTRY) {
-			status = mds_subtn_res_tbl_del(local_svc_hdl, svc_id, vdest_id,
-						       adest, NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
-						       svc_sub_part_ver, archword_type);
+			status = mds_subtn_res_tbl_del(
+			    local_svc_hdl, svc_id, vdest_id, adest,
+			    NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN, svc_sub_part_ver,
+			    archword_type);
 
 			/* Call user call back with DOWN */
 
 			status = NCSCC_RC_SUCCESS;
-			status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-							     role, vdest_id, adest,
-							     NCSMDS_DOWN,
-							     svc_sub_part_ver, archword_type);
+			status = mds_mcm_user_event_callback(
+			    local_svc_hdl, pwe_id, svc_id, role, vdest_id,
+			    adest, NCSMDS_DOWN, svc_sub_part_ver,
+			    archword_type);
 
 			if (status != NCSCC_RC_SUCCESS) {
 				/* Callback failure */
-				m_MDS_LOG_ERR("MCM:API: svc_down : DOWN Callback Failure for svc_id = %s(%d)",
-					      get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+				m_MDS_LOG_ERR(
+				    "MCM:API: svc_down : DOWN Callback Failure for svc_id = %s(%d)",
+				    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					local_svc_hdl)),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					local_svc_hdl));
 				m_MDS_LEAVE();
 				return NCSCC_RC_FAILURE;
-
 			}
-			m_MDS_LOG_INFO("MCM:API: svc_down : svc_id = %s(%d) on DEST id = %d got DOWN for svc_id = %s(%d) on Adest = %s, "
-					" rem_svc_pvt_ver=%d",	get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-					m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id,
-					log_subtn_result_info->sub_adest_details,
-					svc_sub_part_ver);
+			m_MDS_LOG_INFO(
+			    "MCM:API: svc_down : svc_id = %s(%d) on DEST id = %d got DOWN for svc_id = %s(%d) on Adest = %s, "
+			    " rem_svc_pvt_ver=%d",
+			    get_svc_names(
+				m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)),
+			    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+			    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl),
+			    get_svc_names(svc_id), svc_id,
+			    log_subtn_result_info->sub_adest_details,
+			    svc_sub_part_ver);
 
-		} else {	/* Remote svc is on VDEST */
+		} else { /* Remote svc is on VDEST */
 
-			mds_subtn_res_tbl_get_by_adest(local_svc_hdl,
-						       svc_id, vdest_id, adest, &dest_role, &subtn_result_info);
-			if (dest_role != role) {	/* Role Mismatch */
+			mds_subtn_res_tbl_get_by_adest(
+			    local_svc_hdl, svc_id, vdest_id, adest, &dest_role,
+			    &subtn_result_info);
+			if (dest_role != role) { /* Role Mismatch */
 
 				/* Already role changed by Other role publish */
-				/* If svc is really going down it will get down for Other role also */
+				/* If svc is really going down it will get down
+				 * for Other role also */
 				/* so Discard */
-				m_MDS_LOG_INFO("MCM:API: svc_down : ROLE MISMATCH : svc_id = %s(%d) "
-						"on DEST id = %d got DOWN for svc_id = %s(%d) on Vdest id = %d "
-						"on Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d", 
-						get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-						m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-						subtn_result_info->sub_adest_details, svc_sub_part_ver, archword_type);
+				m_MDS_LOG_INFO(
+				    "MCM:API: svc_down : ROLE MISMATCH : svc_id = %s(%d) "
+				    "on DEST id = %d got DOWN for svc_id = %s(%d) on Vdest id = %d "
+				    "on Adest = %s, rem_svc_pvt_ver=%d, rem_svc_archword=%d",
+				    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					local_svc_hdl)),
+				    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+					local_svc_hdl),
+				    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+					local_svc_hdl),
+				    get_svc_names(svc_id), svc_id, vdest_id,
+				    subtn_result_info->sub_adest_details,
+				    svc_sub_part_ver, archword_type);
 
-				/* Return success as we have to discard this event */
+				/* Return success as we have to discard this
+				 * event */
 				m_MDS_LEAVE();
 				return NCSCC_RC_SUCCESS;
 			}
 
 			if (role == V_DEST_RL_ACTIVE) {
 				/* Get info about subtn entry before deleting */
-				status = mds_subtn_res_tbl_get(local_svc_hdl,
-							       svc_id,
-							       vdest_id,
-							       &active_adest, &tmr_running, &subtn_result_info, true);
+				status = mds_subtn_res_tbl_get(
+				    local_svc_hdl, svc_id, vdest_id,
+				    &active_adest, &tmr_running,
+				    &subtn_result_info, true);
 
 				/* First delete the entry */
-				mds_subtn_res_tbl_del(local_svc_hdl, svc_id, vdest_id,
-						      adest, vdest_policy, svc_sub_part_ver, archword_type);
+				mds_subtn_res_tbl_del(
+				    local_svc_hdl, svc_id, vdest_id, adest,
+				    vdest_policy, svc_sub_part_ver,
+				    archword_type);
 
 				if (active_adest == adest) {
-					if (vdest_policy == NCS_VDEST_TYPE_MxN) {
-						mds_subtn_res_tbl_remove_active(local_svc_hdl, svc_id, vdest_id);
+					if (vdest_policy ==
+					    NCS_VDEST_TYPE_MxN) {
+						mds_subtn_res_tbl_remove_active(
+						    local_svc_hdl, svc_id,
+						    vdest_id);
 
-						/* Call user call back with NO ACTIVE */
+						/* Call user call back with NO
+						 * ACTIVE */
 						status = NCSCC_RC_SUCCESS;
-						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-										     role, vdest_id, 0,
-										     NCSMDS_NO_ACTIVE,
-										     svc_sub_part_ver,
-										     MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+						status = mds_mcm_user_event_callback(
+						    local_svc_hdl, pwe_id,
+						    svc_id, role, vdest_id, 0,
+						    NCSMDS_NO_ACTIVE,
+						    svc_sub_part_ver,
+						    MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
 
-						if (status != NCSCC_RC_SUCCESS) {
+						if (status !=
+						    NCSCC_RC_SUCCESS) {
 							/* Callback failure */
-							m_MDS_LOG_ERR("MCM:API: svc_down : NO_ACTIVE Callback Failure for svc_id = %s(%d)",
-							     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							m_MDS_LOG_ERR(
+							    "MCM:API: svc_down : NO_ACTIVE Callback Failure for svc_id = %s(%d)",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl));
 							m_MDS_LEAVE();
 							return NCSCC_RC_FAILURE;
-
 						}
 
-						m_MDS_LOG_INFO("MCM:API: svc_down : svc_id = %s(%d) on DEST id = %d got NO_ACTIVE for "
-								"svc_id = %s(%d) on Vdest id = %d Adest = %s, rem_svc_pvt_ver=%d",
-								get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-								m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-								log_subtn_result_info->sub_adest_details, svc_sub_part_ver);
+						m_MDS_LOG_INFO(
+						    "MCM:API: svc_down : svc_id = %s(%d) on DEST id = %d got NO_ACTIVE for "
+						    "svc_id = %s(%d) on Vdest id = %d Adest = %s, rem_svc_pvt_ver=%d",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+							local_svc_hdl),
+						    get_svc_names(svc_id),
+						    svc_id, vdest_id,
+						    log_subtn_result_info
+							->sub_adest_details,
+						    svc_sub_part_ver);
 						{
-							MDS_SUBSCRIPTION_RESULTS_INFO *subtn_result_info = NULL;
-							bool adest_exists = false;
+							MDS_SUBSCRIPTION_RESULTS_INFO
+							    *subtn_result_info =
+								NULL;
+							bool adest_exists =
+							    false;
 
-							/* if no adest remains for this svc, send MDS_DOWN */
-							status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
+							/* if no adest remains
+							 * for this svc, send
+							 * MDS_DOWN */
+							status =
+							    mds_subtn_res_tbl_getnext_any(
+								local_svc_hdl,
+								svc_id,
+								&subtn_result_info);
 
-							while (status != NCSCC_RC_FAILURE)
-							{
-								if (subtn_result_info->key.vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY)
-								{
-									adest_exists = true;
+							while (
+							    status !=
+							    NCSCC_RC_FAILURE) {
+								if (subtn_result_info
+									->key
+									.vdest_id !=
+								    m_VDEST_ID_FOR_ADEST_ENTRY) {
+									adest_exists =
+									    true;
 									break;
 								}
 
-								status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
+								status = mds_subtn_res_tbl_getnext_any(
+								    local_svc_hdl,
+								    svc_id,
+								    &subtn_result_info);
 							}
 
-							if (adest_exists == false)
-							{
-								/* No other adest exists for this svc_id, Call user callback DOWN */
-								status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id, role, vdest_id, 0, 
-										NCSMDS_DOWN, svc_sub_part_ver, archword_type);
+							if (adest_exists ==
+							    false) {
+								/* No other
+								 * adest exists
+								 * for this
+								 * svc_id, Call
+								 * user callback
+								 * DOWN */
+								status = mds_mcm_user_event_callback(
+								    local_svc_hdl,
+								    pwe_id,
+								    svc_id,
+								    role,
+								    vdest_id, 0,
+								    NCSMDS_DOWN,
+								    svc_sub_part_ver,
+								    archword_type);
 							}
 						}
-					} else {	/* vdest_policy == NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN */
+					} else { /* vdest_policy ==
+						    NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN
+						  */
 
 						status = NCSCC_RC_SUCCESS;
-						status = mds_subtn_res_tbl_query_next_active(local_svc_hdl,
-											     svc_id, vdest_id,
-											     subtn_result_info,
-											     &next_active_result_info);
-						if (status == NCSCC_RC_FAILURE) {
-							/* No other active present */
-							mds_subtn_res_tbl_remove_active(local_svc_hdl, svc_id,
-											vdest_id);
-							/* No active timer will be started in above function */
+						status =
+						    mds_subtn_res_tbl_query_next_active(
+							local_svc_hdl, svc_id,
+							vdest_id,
+							subtn_result_info,
+							&next_active_result_info);
+						if (status ==
+						    NCSCC_RC_FAILURE) {
+							/* No other active
+							 * present */
+							mds_subtn_res_tbl_remove_active(
+							    local_svc_hdl,
+							    svc_id, vdest_id);
+							/* No active timer will
+							 * be started in above
+							 * function */
 
-							/* Call user callback NO Active */
+							/* Call user callback NO
+							 * Active */
 
-							status = NCSCC_RC_SUCCESS;
 							status =
-							    mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-											role, vdest_id, 0,
-											NCSMDS_NO_ACTIVE,
-											svc_sub_part_ver,
-											MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+							    NCSCC_RC_SUCCESS;
+							status = mds_mcm_user_event_callback(
+							    local_svc_hdl,
+							    pwe_id, svc_id,
+							    role, vdest_id, 0,
+							    NCSMDS_NO_ACTIVE,
+							    svc_sub_part_ver,
+							    MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
 
-							if (status != NCSCC_RC_SUCCESS) {
-								/* Callback failure */
-								m_MDS_LOG_ERR("MCM:API: svc_down : NO_ACTIVE Callback Failure for svc_id = %s(%d)",
-								     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+							if (status !=
+							    NCSCC_RC_SUCCESS) {
+								/* Callback
+								 * failure */
+								m_MDS_LOG_ERR(
+								    "MCM:API: svc_down : NO_ACTIVE Callback Failure for svc_id = %s(%d)",
+								    get_svc_names(
+									m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									    local_svc_hdl)),
+								    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+									local_svc_hdl));
 								m_MDS_LEAVE();
 								return NCSCC_RC_FAILURE;
-
 							}
-							m_MDS_LOG_INFO("MCM:API: svc_down : svc_id = %s(%d) on DEST id = %d got NO_ACTIVE for "
-									"svc_id = %s(%d) on Vdest id = %d, Adest = %s, rem_svc_pvt_ver=%d",
-									get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-									m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id,
-									vdest_id,  log_subtn_result_info->sub_adest_details, svc_sub_part_ver);
+							m_MDS_LOG_INFO(
+							    "MCM:API: svc_down : svc_id = %s(%d) on DEST id = %d got NO_ACTIVE for "
+							    "svc_id = %s(%d) on Vdest id = %d, Adest = %s, rem_svc_pvt_ver=%d",
+							    get_svc_names(
+								m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								    local_svc_hdl)),
+							    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+								local_svc_hdl),
+							    get_svc_names(
+								svc_id),
+							    svc_id, vdest_id,
+							    log_subtn_result_info
+								->sub_adest_details,
+							    svc_sub_part_ver);
 						} else {
-							/* Change to Active to point to next active */
-							mds_subtn_res_tbl_change_active(local_svc_hdl, svc_id, vdest_id,
-											next_active_result_info,
-											svc_sub_part_ver,
-											archword_type);
+							/* Change to Active to
+							 * point to next active
+							 */
+							mds_subtn_res_tbl_change_active(
+							    local_svc_hdl,
+							    svc_id, vdest_id,
+							    next_active_result_info,
+							    svc_sub_part_ver,
+							    archword_type);
 						}
 					}
 				}
 				/* If subscripton is RED, call RED_DOWN also */
 				if (local_subtn_view == MDS_VIEW_RED) {
 					status = NCSCC_RC_SUCCESS;
-					status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-									     role, vdest_id, adest,
-									     NCSMDS_RED_DOWN,
-									     svc_sub_part_ver,
-									     MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+					status = mds_mcm_user_event_callback(
+					    local_svc_hdl, pwe_id, svc_id, role,
+					    vdest_id, adest, NCSMDS_RED_DOWN,
+					    svc_sub_part_ver,
+					    MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
 					if (status != NCSCC_RC_SUCCESS) {
 						/* Callback failure */
-						m_MDS_LOG_ERR("MCM:API: svc_down : RED_DOWN Callback Failure for svc_id = %s(%d)",
-						     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+						m_MDS_LOG_ERR(
+						    "MCM:API: svc_down : RED_DOWN Callback Failure for svc_id = %s(%d)",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl));
 						m_MDS_LEAVE();
 						return NCSCC_RC_FAILURE;
-
 					}
-					m_MDS_LOG_INFO("MCM:API: svc_down : svc_id = %s(%d) on DEST id = %d got RED_DOWN for "
-							"svc_id = %s(%d) on Vdest id = %d on Adest = %s, rem_svc_pvt_ver=%d",
-							get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-							m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-							 log_subtn_result_info->sub_adest_details, svc_sub_part_ver);
+					m_MDS_LOG_INFO(
+					    "MCM:API: svc_down : svc_id = %s(%d) on DEST id = %d got RED_DOWN for "
+					    "svc_id = %s(%d) on Vdest id = %d on Adest = %s, rem_svc_pvt_ver=%d",
+					    get_svc_names(
+						m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+						    local_svc_hdl)),
+					    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+						local_svc_hdl),
+					    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+						local_svc_hdl),
+					    get_svc_names(svc_id), svc_id,
+					    vdest_id,
+					    log_subtn_result_info
+						->sub_adest_details,
+					    svc_sub_part_ver);
 				}
-			} else {	/* role == V_DEST_RL_STANDBY */
+			} else { /* role == V_DEST_RL_STANDBY */
 
 				/* Delete backup entry */
-				status = mds_subtn_res_tbl_del(local_svc_hdl, svc_id, vdest_id,
-							       adest, vdest_policy, svc_sub_part_ver, archword_type);
+				status = mds_subtn_res_tbl_del(
+				    local_svc_hdl, svc_id, vdest_id, adest,
+				    vdest_policy, svc_sub_part_ver,
+				    archword_type);
 
 				if (local_subtn_view == MDS_VIEW_NORMAL) {
 					/* Dont send DOWN for Standby */
-				} else {	/* local_subtn_view = MDS_VIEW_RED */
+				} else { /* local_subtn_view = MDS_VIEW_RED */
 
 					/* Call user callback with DOWN */
 
 					status = NCSCC_RC_SUCCESS;
-					status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
-									     role, vdest_id, adest,
-									     NCSMDS_RED_DOWN,
-									     svc_sub_part_ver,
-									     MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+					status = mds_mcm_user_event_callback(
+					    local_svc_hdl, pwe_id, svc_id, role,
+					    vdest_id, adest, NCSMDS_RED_DOWN,
+					    svc_sub_part_ver,
+					    MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
 
 					if (status != NCSCC_RC_SUCCESS) {
 						/* Callback failure */
-						m_MDS_LOG_ERR("MCM:API: svc_down : RED_DOWN Callback Failure for svc_id = %s(%d)",
-						     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
+						m_MDS_LOG_ERR(
+						    "MCM:API: svc_down : RED_DOWN Callback Failure for svc_id = %s(%d)",
+						    get_svc_names(
+							m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							    local_svc_hdl)),
+						    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+							local_svc_hdl));
 						m_MDS_LEAVE();
 						return NCSCC_RC_FAILURE;
-
 					}
 
-					m_MDS_LOG_INFO("MCM:API: svc_down : svc_id = %s(%d) on DEST id = %d got " 
-							"RED_DOWN for svc_id = %s(%d) on Vdest id = %d Adest = %s, rem_svc_pvt_ver=%d",
-							get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-							m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id, vdest_id,
-							 log_subtn_result_info->sub_adest_details, svc_sub_part_ver);
+					m_MDS_LOG_INFO(
+					    "MCM:API: svc_down : svc_id = %s(%d) on DEST id = %d got "
+					    "RED_DOWN for svc_id = %s(%d) on Vdest id = %d Adest = %s, rem_svc_pvt_ver=%d",
+					    get_svc_names(
+						m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+						    local_svc_hdl)),
+					    m_MDS_GET_SVC_ID_FROM_SVC_HDL(
+						local_svc_hdl),
+					    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(
+						local_svc_hdl),
+					    get_svc_names(svc_id), svc_id,
+					    vdest_id,
+					    log_subtn_result_info
+						->sub_adest_details,
+					    svc_sub_part_ver);
 				}
 				{
-					MDS_SUBSCRIPTION_RESULTS_INFO *subtn_result_info = NULL;
+					MDS_SUBSCRIPTION_RESULTS_INFO
+					    *subtn_result_info = NULL;
 					bool adest_exists = false;
 
-					/* if no adest remains for this svc, send MDS_DOWN */
-					status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
+					/* if no adest remains for this svc,
+					 * send MDS_DOWN */
+					status = mds_subtn_res_tbl_getnext_any(
+					    local_svc_hdl, svc_id,
+					    &subtn_result_info);
 
-					while (status != NCSCC_RC_FAILURE)
-					{
-						if (subtn_result_info->key.vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY)
-						{
+					while (status != NCSCC_RC_FAILURE) {
+						if (subtn_result_info->key
+							.vdest_id !=
+						    m_VDEST_ID_FOR_ADEST_ENTRY) {
 							adest_exists = true;
 							break;
 						}
 
-						status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
+						status =
+						    mds_subtn_res_tbl_getnext_any(
+							local_svc_hdl, svc_id,
+							&subtn_result_info);
 					}
 
-					if (adest_exists == false)
-					{
-						/* No other adest exists for this svc_id, Call user callback DOWN */
-						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id, role, vdest_id, 0, 
-								NCSMDS_DOWN, svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+					if (adest_exists == false) {
+						/* No other adest exists for
+						 * this svc_id, Call user
+						 * callback DOWN */
+						status = mds_mcm_user_event_callback(
+						    local_svc_hdl, pwe_id,
+						    svc_id, role, vdest_id, 0,
+						    NCSMDS_DOWN,
+						    svc_sub_part_ver,
+						    MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
 					}
 				}
 			}
@@ -2871,20 +3957,20 @@ else (entry exists)
 	return NCSCC_RC_SUCCESS;
 }
 
-
 /*********************************************************
 
   Function NAME: mds_mcm_node_up
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_ip, uint16_t addr_family, char *node_name)
+uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id,
+			 char *node_ip, uint16_t addr_family, char *node_name)
 {
 	MDS_MCM_MSG_ELEM *event_msg = NULL;
 	MDS_SVC_INFO *local_svc_info = NULL;
@@ -2892,18 +3978,20 @@ uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_
 	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/* Get Service info cb */
-	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
-						m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-						(NCSCONTEXT)&local_svc_info)) {
+	if (NCSCC_RC_SUCCESS !=
+	    mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+			    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+			    (NCSCONTEXT)&local_svc_info)) {
 		/* Service Doesn't exist */
-		m_MDS_LOG_ERR(" SVC doesnt exists, returning from mds_mcm_node_up\n");
+		m_MDS_LOG_ERR(
+		    " SVC doesnt exists, returning from mds_mcm_node_up\n");
 		return NCSCC_RC_FAILURE;
 	}
 
-
-	if (0 == local_svc_info->i_node_subscr ) {
+	if (0 == local_svc_info->i_node_subscr) {
 		/* Node Subscription Doesn't exist */
-		m_MDS_LOG_ERR(" Node subscription doesnt exists, returning from mds_mcm_node_up\n");
+		m_MDS_LOG_ERR(
+		    " Node subscription doesnt exists, returning from mds_mcm_node_up\n");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2917,7 +4005,7 @@ uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_
 	event_msg->pri = MDS_SEND_PRIORITY_MEDIUM;
 
 	/* Temp ptr to cbinfo in event_msg */
-	cbinfo = &event_msg->info.event.cbinfo;	/* NOTE: Aliased pointer */
+	cbinfo = &event_msg->info.event.cbinfo; /* NOTE: Aliased pointer */
 
 	cbinfo->i_op = MDS_CALLBACK_NODE_EVENT;
 	cbinfo->i_yr_svc_hdl = local_svc_info->yr_svc_hdl;
@@ -2929,29 +4017,38 @@ uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_
 	cbinfo->info.node_evt.addr_family = addr_family;
 	if (node_ip) {
 		cbinfo->info.node_evt.ip_addr_len = strlen(node_ip);
-		cbinfo->info.node_evt.length = cbinfo->info.node_evt.ip_addr_len;
-		memcpy(cbinfo->info.node_evt.ip_addr, node_ip, cbinfo->info.node_evt.ip_addr_len);
+		cbinfo->info.node_evt.length =
+		    cbinfo->info.node_evt.ip_addr_len;
+		memcpy(cbinfo->info.node_evt.ip_addr, node_ip,
+		       cbinfo->info.node_evt.ip_addr_len);
 	}
 
-	m_MDS_LOG_INFO("MDTM: node up node_ip:%s, length:%d node_id:%u addr_family:%d msg_type:%d",
-			cbinfo->info.node_evt.ip_addr, cbinfo->info.node_evt.ip_addr_len, 
-			cbinfo->info.node_evt.node_id, cbinfo->info.node_evt.addr_family, cbinfo->info.node_evt.node_chg);
+	m_MDS_LOG_INFO(
+	    "MDTM: node up node_ip:%s, length:%d node_id:%u addr_family:%d msg_type:%d",
+	    cbinfo->info.node_evt.ip_addr, cbinfo->info.node_evt.ip_addr_len,
+	    cbinfo->info.node_evt.node_id, cbinfo->info.node_evt.addr_family,
+	    cbinfo->info.node_evt.node_chg);
 	if (node_name) {
 		cbinfo->info.node_evt.i_node_name_len = strlen(node_name);
-		strncpy(cbinfo->info.node_evt.i_node_name, node_name, cbinfo->info.node_evt.i_node_name_len);
-	}  
+		strncpy(cbinfo->info.node_evt.i_node_name, node_name,
+			cbinfo->info.node_evt.i_node_name_len);
+	}
 
 	/* Post to mail box If Q Ownership is enabled Else Call user callback */
 	if (local_svc_info->q_ownership == true) {
 
-		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
+		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg,
+				    NCS_IPC_PRIORITY_NORMAL)) !=
+		    NCSCC_RC_SUCCESS) {
 			/* Message Queuing failed */
 			m_MMGR_FREE_MSGELEM(event_msg);
-			m_MDS_LOG_ERR("SVC Mailbox IPC_SEND : NODE UP EVENT : FAILED\n");
+			m_MDS_LOG_ERR(
+			    "SVC Mailbox IPC_SEND : NODE UP EVENT : FAILED\n");
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		} else {
-			m_MDS_LOG_INFO("SVC mailbox IPC_SEND : NODE UP EVENT : Success\n");
+			m_MDS_LOG_INFO(
+			    "SVC mailbox IPC_SEND : NODE UP EVENT : Success\n");
 			m_MDS_LEAVE();
 			return NCSCC_RC_SUCCESS;
 		}
@@ -2962,7 +4059,6 @@ uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_
 	}
 	m_MDS_LEAVE();
 	return status;
-
 }
 
 /*********************************************************
@@ -2971,13 +4067,14 @@ uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, uint16_t addr_family)
+uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id,
+			   uint16_t addr_family)
 
 {
 	MDS_MCM_MSG_ELEM *event_msg = NULL;
@@ -2986,19 +4083,22 @@ uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, uint16_t 
 	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/* Get Service info cb */
-	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
-						m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-						(NCSCONTEXT)&local_svc_info)) {
+	if (NCSCC_RC_SUCCESS !=
+	    mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+			    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+			    (NCSCONTEXT)&local_svc_info)) {
 		/* Service Doesn't exist */
-		m_MDS_LOG_ERR(" SVC doesnt exists, returning from mds_mcm_node_down\n");
+		m_MDS_LOG_ERR(
+		    " SVC doesnt exists, returning from mds_mcm_node_down\n");
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (0 == local_svc_info->i_node_subscr ) {
+	if (0 == local_svc_info->i_node_subscr) {
 		/* Node Subscription Doesn't exist */
-		m_MDS_LOG_ERR(" Node subscription doesnt exists, returning from mds_mcm_node_down\n");
+		m_MDS_LOG_ERR(
+		    " Node subscription doesnt exists, returning from mds_mcm_node_down\n");
 		return NCSCC_RC_FAILURE;
-        }
+	}
 
 	event_msg = m_MMGR_ALLOC_MSGELEM;
 	if (event_msg == NULL) {
@@ -3010,7 +4110,7 @@ uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, uint16_t 
 	event_msg->pri = MDS_SEND_PRIORITY_MEDIUM;
 
 	/* Temp ptr to cbinfo in event_msg */
-	cbinfo = &event_msg->info.event.cbinfo;	/* NOTE: Aliased pointer */
+	cbinfo = &event_msg->info.event.cbinfo; /* NOTE: Aliased pointer */
 
 	cbinfo->i_op = MDS_CALLBACK_NODE_EVENT;
 	cbinfo->i_yr_svc_hdl = local_svc_info->yr_svc_hdl;
@@ -3021,19 +4121,25 @@ uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, uint16_t 
 	cbinfo->info.node_evt.node_id = node_id;
 	cbinfo->info.node_evt.addr_family = addr_family;
 
-	m_MDS_LOG_INFO("MDTM: node down  node_id:%u  addr_family:%d  msg_type:%d",
-			cbinfo->info.node_evt.node_id, cbinfo->info.node_evt.addr_family, cbinfo->info.node_evt.node_chg);
+	m_MDS_LOG_INFO(
+	    "MDTM: node down  node_id:%u  addr_family:%d  msg_type:%d",
+	    cbinfo->info.node_evt.node_id, cbinfo->info.node_evt.addr_family,
+	    cbinfo->info.node_evt.node_chg);
 	/* Post to mail box If Q Ownership is enabled Else Call user callback */
 	if (local_svc_info->q_ownership == true) {
 
-		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
+		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg,
+				    NCS_IPC_PRIORITY_NORMAL)) !=
+		    NCSCC_RC_SUCCESS) {
 			/* Message Queuing failed */
 			m_MMGR_FREE_MSGELEM(event_msg);
-			m_MDS_LOG_ERR("SVC Mailbox IPC_SEND : NODE DOWN EVENT : FAILED\n");
+			m_MDS_LOG_ERR(
+			    "SVC Mailbox IPC_SEND : NODE DOWN EVENT : FAILED\n");
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		} else {
-			m_MDS_LOG_INFO("SVC mailbox IPC_SEND : NODE DOWN EVENT : Success\n");
+			m_MDS_LOG_INFO(
+			    "SVC mailbox IPC_SEND : NODE DOWN EVENT : Success\n");
 			m_MDS_LEAVE();
 			return NCSCC_RC_SUCCESS;
 		}
@@ -3044,7 +4150,6 @@ uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, uint16_t 
 	}
 	m_MDS_LEAVE();
 	return status;
-
 }
 
 /*********************************************************
@@ -3053,14 +4158,14 @@ uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, uint16_t 
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-void mds_mcm_msg_loss(MDS_SVC_HDL local_svc_hdl, MDS_DEST rem_adest, 
-			MDS_SVC_ID rem_svc_id, MDS_VDEST_ID rem_vdest_id)
+void mds_mcm_msg_loss(MDS_SVC_HDL local_svc_hdl, MDS_DEST rem_adest,
+		      MDS_SVC_ID rem_svc_id, MDS_VDEST_ID rem_vdest_id)
 
 {
 	MDS_MCM_MSG_ELEM *event_msg = NULL;
@@ -3068,16 +4173,18 @@ void mds_mcm_msg_loss(MDS_SVC_HDL local_svc_hdl, MDS_DEST rem_adest,
 	NCSMDS_CALLBACK_INFO *cbinfo = NULL;
 
 	/* Get Service info cb */
-	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
-						m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-						(NCSCONTEXT)&local_svc_info)) {
+	if (NCSCC_RC_SUCCESS !=
+	    mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+			    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+			    (NCSCONTEXT)&local_svc_info)) {
 		/* Service Doesn't exist */
-		m_MDS_LOG_ERR(" SVC doesnt exists, returning from mds_mcm_msg_loss\n");
+		m_MDS_LOG_ERR(
+		    " SVC doesnt exists, returning from mds_mcm_msg_loss\n");
 		return;
 	}
 
 	/* Check whether the msg loss is enabled or not */
-	if ( true != local_svc_info->i_msg_loss_indication ) {
+	if (true != local_svc_info->i_msg_loss_indication) {
 		m_MDS_LOG_INFO(" MSG loss not enbaled mds_mcm_msg_loss\n");
 		return;
 	}
@@ -3092,30 +4199,35 @@ void mds_mcm_msg_loss(MDS_SVC_HDL local_svc_hdl, MDS_DEST rem_adest,
 	event_msg->pri = MDS_SEND_PRIORITY_MEDIUM;
 
 	/* Temp ptr to cbinfo in event_msg */
-	cbinfo = &event_msg->info.event.cbinfo;	/* NOTE: Aliased pointer */
+	cbinfo = &event_msg->info.event.cbinfo; /* NOTE: Aliased pointer */
 
 	cbinfo->i_op = MDS_CALLBACK_MSG_LOSS;
 	cbinfo->i_yr_svc_hdl = local_svc_info->yr_svc_hdl;
 	cbinfo->i_yr_svc_id = local_svc_info->svc_id;
 
 	cbinfo->info.msg_loss_evt.i_dest = rem_adest;
-	cbinfo->info.msg_loss_evt.i_pwe_id = m_MDS_GET_PWE_ID_FROM_SVC_HDL(local_svc_hdl);
+	cbinfo->info.msg_loss_evt.i_pwe_id =
+	    m_MDS_GET_PWE_ID_FROM_SVC_HDL(local_svc_hdl);
 	cbinfo->info.msg_loss_evt.i_svc_id = rem_svc_id;
 	cbinfo->info.msg_loss_evt.i_vdest_id = rem_vdest_id;
 
 	/* Post to mail box If Q Ownership is enabled Else Call user callback */
 	if (local_svc_info->q_ownership == true) {
 
-		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
+		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg,
+				    NCS_IPC_PRIORITY_NORMAL)) !=
+		    NCSCC_RC_SUCCESS) {
 			/* Message Queuing failed */
 			m_MMGR_FREE_MSGELEM(event_msg);
-			m_MDS_LOG_ERR("SVC Mailbox IPC_SEND : MSG LOSS EVENT : FAILED\n");
+			m_MDS_LOG_ERR(
+			    "SVC Mailbox IPC_SEND : MSG LOSS EVENT : FAILED\n");
 			m_MDS_LEAVE();
-			return ;
+			return;
 		} else {
-			m_MDS_LOG_INFO("SVC mailbox IPC_SEND : MSG LOSS EVENT : Success\n");
+			m_MDS_LOG_INFO(
+			    "SVC mailbox IPC_SEND : MSG LOSS EVENT : Success\n");
 			m_MDS_LEAVE();
-			return ;
+			return;
 		}
 	} else {
 		/* Call user callback */
@@ -3123,9 +4235,8 @@ void mds_mcm_msg_loss(MDS_SVC_HDL local_svc_hdl, MDS_DEST rem_adest,
 		m_MMGR_FREE_MSGELEM(event_msg);
 	}
 	m_MDS_LEAVE();
-	return ;
+	return;
 }
-
 
 /*********************************************************
 
@@ -3133,10 +4244,10 @@ void mds_mcm_msg_loss(MDS_SVC_HDL local_svc_hdl, MDS_DEST rem_adest,
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest)
@@ -3145,16 +4256,16 @@ uint32_t mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest)
 	NCSMDS_ADMOP_INFO chg_role_info;
 
 	m_MDS_ENTER();
-	if (adest == gl_mds_mcm_cb->adest) {	/* Got up from this vdest itself */
+	if (adest == gl_mds_mcm_cb->adest) { /* Got up from this vdest itself */
 		/* Discard */
 		m_MDS_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
-/* STEP 1: Get the Current role and Dest_hdl of VDEST 
-            with id VDEST_ID from LOCAL-VDEST table. */
+	/* STEP 1: Get the Current role and Dest_hdl of VDEST
+		    with id VDEST_ID from LOCAL-VDEST table. */
 	mds_vdest_tbl_get_role(vdest_id, &current_role);
-/* STEP 2: if (Current Role == Active)
-        call dest_chg_role(dest_hdl, New Role = QUIESCED) */
+	/* STEP 2: if (Current Role == Active)
+		call dest_chg_role(dest_hdl, New Role = QUIESCED) */
 
 	if (current_role == V_DEST_RL_ACTIVE) {
 		/* change role of local vdest to quiesced */
@@ -3167,8 +4278,10 @@ uint32_t mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest)
 		   of services coming up on that vdest */
 	}
 
-	m_MDS_LOG_INFO("MCM:API: vdest_up : Got UP from vdest_id id = %d at Adest <0x%08x, %u>",
-			 vdest_id, m_MDS_GET_NODE_ID_FROM_ADEST(adest), m_MDS_GET_PROCESS_ID_FROM_ADEST(adest));
+	m_MDS_LOG_INFO(
+	    "MCM:API: vdest_up : Got UP from vdest_id id = %d at Adest <0x%08x, %u>",
+	    vdest_id, m_MDS_GET_NODE_ID_FROM_ADEST(adest),
+	    m_MDS_GET_PROCESS_ID_FROM_ADEST(adest));
 
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -3180,10 +4293,10 @@ uint32_t mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_vdest_down(MDS_VDEST_ID vdest_id, MDS_DEST adest)
@@ -3197,16 +4310,18 @@ uint32_t mds_mcm_vdest_down(MDS_VDEST_ID vdest_id, MDS_DEST adest)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, MDS_SVC_ID svc_id,
-				  V_DEST_RL role, MDS_VDEST_ID vdest_id, MDS_DEST adest,
-				  NCSMDS_CHG event_type,
-				  MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type)
+uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl,
+				     PW_ENV_ID pwe_id, MDS_SVC_ID svc_id,
+				     V_DEST_RL role, MDS_VDEST_ID vdest_id,
+				     MDS_DEST adest, NCSMDS_CHG event_type,
+				     MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver,
+				     MDS_SVC_ARCHWORD_TYPE archword_type)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SVC_INFO *local_svc_info = NULL;
@@ -3217,34 +4332,47 @@ uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id
 
 	m_MDS_ENTER();
 	/* Get Service info cb */
-	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
-						m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-						(NCSCONTEXT)&local_svc_info)) {
+	if (NCSCC_RC_SUCCESS !=
+	    mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+			    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+			    (NCSCONTEXT)&local_svc_info)) {
 		/* Service Doesn't exist */
-		m_MDS_LOG_ERR("MDS_SND_RCV: SVC doesnt exists, returning from mds_mcm_user_event_callback=%d\n",
-			      svc_id);
+		m_MDS_LOG_ERR(
+		    "MDS_SND_RCV: SVC doesnt exists, returning from mds_mcm_user_event_callback=%d\n",
+		    svc_id);
 		return NCSCC_RC_FAILURE;
 	}
-	/* if previous MDS version subscriptions  increment or decrement count on NCSMDS_UP/DOWN event ,
-	   this is Mcast or Bcast differentiators if conut is ZERO mcast else count is grater than ZERO bcast (multi-unicast) */
+	/* if previous MDS version subscriptions  increment or decrement count
+	   on NCSMDS_UP/DOWN event , this is Mcast or Bcast differentiators if
+	   conut is ZERO mcast else count is grater than ZERO bcast
+	   (multi-unicast) */
 	if ((archword_type & 0x7) < 1) {
 		if (event_type == NCSMDS_UP) {
 			local_svc_info->subtn_info->prev_ver_sub_count++;
-			m_MDS_LOG_DBG("MDTM: NCSMDS_UP for svc_id = %s(%d), archword :%d ,prev_ver_sub_count %u",
-					get_svc_names(svc_id), svc_id, archword_type, local_svc_info->subtn_info->prev_ver_sub_count);
+			m_MDS_LOG_DBG(
+			    "MDTM: NCSMDS_UP for svc_id = %s(%d), archword :%d ,prev_ver_sub_count %u",
+			    get_svc_names(svc_id), svc_id, archword_type,
+			    local_svc_info->subtn_info->prev_ver_sub_count);
 		} else if (event_type == NCSMDS_DOWN) {
-			if (local_svc_info->subtn_info->prev_ver_sub_count > 0)			
-				local_svc_info->subtn_info->prev_ver_sub_count--;
-			m_MDS_LOG_DBG("MDTM: NCSMDS_DOWN for svc_id = %s(%d), archword :%d ,prev_ver_sub_count %u",
-					get_svc_names(svc_id), svc_id, archword_type, local_svc_info->subtn_info->prev_ver_sub_count);
+			if (local_svc_info->subtn_info->prev_ver_sub_count > 0)
+				local_svc_info->subtn_info
+				    ->prev_ver_sub_count--;
+			m_MDS_LOG_DBG(
+			    "MDTM: NCSMDS_DOWN for svc_id = %s(%d), archword :%d ,prev_ver_sub_count %u",
+			    get_svc_names(svc_id), svc_id, archword_type,
+			    local_svc_info->subtn_info->prev_ver_sub_count);
 		}
 	}
 	/* Get Subtn info */
 	mds_subtn_tbl_get(local_svc_hdl, svc_id, &local_subtn_info);
-	/* If this function returns failure, then its invalid state. Handling required */
+	/* If this function returns failure, then its invalid state. Handling
+	 * required */
 	if (NULL == local_subtn_info) {
-		m_MDS_LOG_ERR("MCM_API:Sub fr svc_id = %s(%d) to svc_id = %s(%d) doesnt exists, ret fr mds_mcm_user_event_callback\n",
-				get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl), get_svc_names(svc_id), svc_id);
+		m_MDS_LOG_ERR(
+		    "MCM_API:Sub fr svc_id = %s(%d) to svc_id = %s(%d) doesnt exists, ret fr mds_mcm_user_event_callback\n",
+		    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl)),
+		    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+		    get_svc_names(svc_id), svc_id);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3254,31 +4382,83 @@ uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id
 		curr_queue_element = local_subtn_info->await_disc_queue;
 
 		while (curr_queue_element != NULL) {
-			if (curr_queue_element->send_type != MDS_SENDTYPE_BCAST &&
-			    curr_queue_element->send_type != MDS_SENDTYPE_RBCAST) {
-				/* Condition to raise selection object for pending SEND is not checked properly in mds_c_api.c */
-				if (vdest_id == m_VDEST_ID_FOR_ADEST_ENTRY) {	/* We got UP from ADEST so check if any send to svc on this ADEST is remaining */
+			if (curr_queue_element->send_type !=
+				MDS_SENDTYPE_BCAST &&
+			    curr_queue_element->send_type !=
+				MDS_SENDTYPE_RBCAST) {
+				/* Condition to raise selection object for
+				 * pending SEND is not checked properly in
+				 * mds_c_api.c */
+				if (vdest_id ==
+				    m_VDEST_ID_FOR_ADEST_ENTRY) { /* We got UP
+								     from ADEST
+								     so check if
+								     any send to
+								     svc on this
+								     ADEST is
+								     remaining
+								   */
 
-					if (curr_queue_element->vdest == m_VDEST_ID_FOR_ADEST_ENTRY) {	/* Blocked send is to send to ADEST */
+					if (curr_queue_element->vdest ==
+					    m_VDEST_ID_FOR_ADEST_ENTRY) { /* Blocked
+									     send
+									     is
+									     to
+									     send
+									     to
+									     ADEST
+									   */
 
-						if (adest == curr_queue_element->adest) {	/* Raise selection object for this entry as we got up from that adest */
-							m_NCS_SEL_OBJ_IND(&curr_queue_element->sel_obj);
-							m_MDS_LOG_INFO
-							    ("MCM:API: event_callback : Raising SEL_OBJ for VDEST id = %d Send to ADEST <0x%08x, %u>",
-							     curr_queue_element->vdest,
-							     m_MDS_GET_NODE_ID_FROM_ADEST(curr_queue_element->adest),
-							     m_MDS_GET_PROCESS_ID_FROM_ADEST(curr_queue_element->adest));
+						if (adest ==
+						    curr_queue_element
+							->adest) { /* Raise
+								      selection
+								      object for
+								      this entry
+								      as we got
+								      up from
+								      that adest
+								    */
+							m_NCS_SEL_OBJ_IND(
+							    &curr_queue_element
+								 ->sel_obj);
+							m_MDS_LOG_INFO(
+							    "MCM:API: event_callback : Raising SEL_OBJ for VDEST id = %d Send to ADEST <0x%08x, %u>",
+							    curr_queue_element
+								->vdest,
+							    m_MDS_GET_NODE_ID_FROM_ADEST(
+								curr_queue_element
+								    ->adest),
+							    m_MDS_GET_PROCESS_ID_FROM_ADEST(
+								curr_queue_element
+								    ->adest));
 						}
 					}
-				} else {	/* We got up for VDEST so check if any send to svc on this VDEST is remaining */
+				} else { /* We got up for VDEST so check if any
+					    send to svc on this VDEST is
+					    remaining */
 
-					if (curr_queue_element->adest == 0 && curr_queue_element->vdest == vdest_id && event_type == NCSMDS_UP) {	/* Blocked send is send to VDEST and we got atleast one ACTIVE */
-						m_NCS_SEL_OBJ_IND(&curr_queue_element->sel_obj);
-						m_MDS_LOG_INFO
-						    ("MCM:API: event_callback : Raising SEL_OBJ for Send to VDEST id = %d on ADEST <0x%08x, %u>",
-						     curr_queue_element->vdest,
-						     m_MDS_GET_NODE_ID_FROM_ADEST(curr_queue_element->adest),
-						     m_MDS_GET_PROCESS_ID_FROM_ADEST(curr_queue_element->adest));
+					if (curr_queue_element->adest == 0 &&
+					    curr_queue_element->vdest ==
+						vdest_id &&
+					    event_type ==
+						NCSMDS_UP) { /* Blocked send is
+								send to VDEST
+								and we got
+								atleast one
+								ACTIVE */
+						m_NCS_SEL_OBJ_IND(
+						    &curr_queue_element
+							 ->sel_obj);
+						m_MDS_LOG_INFO(
+						    "MCM:API: event_callback : Raising SEL_OBJ for Send to VDEST id = %d on ADEST <0x%08x, %u>",
+						    curr_queue_element->vdest,
+						    m_MDS_GET_NODE_ID_FROM_ADEST(
+							curr_queue_element
+							    ->adest),
+						    m_MDS_GET_PROCESS_ID_FROM_ADEST(
+							curr_queue_element
+							    ->adest));
 					}
 				}
 			}
@@ -3294,13 +4474,14 @@ uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id
 		return NCSCC_RC_SUCCESS;
 	}
 
-	/*  Fix for mem-leak found during testing: Allocate and set 
-	 ** struct to send message-element to client (only for non-implicit 
+	/*  Fix for mem-leak found during testing: Allocate and set
+	 ** struct to send message-element to client (only for non-implicit
 	 ** callbacks)
 	 */
 	event_msg = m_MMGR_ALLOC_MSGELEM;
 	if (event_msg == NULL) {
-		m_MDS_LOG_ERR("Subscription callback processing:Out of memory\n");
+		m_MDS_LOG_ERR(
+		    "Subscription callback processing:Out of memory\n");
 		return NCSCC_RC_FAILURE;
 	}
 	memset(event_msg, 0, sizeof(MDS_MCM_MSG_ELEM));
@@ -3308,7 +4489,7 @@ uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id
 	event_msg->pri = MDS_SEND_PRIORITY_MEDIUM;
 
 	/* Temp ptr to cbinfo in event_msg */
-	cbinfo = &event_msg->info.event.cbinfo;	/* NOTE: Aliased pointer */
+	cbinfo = &event_msg->info.event.cbinfo; /* NOTE: Aliased pointer */
 
 	cbinfo->i_op = MDS_CALLBACK_SVC_EVENT;
 	cbinfo->i_yr_svc_hdl = local_svc_info->yr_svc_hdl;
@@ -3320,16 +4501,21 @@ uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id
 		/* Service is on remote ADEST */
 		cbinfo->info.svc_evt.i_dest = adest;
 		if ((event_type == NCSMDS_UP) || (event_type == NCSMDS_RED_UP))
-			get_adest_details(adest, cbinfo->info.svc_evt.i_dest_details);
-		cbinfo->info.svc_evt.i_anc = 0;	/* anchor same as adest */
+			get_adest_details(adest,
+					  cbinfo->info.svc_evt.i_dest_details);
+		cbinfo->info.svc_evt.i_anc = 0; /* anchor same as adest */
 	} else {
 		/* Service is on remote VDEST */
 		cbinfo->info.svc_evt.i_dest = (MDS_DEST)vdest_id;
 
-		if (event_type == NCSMDS_RED_UP || event_type == NCSMDS_RED_DOWN || event_type == NCSMDS_CHG_ROLE) {
-			cbinfo->info.svc_evt.i_anc = adest;	/* anchor same as adest */
+		if (event_type == NCSMDS_RED_UP ||
+		    event_type == NCSMDS_RED_DOWN ||
+		    event_type == NCSMDS_CHG_ROLE) {
+			cbinfo->info.svc_evt.i_anc =
+			    adest; /* anchor same as adest */
 			if (event_type == NCSMDS_RED_UP)
-				get_adest_details(adest, cbinfo->info.svc_evt.i_dest_details);
+				get_adest_details(
+				    adest, cbinfo->info.svc_evt.i_dest_details);
 		} else {
 			cbinfo->info.svc_evt.i_anc = 0;
 		}
@@ -3341,20 +4527,25 @@ uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id
 	cbinfo->info.svc_evt.i_svc_id = svc_id;
 	cbinfo->info.svc_evt.i_your_id = local_svc_info->svc_id;
 
-	cbinfo->info.svc_evt.svc_pwe_hdl = (MDS_HDL)m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_info->svc_hdl);
+	cbinfo->info.svc_evt.svc_pwe_hdl =
+	    (MDS_HDL)m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_info->svc_hdl);
 	cbinfo->info.svc_evt.i_rem_svc_pvt_ver = svc_sub_part_ver;
 
 	/* Post to mail box If Q Ownership is enabled Else Call user callback */
 	if (local_svc_info->q_ownership == true) {
 
-		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
+		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg,
+				    NCS_IPC_PRIORITY_NORMAL)) !=
+		    NCSCC_RC_SUCCESS) {
 			/* Message Queuing failed */
 			m_MMGR_FREE_MSGELEM(event_msg);
-			m_MDS_LOG_ERR("SVC Mailbox IPC_SEND : SVC EVENT : FAILED\n");
+			m_MDS_LOG_ERR(
+			    "SVC Mailbox IPC_SEND : SVC EVENT : FAILED\n");
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		} else {
-			m_MDS_LOG_INFO("SVC mailbox IPC_SEND : SVC EVENT : Success\n");
+			m_MDS_LOG_INFO(
+			    "SVC mailbox IPC_SEND : SVC EVENT : Success\n");
 			m_MDS_LEAVE();
 			return NCSCC_RC_SUCCESS;
 		}
@@ -3373,10 +4564,10 @@ uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
 uint32_t mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
@@ -3387,7 +4578,8 @@ uint32_t mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
 	MDS_MCM_MSG_ELEM *event_msg = NULL;
 
 	m_MDS_ENTER();
-	m_MDS_LOG_INFO("MCM:API: quieseced_tmr expired for VDEST id = %d", vdest_id);
+	m_MDS_LOG_INFO("MCM:API: quieseced_tmr expired for VDEST id = %d",
+		       vdest_id);
 
 	/* Update vdest role to Standby */
 	mds_vdest_tbl_update_role(vdest_id, V_DEST_RL_STANDBY, false);
@@ -3407,27 +4599,33 @@ uint32_t mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
 		cbinfo->i_yr_svc_hdl = local_svc_info->yr_svc_hdl;
 		cbinfo->i_yr_svc_id = local_svc_info->svc_id;
 		cbinfo->i_op = MDS_CALLBACK_QUIESCED_ACK;
-		cbinfo->info.quiesced_ack.i_dummy = 1;	/* dummy */
+		cbinfo->info.quiesced_ack.i_dummy = 1; /* dummy */
 
-		/* Post to mail box If Q Ownership is enabled Else Call user callback */
+		/* Post to mail box If Q Ownership is enabled Else Call user
+		 * callback */
 		if (local_svc_info->q_ownership == true) {
 
-			if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) !=
+			if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg,
+					    NCS_IPC_PRIORITY_NORMAL)) !=
 			    NCSCC_RC_SUCCESS) {
 				/* Message Queuing failed */
 				m_MMGR_FREE_MSGELEM(event_msg);
-				m_MDS_LOG_ERR("SVC Mailbox IPC_SEND : Quiesced Ack : FAILED\n");
-				m_MDS_LOG_INFO("MCM:API: Entering : mds_mcm_quiesced_tmr_expiry");
+				m_MDS_LOG_ERR(
+				    "SVC Mailbox IPC_SEND : Quiesced Ack : FAILED\n");
+				m_MDS_LOG_INFO(
+				    "MCM:API: Entering : mds_mcm_quiesced_tmr_expiry");
 				return NCSCC_RC_FAILURE;
 			} else {
-				m_MDS_LOG_DBG("SVC mailbox IPC_SEND : Quiesced Ack : SUCCESS\n");
+				m_MDS_LOG_DBG(
+				    "SVC mailbox IPC_SEND : Quiesced Ack : SUCCESS\n");
 			}
 		} else {
 			/* Call user callback */
 			status = local_svc_info->cback_ptr(cbinfo);
 			m_MMGR_FREE_MSGELEM(event_msg);
 		}
-		status = mds_svc_tbl_getnext_on_vdest(vdest_id, local_svc_info->svc_hdl, &local_svc_info);
+		status = mds_svc_tbl_getnext_on_vdest(
+		    vdest_id, local_svc_info->svc_hdl, &local_svc_info);
 	}
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -3439,20 +4637,24 @@ uint32_t mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uint32_t mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
+uint32_t mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl,
+					 MDS_SVC_ID sub_svc_id)
 {
 	MDS_SUBSCRIPTION_INFO *subtn_info = NULL;
 	MDS_AWAIT_DISC_QUEUE *tmp_await_active_queue = NULL, *bk_ptr = NULL;
 
 	m_MDS_ENTER();
-	m_MDS_LOG_INFO("MCM:API: subscription_tmr expired for svc_id = %s(%d) Subscribed to svc_id = %s(%d)",
-		       get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl), get_svc_names(sub_svc_id), sub_svc_id);
+	m_MDS_LOG_INFO(
+	    "MCM:API: subscription_tmr expired for svc_id = %s(%d) Subscribed to svc_id = %s(%d)",
+	    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl)),
+	    m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl), get_svc_names(sub_svc_id),
+	    sub_svc_id);
 
 	mds_subtn_tbl_get(svc_hdl, sub_svc_id, &subtn_info);
 
@@ -3463,11 +4665,13 @@ uint32_t mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc
 
 	/* Turn timer flag off */
 	subtn_info->tmr_flag = false;
-	/* Point tmr_req_info to NULL, freeding will be done in expiry function */
+	/* Point tmr_req_info to NULL, freeding will be done in expiry function
+	 */
 	subtn_info->tmr_req_info = NULL;
 	/* Destroy timer as it will never be started again */
 	m_NCS_TMR_DESTROY(subtn_info->discovery_tmr);
-	/* Destroying Handle and freeing tmr_req_info done in expiry function itself */
+	/* Destroying Handle and freeing tmr_req_info done in expiry function
+	 * itself */
 
 	tmp_await_active_queue = subtn_info->await_disc_queue;
 
@@ -3489,7 +4693,6 @@ uint32_t mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc
 		/* Raise selection object */
 		m_NCS_SEL_OBJ_IND(&bk_ptr->sel_obj);
 		/* Memory for this will be get freed by awaiting request */
-
 	}
 	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -3501,13 +4704,15 @@ uint32_t mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
+	    2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uint32_t mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id, MDS_VDEST_ID vdest_id)
+uint32_t mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl,
+					 MDS_SVC_ID sub_svc_id,
+					 MDS_VDEST_ID vdest_id)
 {
 	MDS_SUBSCRIPTION_RESULTS_INFO *active_subtn_result_info;
 	MDS_DEST active_adest;
@@ -3515,39 +4720,53 @@ uint32_t mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc
 	uint32_t status = NCSCC_RC_SUCCESS;
 
 	m_MDS_ENTER();
-	m_MDS_LOG_INFO("MCM:API: await_active_tmr expired for svc_id = %s(%d) Subscribed to svc_id = %s(%d) on VDEST id = %d",
-		       get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl), get_svc_names(sub_svc_id), sub_svc_id, vdest_id);
+	m_MDS_LOG_INFO(
+	    "MCM:API: await_active_tmr expired for svc_id = %s(%d) Subscribed to svc_id = %s(%d) on VDEST id = %d",
+	    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl)),
+	    m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl), get_svc_names(sub_svc_id),
+	    sub_svc_id, vdest_id);
 
 	mds_subtn_res_tbl_get(svc_hdl, sub_svc_id, vdest_id, &active_adest,
 			      &tmr_running, &active_subtn_result_info, true);
 	/* Delete all pending messages */
-	mds_await_active_tbl_del(active_subtn_result_info->info.active_vdest.active_route_info->await_active_queue);
+	mds_await_active_tbl_del(active_subtn_result_info->info.active_vdest
+				     .active_route_info->await_active_queue);
 
 	/* Call user callback DOWN */
-	status = mds_mcm_user_event_callback(svc_hdl, m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl),
-					     sub_svc_id, V_DEST_RL_STANDBY,
-					     vdest_id, 0, NCSMDS_DOWN, active_subtn_result_info->rem_svc_sub_part_ver,
-					     MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+	status = mds_mcm_user_event_callback(
+	    svc_hdl, m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl), sub_svc_id,
+	    V_DEST_RL_STANDBY, vdest_id, 0, NCSMDS_DOWN,
+	    active_subtn_result_info->rem_svc_sub_part_ver,
+	    MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Callback failure */
-		m_MDS_LOG_ERR("MCM:API: await_active_tmr_expiry : DOWN Callback Failure for svc_id = %s(%d) subscribed to svc_id = %s(%d) on VDEST id = %d",
-		     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl), get_svc_names(sub_svc_id), sub_svc_id,
-		     vdest_id);
+		m_MDS_LOG_ERR(
+		    "MCM:API: await_active_tmr_expiry : DOWN Callback Failure for svc_id = %s(%d) subscribed to svc_id = %s(%d) on VDEST id = %d",
+		    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl)),
+		    m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),
+		    get_svc_names(sub_svc_id), sub_svc_id, vdest_id);
 	}
 
-	m_MDS_LOG_INFO("MCM:API: svc_down : await_active_tmr_expiry : svc_id = %s(%d) on DEST id = %d got DOWN for svc_id = %s(%d) on VDEST id = %d",
-	     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl), m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_hdl), get_svc_names(sub_svc_id), sub_svc_id, vdest_id);
+	m_MDS_LOG_INFO(
+	    "MCM:API: svc_down : await_active_tmr_expiry : svc_id = %s(%d) on DEST id = %d got DOWN for svc_id = %s(%d) on VDEST id = %d",
+	    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl)),
+	    m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),
+	    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_hdl), get_svc_names(sub_svc_id),
+	    sub_svc_id, vdest_id);
 
 	/* Destroy timer */
-	m_NCS_TMR_DESTROY(active_subtn_result_info->info.active_vdest.active_route_info->await_active_tmr);
+	m_NCS_TMR_DESTROY(active_subtn_result_info->info.active_vdest
+			      .active_route_info->await_active_tmr);
 
 	/* Freeing Handle and tmr_req_info done in expiry function itself */
 
 	/* Delete Active entry from Subscription result tree */
-	m_MMGR_FREE_SUBTN_ACTIVE_RESULT_INFO(active_subtn_result_info->info.active_vdest.active_route_info);
+	m_MMGR_FREE_SUBTN_ACTIVE_RESULT_INFO(
+	    active_subtn_result_info->info.active_vdest.active_route_info);
 
 	/* Delete subscription entry from tree */
-	ncs_patricia_tree_del(&gl_mds_mcm_cb->subtn_results, (NCS_PATRICIA_NODE *)active_subtn_result_info);
+	ncs_patricia_tree_del(&gl_mds_mcm_cb->subtn_results,
+			      (NCS_PATRICIA_NODE *)active_subtn_result_info);
 
 	/* Delete memory for active entry */
 	m_MMGR_FREE_SUBTN_RESULT_INFO(active_subtn_result_info);
@@ -3561,13 +4780,14 @@ uint32_t mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  Adest Hdl
 
 *********************************************************/
-uint32_t mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SCOPE_TYPE scope,
-			MDS_VIEW view, MDS_SUBTN_TYPE subtn_type)
+uint32_t mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+			   NCSMDS_SCOPE_TYPE scope, MDS_VIEW view,
+			   MDS_SUBTN_TYPE subtn_type)
 {
 	MDS_SUBTN_REF_VAL subtn_ref_val = 0;
 	uint32_t status = NCSCC_RC_SUCCESS;
@@ -3576,16 +4796,21 @@ uint32_t mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS
 	/* Add in Subscription Tabel */
 	mds_subtn_tbl_add(svc_hdl, subscr_svc_id, scope, view, subtn_type);
 	/*  STEP 2.c: Call mdtm_svc_subscribe(sub_svc_id, scope, svc_hdl) */
-	status = mds_mdtm_svc_subscribe((PW_ENV_ID)m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl),
-					subscr_svc_id, scope, svc_hdl, &subtn_ref_val);
+	status = mds_mdtm_svc_subscribe(
+	    (PW_ENV_ID)m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl), subscr_svc_id,
+	    scope, svc_hdl, &subtn_ref_val);
 	if (status != NCSCC_RC_SUCCESS) {
 		/* MDTM is unable to subscribe */
 
 		/* Remove Subscription info from MCM database */
 		mds_subtn_tbl_del(svc_hdl, subscr_svc_id);
 
-		m_MDS_LOG_ERR("MCM:API: mcm_subtn_add : Can't Subscribe from SVC id = %s(%d) on DEST = %d to svc_id = %s(%d) : MDTM Returned Failure",
-		     get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl)), m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl), m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_hdl), get_svc_names(subscr_svc_id), subscr_svc_id);
+		m_MDS_LOG_ERR(
+		    "MCM:API: mcm_subtn_add : Can't Subscribe from SVC id = %s(%d) on DEST = %d to svc_id = %s(%d) : MDTM Returned Failure",
+		    get_svc_names(m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl)),
+		    m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),
+		    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_hdl),
+		    get_svc_names(subscr_svc_id), subscr_svc_id);
 		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -3602,21 +4827,26 @@ uint32_t mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  Adest Hdl
 
 *********************************************************/
-uint32_t mds_mcm_validate_scope(NCSMDS_SCOPE_TYPE local_scope, NCSMDS_SCOPE_TYPE remote_scope,
-			     MDS_DEST remote_adest, MDS_SVC_ID remote_svc_id, bool my_pcon)
+uint32_t mds_mcm_validate_scope(NCSMDS_SCOPE_TYPE local_scope,
+				NCSMDS_SCOPE_TYPE remote_scope,
+				MDS_DEST remote_adest, MDS_SVC_ID remote_svc_id,
+				bool my_pcon)
 {
 
 	m_MDS_ENTER();
 	switch (local_scope) {
 	case NCSMDS_SCOPE_INTRANODE:
 
-		if (m_MDS_GET_NODE_ID_FROM_ADEST(remote_adest) != m_MDS_GET_NODE_ID_FROM_ADEST(m_MDS_GET_ADEST)) {
-			m_MDS_LOG_INFO("MCM:API: svc_up : Node Scope Mismatch for svc_id = %s(%d)", get_svc_names(remote_svc_id), remote_svc_id);
+		if (m_MDS_GET_NODE_ID_FROM_ADEST(remote_adest) !=
+		    m_MDS_GET_NODE_ID_FROM_ADEST(m_MDS_GET_ADEST)) {
+			m_MDS_LOG_INFO(
+			    "MCM:API: svc_up : Node Scope Mismatch for svc_id = %s(%d)",
+			    get_svc_names(remote_svc_id), remote_svc_id);
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
@@ -3625,9 +4855,11 @@ uint32_t mds_mcm_validate_scope(NCSMDS_SCOPE_TYPE local_scope, NCSMDS_SCOPE_TYPE
 	case NCSMDS_SCOPE_NONE:
 
 		if (remote_scope == NCSMDS_SCOPE_INTRANODE &&
-		    m_MDS_GET_NODE_ID_FROM_ADEST(remote_adest) != m_MDS_GET_NODE_ID_FROM_ADEST(m_MDS_GET_ADEST)) {
-			m_MDS_LOG_INFO("MCM:API: svc_up : NONE or CHASSIS Scope Mismatch (remote scope = NODE) for svc_id = %s(%d)",
-			     get_svc_names(remote_svc_id), remote_svc_id);
+		    m_MDS_GET_NODE_ID_FROM_ADEST(remote_adest) !=
+			m_MDS_GET_NODE_ID_FROM_ADEST(m_MDS_GET_ADEST)) {
+			m_MDS_LOG_INFO(
+			    "MCM:API: svc_up : NONE or CHASSIS Scope Mismatch (remote scope = NODE) for svc_id = %s(%d)",
+			    get_svc_names(remote_svc_id), remote_svc_id);
 			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
@@ -3650,7 +4882,7 @@ uint32_t mds_mcm_validate_scope(NCSMDS_SCOPE_TYPE local_scope, NCSMDS_SCOPE_TYPE
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  Adest Hdl
 
@@ -3668,7 +4900,7 @@ uint32_t mds_adm_get_adest_hdl(void)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  Adest Hdl
 
@@ -3677,7 +4909,9 @@ MDS_VDEST_ID ncs_get_internal_vdest_id_from_mds_dest(MDS_DEST mdsdest)
 {
 	m_MDS_ENTER();
 	m_MDS_LEAVE();
-	return (MDS_VDEST_ID)(m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) == 0 ? mdsdest : m_VDEST_ID_FOR_ADEST_ENTRY);
+	return (MDS_VDEST_ID)(m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) == 0
+				  ? mdsdest
+				  : m_VDEST_ID_FOR_ADEST_ENTRY);
 }
 
 /*********************************************************
@@ -3686,7 +4920,7 @@ MDS_VDEST_ID ncs_get_internal_vdest_id_from_mds_dest(MDS_DEST mdsdest)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  Adest Hdl
 
@@ -3702,18 +4936,25 @@ uint32_t mds_mcm_init(void)
 	/* VDEST TREE */
 	memset(&pat_tree_params, 0, sizeof(NCS_PATRICIA_PARAMS));
 	pat_tree_params.key_size = sizeof(MDS_VDEST_ID);
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&gl_mds_mcm_cb->vdest_list, &pat_tree_params)) {
-		m_MDS_LOG_ERR("MCM:API: patricia_tree_init: vdest :failure, L mds_mcm_init");
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&gl_mds_mcm_cb->vdest_list,
+				   &pat_tree_params)) {
+		m_MDS_LOG_ERR(
+		    "MCM:API: patricia_tree_init: vdest :failure, L mds_mcm_init");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* SERVICE TREE */
 	memset(&pat_tree_params, 0, sizeof(NCS_PATRICIA_PARAMS));
 	pat_tree_params.key_size = sizeof(MDS_SVC_HDL);
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&gl_mds_mcm_cb->svc_list, &pat_tree_params)) {
-		m_MDS_LOG_ERR("MCM:API: patricia_tree_init:service :failure, L mds_mcm_init");
-		if (NCSCC_RC_SUCCESS != ncs_patricia_tree_destroy(&gl_mds_mcm_cb->vdest_list)) {
-			m_MDS_LOG_ERR("MCM:API: patricia_tree_destroy: service :failure, L mds_mcm_init");
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&gl_mds_mcm_cb->svc_list,
+						       &pat_tree_params)) {
+		m_MDS_LOG_ERR(
+		    "MCM:API: patricia_tree_init:service :failure, L mds_mcm_init");
+		if (NCSCC_RC_SUCCESS !=
+		    ncs_patricia_tree_destroy(&gl_mds_mcm_cb->vdest_list)) {
+			m_MDS_LOG_ERR(
+			    "MCM:API: patricia_tree_destroy: service :failure, L mds_mcm_init");
 		}
 		return NCSCC_RC_FAILURE;
 	}
@@ -3721,13 +4962,20 @@ uint32_t mds_mcm_init(void)
 	/* SUBSCRIPTION RESULT TREE */
 	memset(&pat_tree_params, 0, sizeof(NCS_PATRICIA_PARAMS));
 	pat_tree_params.key_size = sizeof(MDS_SUBSCRIPTION_RESULTS_KEY);
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&gl_mds_mcm_cb->subtn_results, &pat_tree_params)) {
-		m_MDS_LOG_ERR("MCM:API: patricia_tree_init: subscription: failure, L mds_mcm_init");
-		if (NCSCC_RC_SUCCESS != ncs_patricia_tree_destroy(&gl_mds_mcm_cb->svc_list)) {
-			m_MDS_LOG_ERR("MCM:API: patricia_tree_destroy: service :failure, L mds_mcm_init");
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&gl_mds_mcm_cb->subtn_results,
+				   &pat_tree_params)) {
+		m_MDS_LOG_ERR(
+		    "MCM:API: patricia_tree_init: subscription: failure, L mds_mcm_init");
+		if (NCSCC_RC_SUCCESS !=
+		    ncs_patricia_tree_destroy(&gl_mds_mcm_cb->svc_list)) {
+			m_MDS_LOG_ERR(
+			    "MCM:API: patricia_tree_destroy: service :failure, L mds_mcm_init");
 		}
-		if (NCSCC_RC_SUCCESS != ncs_patricia_tree_destroy(&gl_mds_mcm_cb->vdest_list)) {
-			m_MDS_LOG_ERR("MCM:API: patricia_tree_destroy: vdest :failure, L mds_mcm_init");
+		if (NCSCC_RC_SUCCESS !=
+		    ncs_patricia_tree_destroy(&gl_mds_mcm_cb->vdest_list)) {
+			m_MDS_LOG_ERR(
+			    "MCM:API: patricia_tree_destroy: vdest :failure, L mds_mcm_init");
 		}
 		return NCSCC_RC_FAILURE;
 	}
@@ -3740,9 +4988,11 @@ uint32_t mds_mcm_init(void)
 	vdest_for_adest_node->policy = NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN;
 	vdest_for_adest_node->role = V_DEST_RL_ACTIVE;
 
-	vdest_for_adest_node->node.key_info = (uint8_t *)&vdest_for_adest_node->vdest_id;
+	vdest_for_adest_node->node.key_info =
+	    (uint8_t *)&vdest_for_adest_node->vdest_id;
 
-	ncs_patricia_tree_add(&gl_mds_mcm_cb->vdest_list, (NCS_PATRICIA_NODE *)vdest_for_adest_node);
+	ncs_patricia_tree_add(&gl_mds_mcm_cb->vdest_list,
+			      (NCS_PATRICIA_NODE *)vdest_for_adest_node);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -3753,7 +5003,7 @@ uint32_t mds_mcm_init(void)
 
   DESCRIPTION:
 
-  ARGUMENTS: 
+  ARGUMENTS:
 
   RETURNS:  Adest Hdl
 

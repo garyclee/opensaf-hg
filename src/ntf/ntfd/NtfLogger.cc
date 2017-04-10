@@ -36,9 +36,9 @@
  *   DEFINITIONS
  * ========================================================================
  */
-#define LOG_OPEN_TIMEOUT         SA_TIME_ONE_SECOND
+#define LOG_OPEN_TIMEOUT SA_TIME_ONE_SECOND
 #define LOG_NOTIFICATION_TIMEOUT SA_TIME_ONE_SECOND
-#define AIS_TIMEOUT              500000
+#define AIS_TIMEOUT 500000
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -50,61 +50,55 @@
  * ========================================================================
  */
 /* Callbacks */
-void saLogFilterSetCallback(SaLogStreamHandleT  logStreamHandle,
+void saLogFilterSetCallback(SaLogStreamHandleT logStreamHandle,
                             SaLogSeverityFlagsT logSeverity);
 
 void saLogStreamOpenCallback(SaInvocationT invocation,
                              SaLogStreamHandleT logStreamHandle,
                              SaAisErrorT error);
 
-void saLogWriteLogCallback(SaInvocationT invocation,
-                           SaAisErrorT error);
+void saLogWriteLogCallback(SaInvocationT invocation, SaAisErrorT error);
 
 /* ========================================================================
  *   DATA DECLARATIONS
  * ========================================================================
  */
 
-static SaLogCallbacksT logCallbacks = {
-  NULL,
-  NULL,
-  saLogWriteLogCallback
-};
+static SaLogCallbacksT logCallbacks = {NULL, NULL, saLogWriteLogCallback};
 
-static SaVersionT         logVersion = {'A', 2, 1};
-static SaLogHandleT       logHandle;
+static SaVersionT logVersion = {'A', 2, 1};
+static SaLogHandleT logHandle;
 static SaLogStreamHandleT alarmStreamHandle;
 
-NtfLogger::NtfLogger():readCounter(0) {
-  if (SA_AIS_OK != initLog()){
+NtfLogger::NtfLogger() : readCounter(0) {
+  if (SA_AIS_OK != initLog()) {
     LOG_ER("initialize saflog failed exiting...");
     exit(EXIT_FAILURE);
   }
 }
 
 /* Callbacks */
-void saLogFilterSetCallback(SaLogStreamHandleT  logStreamHandle,
+void saLogFilterSetCallback(SaLogStreamHandleT logStreamHandle,
                             SaLogSeverityFlagsT logSeverity) {
-  LOG_IN( "Ignoring log filter set callback");
+  LOG_IN("Ignoring log filter set callback");
 }
 
 void saLogStreamOpenCallback(SaInvocationT invocation,
                              SaLogStreamHandleT logStreamHandle,
                              SaAisErrorT error) {
-  LOG_IN( "Ignoring log stream open callback");
+  LOG_IN("Ignoring log stream open callback");
 }
 
-void saLogWriteLogCallback(SaInvocationT invocation,
-                           SaAisErrorT error) {
+void saLogWriteLogCallback(SaInvocationT invocation, SaAisErrorT error) {
   TRACE_ENTER2("Callback for notificationId %llu", invocation);
 
   if (SA_AIS_OK != error) {
     NtfSmartPtr notification;
 
-    TRACE_1( "Error when logging (%d), queue for relogging", error);
+    TRACE_1("Error when logging (%d), queue for relogging", error);
 
     notification = NtfAdmin::theNtfAdmin->getNotificationById(
-        (SaNtfIdentifierT) invocation);
+        (SaNtfIdentifierT)invocation);
 
     osafassert(notification != NULL);
 
@@ -112,19 +106,15 @@ void saLogWriteLogCallback(SaInvocationT invocation,
       NtfAdmin::theNtfAdmin->logger.queueNotifcation(notification);
       TRACE_LEAVE();
       return;
-    }
-    else
-    {
-      LOG_ER("Already marked as logged notificationId: %d",
-             (int)invocation);
+    } else {
+      LOG_ER("Already marked as logged notificationId: %d", (int)invocation);
       /* this should not happen */
       osafassert(0);
     }
   }
-  sendLoggedConfirm((SaNtfIdentifierT) invocation);
+  sendLoggedConfirm((SaNtfIdentifierT)invocation);
   TRACE_LEAVE();
 }
-
 
 void NtfLogger::log(NtfSmartPtr& notif, bool isLocal) {
   unsigned int collSize = (unsigned int)coll_.size();
@@ -144,9 +134,7 @@ void NtfLogger::log(NtfSmartPtr& notif, bool isLocal) {
     if (coll_.size() < ntfs_cb->cache_size) {
       TRACE_2("push_back");
       coll_.push_back(notif);
-    }
-    else
-    {
+    } else {
       TRACE_2("pop_front");
       coll_.pop_front();
       TRACE_2("push_back");
@@ -156,12 +144,10 @@ void NtfLogger::log(NtfSmartPtr& notif, bool isLocal) {
   TRACE_LEAVE();
 }
 
-
 void NtfLogger::queueNotifcation(NtfSmartPtr& notif) {
   TRACE_2("Queue notification: %llu", notif->getNotificationId());
   queuedNotificationList.push_back(notif);
 }
-
 
 void NtfLogger::checkQueueAndLog(NtfSmartPtr& newNotif) {
   TRACE_ENTER();
@@ -171,7 +157,8 @@ void NtfLogger::checkQueueAndLog(NtfSmartPtr& newNotif) {
     queuedNotificationList.pop_front();
     TRACE_2("Log queued notification: %llu", notification->getNotificationId());
     if (SA_AIS_OK != this->logNotification(notification)) {
-      TRACE_2("Push back queued notification: %llu", notification->getNotificationId());
+      TRACE_2("Push back queued notification: %llu",
+              notification->getNotificationId());
       queuedNotificationList.push_front(notification); /* keep order */
       queueNotifcation(newNotif);
       TRACE_LEAVE();
@@ -185,23 +172,24 @@ void NtfLogger::checkQueueAndLog(NtfSmartPtr& newNotif) {
   TRACE_LEAVE();
 }
 
-
 SaAisErrorT NtfLogger::logNotification(NtfSmartPtr& notif) {
   /* Write to the log if we're the local node */
-  SaAisErrorT  errorCode = SA_AIS_OK;
+  SaAisErrorT errorCode = SA_AIS_OK;
   SaLogHeaderT logHeader;
   char addTextBuf[MAX_ADDITIONAL_TEXT_LENGTH] = {0};
   SaLogBufferT logBuffer;
   ntfsv_send_not_req_t* sendNotInfo;
-  SaNtfNotificationHeaderT *ntfHeader;
+  SaNtfNotificationHeaderT* ntfHeader;
   TRACE_ENTER();
 
   sendNotInfo = notif->getNotInfo();
   ntfsv_get_ntf_header(sendNotInfo, &ntfHeader);
 
   // Workaround to fix with failed upgrade
-  // Auto correction if there is inconsistent b/w lengthAdditionalText and additionalText
-  // TODO: This workaround should be removed when Opensaf 5.0 is no longer supported
+  // Auto correction if there is inconsistent b/w lengthAdditionalText and
+  // additionalText
+  // TODO: This workaround should be removed when Opensaf 5.0 is no longer
+  // supported
   if (ntfHeader->additionalText != NULL &&
       ntfHeader->lengthAdditionalText > strlen(ntfHeader->additionalText) + 1) {
     LOG_WA("Mismatch b/w lengthAdditionalText and additionalText. Re-Adjust!");
@@ -212,50 +200,41 @@ SaAisErrorT NtfLogger::logNotification(NtfSmartPtr& notif) {
   logBuffer.logBuf = (SaUint8T*)&addTextBuf[0];
 
   if (MAX_ADDITIONAL_TEXT_LENGTH < ntfHeader->lengthAdditionalText) {
-    logBuffer.logBufSize=MAX_ADDITIONAL_TEXT_LENGTH;
+    logBuffer.logBufSize = MAX_ADDITIONAL_TEXT_LENGTH;
   }
-  (void) strncpy(addTextBuf,
-                 (SaStringT)ntfHeader->additionalText,
-                 logBuffer.logBufSize);
+  (void)strncpy(addTextBuf, (SaStringT)ntfHeader->additionalText,
+                logBuffer.logBufSize);
 
   SaLogNtfLogHeaderT ntfLogHeader = {
-    *ntfHeader->notificationId,
-    *ntfHeader->eventType,
-    ntfHeader->notificationObject,
-    ntfHeader->notifyingObject,
-    ntfHeader->notificationClassId,
-    *ntfHeader->eventTime
-  };
+      *ntfHeader->notificationId,     *ntfHeader->eventType,
+      ntfHeader->notificationObject,  ntfHeader->notifyingObject,
+      ntfHeader->notificationClassId, *ntfHeader->eventTime};
 
   logHeader.ntfHdr = ntfLogHeader;
 
-  SaLogRecordT logRecord = {
-    *ntfHeader->eventTime,
-    SA_LOG_NTF_HEADER,
-    logHeader,
-    &logBuffer
-  };
+  SaLogRecordT logRecord = {*ntfHeader->eventTime, SA_LOG_NTF_HEADER, logHeader,
+                            &logBuffer};
 
   /* Also write alarms and security alarms to the alarm log */
   if ((notif->sendNotInfo_->notificationType == SA_NTF_TYPE_ALARM) ||
       (notif->sendNotInfo_->notificationType == SA_NTF_TYPE_SECURITY_ALARM)) {
     TRACE_2("Logging notification to alarm stream");
-    errorCode = saLogWriteLogAsync(alarmStreamHandle,
-                                   notif->getNotificationId(),
-                                   SA_LOG_RECORD_WRITE_ACK,
-                                   &logRecord);
+    errorCode =
+        saLogWriteLogAsync(alarmStreamHandle, notif->getNotificationId(),
+                           SA_LOG_RECORD_WRITE_ACK, &logRecord);
     switch (errorCode) {
-    case SA_AIS_OK:
-	    break;
+      case SA_AIS_OK:
+        break;
 
-    /* LOGsv is busy. Put the notification to queue and re-send next time */
-    case SA_AIS_ERR_TRY_AGAIN:
-    case SA_AIS_ERR_TIMEOUT:
-	    TRACE("Failed to log notification (ret: %d). Try next time.", errorCode);
-	    break;
+      /* LOGsv is busy. Put the notification to queue and re-send next time */
+      case SA_AIS_ERR_TRY_AGAIN:
+      case SA_AIS_ERR_TIMEOUT:
+        TRACE("Failed to log notification (ret: %d). Try next time.",
+              errorCode);
+        break;
 
-    default:
-	    osaf_abort(errorCode);
+      default:
+        osaf_abort(errorCode);
     }
   }
 
@@ -272,11 +251,13 @@ SaAisErrorT NtfLogger::initLog() {
   TRACE_ENTER();
 
   /* Initialize the Log service */
-  do
-  {
-    result = saLogInitialize (&logHandle, &logCallbacks, &logVersion);
+  do {
+    result = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
     if (SA_AIS_ERR_TRY_AGAIN == result) {
-      if (first_try){ LOG_WA("saLogInitialize returns try again, retries..."); first_try = 0; }
+      if (first_try) {
+        LOG_WA("saLogInitialize returns try again, retries...");
+        first_try = 0;
+      }
       usleep(AIS_TIMEOUT);
     }
   } while (SA_AIS_ERR_TRY_AGAIN == result);
@@ -285,14 +266,19 @@ SaAisErrorT NtfLogger::initLog() {
     LOG_ER("Log initialize result is %d", result);
     goto exit_point;
   }
-  if (!first_try){ LOG_IN("saLogInitialize ok"); first_try = 1; }
+  if (!first_try) {
+    LOG_IN("saLogInitialize ok");
+    first_try = 1;
+  }
 
   /* Get file descriptor to use in select */
-  do
-  {
+  do {
     result = saLogSelectionObjectGet(logHandle, &ntfs_cb->logSelectionObject);
     if (SA_AIS_ERR_TRY_AGAIN == result) {
-      if (first_try){ LOG_WA("saLogSelectionObjectGet returns try again, retries..."); first_try = 0; }
+      if (first_try) {
+        LOG_WA("saLogSelectionObjectGet returns try again, retries...");
+        first_try = 0;
+      }
       usleep(AIS_TIMEOUT);
     }
   } while (SA_AIS_ERR_TRY_AGAIN == result);
@@ -306,41 +292,43 @@ SaAisErrorT NtfLogger::initLog() {
     LOG_ER("Failed to open the notification log stream (%d)", result);
     goto exit_point;
   }
-  if (!first_try){ LOG_IN("saLogSelectionObjectGet ok"); first_try = 1; }
+  if (!first_try) {
+    LOG_IN("saLogSelectionObjectGet ok");
+    first_try = 1;
+  }
 
   /* Open the alarm stream */
-  do
-  {
-    result = saLogStreamOpen_2(logHandle,
-                               &alarmStreamName,
-                               NULL,
-                               0,
-                               LOG_OPEN_TIMEOUT,
-                               &alarmStreamHandle);
+  do {
+    result = saLogStreamOpen_2(logHandle, &alarmStreamName, NULL, 0,
+                               LOG_OPEN_TIMEOUT, &alarmStreamHandle);
     if (SA_AIS_ERR_TRY_AGAIN == result) {
-      if (first_try){ LOG_WA("saLogStreamOpen_2 returns try again, retries..."); first_try = 0; }
+      if (first_try) {
+        LOG_WA("saLogStreamOpen_2 returns try again, retries...");
+        first_try = 0;
+      }
       usleep(AIS_TIMEOUT);
     }
   } while (SA_AIS_ERR_TRY_AGAIN == result);
 
   if (SA_AIS_OK != result) {
-    LOG_ER("Failed to open the alarm log stream (%d)",
-           result);
+    LOG_ER("Failed to open the alarm log stream (%d)", result);
     goto exit_point;
   }
-  if (!first_try){ LOG_IN("saLogStreamOpen_2 ok"); first_try = 1; }
+  if (!first_try) {
+    LOG_IN("saLogStreamOpen_2 ok");
+    first_try = 1;
+  }
 
 exit_point:
   TRACE_LEAVE();
-  return(result);
+  return (result);
 }
 
-void logEvent () {
+void logEvent() {
   SaAisErrorT errorCode;
   errorCode = saLogDispatch(logHandle, SA_DISPATCH_ALL);
   if (SA_AIS_OK != errorCode) {
-    TRACE_1("Failed to dispatch log events (%d)",
-            errorCode);
+    TRACE_1("Failed to dispatch log events (%d)", errorCode);
   }
   return;
 }
@@ -350,4 +338,3 @@ void NtfLogger::printInfo() {
   TRACE(" logQueueList size:  %u", (unsigned int)queuedNotificationList.size());
   TRACE(" reader cache size:  %u", (unsigned int)coll_.size());
 }
-

@@ -36,13 +36,13 @@
 
 /* Macro to Validate the timeout value passed in SAF APIs (TRUE/FALSE) */
 
-#define m_NCS_SA_IS_VALID_TIME_DURATION(time)                   \
+#define m_NCS_SA_IS_VALID_TIME_DURATION(time) \
   (((time) >= SA_TIME_BEGIN) && ((time) <= SA_TIME_MAX))
 
-#define NCS_SAF_MIN_ACCEPT_TIME  10     /* In Milli Seconds */
+#define NCS_SAF_MIN_ACCEPT_TIME 10 /* In Milli Seconds */
 
 /* Macro to convert the nano sec to 10 milli seconds */
 
-#define m_NCS_CONVERT_SATIME_TO_TEN_MILLI_SEC(t)      (t)/(10000000)    /* 10^7 */
+#define m_NCS_CONVERT_SATIME_TO_TEN_MILLI_SEC(t) (t) / (10000000) /* 10^7 */
 
 #endif  // BASE_SAF_DEF_H_

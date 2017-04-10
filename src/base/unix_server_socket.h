@@ -32,6 +32,7 @@ class UnixServerSocket : public UnixSocket {
   // Closes the server socket if it was open, and deletes the socket from the
   // file system.
   virtual ~UnixServerSocket();
+
  protected:
   virtual bool OpenHook(int sock);
   virtual void CloseHook();

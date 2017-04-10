@@ -23,7 +23,7 @@
   DESCRIPTION:
 
   This module is the main include file for Global Lock Director (GLD).
-  
+
 ******************************************************************************
 */
 
@@ -31,9 +31,9 @@
 #define LCK_LCKD_GLD_H_
 typedef enum {
 
-	NO_CRD_QA_VAL,
-	V_CARD_QA_1,
-	V_CARD_QA_2,
+  NO_CRD_QA_VAL,
+  V_CARD_QA_1,
+  V_CARD_QA_2,
 
 } V_CARD_QA;
 

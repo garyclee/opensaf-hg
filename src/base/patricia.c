@@ -45,9 +45,8 @@
 #include "base/ncssysf_def.h"
 #include "base/ncspatricia.h"
 
-const static uint8_t BitMasks[9] = {
-	0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff
-};
+const static uint8_t BitMasks[9] = {0x00, 0x80, 0xc0, 0xe0, 0xf0,
+				    0xf8, 0xfc, 0xfe, 0xff};
 
 /*****************************************************************************
  * PRIVATE (static) FUNCTIONS
@@ -74,7 +73,8 @@ const static uint8_t BitMasks[9] = {
   NOTES:
 
 *****************************************************************************/
-static NCS_PATRICIA_NODE *search(const NCS_PATRICIA_TREE *const pTree, const uint8_t *const key)
+static NCS_PATRICIA_NODE *search(const NCS_PATRICIA_TREE *const pTree,
+				 const uint8_t *const key)
 {
 	NCS_PATRICIA_NODE *pNode;
 	NCS_PATRICIA_NODE *pPrevNode;
@@ -99,7 +99,8 @@ static NCS_PATRICIA_NODE *search(const NCS_PATRICIA_TREE *const pTree, const uin
  * KeyBitMatch:  compares 'n' bits of the keys.
  *               Returns 'TRUE' if they're equal.
  ****************************************************************************/
-static int KeyBitMatch(const uint8_t *p1, const uint8_t *p2, unsigned int bitcount)
+static int KeyBitMatch(const uint8_t *p1, const uint8_t *p2,
+		       unsigned int bitcount)
 {
 	while (bitcount > 8) {
 		if (*p1 != *p2) {
@@ -110,8 +111,8 @@ static int KeyBitMatch(const uint8_t *p1, const uint8_t *p2, unsigned int bitcou
 		bitcount -= 8;
 	}
 
-	return (((int)(*p1 & BitMasks[bitcount])) - ((int)(*p2 & BitMasks[bitcount])));
-
+	return (((int)(*p1 & BitMasks[bitcount])) -
+		((int)(*p2 & BitMasks[bitcount])));
 }
 
 /****************************************************************************
@@ -126,7 +127,7 @@ static int KeyBitMatch(const uint8_t *p1, const uint8_t *p2, unsigned int bitcou
 
     Creates and initializes a Patricia Tree.  Given the parameter structure
     for key size,
-  
+
   ARGUMENTS:
 
     NCS_PATRICIA_TREE *  ptr to tree to initialize.
@@ -140,28 +141,31 @@ static int KeyBitMatch(const uint8_t *p1, const uint8_t *p2, unsigned int bitcou
 
 *****************************************************************************/
 
-unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree, const NCS_PATRICIA_PARAMS *const pParams)
+unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree,
+				    const NCS_PATRICIA_PARAMS *const pParams)
 {
 	if (pParams == NULL)
 		return (unsigned int)m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-	if ((pParams->key_size < 1)
-	    || (pParams->key_size > NCS_PATRICIA_MAX_KEY_SIZE)
-	    ) {
+	if ((pParams->key_size < 1) ||
+	    (pParams->key_size > NCS_PATRICIA_MAX_KEY_SIZE)) {
 		return (unsigned int)m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
 	pTree->params = *pParams;
 
-	/* Initialize the root node, which is actually part of the tree structure. */
+	/* Initialize the root node, which is actually part of the tree
+	 * structure. */
 	pTree->root_node.key_info = (uint8_t *)0;
 	pTree->root_node.bit = -1;
 	pTree->root_node.left = pTree->root_node.right = &pTree->root_node;
-	if ((pTree->root_node.key_info = (NCS_PATRICIA_LEXICAL_STACK *)malloc(pTree->params.key_size)) == NULL) {
+	if ((pTree->root_node.key_info = (NCS_PATRICIA_LEXICAL_STACK *)malloc(
+		 pTree->params.key_size)) == NULL) {
 		return (unsigned int)m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
-	memset(pTree->root_node.key_info, '\0', (uint32_t)pTree->params.key_size);
+	memset(pTree->root_node.key_info, '\0',
+	       (uint32_t)pTree->params.key_size);
 	pTree->n_nodes = 0;
 
 	return NCSCC_RC_SUCCESS;
@@ -175,7 +179,7 @@ unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree, const NCS_PA
 
     Destroys and frees the entire Patrica tree, root node, table structure.
     This will totally clear all memory allocated by the tree.
-  
+
   ARGUMENTS:
 
     NCS_PATRICIA_TREE * - Pointer to the table structure
@@ -203,7 +207,7 @@ unsigned int ncs_patricia_tree_destroy(NCS_PATRICIA_TREE *const pTree)
 
      Begins clearing the nodes of the tree.  This starts with the root node.
      The root only has elements on the left side, and doesn't need the right
-     side to be cleared.  Clear walk is a recursive function to destroy 
+     side to be cleared.  Clear walk is a recursive function to destroy
      nodes in the tree.
 
   ARGUMENTS:
@@ -223,7 +227,6 @@ void ncs_patricia_tree_clear(NCS_PATRICIA_TREE *const pTree)
 
 	pTree->root_node.left = pTree->root_node.right = &pTree->root_node;
 	pTree->n_nodes = 0;
-
 }
 
 /*****************************************************************************
@@ -233,7 +236,7 @@ void ncs_patricia_tree_clear(NCS_PATRICIA_TREE *const pTree)
   DESCRIPTION:
 
     Adds a new node to the tree and updates the index
-      
+
   ARGUMENTS:
 
     NCS_PATRICIA_TREE *pTree: Patricia Tree table sturcture
@@ -242,13 +245,14 @@ void ncs_patricia_tree_clear(NCS_PATRICIA_TREE *const pTree)
   RETURNS:
 
     int - NCSCC_RC_SUCCESS if key added
-          NCSCC_RC_FAILURE key is duplicate, or other error.
+	  NCSCC_RC_FAILURE key is duplicate, or other error.
 
   NOTES:
 
 *****************************************************************************/
 
-unsigned int ncs_patricia_tree_add(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_NODE *const pNode)
+unsigned int ncs_patricia_tree_add(NCS_PATRICIA_TREE *const pTree,
+				   NCS_PATRICIA_NODE *const pNode)
 {
 	NCS_PATRICIA_NODE *pSrch;
 	NCS_PATRICIA_NODE *pTmpNode;
@@ -257,12 +261,13 @@ unsigned int ncs_patricia_tree_add(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
 
 	pTmpNode = search(pTree, pNode->key_info);
 	if (m_KEY_CMP(pTree, pNode->key_info, pTmpNode->key_info) == 0) {
-		return (NCSCC_RC_FAILURE);	/* duplicate!. */
+		return (NCSCC_RC_FAILURE); /* duplicate!. */
 	}
 
 	bit = 0;
 
-	while (m_GET_BIT(pNode->key_info, bit) == ((pTmpNode->bit < 0) ? 0 : m_GET_BIT(pTmpNode->key_info, bit))) {
+	while (m_GET_BIT(pNode->key_info, bit) ==
+	       ((pTmpNode->bit < 0) ? 0 : m_GET_BIT(pTmpNode->key_info, bit))) {
 		bit++;
 	}
 
@@ -303,7 +308,7 @@ unsigned int ncs_patricia_tree_add(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
   DESCRIPTION:
 
     Deletes the node (passed) from the patricia tree.
-  
+
   ARGUMENTS:
 
     NCS_PATRICIA_TREE *  - the tree
@@ -315,12 +320,13 @@ unsigned int ncs_patricia_tree_add(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
 
   NOTES:
 
-  it is the responsibility of the caller to insure that the node passed 
+  it is the responsibility of the caller to insure that the node passed
   is in the tree before calling this routine.
 
 *****************************************************************************/
 
-unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_NODE *const pNode)
+unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree,
+				   NCS_PATRICIA_NODE *const pNode)
 {
 	NCS_PATRICIA_NODE *pNextNode;
 	NCS_PATRICIA_NODE **pLegDownToNode;
@@ -337,13 +343,15 @@ unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
 
 	while ((pDelNode = *pLegDownToNode) != pNode) {
 		if (pDelNode->bit <= pNextNode->bit) {
-			return (unsigned int)m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);	/* Key not found. */
+			return (unsigned int)m_LEAP_DBG_SINK(
+			    NCSCC_RC_FAILURE); /* Key not found. */
 		}
 
 		pNextNode = pDelNode;
-		pLegDownToNode = ((m_GET_BIT(pNode->key_info, pNextNode->bit) != 0) ?
-				  &pNextNode->right : &pNextNode->left);
-
+		pLegDownToNode =
+		    ((m_GET_BIT(pNode->key_info, pNextNode->bit) != 0)
+			 ? &pNextNode->right
+			 : &pNextNode->left);
 	}
 
 	/* pDelNode points to the one to delete.
@@ -353,20 +361,22 @@ unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
 	pPrevLeg = pLegDownToNode;
 	pNextNode = pNode;
 
-	/* keep going 'down' until we find the one which 
-	 * points back to pNode as an up-pointer. 
+	/* keep going 'down' until we find the one which
+	 * points back to pNode as an up-pointer.
 	 */
 
 	while (1) {
 		UpWentRight = (m_GET_BIT(pNode->key_info, pNextNode->bit) != 0);
-		pNextLeg = ((UpWentRight) ? &pNextNode->right : &pNextNode->left);
+		pNextLeg =
+		    ((UpWentRight) ? &pNextNode->right : &pNextNode->left);
 		pDelNode = *pNextLeg;
 
 		if (pDelNode == pNode)
 			break;
 
 		if (pDelNode->bit <= pNextNode->bit) {
-			return (unsigned int)m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);	/* panic??? */
+			return (unsigned int)m_LEAP_DBG_SINK(
+			    NCSCC_RC_FAILURE); /* panic??? */
 		}
 
 		/* loop around again. */
@@ -374,8 +384,8 @@ unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
 		pPrevLeg = pNextLeg;
 	}
 
-	/* At this point, 
-	 * pNextNode is the one pointing UP to the one to delete. 
+	/* At this point,
+	 * pNextNode is the one pointing UP to the one to delete.
 	 * pPrevLeg points to the down-leg which points to pNextNode
 	 * UpWentRight is the direction which pNextNode took (in the UP
 	 *      direction) to get to the one to delete.)
@@ -385,7 +395,8 @@ unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
 	 * BE CAREFUL.  The order of the following statements
 	 * is critical.
 	 */
-	pNextNode->bit = pNode->bit;	/* it gets the 'bit' value of the evacuee. */
+	pNextNode->bit =
+	    pNode->bit; /* it gets the 'bit' value of the evacuee. */
 	*pLegDownToNode = pNextNode;
 
 	*pPrevLeg = ((UpWentRight) ? pNextNode->left : pNextNode->right);
@@ -403,7 +414,7 @@ unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
 
   DESCRIPTION:
 
-    Get a node with a given key.  This routine will search the tree for the 
+    Get a node with a given key.  This routine will search the tree for the
     only possible match, and then check the entire key for a perfect match.
 
   ARGUMENTS:
@@ -419,7 +430,8 @@ unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree, NCS_PATRICIA_
 
 *****************************************************************************/
 
-NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree, const uint8_t *const pKey)
+NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree,
+					 const uint8_t *const pKey)
 {
 	NCS_PATRICIA_NODE *pNode;
 
@@ -432,8 +444,8 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree, c
 
 	pNode = search(pTree, pKey);
 
-	if ((pNode == &pTree->root_node) || (m_KEY_CMP(pTree, pNode->key_info, pKey) != 0)
-	    ) {
+	if ((pNode == &pTree->root_node) ||
+	    (m_KEY_CMP(pTree, pNode->key_info, pKey) != 0)) {
 		pNode = NCS_PATRICIA_NODE_NULL;
 	}
 
@@ -447,12 +459,12 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree, c
   DESCRIPTION:
 
     Gets the next greater lexical order key value.
-       
+
   ARGUMENTS:
 
     NCS_PATRICIA_TREE *pTree: Pointer to the Patricia table
     uint8_t *key: Pointer to the key
-           (NULL pointer requests 1st node in table)
+	   (NULL pointer requests 1st node in table)
 
   RETURNS:
 
@@ -462,7 +474,8 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree, c
 
 *****************************************************************************/
 
-NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, const uint8_t *const pKey)
+NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree,
+					     const uint8_t *const pKey)
 {
 	uint8_t Target[NCS_PATRICIA_MAX_KEY_SIZE];
 	NCS_PATRICIA_NODE *pSrch;
@@ -478,7 +491,8 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 		memcpy(Target, pKey, pTree->params.key_size);
 	}
 
-	p1 = Target + pTree->params.key_size - 1;	/* point to last byte of key */
+	p1 =
+	    Target + pTree->params.key_size - 1; /* point to last byte of key */
 	while (p1 >= Target) {
 		*p1 += 1;
 		if (*p1 != '\0') {
@@ -502,9 +516,10 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 		}
 
 		if (pSrch->bit <= pPrev->bit) {
-			if ((memcmp(Target, pSrch->key_info, pTree->params.key_size) <= 0) &&
-			    (KeyBitMatch(Target, pSrch->key_info, 1 + pPrev->bit) == 0)
-			    ) {
+			if ((memcmp(Target, pSrch->key_info,
+				    pTree->params.key_size) <= 0) &&
+			    (KeyBitMatch(Target, pSrch->key_info,
+					 1 + pPrev->bit) == 0)) {
 				return pSrch;
 			}
 
@@ -519,17 +534,21 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 					p1 = pSrch->key_info;
 					p2 = Target;
 
-					for (bit = pSrch->bit; bit >= 8; bit -= 8) {
+					for (bit = pSrch->bit; bit >= 8;
+					     bit -= 8) {
 						*p2++ = *p1++;
 					}
-					/* Bring over SOME of the bits from pSrch. */
-					*p2 = (uint8_t)(*p1 & ((uint8_t)(BitMasks[bit])));
+					/* Bring over SOME of the bits from
+					 * pSrch. */
+					*p2 = (uint8_t)(
+					    *p1 & ((uint8_t)(BitMasks[bit])));
 
 					*p2 |= (uint8_t)(0x80 >> bit);
 
 					p2++;
 
-					while (p2 < (Target + pTree->params.key_size)) {
+					while (p2 < (Target +
+						     pTree->params.key_size)) {
 						*p2++ = '\0';
 					}
 					break;
@@ -542,14 +561,19 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 					p1 = pPrev->key_info;
 					p2 = Target;
 
-					for (bit = pPrev->bit; bit >= 8; bit -= 8) {
+					for (bit = pPrev->bit; bit >= 8;
+					     bit -= 8) {
 						*p2++ = *p1++;
 					}
 					if (bit > 0) {
-						*p2 = (uint8_t)(*p1 & BitMasks[bit]);
+						*p2 = (uint8_t)(*p1 &
+								BitMasks[bit]);
 					}
 					*p2 |= (uint8_t)(0xff >> bit);
-					for (p1 = p2 + 1; p1 < (Target + pTree->params.key_size); p1++) {
+					for (p1 = p2 + 1;
+					     p1 <
+					     (Target + pTree->params.key_size);
+					     p1++) {
 						*p1 = '\0';
 					}
 					do {
@@ -567,13 +591,17 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 
 					pPrev = &pTree->root_node;
 					do {
-						if (m_GET_BIT(pSrch->key_info, pPrev->bit) == 0) {
-							if (pPrev->left == pSrch) {
+						if (m_GET_BIT(pSrch->key_info,
+							      pPrev->bit) ==
+						    0) {
+							if (pPrev->left ==
+							    pSrch) {
 								break;
 							}
 							pPrev = pPrev->left;
 						} else {
-							if (pPrev->right == pSrch) {
+							if (pPrev->right ==
+							    pSrch) {
 								break;
 							}
 							pPrev = pPrev->right;
@@ -581,7 +609,8 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 
 					} while (true);
 
-					if (KeyBitMatch(Target, pSrch->key_info, 1 + pSrch->bit) == 0) {
+					if (KeyBitMatch(Target, pSrch->key_info,
+							1 + pSrch->bit) == 0) {
 						break;
 					}
 				}
@@ -590,7 +619,8 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 
 		} /* if (pSrch->bit <= pPrev->bit) */
 		else {
-			/* We're still going 'down'... but make sure we haven't gone down too far. */
+			/* We're still going 'down'... but make sure we haven't
+			 * gone down too far. */
 			bit = KeyBitMatch(Target, pSrch->key_info, pSrch->bit);
 
 			if (bit < 0) {
@@ -600,7 +630,8 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 					*p2++ = *p1++;
 				}
 				if (bit != 0) {
-					*p2++ = ((uint8_t)(*p1 & BitMasks[bit]));
+					*p2++ =
+					    ((uint8_t)(*p1 & BitMasks[bit]));
 				}
 				while (p2 < Target + pTree->params.key_size) {
 					*p2++ = '\0';
@@ -618,17 +649,24 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 						p1 = pSrch->key_info;
 						p2 = Target;
 
-						for (bit = pSrch->bit; bit >= 8; bit -= 8) {
+						for (bit = pSrch->bit; bit >= 8;
+						     bit -= 8) {
 							*p2++ = *p1++;
 						}
-						/* Bring over SOME of the bits from pSrch. */
-						*p2 = (uint8_t)(*p1 & ((uint8_t)(BitMasks[bit])));
+						/* Bring over SOME of the bits
+						 * from pSrch. */
+						*p2 = (uint8_t)(
+						    *p1 &
+						    ((uint8_t)(BitMasks[bit])));
 
 						*p2 |= (uint8_t)(0x80 >> bit);
 
 						p2++;
 
-						while (p2 < (Target + pTree->params.key_size)) {
+						while (
+						    p2 <
+						    (Target +
+						     pTree->params.key_size)) {
 							*p2++ = '\0';
 						}
 						break;
@@ -641,14 +679,21 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 						p1 = pPrev->key_info;
 						p2 = Target;
 
-						for (bit = pPrev->bit; bit >= 8; bit -= 8) {
+						for (bit = pPrev->bit; bit >= 8;
+						     bit -= 8) {
 							*p2++ = *p1++;
 						}
 						if (bit > 0) {
-							*p2 = (uint8_t)(*p1 & BitMasks[bit]);
+							*p2 = (uint8_t)(
+							    *p1 &
+							    BitMasks[bit]);
 						}
 						*p2 |= (uint8_t)(0xff >> bit);
-						for (p1 = p2 + 1; p1 < (Target + pTree->params.key_size); p1++) {
+						for (p1 = p2 + 1;
+						     p1 <
+						     (Target +
+						      pTree->params.key_size);
+						     p1++) {
 							*p1 = '\0';
 						}
 						do {
@@ -666,21 +711,33 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 
 						pPrev = &pTree->root_node;
 						do {
-							if (m_GET_BIT(pSrch->key_info, pPrev->bit) == 0) {
-								if (pPrev->left == pSrch) {
+							if (m_GET_BIT(
+								pSrch->key_info,
+								pPrev->bit) ==
+							    0) {
+								if (pPrev
+									->left ==
+								    pSrch) {
 									break;
 								}
-								pPrev = pPrev->left;
+								pPrev =
+								    pPrev->left;
 							} else {
-								if (pPrev->right == pSrch) {
+								if (pPrev
+									->right ==
+								    pSrch) {
 									break;
 								}
-								pPrev = pPrev->right;
+								pPrev =
+								    pPrev
+									->right;
 							}
 
 						} while (true);
 
-						if (KeyBitMatch(Target, pSrch->key_info, 1 + pSrch->bit) == 0) {
+						if (KeyBitMatch(
+							Target, pSrch->key_info,
+							1 + pSrch->bit) == 0) {
 							break;
 						}
 					}

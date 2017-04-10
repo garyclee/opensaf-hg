@@ -17,14 +17,14 @@
 
 /*****************************************************************************
 ..............................................................................
- 
+
 
 ..............................................................................
 
   DESCRIPTION:
 
   EDA handle database related definitions.
-  
+
 *******************************************************************************/
 
 #ifndef EVT_AGENT_EDA_HDL_H_
@@ -35,12 +35,14 @@
 uint32_t eda_hdl_cbk_dispatch(EDA_CB *, EDA_CLIENT_HDL_REC *, SaDispatchFlagsT);
 
 EDA_CLIENT_HDL_REC *eda_hdl_rec_add(EDA_CB **eda_cb,
-					     const SaEvtCallbacksT *reg_cbks, uint32_t reg_id, SaVersionT version);
+                                    const SaEvtCallbacksT *reg_cbks,
+                                    uint32_t reg_id, SaVersionT version);
 
 EDA_CHANNEL_HDL_REC *eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC **hdl_rec,
-						      uint32_t chan_id,
-						      uint32_t chan_open_id,
-						      uint32_t channel_open_flags, const SaNameT *channelName);
+                                             uint32_t chan_id,
+                                             uint32_t chan_open_id,
+                                             uint32_t channel_open_flags,
+                                             const SaNameT *channelName);
 
 EDA_EVENT_HDL_REC *eda_event_hdl_rec_add(EDA_CHANNEL_HDL_REC **);
 
@@ -50,23 +52,28 @@ uint32_t eda_channel_hdl_rec_del(EDA_CHANNEL_HDL_REC **, EDA_CHANNEL_HDL_REC *);
 uint32_t eda_del_subsc_rec(EDA_SUBSC_REC **list_head, EDA_SUBSC_REC *rm_node);
 uint32_t eda_event_hdl_rec_del(EDA_EVENT_HDL_REC **, EDA_EVENT_HDL_REC *);
 
-int32_t eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec, const SaNameT *channelName);
+int32_t eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec,
+                                       const SaNameT *channelName);
 
-bool eda_validate_eda_client_hdl(EDA_CB *eda_cb, EDA_CLIENT_HDL_REC *find_hdl_rec);
+bool eda_validate_eda_client_hdl(EDA_CB *eda_cb,
+                                 EDA_CLIENT_HDL_REC *find_hdl_rec);
 
-EDA_SUBSC_REC *eda_find_subsc_by_subsc_id(EDA_CHANNEL_HDL_REC *, uint32_t sub_id);
+EDA_SUBSC_REC *eda_find_subsc_by_subsc_id(EDA_CHANNEL_HDL_REC *,
+                                          uint32_t sub_id);
 
 EDA_CLIENT_HDL_REC *eda_find_hdl_rec_by_regid(EDA_CB *eda_cb, uint32_t reg_id);
 
-EDA_CHANNEL_HDL_REC *eda_find_chan_hdl_rec_by_chan_id(EDA_CLIENT_HDL_REC *eda_hdl_rec,
-							       uint32_t chan_id, uint32_t chan_open_id);
+EDA_CHANNEL_HDL_REC *eda_find_chan_hdl_rec_by_chan_id(
+    EDA_CLIENT_HDL_REC *eda_hdl_rec, uint32_t chan_id, uint32_t chan_open_id);
 
 void eda_msg_destroy(EDSV_MSG *msg);
 
-uint32_t eda_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array,
-					      SaEvtEventPatternArrayT **to_pattern_array);
+uint32_t eda_extract_pattern_from_event(
+    SaEvtEventPatternArrayT *from_pattern_array,
+    SaEvtEventPatternArrayT **to_pattern_array);
 
-uint32_t eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array,
-							   SaEvtEventPatternArrayT **to_pattern_array);
+uint32_t eda_allocate_and_extract_pattern_from_event(
+    SaEvtEventPatternArrayT *from_pattern_array,
+    SaEvtEventPatternArrayT **to_pattern_array);
 
 #endif  // EVT_AGENT_EDA_HDL_H_

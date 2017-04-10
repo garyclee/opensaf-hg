@@ -43,13 +43,12 @@
  */
 int plmc_cmd_string_to_enum(char *cmd)
 {
-  int i;
+	int i;
 
-  for (i=0; i<=PLMC_LAST_CMD; i++) {
-    if (strcmp(cmd, PLMC_cmd_name[i]) == 0)
-      return i;
-  }
+	for (i = 0; i <= PLMC_LAST_CMD; i++) {
+		if (strcmp(cmd, PLMC_cmd_name[i]) == 0)
+			return i;
+	}
 
-  return -1;
+	return -1;
 }
-

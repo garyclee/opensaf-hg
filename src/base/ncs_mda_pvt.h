@@ -37,8 +37,8 @@
          Range of unnamed VDEST values reserved for
          services external NCS implementation.
 \***********************************************************************/
-#define NCSVDA_INTERNAL_UNNAMED_MIN             1
-#define NCSVDA_INTERNAL_UNNAMED_MAX          1000
+#define NCSVDA_INTERNAL_UNNAMED_MIN 1
+#define NCSVDA_INTERNAL_UNNAMED_MAX 1000
 
 /* External range is defined in "ncs_mda_papi.h" */
 

@@ -22,11 +22,9 @@
 #include <map>
 #include <utility>
 
-#define m_LGS_GET_NODE_ID_FROM_ADEST(adest) (NODE_ID) ((uint64_t)adest >> 32)
+#define m_LGS_GET_NODE_ID_FROM_ADEST(adest) (NODE_ID)((uint64_t)adest >> 32)
 
-typedef struct {
-  NODE_ID clm_node_id;
-} lgs_clm_node_t;
+typedef struct { NODE_ID clm_node_id; } lgs_clm_node_t;
 
 /*
  * @brief  Creates a thread to initialize with CLM.

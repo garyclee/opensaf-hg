@@ -46,8 +46,8 @@ DestinationHandler::DestType DestinationHandler::GetDestType(
   }
 }
 
-std::string DestinationHandler::GenerateMsgId(
-    const std::string& dn, bool isRtStream) {
+std::string DestinationHandler::GenerateMsgId(const std::string& dn,
+                                              bool isRtStream) {
   const std::string parent = ",safApp=safLogService";
   std::string msgid{""};
   size_t posa = 0, posb = 0;
@@ -70,8 +70,8 @@ std::string DestinationHandler::GenerateMsgId(
   //    if stream name is over 31 chars.
   //<
   if (sname.length() < 32 && dn.find(parent) != std::string::npos) {
-    msgid = ((isRtStream == true) ? std::string{sname + 'R'} :
-             std::string{sname + 'C'});
+    msgid = ((isRtStream == true) ? std::string{sname + 'R'}
+                                  : std::string{sname + 'C'});
   } else {
     msgid = base::Hash(dn);
   }
@@ -118,9 +118,8 @@ void DestinationHandler::UpdateDestTypeDb(
   }
 }
 
-ErrCode DestinationHandler::DispatchTo(
-    const DestinationHandler::HandleMsg& msg,
-    const std::string& name) {
+ErrCode DestinationHandler::DispatchTo(const DestinationHandler::HandleMsg& msg,
+                                       const std::string& name) {
   ErrCode rc = ErrCode::kOk;
   MsgType mtype = msg.type;
   // All destinations has been deleted. Don't care of destination types.
@@ -177,8 +176,8 @@ ErrCode DestinationHandler::DispatchTo(
 void DestinationHandler::UpdateRtDestStatus() {
   VectorString vstatus = GetDestinationStatus();
   lgs_config_chg_t config_data = {NULL, 0};
-  lgs_cfgupd_mutival_replace(LOG_RECORD_DESTINATION_STATUS,
-                             vstatus, &config_data);
+  lgs_cfgupd_mutival_replace(LOG_RECORD_DESTINATION_STATUS, vstatus,
+                             &config_data);
   // Update configuration data store, no need to checkpoint the status to stb.
   int ret = lgs_cfg_update(&config_data);
   if (ret == -1) {
@@ -186,31 +185,29 @@ void DestinationHandler::UpdateRtDestStatus() {
   }
 
   // Free memory allocated for the config_data buffer
-  if (config_data.ckpt_buffer_ptr != nullptr)
-    free(config_data.ckpt_buffer_ptr);
+  if (config_data.ckpt_buffer_ptr != nullptr) free(config_data.ckpt_buffer_ptr);
 }
 
-void DestinationHandler::FormCfgDestMsg(
-    const std::string& dest, CfgDestMsg* msg) {
+void DestinationHandler::FormCfgDestMsg(const std::string& dest,
+                                        CfgDestMsg* msg) {
   osafassert(msg != nullptr);
   const VectorString tmp = logutil::Parser(dest, kDelimeter);
   strncpy(msg->name, tmp[kName].c_str(), kMaxChar);
   if (tmp.size() > 1) {
     strncpy(msg->type, tmp[kType].c_str(), kMaxChar);
   }
-  if (tmp.size() == kSize)
-    strncpy(msg->value, tmp[kValue].c_str(), kMaxChar);
+  if (tmp.size() == kSize) strncpy(msg->value, tmp[kValue].c_str(), kMaxChar);
 }
 
-void DestinationHandler::FormDelDestMsg(
-    const std::string& dest, DelDestMsg* msg) {
+void DestinationHandler::FormDelDestMsg(const std::string& dest,
+                                        DelDestMsg* msg) {
   osafassert(msg != nullptr);
   const VectorString tmp = logutil::Parser(dest, kDelimeter);
   strncpy(msg->name, tmp[kName].c_str(), kMaxChar);
 }
 
-bool DestinationHandler::VectorFind(
-    const VectorString& vec, const std::string& name) {
+bool DestinationHandler::VectorFind(const VectorString& vec,
+                                    const std::string& name) {
   return std::find(vec.begin(), vec.end(), name) != vec.end();
 }
 
@@ -249,9 +246,9 @@ ErrCode DestinationHandler::DelDestConfig(const VectorString& vdest) {
     memcpy(&msg.info.del, &dmsg, sizeof(dmsg));
     ret = DispatchTo(msg, dmsg.name);
     // Remove deleted destination from internal database
-    allcfgdests_map_.erase(std::remove(allcfgdests_map_.begin(),
-                                       allcfgdests_map_.end(), vdest[i]),
-                           allcfgdests_map_.end());
+    allcfgdests_map_.erase(
+        std::remove(allcfgdests_map_.begin(), allcfgdests_map_.end(), vdest[i]),
+        allcfgdests_map_.end());
   }
   TRACE_LEAVE();
   return ret;
@@ -270,8 +267,8 @@ ErrCode DestinationHandler::DelAllCfgDest() {
   return ret;
 }
 
-ErrCode DestinationHandler::ProcessCfgChange(
-    const VectorString& vdest, ModifyType type) {
+ErrCode DestinationHandler::ProcessCfgChange(const VectorString& vdest,
+                                             ModifyType type) {
   ErrCode ret = ErrCode::kOk;
   TRACE_ENTER();
 
@@ -286,22 +283,19 @@ ErrCode DestinationHandler::ProcessCfgChange(
   }
 
   // Case #3: Delete destination configurations while no dest cfg yet
-  if ((type == ModifyType::kDelete) &&
-      (vdest.size() != 0) &&
+  if ((type == ModifyType::kDelete) && (vdest.size() != 0) &&
       (allcfgdests_map_.size() == 0)) {
     return ErrCode::kDrop;
   }
 
   // Case #4: Delete all destination configurations
-  if ((type == ModifyType::kDelete) &&
-      (vdest.size() == 0) &&
+  if ((type == ModifyType::kDelete) && (vdest.size() == 0) &&
       (allcfgdests_map_.size() != 0)) {
     return DelAllCfgDest();
   }
 
   // Case #5: Delete all destinations but no one existing.
-  if ((type == ModifyType::kDelete) &&
-      (vdest.size() == 0) &&
+  if ((type == ModifyType::kDelete) && (vdest.size() == 0) &&
       (allcfgdests_map_.size() == 0)) {
     return ErrCode::kDrop;
   }
@@ -335,9 +329,8 @@ ErrCode DestinationHandler::ProcessCfgChange(
   return ret;
 }
 
-ErrCode DestinationHandler::ProcessWriteReq(
-    const RecordInfo& info,
-    const std::string& name) {
+ErrCode DestinationHandler::ProcessWriteReq(const RecordInfo& info,
+                                            const std::string& name) {
   HandleMsg msg{};
   RecordMsg record;
 
@@ -368,8 +361,7 @@ bool CfgDestination(const VectorString& vdest, ModifyType type) {
           ErrCode::kOk);
 }
 
-bool WriteToDestination(const RecordData& data,
-                        const VectorString& destnames) {
+bool WriteToDestination(const RecordData& data, const VectorString& destnames) {
   osafassert(data.name != nullptr && data.logrec != nullptr);
   osafassert(data.hostname != nullptr && data.networkname != nullptr);
 
@@ -380,27 +372,28 @@ bool WriteToDestination(const RecordData& data,
 
   bool ret = true;
   DestinationHandler::RecordInfo info;
-  std::string networkname = (std::string{data.networkname}.length() > 0) ?
-                            ("." + std::string {data.networkname}) : "";
+  std::string networkname = (std::string{data.networkname}.length() > 0)
+                                ? ("." + std::string{data.networkname})
+                                : "";
 
   // Origin is FQDN = <hostname>[.<networkname>]
   // hostname = where the log record comes from (not active node)
-  const std::string origin = std::string {data.hostname} + networkname;
+  const std::string origin = std::string{data.hostname} + networkname;
 
-  info.msgid      = data.msgid;
+  info.msgid = data.msgid;
   info.log_record = data.logrec;
-  info.record_id  = data.recordId;
-  info.stream_dn  = data.name;
-  info.app_name   = data.appname;
-  info.severity   = data.sev;
-  info.time       = data.time;
-  info.origin     = origin.c_str();
+  info.record_id = data.recordId;
+  info.stream_dn = data.name;
+  info.app_name = data.appname;
+  info.severity = data.sev;
+  info.time = data.time;
+  info.origin = origin.c_str();
 
   // Go thought all destination names and send to the destination
   // that go with that destination name
   for (const auto& destname : destnames) {
-    ret = (DestinationHandler::Instance().ProcessWriteReq(info, destname)
-           == ErrCode::kOk);
+    ret = (DestinationHandler::Instance().ProcessWriteReq(info, destname) ==
+           ErrCode::kOk);
   }
 
   return ret;

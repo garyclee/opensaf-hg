@@ -44,7 +44,8 @@ class FileNotifyTest : public ::testing::Test {
   }
 
   // Objects declared here can be used by all tests in the test case.
-  base::FileNotify::FileNotifyErrors rc{base::FileNotify::FileNotifyErrors::kOK};
+  base::FileNotify::FileNotifyErrors rc{
+      base::FileNotify::FileNotifyErrors::kOK};
 };
 
 //

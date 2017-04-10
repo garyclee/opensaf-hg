@@ -29,7 +29,8 @@ static int __init_cpd(void)
 
 	/* Enable extended SaNameT */
 	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
-		LOG_ER("Failed to set environment variable: SA_ENABLE_EXTENDED_NAMES");
+		LOG_ER(
+		    "Failed to set environment variable: SA_ENABLE_EXTENDED_NAMES");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
@@ -40,7 +41,7 @@ static int __init_cpd(void)
 	lib_create.info.create.argv = NULL;
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
-	
+
 		LOG_ER("ncs_agents_startup FAILED");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}

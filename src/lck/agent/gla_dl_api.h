@@ -18,7 +18,7 @@
 #ifndef LCK_AGENT_GLA_DL_API_H_
 #define LCK_AGENT_GLA_DL_API_H_
 
- uint32_t gla_lib_req(NCS_LIB_REQ_INFO *req_info);
+uint32_t gla_lib_req(NCS_LIB_REQ_INFO *req_info);
 unsigned int ncs_gla_startup(void);
 unsigned int ncs_gla_shutdown(void);
 

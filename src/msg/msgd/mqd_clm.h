@@ -32,8 +32,9 @@
 
 #include "clm/saf/saClm.h"
 
-void mqd_clm_cluster_track_callback(const SaClmClusterNotificationBufferT *notificationBuffer,
-					     SaUint32T numberOfMembers, SaAisErrorT error);
+void mqd_clm_cluster_track_callback(
+    const SaClmClusterNotificationBufferT *notificationBuffer,
+    SaUint32T numberOfMembers, SaAisErrorT error);
 void mqd_del_node_down_info(MQD_CB *pMqd, NODE_ID nodeid);
 
 #endif  // MSG_MSGD_MQD_CLM_H_

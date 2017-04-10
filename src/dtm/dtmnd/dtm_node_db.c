@@ -27,7 +27,7 @@
  * @return NCSCC_RC_FAILURE
  *
  */
-DTM_NODE_DB *dtm_node_new(DTM_NODE_DB * new_node)
+DTM_NODE_DB *dtm_node_new(DTM_NODE_DB *new_node)
 {
 
 	DTM_NODE_DB *node = NULL;
@@ -46,10 +46,9 @@ DTM_NODE_DB *dtm_node_new(DTM_NODE_DB * new_node)
 	/*Initialize some attributes of the node like */
 	memcpy(node, new_node, sizeof(DTM_NODE_DB));
 
- done:
+done:
 	TRACE_LEAVE();
 	return node;
-
 }
 
 /**
@@ -61,7 +60,7 @@ DTM_NODE_DB *dtm_node_new(DTM_NODE_DB * new_node)
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_cb_init(DTM_INTERNODE_CB * dtms_cb)
+uint32_t dtm_cb_init(DTM_INTERNODE_CB *dtms_cb)
 {
 	NCS_PATRICIA_PARAMS nodeid_param;
 	NCS_PATRICIA_PARAMS comm_socket_param;
@@ -78,19 +77,22 @@ uint32_t dtm_cb_init(DTM_INTERNODE_CB * dtms_cb)
 	ipaddr_param.key_size = INET6_ADDRSTRLEN;
 
 	/* Initialize patricia tree for nodeid list */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtms_cb->nodeid_tree, &nodeid_param)) {
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&dtms_cb->nodeid_tree, &nodeid_param)) {
 		LOG_ER("DTM: ncs_patricia_tree_init FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Initialize comm_socket patricia tree */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtms_cb->comm_sock_tree, &comm_socket_param)) {
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtms_cb->comm_sock_tree,
+						       &comm_socket_param)) {
 		LOG_ER("DTM:ncs_patricia_tree_init FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Initialize comm_socket patricia tree */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtms_cb->ip_addr_tree, &ipaddr_param)) {
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&dtms_cb->ip_addr_tree, &ipaddr_param)) {
 		LOG_ER("DTM:ncs_patricia_tree_init FAILED");
 		return NCSCC_RC_FAILURE;
 	}
@@ -111,8 +113,10 @@ uint32_t dtm_cb_init(DTM_INTERNODE_CB * dtms_cb)
 
 		obj = m_NCS_IPC_GET_SEL_OBJ(&dtms_cb->mbx);
 
-		/* retreive the corresponding fd for mailbox and fill it in cb */
-		dtms_cb->mbx_fd = m_GET_FD_FROM_SEL_OBJ(obj);	/* extract and fill value needs to be extracted */
+		/* retreive the corresponding fd for mailbox and fill it in cb
+		 */
+		dtms_cb->mbx_fd = m_GET_FD_FROM_SEL_OBJ(
+		    obj); /* extract and fill value needs to be extracted */
 	}
 
 	TRACE_LEAVE();
@@ -134,12 +138,14 @@ DTM_NODE_DB *dtm_node_get_by_id(uint32_t nodeid)
 	TRACE_ENTER();
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 
-	node = (DTM_NODE_DB *) ncs_patricia_tree_get(&dtms_cb->nodeid_tree, (uint8_t *)&nodeid);
-	if (node != (DTM_NODE_DB *) NULL) {
+	node = (DTM_NODE_DB *)ncs_patricia_tree_get(&dtms_cb->nodeid_tree,
+						    (uint8_t *)&nodeid);
+	if (node != (DTM_NODE_DB *)NULL) {
 		/* Adjust the pointer */
-		node = (DTM_NODE_DB *) (((char *)node)
-					- (((char *)&(((DTM_NODE_DB *) 0)->pat_nodeid))
-					   - ((char *)((DTM_NODE_DB *) 0))));
+		node = (DTM_NODE_DB *)(((char *)node) -
+				       (((char *)&(
+					    ((DTM_NODE_DB *)0)->pat_nodeid)) -
+					((char *)((DTM_NODE_DB *)0))));
 	}
 
 	TRACE_LEAVE();
@@ -163,15 +169,18 @@ DTM_NODE_DB *dtm_node_getnext_by_id(uint32_t node_id)
 
 	if (node_id == 0) {
 
-		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->nodeid_tree, (uint8_t *)0);
+		node = (DTM_NODE_DB *)ncs_patricia_tree_getnext(
+		    &dtms_cb->nodeid_tree, (uint8_t *)0);
 	} else
-		node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_cb->nodeid_tree, (uint8_t *)&node_id);
+		node = (DTM_NODE_DB *)ncs_patricia_tree_getnext(
+		    &dtms_cb->nodeid_tree, (uint8_t *)&node_id);
 
-	if (node != (DTM_NODE_DB *) NULL) {
+	if (node != (DTM_NODE_DB *)NULL) {
 		/* Adjust the pointer */
-		node = (DTM_NODE_DB *) (((char *)node)
-					- (((char *)&(((DTM_NODE_DB *) 0)->pat_nodeid))
-					   - ((char *)((DTM_NODE_DB *) 0))));
+		node = (DTM_NODE_DB *)(((char *)node) -
+				       (((char *)&(
+					    ((DTM_NODE_DB *)0)->pat_nodeid)) -
+					((char *)((DTM_NODE_DB *)0))));
 		TRACE("DTM:Node found %d", node->node_id);
 	}
 
@@ -194,12 +203,15 @@ DTM_NODE_DB *dtm_node_get_by_comm_socket(uint32_t comm_socket)
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 	TRACE_ENTER();
 
-	node = (DTM_NODE_DB *) ncs_patricia_tree_get(&dtms_cb->comm_sock_tree, (uint8_t *)&comm_socket);
-	if (node != (DTM_NODE_DB *) NULL) {
+	node = (DTM_NODE_DB *)ncs_patricia_tree_get(&dtms_cb->comm_sock_tree,
+						    (uint8_t *)&comm_socket);
+	if (node != (DTM_NODE_DB *)NULL) {
 		/* Adjust the pointer */
-		node = (DTM_NODE_DB *) (((char *)node)
-					- (((char *)&(((DTM_NODE_DB *) 0)->pat_comm_socket))
-					   - ((char *)((DTM_NODE_DB *) 0))));
+		node =
+		    (DTM_NODE_DB *)(((char *)node) -
+				    (((char *)&(
+					 ((DTM_NODE_DB *)0)->pat_comm_socket)) -
+				     ((char *)((DTM_NODE_DB *)0))));
 		TRACE("DTM:Node found %d", node->comm_socket);
 	}
 
@@ -216,7 +228,7 @@ DTM_NODE_DB *dtm_node_get_by_comm_socket(uint32_t comm_socket)
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_node_add(DTM_NODE_DB * node, int i)
+uint32_t dtm_node_add(DTM_NODE_DB *node, int i)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
@@ -228,32 +240,48 @@ uint32_t dtm_node_add(DTM_NODE_DB * node, int i)
 	switch (i) {
 
 	case 0:
-		TRACE("DTM:Adding node_id to the database with node_id :%u as key", node->node_id);
+		TRACE(
+		    "DTM:Adding node_id to the database with node_id :%u as key",
+		    node->node_id);
 		node->pat_nodeid.key_info = (uint8_t *)&(node->node_id);
-		rc = ncs_patricia_tree_add(&dtms_cb->nodeid_tree, &node->pat_nodeid);
+		rc = ncs_patricia_tree_add(&dtms_cb->nodeid_tree,
+					   &node->pat_nodeid);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE("DTM:ncs_patricia_tree_add for node_id  FAILED for :%d :%u", node->node_id, rc);
+			TRACE(
+			    "DTM:ncs_patricia_tree_add for node_id  FAILED for :%d :%u",
+			    node->node_id, rc);
 			node->pat_nodeid.key_info = NULL;
 			goto done;
 		}
 		break;
 	case 1:
-		TRACE("DTM:Adding comm_socket to the database with comm_socket :%u as key", node->comm_socket);
-		node->pat_comm_socket.key_info = (uint8_t *)&(node->comm_socket);
-		rc = ncs_patricia_tree_add(&dtms_cb->comm_sock_tree, &node->pat_comm_socket);
+		TRACE(
+		    "DTM:Adding comm_socket to the database with comm_socket :%u as key",
+		    node->comm_socket);
+		node->pat_comm_socket.key_info =
+		    (uint8_t *)&(node->comm_socket);
+		rc = ncs_patricia_tree_add(&dtms_cb->comm_sock_tree,
+					   &node->pat_comm_socket);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE("DTM:ncs_patricia_tree_add for comm_socket  FAILED for :%d :%u", node->comm_socket, rc);
+			TRACE(
+			    "DTM:ncs_patricia_tree_add for comm_socket  FAILED for :%d :%u",
+			    node->comm_socket, rc);
 			node->pat_comm_socket.key_info = NULL;
 			goto done;
 		}
 		break;
 
 	case 2:
-		TRACE("DTM:Adding node_ip to the database with node_ip :%s as key", node->node_ip);
+		TRACE(
+		    "DTM:Adding node_ip to the database with node_ip :%s as key",
+		    node->node_ip);
 		node->pat_ip_address.key_info = (uint8_t *)&(node->node_ip);
-		rc = ncs_patricia_tree_add(&dtms_cb->ip_addr_tree, &node->pat_ip_address);
+		rc = ncs_patricia_tree_add(&dtms_cb->ip_addr_tree,
+					   &node->pat_ip_address);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE("DTM:ncs_patricia_tree_add for node_ip  FAILED for :%s :%u", node->node_ip, rc);
+			TRACE(
+			    "DTM:ncs_patricia_tree_add for node_ip  FAILED for :%s :%u",
+			    node->node_ip, rc);
 			node->pat_comm_socket.key_info = NULL;
 			goto done;
 		}
@@ -265,7 +293,7 @@ uint32_t dtm_node_add(DTM_NODE_DB * node, int i)
 		goto done;
 	}
 
- done:
+done:
 	TRACE_LEAVE2("rc : %d", rc);
 	return rc;
 }
@@ -279,7 +307,7 @@ uint32_t dtm_node_add(DTM_NODE_DB * node, int i)
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_node_delete(DTM_NODE_DB * node, int i)
+uint32_t dtm_node_delete(DTM_NODE_DB *node, int i)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
@@ -291,20 +319,30 @@ uint32_t dtm_node_delete(DTM_NODE_DB * node, int i)
 
 	case 0:
 		if (node->node_id != 0) {
-			TRACE("DTM:Deleting node_id from the database with node_id :%u as key", node->node_id);
-			if ((rc = ncs_patricia_tree_del(&dtms_cb->nodeid_tree, &node->pat_nodeid)) != NCSCC_RC_SUCCESS) {
-				TRACE("DTM:ncs_patricia_tree_del FAILED for node_id :%u rc :%d", node->node_id, rc);
+			TRACE(
+			    "DTM:Deleting node_id from the database with node_id :%u as key",
+			    node->node_id);
+			if ((rc = ncs_patricia_tree_del(&dtms_cb->nodeid_tree,
+							&node->pat_nodeid)) !=
+			    NCSCC_RC_SUCCESS) {
+				TRACE(
+				    "DTM:ncs_patricia_tree_del FAILED for node_id :%u rc :%d",
+				    node->node_id, rc);
 				goto done;
 			}
 		}
 		break;
 	case 1:
 		if (node->comm_socket != 0) {
-			TRACE("DTM:Deleting comm_socket  from  the database with comm_socket :%u as key", node->comm_socket);
-			if ((rc =
-			     ncs_patricia_tree_del(&dtms_cb->comm_sock_tree,
-						   &node->pat_comm_socket)) != NCSCC_RC_SUCCESS) {
-				TRACE("DTM:ncs_patricia_tree_del  FAILED for comm_socket :%d rc :%u", node->comm_socket, rc);
+			TRACE(
+			    "DTM:Deleting comm_socket  from  the database with comm_socket :%u as key",
+			    node->comm_socket);
+			if ((rc = ncs_patricia_tree_del(
+				 &dtms_cb->comm_sock_tree,
+				 &node->pat_comm_socket)) != NCSCC_RC_SUCCESS) {
+				TRACE(
+				    "DTM:ncs_patricia_tree_del  FAILED for comm_socket :%d rc :%u",
+				    node->comm_socket, rc);
 				goto done;
 			}
 		}
@@ -312,22 +350,28 @@ uint32_t dtm_node_delete(DTM_NODE_DB * node, int i)
 
 	case 2:
 		if (node->node_ip != NULL) {
-			TRACE("DTM:Deleting node_ip from the  database with node_ip :%s as key", node->node_ip);
-			if ((rc =
-			     ncs_patricia_tree_del(&dtms_cb->ip_addr_tree,
-						   &node->pat_ip_address)) != NCSCC_RC_SUCCESS) {
-				TRACE("DTM:ncs_patricia_tree_del FAILED for node_ip :%s rc :%u", node->node_ip, rc);
+			TRACE(
+			    "DTM:Deleting node_ip from the  database with node_ip :%s as key",
+			    node->node_ip);
+			if ((rc = ncs_patricia_tree_del(
+				 &dtms_cb->ip_addr_tree,
+				 &node->pat_ip_address)) != NCSCC_RC_SUCCESS) {
+				TRACE(
+				    "DTM:ncs_patricia_tree_del FAILED for node_ip :%s rc :%u",
+				    node->node_ip, rc);
 				goto done;
 			}
 		}
 		break;
 
 	default:
-		TRACE("DTM:Deleting node from the database  with unknown option :%d as key",i);	
+		TRACE(
+		    "DTM:Deleting node from the database  with unknown option :%d as key",
+		    i);
 		osafassert(0);
 	}
 
- done:
+done:
 	TRACE_LEAVE();
 	return rc;
 }

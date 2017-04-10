@@ -52,12 +52,12 @@ class MdsLog {
                   va_list ap);
 
  private:
-  MdsLog(const std::string& fqdn, const char* app_name,
-         uint32_t proc_id, const char* socket_name);
+  MdsLog(const std::string &fqdn, const char *app_name, uint32_t proc_id,
+         const char *socket_name);
   void LogInternal(base::LogMessage::Severity severity, const char *fmt,
                    va_list ap);
   static constexpr const uint32_t kMaxSequenceId = uint32_t{0x7fffffff};
-  static MdsLog* instance_;
+  static MdsLog *instance_;
   const base::LogMessage::HostName fqdn_;
   const base::LogMessage::AppName app_name_;
   const base::LogMessage::ProcId proc_id_;
@@ -70,18 +70,17 @@ class MdsLog {
 };
 
 int gl_mds_log_level = 3;
-MdsLog* MdsLog::instance_ = nullptr;
+MdsLog *MdsLog::instance_ = nullptr;
 
-MdsLog::MdsLog(const std::string& fqdn, const char* app_name,
-               uint32_t proc_id, const char* socket_name) :
-    fqdn_{base::LogMessage::HostName{fqdn}},
-    app_name_{base::LogMessage::AppName{app_name}},
-    proc_id_{base::LogMessage::ProcId{std::to_string(proc_id)}},
-    sequence_id_{1},
-    log_socket_{socket_name},
-    buffer_{},
-    mutex_{} {
-}
+MdsLog::MdsLog(const std::string &fqdn, const char *app_name, uint32_t proc_id,
+               const char *socket_name)
+    : fqdn_{base::LogMessage::HostName{fqdn}},
+      app_name_{base::LogMessage::AppName{app_name}},
+      proc_id_{base::LogMessage::ProcId{std::to_string(proc_id)}},
+      sequence_id_{1},
+      log_socket_{socket_name},
+      buffer_{},
+      mutex_{} {}
 
 /*****************************************************
  Function NAME: get_process_name()
@@ -96,13 +95,12 @@ bool MdsLog::Init() {
   char *pid_name = nullptr;
 
   snprintf(pid_path, sizeof(pid_path), "/proc/%" PRIu32 "/cmdline", process_id);
-  FILE* f = fopen(pid_path, "r");
+  FILE *f = fopen(pid_path, "r");
   if (f != nullptr) {
     size_t size;
     size = fread(pid_path, sizeof(char), 1024, f);
     if (size > 0) {
-      if ('\n' == pid_path[size-1])
-        pid_path[size-1] = '\0';
+      if ('\n' == pid_path[size - 1]) pid_path[size - 1] = '\0';
     }
     fclose(f);
   } else {
@@ -117,9 +115,9 @@ bool MdsLog::Init() {
     app_name[0] = '\0';
   }
   base::Conf::InitFullyQualifiedDomainName();
-  const std::string& fqdn = base::Conf::FullyQualifiedDomainName();
-  instance_ = new MdsLog{fqdn, app_name, process_id,
-                         PKGLOCALSTATEDIR "/mds_log.sock"};
+  const std::string &fqdn = base::Conf::FullyQualifiedDomainName();
+  instance_ =
+      new MdsLog{fqdn, app_name, process_id, PKGLOCALSTATEDIR "/mds_log.sock"};
   return instance_ != nullptr;
 }
 
@@ -134,20 +132,13 @@ void MdsLog::LogInternal(base::LogMessage::Severity severity, const char *fmt,
   uint32_t id = sequence_id_;
   sequence_id_ = id < kMaxSequenceId ? id + 1 : 1;
   buffer_.clear();
-  base::LogMessage::Write(base::LogMessage::Facility::kLocal1,
-                          severity,
-                          base::ReadRealtimeClock(),
-                          fqdn_,
-                          app_name_,
-                          proc_id_,
-                          base::LogMessage::MsgId{"mds.log"},
-                          {{base::LogMessage::SdName{"meta"},
-                              {base::LogMessage::Parameter{
-                                  base::LogMessage::SdName{"sequenceId"},
-                                      std::to_string(id)}}}},
-                          fmt,
-                          ap,
-                          &buffer_);
+  base::LogMessage::Write(
+      base::LogMessage::Facility::kLocal1, severity, base::ReadRealtimeClock(),
+      fqdn_, app_name_, proc_id_, base::LogMessage::MsgId{"mds.log"},
+      {{base::LogMessage::SdName{"meta"},
+        {base::LogMessage::Parameter{base::LogMessage::SdName{"sequenceId"},
+                                     std::to_string(id)}}}},
+      fmt, ap, &buffer_);
   log_socket_.Send(buffer_.data(), buffer_.size());
 }
 
@@ -159,11 +150,11 @@ void MdsLog::LogInternal(base::LogMessage::Severity severity, const char *fmt,
  * Return Value   :    None
  *
  *******************************************************************************/
-uint32_t mds_log_init(const char*) {
+uint32_t mds_log_init(const char *) {
   if (!MdsLog::Init()) return NCSCC_RC_FAILURE;
   tzset();
-  log_mds_notify("BEGIN MDS LOGGING| ARCHW=%x|64bit=%zu\n",
-                 MDS_SELF_ARCHWORD, MDS_WORD_SIZE_TYPE);
+  log_mds_notify("BEGIN MDS LOGGING| ARCHW=%x|64bit=%zu\n", MDS_SELF_ARCHWORD,
+                 MDS_WORD_SIZE_TYPE);
   return NCSCC_RC_SUCCESS;
 }
 

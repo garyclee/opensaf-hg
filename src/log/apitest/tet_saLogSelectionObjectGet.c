@@ -31,4 +31,3 @@ void saLogSelectionObjectGet_02(void)
 	rc = saLogSelectionObjectGet(0, &selectionObject);
 	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
-

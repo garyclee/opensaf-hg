@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
  ..............................................................................
 
@@ -69,8 +68,7 @@ static PCSRDA_RETURN_CODE pcs_rda_unreg_callback(void *task_cb);
 static PCSRDA_RETURN_CODE rda_read_msg(int sockfd, char *msg, int size);
 static PCSRDA_RETURN_CODE rda_write_msg(int sockfd, char *msg);
 static PCSRDA_RETURN_CODE rda_parse_msg(const char *pmsg,
-                                        RDE_RDA_CMD_TYPE *cmd_type,
-                                        int *value);
+                                        RDE_RDA_CMD_TYPE *cmd_type, int *value);
 static PCSRDA_RETURN_CODE rda_connect(int *sockfd);
 static PCSRDA_RETURN_CODE rda_disconnect(int sockfd);
 static PCSRDA_RETURN_CODE rda_callback_req(int sockfd);
@@ -92,7 +90,7 @@ static PCSRDA_RETURN_CODE rda_callback_req(int sockfd);
 
  *****************************************************************************/
 static PCSRDA_RETURN_CODE rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb) {
-  char msg[64] = { 0 };
+  char msg[64] = {0};
   PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
   int value = -1;
   int retry_count = 0;
@@ -148,8 +146,8 @@ static PCSRDA_RETURN_CODE rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb) {
      ** Recv async role response
      */
     rc = rda_read_msg(rda_callback_cb->sockfd, msg, sizeof(msg));
-    if ((rc == PCSRDA_RC_TIMEOUT)
-        || (rc == PCSRDA_RC_FATAL_IPC_CONNECTION_LOST)) {
+    if ((rc == PCSRDA_RC_TIMEOUT) ||
+        (rc == PCSRDA_RC_FATAL_IPC_CONNECTION_LOST)) {
       if (rc == PCSRDA_RC_FATAL_IPC_CONNECTION_LOST) {
         close(rda_callback_cb->sockfd);
         rda_callback_cb->sockfd = -1;
@@ -177,8 +175,8 @@ static PCSRDA_RETURN_CODE rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb) {
     cb_info.cb_type = PCS_RDA_ROLE_CHG_IND;
     cb_info.info.io_role = static_cast<PCS_RDA_ROLE>(value);
 
-    (*rda_callback_cb->callback_ptr)(rda_callback_cb->callback_handle,
-                                     &cb_info, PCSRDA_RC_SUCCESS);
+    (*rda_callback_cb->callback_ptr)(rda_callback_cb->callback_handle, &cb_info,
+                                     PCSRDA_RC_SUCCESS);
   }
 
   return rc;
@@ -204,8 +202,7 @@ static PCSRDA_RETURN_CODE pcs_rda_reg_callback(uint32_t cb_handle,
   bool is_task_spawned = false;
   RDA_CALLBACK_CB *rda_callback_cb = nullptr;
 
-  if (*task_cb != nullptr)
-    return PCSRDA_RC_CALLBACK_ALREADY_REGD;
+  if (*task_cb != nullptr) return PCSRDA_RC_CALLBACK_ALREADY_REGD;
 
   *task_cb = nullptr;
 
@@ -237,8 +234,8 @@ static PCSRDA_RETURN_CODE pcs_rda_reg_callback(uint32_t cb_handle,
     /*
      ** Allocate callback control block
      */
-    rda_callback_cb = static_cast<RDA_CALLBACK_CB*>(malloc(
-        sizeof(RDA_CALLBACK_CB)));
+    rda_callback_cb =
+        static_cast<RDA_CALLBACK_CB *>(malloc(sizeof(RDA_CALLBACK_CB)));
     if (rda_callback_cb == nullptr) {
       rc = PCSRDA_RC_MEM_ALLOC_FAILED;
       break;
@@ -259,8 +256,8 @@ static PCSRDA_RETURN_CODE pcs_rda_reg_callback(uint32_t cb_handle,
 
     if (m_NCS_TASK_CREATE(reinterpret_cast<NCS_OS_CB>(rda_callback_task),
                           rda_callback_cb, "OSAF_RDA", prio_val, policy,
-                          NCS_STACKSIZE_HUGE, &rda_callback_cb->task_handle)
-        != NCSCC_RC_SUCCESS) {
+                          NCS_STACKSIZE_HUGE,
+                          &rda_callback_cb->task_handle) != NCSCC_RC_SUCCESS) {
       m_NCS_MEM_FREE(rda_callback_cb, 0, 0, 0);
       rc = PCSRDA_RC_TASK_SPAWN_FAILED;
       break;
@@ -307,10 +304,9 @@ static PCSRDA_RETURN_CODE pcs_rda_unreg_callback(void *task_cb) {
   PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
   RDA_CALLBACK_CB *rda_callback_cb = nullptr;
 
-  if (!task_cb)
-    return rc;
+  if (!task_cb) return rc;
 
-  rda_callback_cb = static_cast<RDA_CALLBACK_CB*>(task_cb);
+  rda_callback_cb = static_cast<RDA_CALLBACK_CB *>(task_cb);
   rda_callback_cb->task_terminate = true;
 
   /*
@@ -358,7 +354,7 @@ static PCSRDA_RETURN_CODE pcs_rda_unreg_callback(void *task_cb) {
  *****************************************************************************/
 static PCSRDA_RETURN_CODE pcs_rda_set_role(PCS_RDA_ROLE role) {
   int sockfd;
-  char msg[64] = { 0 };
+  char msg[64] = {0};
   int value = -1;
   RDE_RDA_CMD_TYPE cmd_type = RDE_RDA_UNKNOWN;
 
@@ -420,7 +416,7 @@ static PCSRDA_RETURN_CODE pcs_rda_set_role(PCS_RDA_ROLE role) {
  *****************************************************************************/
 static PCSRDA_RETURN_CODE pcs_rda_get_role(PCS_RDA_ROLE *role) {
   int sockfd;
-  char msg[64] = { 0 };
+  char msg[64] = {0};
   int value = -1;
   RDE_RDA_CMD_TYPE cmd_type = RDE_RDA_UNKNOWN;
 
@@ -531,7 +527,7 @@ static PCSRDA_RETURN_CODE rda_connect(int *sockfd) {
   /*
    ** Connect to the server.
    */
-  if (connect(*sockfd, reinterpret_cast<sockaddr*>(&rda_cb->sock_address),
+  if (connect(*sockfd, reinterpret_cast<sockaddr *>(&rda_cb->sock_address),
               sizeof(rda_cb->sock_address)) < 0) {
     close(*sockfd);
     return PCSRDA_RC_IPC_CONNECT_FAILED;
@@ -557,7 +553,7 @@ static PCSRDA_RETURN_CODE rda_connect(int *sockfd) {
 
  *****************************************************************************/
 static PCSRDA_RETURN_CODE rda_disconnect(int sockfd) {
-  char msg[64] = { 0 };
+  char msg[64] = {0};
 
   /*
    ** Format message
@@ -592,7 +588,7 @@ static PCSRDA_RETURN_CODE rda_disconnect(int sockfd) {
 
  *****************************************************************************/
 static PCSRDA_RETURN_CODE rda_callback_req(int sockfd) {
-  char msg[64] = { 0 };
+  char msg[64] = {0};
   int value = -1;
   RDE_RDA_CMD_TYPE cmd_type = RDE_RDA_UNKNOWN;
 
@@ -672,8 +668,7 @@ static PCSRDA_RETURN_CODE rda_read_msg(int sockfd, char *msg, int size) {
 
   rc = osaf_poll_one_fd(sockfd, 30000);
   if (rc < 0) {
-    if (errno == EPIPE)
-      return PCSRDA_RC_FATAL_IPC_CONNECTION_LOST;
+    if (errno == EPIPE) return PCSRDA_RC_FATAL_IPC_CONNECTION_LOST;
     LOG_ER("poll: PCSRDA_RC_IPC_RECV_FAILED: rc=%d-%s\n", errno,
            strerror(errno));
     return PCSRDA_RC_IPC_RECV_FAILED;
@@ -730,7 +725,7 @@ static PCSRDA_RETURN_CODE rda_read_msg(int sockfd, char *msg, int size) {
 static PCSRDA_RETURN_CODE rda_parse_msg(const char *pmsg,
                                         RDE_RDA_CMD_TYPE *cmd_type,
                                         int *value) {
-  char msg[64] = { 0 };
+  char msg[64] = {0};
   char *ptr;
 
   snprintf(msg, sizeof(msg), "%s", pmsg);
@@ -778,12 +773,13 @@ uint32_t rda_get_role(SaAmfHAStateT *ha_state) {
       return NCSCC_RC_FAILURE;
   }
 
-  done: return rc;
+done:
+  return rc;
 }
 
 uint32_t rda_register_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr) {
-  if (pcs_rda_reg_callback(cb_handle, rda_cb_ptr, &pcs_rda_callback_cb)
-      == PCSRDA_RC_SUCCESS)
+  if (pcs_rda_reg_callback(cb_handle, rda_cb_ptr, &pcs_rda_callback_cb) ==
+      PCSRDA_RC_SUCCESS)
     return NCSCC_RC_SUCCESS;
   else
     return NCSCC_RC_FAILURE;
@@ -799,11 +795,11 @@ uint32_t rda_register_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr) {
  *
  *
  * Arguments     : pcs_rda_req - Pointer to a structure of type PCS_RDA_REQ
- *                               containing information pertaining to the request.
- *                               This structure could be a staticallly allocated
- *                               or dynamically allocated strcuture. If it is
- *                               dynamically allocated it is the user's responsibility
- *                               to free it. .
+ *                               containing information pertaining to the
+ *request. This structure could be a staticallly allocated or dynamically
+ *allocated strcuture. If it is dynamically
+ *allocated it is the user's responsibility to
+ *free it. .
  *
  * Return Values : None
  *

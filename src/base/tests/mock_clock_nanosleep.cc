@@ -25,10 +25,11 @@ int number_of_nanosleep_instances = 1;
 MockClockNanosleep mock_clock_nanosleep[kMockClockNanosleepInstances];
 
 int clock_nanosleep(clockid_t clock_id, int flags,
-                    const struct timespec *request,
-                    struct timespec *remain) {
-  MockClockNanosleep& mock_instance = mock_clock_nanosleep[current_nanosleep_index++];
-  if (current_nanosleep_index >= number_of_nanosleep_instances) current_nanosleep_index = 0;
+                    const struct timespec* request, struct timespec* remain) {
+  MockClockNanosleep& mock_instance =
+      mock_clock_nanosleep[current_nanosleep_index++];
+  if (current_nanosleep_index >= number_of_nanosleep_instances)
+    current_nanosleep_index = 0;
   struct timespec* clock_source = nullptr;
   if (clock_id == CLOCK_REALTIME) {
     clock_source = &realtime_clock;
@@ -37,7 +38,8 @@ int clock_nanosleep(clockid_t clock_id, int flags,
   } else {
     return EINVAL;
   }
-  if (request->tv_sec < 0 || request->tv_nsec < 0 || request->tv_nsec >= kNanosPerSec) {
+  if (request->tv_sec < 0 || request->tv_nsec < 0 ||
+      request->tv_nsec >= kNanosPerSec) {
     return EINVAL;
   }
   struct timespec sleep_duration = kZeroSeconds;
@@ -51,7 +53,8 @@ int clock_nanosleep(clockid_t clock_id, int flags,
     return EINVAL;
   }
   if (mock_instance.return_value == EINTR) {
-    osaf_nanos_to_timespec(osaf_timespec_to_nanos(&sleep_duration) / 2, &sleep_duration);
+    osaf_nanos_to_timespec(osaf_timespec_to_nanos(&sleep_duration) / 2,
+                           &sleep_duration);
   }
   if (flags == 0 && remain != nullptr) {
     osaf_timespec_subtract(request, &sleep_duration, remain);

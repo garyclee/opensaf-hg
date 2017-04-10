@@ -18,9 +18,10 @@
 
 class AVD_SIRANKEDSU {
  public:
-  AVD_SIRANKEDSU(const std::string &name, uint32_t rank) : suname(name), saAmfRank(rank) {}
-  const std::string& get_suname() const {return suname;}
-  uint32_t get_sa_amf_rank() const {return saAmfRank;}
+  AVD_SIRANKEDSU(const std::string& name, uint32_t rank)
+      : suname(name), saAmfRank(rank) {}
+  const std::string& get_suname() const { return suname; }
+  uint32_t get_sa_amf_rank() const { return saAmfRank; }
 
  private:
   std::string suname;
@@ -28,7 +29,6 @@ class AVD_SIRANKEDSU {
   // disallow copy and assign.
   AVD_SIRANKEDSU(const AVD_SIRANKEDSU&);
   void operator=(const AVD_SIRANKEDSU&);
-
 };
 
 #endif  // AMF_AMFD_SIRANKEDSU_H_

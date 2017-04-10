@@ -35,16 +35,16 @@ Java_org_opensaf_ais_SelectionObjectMediator_openSocketpair(JNIEnv *jniEnv,
 							    jobject object)
 {
 
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_SelectionObjectMediator_openSocketpair\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_SelectionObjectMediator_openSocketpair\n");
 
 	int sockets[2];
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) < 0) {
 		perror("socketpair()");
 	}
 
-	_TRACE2
-		("NATIVE: Finishing Java_org_opensaf_ais_SelectionObjectMediator_openSocketpair\n");
+	_TRACE2(
+	    "NATIVE: Finishing Java_org_opensaf_ais_SelectionObjectMediator_openSocketpair\n");
 
 	jintArray ia = (*jniEnv)->NewIntArray(jniEnv, 2);
 	(*jniEnv)->SetIntArrayRegion(jniEnv, ia, 0, 2, sockets);
@@ -61,8 +61,8 @@ Java_org_opensaf_ais_SelectionObjectMediator_closeSocketpair(JNIEnv *jniEnv,
 							     jintArray sockets)
 {
 
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_SelectionObjectMediator_closeSocketpair\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_SelectionObjectMediator_closeSocketpair\n");
 
 	int *ia = (*jniEnv)->GetIntArrayElements(jniEnv, sockets, 0);
 	int i;
@@ -70,13 +70,11 @@ Java_org_opensaf_ais_SelectionObjectMediator_closeSocketpair(JNIEnv *jniEnv,
 		if (close(ia[i]) < 0) {
 
 			_TRACE2("NATIVE: Error closing fd\n");
-
 		}
 	}
 
-	_TRACE2
-		("NATIVE: Finishing Java_org_opensaf_ais_SelectionObjectMediator_closeSocketpair\n");
-
+	_TRACE2(
+	    "NATIVE: Finishing Java_org_opensaf_ais_SelectionObjectMediator_closeSocketpair\n");
 }
 
 /**
@@ -89,16 +87,16 @@ Java_org_opensaf_ais_SelectionObjectMediator_readSocketpair(JNIEnv *jniEnv,
 							    jint source)
 {
 
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_SelectionObjectMediator_readSocketpair\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_SelectionObjectMediator_readSocketpair\n");
 
 	int buf[1];
 	if (read(source, buf, sizeof(buf)) < 0) {
 		perror("read()");
 	}
 
-	_TRACE2
-		("NATIVE: Finishing Java_org_opensaf_ais_SelectionObjectMediator_readSocketpair\n");
+	_TRACE2(
+	    "NATIVE: Finishing Java_org_opensaf_ais_SelectionObjectMediator_readSocketpair\n");
 
 	return buf[0];
 }
@@ -115,8 +113,8 @@ Java_org_opensaf_ais_SelectionObjectMediator_writeSocketpair(JNIEnv *jniEnv,
 							     jint data)
 {
 
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_SelectionObjectMediator_writeSocketpair\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_SelectionObjectMediator_writeSocketpair\n");
 
 	int buf[1];
 	buf[0] = data;
@@ -124,32 +122,25 @@ Java_org_opensaf_ais_SelectionObjectMediator_writeSocketpair(JNIEnv *jniEnv,
 		perror("write()");
 	}
 
-	_TRACE2
-		("NATIVE: Finishing Java_org_opensaf_ais_SelectionObjectMediator_writeSocketpair\n");
-
+	_TRACE2(
+	    "NATIVE: Finishing Java_org_opensaf_ais_SelectionObjectMediator_writeSocketpair\n");
 }
 
 /**
- * Calls poll() on the given socket descriptors and returns an array of the modified ones.
- * In case of any error, it returns NULL.
+ * Calls poll() on the given socket descriptors and returns an array of the
+ * modified ones. In case of any error, it returns NULL.
  * @param sockets The socket descriptors on whom we call poll().
  * @param socketSize Size of the array of socket descriptors.
  * @return An array of sockets returned by poll().
  */
 JNIEXPORT jintArray JNICALL
-Java_org_opensaf_ais_SelectionObjectMediator_00024Worker_doSelect(JNIEnv
-								  *jniEnv,
-								  jobject
-								  object,
-								  jintArray
-								  sockets,
-								  jint
-								  socketSize)
+Java_org_opensaf_ais_SelectionObjectMediator_00024Worker_doSelect(
+    JNIEnv *jniEnv, jobject object, jintArray sockets, jint socketSize)
 {
 	jintArray selectedSockets = NULL;
 
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_SelectionObjectMediator_00024Worker_doSelect\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_SelectionObjectMediator_00024Worker_doSelect\n");
 
 	struct pollfd *rfds = malloc(socketSize * sizeof(struct pollfd));
 	if (rfds == NULL)
@@ -168,17 +159,16 @@ Java_org_opensaf_ais_SelectionObjectMediator_00024Worker_doSelect(JNIEnv
 		unsigned a = 0;
 		for (i = 0; i < socketSize && a < numFds; i++) {
 			if (rfds[i].revents != 0) {
-				(*jniEnv)->SetIntArrayRegion(jniEnv,
-							     selectedSockets, a,
-							     1, &fds[i]);
+				(*jniEnv)->SetIntArrayRegion(
+				    jniEnv, selectedSockets, a, 1, &fds[i]);
 				a++;
 			}
 		}
 	}
 
 	free(rfds);
-	_TRACE2
-		("NATIVE: Finishing Java_org_opensaf_ais_SelectionObjectMediator_00024Worker_doSelect\n");
+	_TRACE2(
+	    "NATIVE: Finishing Java_org_opensaf_ais_SelectionObjectMediator_00024Worker_doSelect\n");
 
 	return selectedSockets;
 }

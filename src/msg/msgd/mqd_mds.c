@@ -21,7 +21,7 @@
 ..............................................................................
 
   DESCRIPTION: This file contains MQD's MDS routines:
-   
+
    mqd_mds_init.................Register routine for registering MQD
    mqd_mds_shut.................Unregister routine for unregistering MQD
    mqd_mds_vdest_create.........Routine to create MDS vdest
@@ -51,19 +51,21 @@ static uint32_t mqd_mds_rcv(MQD_CB *, MDS_CALLBACK_RECEIVE_INFO *);
 static void mqd_mds_svc_evt(MQD_CB *, MDS_CALLBACK_SVC_EVENT_INFO *);
 static uint32_t mqd_mds_quiesced_process(MQD_CB *pMqd);
 
-MSG_FRMT_VER mqd_mqa_msg_fmt_table[MQD_WRT_MQA_SUBPART_VER_RANGE] = { 0, 2 };	/*With version 1 it is not backward compatible */
-MSG_FRMT_VER mqd_mqnd_msg_fmt_table[MQD_WRT_MQND_SUBPART_VER_RANGE] = { 0, 2 };	/*With version 1 it is not backward compatible */
+MSG_FRMT_VER mqd_mqa_msg_fmt_table[MQD_WRT_MQA_SUBPART_VER_RANGE] = {
+    0, 2}; /*With version 1 it is not backward compatible */
+MSG_FRMT_VER mqd_mqnd_msg_fmt_table[MQD_WRT_MQND_SUBPART_VER_RANGE] = {
+    0, 2}; /*With version 1 it is not backward compatible */
 
 /****************************************************************************
    PROCEDURE NAME :  mqd_mds_callback
 
    DESCRIPTION    :  Call back function provided to MDS. MDS will call this
-                     function for enc/dec/cpy/rcv/svc_evt operations.                   
+		     function for enc/dec/cpy/rcv/svc_evt operations.
 
    ARGUMENTS      :  NCSMDS_CALLBACK_INFO *callbk: call back info.
 
    RETURNS        :  SUCCESS - All went well
-                     FAILURE - internal processing didn't like something.
+		     FAILURE - internal processing didn't like something.
 ******************************************************************************/
 static uint32_t mqd_mds_callback(NCSMDS_CALLBACK_INFO *callbk)
 {
@@ -122,12 +124,12 @@ static uint32_t mqd_mds_callback(NCSMDS_CALLBACK_INFO *callbk)
 
 	ncshm_give_hdl(pMqd->hdl);
 	return rc;
-}	/* End of mqd_mds_callback() */
+} /* End of mqd_mds_callback() */
 
 /****************************************************************************
  PROCEDURE NAME : mqd_mds_init
 
- DESCRIPTION    : This function intializes the MDS procedures for MQD 
+ DESCRIPTION    : This function intializes the MDS procedures for MQD
 
  ARGUMENTS      : pMqd : MQD Control Block pointer.
 
@@ -136,7 +138,7 @@ static uint32_t mqd_mds_callback(NCSMDS_CALLBACK_INFO *callbk)
 uint32_t mqd_mds_init(MQD_CB *pMqd)
 {
 	NCSMDS_INFO arg;
-	MDS_SVC_ID svc_id[] = { NCSMDS_SVC_ID_MQND, NCSMDS_SVC_ID_MQA };
+	MDS_SVC_ID svc_id[] = {NCSMDS_SVC_ID_MQND, NCSMDS_SVC_ID_MQA};
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
@@ -188,8 +190,8 @@ uint32_t mqd_mds_init(MQD_CB *pMqd)
 		return rc;
 	}
 	TRACE_LEAVE();
-	return rc;		/*NCSCC_RC_SUCCESS; */
-}	/* End of mqd_mds_init() */
+	return rc; /*NCSCC_RC_SUCCESS; */
+} /* End of mqd_mds_init() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_mds_vdest_create
@@ -231,12 +233,12 @@ static uint32_t mqd_mds_vdest_create(MQD_CB *pMqd)
 
 	TRACE_LEAVE();
 	return rc;
-}	/* End of mqd_mds_vdest_create() */
+} /* End of mqd_mds_vdest_create() */
 
 /****************************************************************************
  PROCEDURE NAME : mqd_mds_shut
 
- DESCRIPTION    : This function shuts the MDS for MQD 
+ DESCRIPTION    : This function shuts the MDS for MQD
 
  ARGUMENTS      : pMqd : MQD Control Block pointer.
 
@@ -268,7 +270,7 @@ uint32_t mqd_mds_shut(MQD_CB *pMqd)
 	rc = mqd_mds_vdest_destroy(pMqd);
 	TRACE_LEAVE();
 	return rc;
-}	/* End of mqd_mds_shut() */
+} /* End of mqd_mds_shut() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_mds_vdest_destroy
@@ -301,23 +303,23 @@ static uint32_t mqd_mds_vdest_destroy(MQD_CB *pMqd)
 
 	TRACE_LEAVE();
 	return rc;
-}	/* End of mqd_mds_vdest_destroy() */
+} /* End of mqd_mds_vdest_destroy() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_mds_cpy
 
- DESCRIPTION    : This rountine is invoked when MQD sender & receiver both on 
-                  the lies in the same process space.
+ DESCRIPTION    : This rountine is invoked when MQD sender & receiver both on
+		  the lies in the same process space.
 
  ARGUMENTS      : pMqd : MQD control Block.
-                  cpy  : copy info.
+		  cpy  : copy info.
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
- NOTES          : we assume that MQD & the user should not lie on the same 
-                  process, so hitting this function is not possible, any way
-                  for the compatibility we have written this callback 
-                  function.
+ NOTES          : we assume that MQD & the user should not lie on the same
+		  process, so hitting this function is not possible, any way
+		  for the compatibility we have written this callback
+		  function.
 \*****************************************************************************/
 static uint32_t mqd_mds_cpy(MQD_CB *pMqd, MDS_CALLBACK_COPY_INFO *cpy)
 {
@@ -334,7 +336,8 @@ static uint32_t mqd_mds_cpy(MQD_CB *pMqd, MDS_CALLBACK_COPY_INFO *cpy)
 	if (pEvt) {
 		memcpy(pEvt, cpy->i_msg, sizeof(MQSV_EVT));
 		if (MQSV_EVT_ASAPI == pEvt->type) {
-			pEvt->msg.asapi->usg_cnt++;	/* Increment the use count */
+			pEvt->msg.asapi
+			    ->usg_cnt++; /* Increment the use count */
 		}
 		cpy->o_cpy = pEvt;
 		return NCSCC_RC_SUCCESS;
@@ -342,7 +345,7 @@ static uint32_t mqd_mds_cpy(MQD_CB *pMqd, MDS_CALLBACK_COPY_INFO *cpy)
 		LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
-}	/* End of mqd_mds_cpy() */
+} /* End of mqd_mds_cpy() */
 
 /*****************************************************************************\
   PROCEDURE NAME : mqd_mds_enc
@@ -350,7 +353,7 @@ static uint32_t mqd_mds_cpy(MQD_CB *pMqd, MDS_CALLBACK_COPY_INFO *cpy)
   DESCRIPTION    : This function encodes an events sent from MQD.
 
   ARGUMENTS      : pMqd : MQD control Block.
-                   enc  : Info for encoding
+		   enc  : Info for encoding
 
   RETURNS        : NCSCC_RC_SUCCESS/Error Code.
 \*****************************************************************************/
@@ -369,41 +372,46 @@ static uint32_t mqd_mds_enc(MQD_CB *pMqd, MDS_CALLBACK_ENC_INFO *enc)
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
+	/* Get the Msg Format version from the SERVICE_ID &
+	 * RMT_SVC_PVT_SUBPART_VERSION */
 	if (enc->i_to_svc_id == NCSMDS_SVC_ID_MQA) {
-		enc->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(enc->i_rem_svc_pvt_ver,
-							   MQD_WRT_MQA_SUBPART_VER_AT_MIN_MSG_FMT,
-							   MQD_WRT_MQA_SUBPART_VER_AT_MAX_MSG_FMT,
-							   mqd_mqa_msg_fmt_table);
+		enc->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+		    enc->i_rem_svc_pvt_ver,
+		    MQD_WRT_MQA_SUBPART_VER_AT_MIN_MSG_FMT,
+		    MQD_WRT_MQA_SUBPART_VER_AT_MAX_MSG_FMT,
+		    mqd_mqa_msg_fmt_table);
 	} else if (enc->i_to_svc_id == NCSMDS_SVC_ID_MQND) {
-		enc->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(enc->i_rem_svc_pvt_ver,
-							   MQD_WRT_MQND_SUBPART_VER_AT_MIN_MSG_FMT,
-							   MQD_WRT_MQND_SUBPART_VER_AT_MAX_MSG_FMT,
-							   mqd_mqnd_msg_fmt_table);
+		enc->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+		    enc->i_rem_svc_pvt_ver,
+		    MQD_WRT_MQND_SUBPART_VER_AT_MIN_MSG_FMT,
+		    MQD_WRT_MQND_SUBPART_VER_AT_MAX_MSG_FMT,
+		    mqd_mqnd_msg_fmt_table);
 	}
 
 	if (enc->o_msg_fmt_ver) {
 		pEvt = (MQSV_EVT *)enc->i_msg;
 
-		rc = (m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqsv_evt, enc->io_uba, EDP_OP_TYPE_ENC, pEvt, &err));
+		rc = (m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqsv_evt,
+				     enc->io_uba, EDP_OP_TYPE_ENC, pEvt, &err));
 		if (rc != NCSCC_RC_SUCCESS)
 			LOG_ER("MDS Encode is Failed at EDU");
 		return rc;
 	} else {
 		/* Drop The Message */
-		LOG_ER("%s:%u: Message Format version invalid %u", __FILE__, __LINE__, enc->o_msg_fmt_ver);
+		LOG_ER("%s:%u: Message Format version invalid %u", __FILE__,
+		       __LINE__, enc->o_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
-}	/* End of mqd_mds_enc() */
+} /* End of mqd_mds_enc() */
 
 /*****************************************************************************\
   PROCEDURE NAME : mqd_mds_dec
 
-  DESCRIPTION    : This function decodes a buffer containing an MQD events 
-                   that was received from off card.
+  DESCRIPTION    : This function decodes a buffer containing an MQD events
+		   that was received from off card.
 
   ARGUMENTS      : pMqd : MQD control Block.
-                   dec  : Info for decoding
+		   dec  : Info for decoding
 
   RETURNS        : NCSCC_RC_SUCCESS/Error Code.
 \*****************************************************************************/
@@ -425,21 +433,22 @@ static uint32_t mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
 	}
 
 	if (dec->i_fr_svc_id == NCSMDS_SVC_ID_MQA) {
-		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(dec->i_msg_fmt_ver,
-							     MQD_WRT_MQA_SUBPART_VER_AT_MIN_MSG_FMT,
-							     MQD_WRT_MQA_SUBPART_VER_AT_MAX_MSG_FMT,
-							     mqd_mqa_msg_fmt_table);
+		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(
+		    dec->i_msg_fmt_ver, MQD_WRT_MQA_SUBPART_VER_AT_MIN_MSG_FMT,
+		    MQD_WRT_MQA_SUBPART_VER_AT_MAX_MSG_FMT,
+		    mqd_mqa_msg_fmt_table);
 	} else if (dec->i_fr_svc_id == NCSMDS_SVC_ID_MQND) {
-		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(dec->i_msg_fmt_ver,
-							     MQD_WRT_MQND_SUBPART_VER_AT_MIN_MSG_FMT,
-							     MQD_WRT_MQND_SUBPART_VER_AT_MAX_MSG_FMT,
-							     mqd_mqnd_msg_fmt_table);
+		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(
+		    dec->i_msg_fmt_ver, MQD_WRT_MQND_SUBPART_VER_AT_MIN_MSG_FMT,
+		    MQD_WRT_MQND_SUBPART_VER_AT_MAX_MSG_FMT,
+		    mqd_mqnd_msg_fmt_table);
 	}
 
 	if (is_valid_msg_fmt && (dec->i_msg_fmt_ver != 1)) {
 		pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
 		if (!pEvt) {
-			LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
+			LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__,
+			       __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -447,7 +456,8 @@ static uint32_t mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
 		dec->o_msg = (NCSCONTEXT)pEvt;
 
 		rc = m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqsv_evt,
-				    dec->io_uba, EDP_OP_TYPE_DEC, (MQSV_EVT **)&dec->o_msg, &err);
+				    dec->io_uba, EDP_OP_TYPE_DEC,
+				    (MQSV_EVT **)&dec->o_msg, &err);
 		if (NCSCC_RC_SUCCESS != rc) {
 			LOG_ER("MDS Decode is Failed at EDU");
 			if ((MQSV_EVT_ASAPI == pEvt->type) && (pEvt->msg.asapi))
@@ -457,10 +467,11 @@ static uint32_t mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
 		return rc;
 	} else {
 		/* Drop The Message */
-		LOG_ER("%s:%u: Message Format version invalid %u", __FILE__, __LINE__, is_valid_msg_fmt);
+		LOG_ER("%s:%u: Message Format version invalid %u", __FILE__,
+		       __LINE__, is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
-}	/* End of mqd_mds_dec() */
+} /* End of mqd_mds_dec() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_mds_rcv
@@ -468,7 +479,7 @@ static uint32_t mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
  DESCRIPTION    : MDS will call this function on receiving MQD messages.
 
  ARGUMENTS      : pMqd : MQD control Block
-                  rcv  : Received information.
+		  rcv  : Received information.
 
  RETURNS        : NCSCC_RC_SUCCESS/Error Code.
 \*****************************************************************************/
@@ -495,15 +506,16 @@ static uint32_t mqd_mds_rcv(MQD_CB *pMqd, MDS_CALLBACK_RECEIVE_INFO *rcv)
 		m_MMGR_FREE_MQSV_EVT(pEvt, pMqd->my_svc_id);
 	}
 	return rc;
-}	/* End of mqd_mds_rcv() */
+} /* End of mqd_mds_rcv() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_mds_svc_evt
 
- DESCRIPTION    : MQD is informed when MDS events occurr that he has subscribed to
+ DESCRIPTION    : MQD is informed when MDS events occurr that he has subscribed
+to
 
  ARGUMENTS      : pMqd : MQD control Block
-                  svc  : Svc evt info.
+		  svc  : Svc evt info.
 
  RETURNS        : None
 \*****************************************************************************/
@@ -513,101 +525,119 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (svc->i_change) {
-	case NCSMDS_DOWN:
-		{
-			/* Need to clean up all the track information for the specific link 
-			 * that gone or is down 
-			 */
-			MQSV_EVT *pEvt = 0;
-			if ((svc->i_svc_id == NCSMDS_SVC_ID_MQA)) {
-				pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
-				if (pEvt) {
-					memset(pEvt, 0, sizeof(MQSV_EVT));
-					pEvt->type = MQSV_EVT_MQD_CTRL;
-					pEvt->msg.mqd_ctrl.type = MQD_MSG_USER;
-					pEvt->msg.mqd_ctrl.info.user = svc->i_dest;
+	case NCSMDS_DOWN: {
+		/* Need to clean up all the track information for the specific
+		 * link that gone or is down
+		 */
+		MQSV_EVT *pEvt = 0;
+		if ((svc->i_svc_id == NCSMDS_SVC_ID_MQA)) {
+			pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
+			if (pEvt) {
+				memset(pEvt, 0, sizeof(MQSV_EVT));
+				pEvt->type = MQSV_EVT_MQD_CTRL;
+				pEvt->msg.mqd_ctrl.type = MQD_MSG_USER;
+				pEvt->msg.mqd_ctrl.info.user = svc->i_dest;
 
-					/* Put it in MQD's Event Queue */
-					rc = m_MQD_EVT_SEND(&pMqd->mbx, pEvt, NCS_IPC_PRIORITY_NORMAL);
-					if (NCSCC_RC_SUCCESS != rc) {
-						LOG_ER("MDS SVC EVT MQA down event"
-							"sending to the mail box failed");
-						m_MMGR_FREE_MQSV_EVT(pEvt, pMqd->my_svc_id);
-					}
-				} else {
-					LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
+				/* Put it in MQD's Event Queue */
+				rc = m_MQD_EVT_SEND(&pMqd->mbx, pEvt,
+						    NCS_IPC_PRIORITY_NORMAL);
+				if (NCSCC_RC_SUCCESS != rc) {
+					LOG_ER(
+					    "MDS SVC EVT MQA down event"
+					    "sending to the mail box failed");
+					m_MMGR_FREE_MQSV_EVT(pEvt,
+							     pMqd->my_svc_id);
 				}
-			}
-			if (svc->i_svc_id == NCSMDS_SVC_ID_MQND) {
-				pNdEvent = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
-				if (pNdEvent) {
-					memset(pNdEvent, 0, sizeof(MQSV_EVT));
-					pNdEvent->type = MQSV_EVT_MQD_CTRL;
-					pNdEvent->msg.mqd_ctrl.type = MQD_ND_STATUS_INFO_TYPE;
-					pNdEvent->msg.mqd_ctrl.info.nd_info.dest = svc->i_dest;
-					pNdEvent->msg.mqd_ctrl.info.nd_info.is_up = false;
-
-					m_GET_TIME_STAMP(pNdEvent->msg.mqd_ctrl.info.nd_info.event_time);
-					/* Put it in MQD's Event Queue */
-					rc = m_MQD_EVT_SEND(&pMqd->mbx, pNdEvent, NCS_IPC_PRIORITY_NORMAL);
-					TRACE_1("MQND MDS DOWN EVENT POSTED");
-					if (NCSCC_RC_SUCCESS != rc) {
-						m_MMGR_FREE_MQSV_EVT(pNdEvent, pMqd->my_svc_id);
-						LOG_ER("MDS SVC EVT MQND down event "
-							"sending to the mail box failed");
-					}
-				} else {
-					LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
-				}
-
+			} else {
+				LOG_CR("%s:%u: Failed To Allocate Memory",
+				       __FILE__, __LINE__);
 			}
 		}
-		break;
+		if (svc->i_svc_id == NCSMDS_SVC_ID_MQND) {
+			pNdEvent = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
+			if (pNdEvent) {
+				memset(pNdEvent, 0, sizeof(MQSV_EVT));
+				pNdEvent->type = MQSV_EVT_MQD_CTRL;
+				pNdEvent->msg.mqd_ctrl.type =
+				    MQD_ND_STATUS_INFO_TYPE;
+				pNdEvent->msg.mqd_ctrl.info.nd_info.dest =
+				    svc->i_dest;
+				pNdEvent->msg.mqd_ctrl.info.nd_info.is_up =
+				    false;
 
-	case NCSMDS_UP:
-		{
-			if (svc->i_svc_id == NCSMDS_SVC_ID_MQND) {
-				SlotSubslotId to_dest_slotid;
-				uint16_t o_msg_fmt_ver;
-				to_dest_slotid = mqsv_get_phy_slot_id(svc->i_dest);
-
-				o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(svc->i_rem_svc_pvt_ver,
-								      MQD_WRT_MQND_SUBPART_VER_AT_MIN_MSG_FMT,
-								      MQD_WRT_MQND_SUBPART_VER_AT_MAX_MSG_FMT,
-								      mqd_mqnd_msg_fmt_table);
-
-				if (!o_msg_fmt_ver)
-					/*Log informing the existence of Non compatible MQD version, Slot id being logged */
-					LOG_ER("Message Format version invalid %u", to_dest_slotid);
-
-				pNdEvent = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
-				if (pNdEvent) {
-					memset(pNdEvent, 0, sizeof(MQSV_EVT));
-					pNdEvent->type = MQSV_EVT_MQD_CTRL;
-					pNdEvent->msg.mqd_ctrl.type = MQD_ND_STATUS_INFO_TYPE;
-					pNdEvent->msg.mqd_ctrl.info.nd_info.dest = svc->i_dest;
-					pNdEvent->msg.mqd_ctrl.info.nd_info.is_up = true;
-
-					m_GET_TIME_STAMP(pNdEvent->msg.mqd_ctrl.info.nd_info.event_time);
-					/* Put it in MQD's Event Queue */
-					rc = m_MQD_EVT_SEND(&pMqd->mbx, pNdEvent, NCS_IPC_PRIORITY_NORMAL);
-					TRACE_1("MQND MDS UP EVENT POSTED");
-					if (NCSCC_RC_SUCCESS != rc) {
-						LOG_ER("MDS SVC EVT MQND up event "
-							"sending to the mail box failed");
-						m_MMGR_FREE_MQSV_EVT(pNdEvent, pMqd->my_svc_id);
-					}
-				} else {
-					LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
+				m_GET_TIME_STAMP(pNdEvent->msg.mqd_ctrl.info
+						     .nd_info.event_time);
+				/* Put it in MQD's Event Queue */
+				rc = m_MQD_EVT_SEND(&pMqd->mbx, pNdEvent,
+						    NCS_IPC_PRIORITY_NORMAL);
+				TRACE_1("MQND MDS DOWN EVENT POSTED");
+				if (NCSCC_RC_SUCCESS != rc) {
+					m_MMGR_FREE_MQSV_EVT(pNdEvent,
+							     pMqd->my_svc_id);
+					LOG_ER(
+					    "MDS SVC EVT MQND down event "
+					    "sending to the mail box failed");
 				}
+			} else {
+				LOG_CR("%s:%u: Failed To Allocate Memory",
+				       __FILE__, __LINE__);
 			}
 		}
-		break;
+	} break;
+
+	case NCSMDS_UP: {
+		if (svc->i_svc_id == NCSMDS_SVC_ID_MQND) {
+			SlotSubslotId to_dest_slotid;
+			uint16_t o_msg_fmt_ver;
+			to_dest_slotid = mqsv_get_phy_slot_id(svc->i_dest);
+
+			o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+			    svc->i_rem_svc_pvt_ver,
+			    MQD_WRT_MQND_SUBPART_VER_AT_MIN_MSG_FMT,
+			    MQD_WRT_MQND_SUBPART_VER_AT_MAX_MSG_FMT,
+			    mqd_mqnd_msg_fmt_table);
+
+			if (!o_msg_fmt_ver)
+				/*Log informing the existence of Non compatible
+				 * MQD version, Slot id being logged */
+				LOG_ER("Message Format version invalid %u",
+				       to_dest_slotid);
+
+			pNdEvent = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
+			if (pNdEvent) {
+				memset(pNdEvent, 0, sizeof(MQSV_EVT));
+				pNdEvent->type = MQSV_EVT_MQD_CTRL;
+				pNdEvent->msg.mqd_ctrl.type =
+				    MQD_ND_STATUS_INFO_TYPE;
+				pNdEvent->msg.mqd_ctrl.info.nd_info.dest =
+				    svc->i_dest;
+				pNdEvent->msg.mqd_ctrl.info.nd_info.is_up =
+				    true;
+
+				m_GET_TIME_STAMP(pNdEvent->msg.mqd_ctrl.info
+						     .nd_info.event_time);
+				/* Put it in MQD's Event Queue */
+				rc = m_MQD_EVT_SEND(&pMqd->mbx, pNdEvent,
+						    NCS_IPC_PRIORITY_NORMAL);
+				TRACE_1("MQND MDS UP EVENT POSTED");
+				if (NCSCC_RC_SUCCESS != rc) {
+					LOG_ER(
+					    "MDS SVC EVT MQND up event "
+					    "sending to the mail box failed");
+					m_MMGR_FREE_MQSV_EVT(pNdEvent,
+							     pMqd->my_svc_id);
+				}
+			} else {
+				LOG_CR("%s:%u: Failed To Allocate Memory",
+				       __FILE__, __LINE__);
+			}
+		}
+	} break;
 	default:
 		break;
 	}
 	return;
-}	/* End of mqd_mds_svc_evt() */
+} /* End of mqd_mds_svc_evt() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_mds_quiesced_process
@@ -633,7 +663,8 @@ static uint32_t mqd_mds_quiesced_process(MQD_CB *pMqd)
 		memset(pEvt, 0, sizeof(MQSV_EVT));
 		pEvt->type = MQSV_EVT_MQD_CTRL;
 		pEvt->msg.mqd_ctrl.type = MQD_QUISCED_STATE_INFO_TYPE;
-		pEvt->msg.mqd_ctrl.info.quisced_info.invocation = pMqd->invocation;
+		pEvt->msg.mqd_ctrl.info.quisced_info.invocation =
+		    pMqd->invocation;
 
 		/* Put it in MQD's Event Queue */
 		rc = m_MQD_EVT_SEND(&pMqd->mbx, pEvt, NCS_IPC_PRIORITY_NORMAL);

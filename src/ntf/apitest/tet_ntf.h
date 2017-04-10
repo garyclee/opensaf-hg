@@ -28,15 +28,14 @@
 extern void result(SaAisErrorT rc, SaAisErrorT expected);
 extern void tet_result(int result);
 
-#define TET_PASS	0
-#define TET_FAIL	1
-#define TET_UNRESOLVED	2
-#define TET_NOTINUSE	3
-#define TET_UNSUPPORTED	4
-#define TET_UNTESTED	5
-#define TET_UNINITIATED	6
-#define TET_NORESULT	7
-
+#define TET_PASS 0
+#define TET_FAIL 1
+#define TET_UNRESOLVED 2
+#define TET_NOTINUSE 3
+#define TET_UNSUPPORTED 4
+#define TET_UNTESTED 5
+#define TET_UNINITIATED 6
+#define TET_NORESULT 7
 
 extern const SaVersionT refVersion;
 extern SaVersionT ntfVersion;
@@ -49,15 +48,14 @@ int gl_tag_mode;
 int gl_prompt_mode;
 #define DEFAULT_ADDITIONAL_TEXT "this is additional text info"
 
-typedef struct  {
-    SaUint16T numCorrelatedNotifications;
-    SaUint16T lengthAdditionalText;
-    SaUint16T numAdditionalInfo;
-    SaUint16T numSpecificProblems;
-    SaUint16T numMonitoredAttributes;
-    SaUint16T numProposedRepairActions;
-    SaInt16T variableDataSize;
+typedef struct {
+  SaUint16T numCorrelatedNotifications;
+  SaUint16T lengthAdditionalText;
+  SaUint16T numAdditionalInfo;
+  SaUint16T numSpecificProblems;
+  SaUint16T numMonitoredAttributes;
+  SaUint16T numProposedRepairActions;
+  SaInt16T variableDataSize;
 } AlarmNotificationParams;
-
 
 #endif  // NTF_APITEST_TET_NTF_H_

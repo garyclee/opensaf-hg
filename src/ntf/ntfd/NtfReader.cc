@@ -15,7 +15,6 @@
  *
  */
 
-
 /* ========================================================================
  *   INCLUDE FILES
  * ========================================================================
@@ -46,7 +45,6 @@
  * ========================================================================
  */
 
-
 /**
  *   NtfReader object creates a copy of the current cashed
  *   notifications. The private forward iterator ffIter is set
@@ -55,12 +53,12 @@
  *   @param readerId
  *
  */
-NtfReader::NtfReader(NtfLogger& ntfLogger, unsigned int readerId):
-    coll_(ntfLogger.coll_),
-    ffIter(coll_.begin()),
-    readerId_(readerId),
-    c_filter_(0),
-    firstRead(true) {
+NtfReader::NtfReader(NtfLogger& ntfLogger, unsigned int readerId)
+    : coll_(ntfLogger.coll_),
+      ffIter(coll_.begin()),
+      readerId_(readerId),
+      c_filter_(0),
+      firstRead(true) {
   searchCriteria_.eventTime = 0;
   searchCriteria_.notificationId = 0;
   searchCriteria_.searchMode = SA_NTF_SEARCH_NOTIFICATION_ID;
@@ -80,12 +78,15 @@ NtfReader::NtfReader(NtfLogger& ntfLogger, unsigned int readerId):
  *   @param f_rec - filter record
  *   @param firstRead
  */
-NtfReader::NtfReader(NtfLogger& ntfLogger,
-                     unsigned int readerId,
+NtfReader::NtfReader(NtfLogger& ntfLogger, unsigned int readerId,
                      SaNtfSearchCriteriaT searchCriteria,
-                     ntfsv_filter_ptrs_t *f_rec):readerId_(readerId),searchCriteria_(searchCriteria),c_filter_(NtfCriteriaFilter::getCriteriaFilter(searchCriteria, this)),firstRead(true)
-{
-  TRACE_3("New NtfReader with filter, ntfLogger.coll_.size: %u", (unsigned int)ntfLogger.coll_.size());
+                     ntfsv_filter_ptrs_t* f_rec)
+    : readerId_(readerId),
+      searchCriteria_(searchCriteria),
+      c_filter_(NtfCriteriaFilter::getCriteriaFilter(searchCriteria, this)),
+      firstRead(true) {
+  TRACE_3("New NtfReader with filter, ntfLogger.coll_.size: %u",
+          (unsigned int)ntfLogger.coll_.size());
   if (f_rec->alarm_filter) {
     NtfFilter* filter = new NtfAlarmFilter(f_rec->alarm_filter);
     filterMap[filter->type()] = filter;
@@ -124,7 +125,7 @@ NtfReader::~NtfReader() {
 void NtfReader::filterCacheList(NtfLogger& ntfLogger) {
   readerNotificationListT::iterator rpos;
   for (rpos = ntfLogger.coll_.begin(); rpos != ntfLogger.coll_.end(); rpos++) {
-    NtfSmartPtr n (*rpos);
+    NtfSmartPtr n(*rpos);
     bool rv = false;
     FilterMap::iterator pos = filterMap.find(n->getNotificationType());
     if (pos != filterMap.end()) {
@@ -132,9 +133,8 @@ void NtfReader::filterCacheList(NtfLogger& ntfLogger) {
       osafassert(filter);
       rv = filter->checkFilter(n);
     }
-    if (rv){
-      if (!c_filter_->filter(n))
-        break;
+    if (rv) {
+      if (!c_filter_->filter(n)) break;
     }
   }
   c_filter_->finalize();
@@ -151,9 +151,8 @@ void NtfReader::filterCacheList(NtfLogger& ntfLogger) {
  *   @return NtfNotification - an empty non initialized
  *           notification will be returned if error != SA_AIS_OK
  */
-NtfSmartPtr
-NtfReader::next(SaNtfSearchDirectionT direction,
-                SaAisErrorT* error) {
+NtfSmartPtr NtfReader::next(SaNtfSearchDirectionT direction,
+                            SaAisErrorT* error) {
   TRACE_ENTER();
 
   *error = SA_AIS_ERR_NOT_EXIST;
@@ -174,8 +173,7 @@ NtfReader::next(SaNtfSearchDirectionT direction,
     TRACE_LEAVE();
     firstRead = false;
     return notif;
-  }
-  else  // SA_NTF_SEARCH_OLDER
+  } else  // SA_NTF_SEARCH_OLDER
   {
     readerNotReverseIterT rIter(ffIter);
     if (firstRead)
@@ -200,9 +198,7 @@ NtfReader::next(SaNtfSearchDirectionT direction,
   }
 }
 
-unsigned int NtfReader::getId() {
-  return readerId_;
-}
+unsigned int NtfReader::getId() { return readerId_; }
 
 /**
  *   NtfCriteriaFilter is a base class for all searchCriteria
@@ -213,12 +209,11 @@ unsigned int NtfReader::getId() {
  *   @param searchCriteria
  *   @param reader
  */
-NtfCriteriaFilter::NtfCriteriaFilter(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader):
-    searchCriteria_(searchCriteria), reader_(reader), i_(-1), startIdx_(0) {
-}
+NtfCriteriaFilter::NtfCriteriaFilter(SaNtfSearchCriteriaT& searchCriteria,
+                                     NtfReader* reader)
+    : searchCriteria_(searchCriteria), reader_(reader), i_(-1), startIdx_(0) {}
 
-NtfCriteriaFilter::~NtfCriteriaFilter() {
-}
+NtfCriteriaFilter::~NtfCriteriaFilter() {}
 
 void NtfCriteriaFilter::add(NtfSmartPtr& n) {
   reader_->coll_.push_back(n);
@@ -227,27 +222,29 @@ void NtfCriteriaFilter::add(NtfSmartPtr& n) {
 
 void NtfCriteriaFilter::setIndexCurrent() {
   if (reader_->coll_.size()) {
-    startIdx_=i_;
+    startIdx_ = i_;
   }
 }
 
 void NtfCriteriaFilter::removeTail() {
   if (reader_->coll_.size()) {
-    reader_->coll_.erase(reader_->coll_.begin() +  startIdx_ + 1, reader_->coll_.end());
-    i_= startIdx_;
+    reader_->coll_.erase(reader_->coll_.begin() + startIdx_ + 1,
+                         reader_->coll_.end());
+    i_ = startIdx_;
   };
 }
 
 void NtfCriteriaFilter::removeHead() {
   if (reader_->coll_.size()) {
-    reader_->coll_.erase(reader_->coll_.begin(), reader_->coll_.begin() + startIdx_);
+    reader_->coll_.erase(reader_->coll_.begin(),
+                         reader_->coll_.begin() + startIdx_);
     i_ -= startIdx_;
     startIdx_ = 0;
   }
 }
 
 void NtfCriteriaFilter::finalize() {
-  startIdx_=0;
+  startIdx_ = 0;
   convertToIter();
 }
 
@@ -255,7 +252,9 @@ void NtfCriteriaFilter::convertToIter() {
   reader_->ffIter = reader_->coll_.begin() + startIdx_;
 }
 
-NtfBeforeAtTime::NtfBeforeAtTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader):NtfCriteriaFilter(searchCriteria,reader), eTimeFound_(false) {
+NtfBeforeAtTime::NtfBeforeAtTime(SaNtfSearchCriteriaT& searchCriteria,
+                                 NtfReader* reader)
+    : NtfCriteriaFilter(searchCriteria, reader), eTimeFound_(false) {
   TRACE_3("NtfBeforeAtTime constructor");
 }
 
@@ -270,14 +269,15 @@ bool NtfBeforeAtTime::filter(NtfSmartPtr& n) {
 
 void NtfBeforeAtTime::finalize() {
   TRACE_3("NtfBeforeAtTime finalize");
-  if(eTimeFound_) {
+  if (eTimeFound_) {
     removeTail();
   }
   setIndexCurrent();
   convertToIter();
 }
 
-AtTime::AtTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader):NtfCriteriaFilter(searchCriteria,reader) {
+AtTime::AtTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader)
+    : NtfCriteriaFilter(searchCriteria, reader) {
   TRACE_3("AtTime constructor");
 }
 
@@ -288,7 +288,11 @@ bool AtTime::filter(NtfSmartPtr& n) {
   return true;
 }
 
-NtfAtOrAfterTime::NtfAtOrAfterTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader):NtfCriteriaFilter(searchCriteria,reader),indexSaved_(false), eTimeFound_(false) {
+NtfAtOrAfterTime::NtfAtOrAfterTime(SaNtfSearchCriteriaT& searchCriteria,
+                                   NtfReader* reader)
+    : NtfCriteriaFilter(searchCriteria, reader),
+      indexSaved_(false),
+      eTimeFound_(false) {
   TRACE_3("NtfAtOrAfterTime constructor");
 }
 
@@ -300,7 +304,8 @@ bool NtfAtOrAfterTime::filter(NtfSmartPtr& n) {
       indexSaved_ = true;
       eTimeFound_ = true;
     }
-  } else if (!eTimeFound_ && (*n->header()->eventTime > searchCriteria_.eventTime)) {
+  } else if (!eTimeFound_ &&
+             (*n->header()->eventTime > searchCriteria_.eventTime)) {
     if (!indexSaved_) {
       setIndexCurrent();
       indexSaved_ = true;
@@ -316,7 +321,11 @@ void NtfAtOrAfterTime::finalize() {
   convertToIter();
 }
 
-NtfBeforeTime::NtfBeforeTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader):NtfCriteriaFilter(searchCriteria,reader),indexSaved_(false), eTimeFound_(false) {
+NtfBeforeTime::NtfBeforeTime(SaNtfSearchCriteriaT& searchCriteria,
+                             NtfReader* reader)
+    : NtfCriteriaFilter(searchCriteria, reader),
+      indexSaved_(false),
+      eTimeFound_(false) {
   TRACE_3("NtfBeforeTime constructor");
 }
 
@@ -325,10 +334,11 @@ bool NtfBeforeTime::filter(NtfSmartPtr& n) {
     if (!indexSaved_) {
       setIndexCurrent();
       indexSaved_ = true;
-      eTimeFound_     = true;
+      eTimeFound_ = true;
     }
     return false;
-  } else if (!eTimeFound_ && (*n->header()->eventTime > searchCriteria_.eventTime)) {
+  } else if (!eTimeFound_ &&
+             (*n->header()->eventTime > searchCriteria_.eventTime)) {
     if (!indexSaved_) {
       setIndexCurrent();
       indexSaved_ = true;
@@ -342,7 +352,7 @@ void NtfBeforeTime::finalize() {
   if (!indexSaved_) {
     setIndexCurrent();
   } else {
-    if(eTimeFound_) {
+    if (eTimeFound_) {
       removeTail();
     }
     setIndexCurrent();
@@ -350,7 +360,11 @@ void NtfBeforeTime::finalize() {
   convertToIter();
 }
 
-NtfAfterTime::NtfAfterTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader):NtfCriteriaFilter(searchCriteria,reader),indexSaved_(false), eTimeFound_(false) {
+NtfAfterTime::NtfAfterTime(SaNtfSearchCriteriaT& searchCriteria,
+                           NtfReader* reader)
+    : NtfCriteriaFilter(searchCriteria, reader),
+      indexSaved_(false),
+      eTimeFound_(false) {
   TRACE_3("NtfAfterTime constructor");
 }
 
@@ -362,7 +376,8 @@ bool NtfAfterTime::filter(NtfSmartPtr& n) {
       eTimeFound_ = true;
     }
     setIndexCurrent();
-  } else if (eTimeFound_ && (*n->header()->eventTime > searchCriteria_.eventTime)) {
+  } else if (eTimeFound_ &&
+             (*n->header()->eventTime > searchCriteria_.eventTime)) {
     if (!indexSaved_) {
       setIndexCurrent();
       indexSaved_ = true;
@@ -379,19 +394,22 @@ void NtfAfterTime::finalize() {
   convertToIter();
 }
 
-NtfOnlyFilter::NtfOnlyFilter(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader):NtfCriteriaFilter(searchCriteria,reader) {
+NtfOnlyFilter::NtfOnlyFilter(SaNtfSearchCriteriaT& searchCriteria,
+                             NtfReader* reader)
+    : NtfCriteriaFilter(searchCriteria, reader) {
   TRACE_3("NtfOnlyFilter constructor");
 }
 
-
 bool NtfOnlyFilter::filter(NtfSmartPtr& n) {
-  unsigned int nId =  n->getNotificationId();
+  unsigned int nId = n->getNotificationId();
   TRACE_3("nId: %u added to readerList", nId);
   add(n);
   return true;
 }
 
-NtfIdSearch::NtfIdSearch(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader):NtfCriteriaFilter(searchCriteria,reader) {
+NtfIdSearch::NtfIdSearch(SaNtfSearchCriteriaT& searchCriteria,
+                         NtfReader* reader)
+    : NtfCriteriaFilter(searchCriteria, reader) {
   TRACE_3("NtfIdSearch constructor");
 }
 
@@ -403,32 +421,32 @@ bool NtfIdSearch::filter(NtfSmartPtr& n) {
   return true;
 }
 
-NtfCriteriaFilter* NtfCriteriaFilter::getCriteriaFilter(SaNtfSearchCriteriaT& sc, NtfReader* r) {
+NtfCriteriaFilter* NtfCriteriaFilter::getCriteriaFilter(
+    SaNtfSearchCriteriaT& sc, NtfReader* r) {
   NtfCriteriaFilter* f;
   switch (sc.searchMode) {
     case SA_NTF_SEARCH_BEFORE_OR_AT_TIME:
-      f = (NtfCriteriaFilter*) new NtfBeforeAtTime(sc, r);
+      f = (NtfCriteriaFilter*)new NtfBeforeAtTime(sc, r);
       break;
     case SA_NTF_SEARCH_AT_TIME:
-      f = (NtfCriteriaFilter*) new AtTime(sc, r);
+      f = (NtfCriteriaFilter*)new AtTime(sc, r);
       break;
-    case    SA_NTF_SEARCH_AT_OR_AFTER_TIME:
-      f = (NtfCriteriaFilter*) new NtfAtOrAfterTime(sc, r);
+    case SA_NTF_SEARCH_AT_OR_AFTER_TIME:
+      f = (NtfCriteriaFilter*)new NtfAtOrAfterTime(sc, r);
       break;
     case SA_NTF_SEARCH_BEFORE_TIME:
-      f = (NtfCriteriaFilter*) new NtfBeforeTime(sc, r);
+      f = (NtfCriteriaFilter*)new NtfBeforeTime(sc, r);
       break;
     case SA_NTF_SEARCH_AFTER_TIME:
-      f = (NtfCriteriaFilter*) new NtfAfterTime(sc, r);
+      f = (NtfCriteriaFilter*)new NtfAfterTime(sc, r);
       break;
     case SA_NTF_SEARCH_NOTIFICATION_ID:
-      f = (NtfCriteriaFilter*) new NtfIdSearch(sc, r);
+      f = (NtfCriteriaFilter*)new NtfIdSearch(sc, r);
       break;
     case SA_NTF_SEARCH_ONLY_FILTER:
     default:
-      f= (NtfCriteriaFilter*) new NtfOnlyFilter(sc, r);
+      f = (NtfCriteriaFilter*)new NtfOnlyFilter(sc, r);
       break;
   }
   return f;
 }
-

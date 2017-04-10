@@ -41,7 +41,7 @@ static int __init_glnd(void)
 		fprintf(stderr, "glnd_lib_req FAILED\n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
-	
+
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
 		syslog(LOG_ERR, "__init_glnd() failed");
 		exit(EXIT_FAILURE);
 	}
-        
-	cb_hdl = m_GLND_RETRIEVE_GLND_CB_HDL; 
+
+	cb_hdl = m_GLND_RETRIEVE_GLND_CB_HDL;
 
 	/* Get the CB from the handle */
 	glnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_GLND, cb_hdl);

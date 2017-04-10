@@ -27,10 +27,10 @@ DTM_SVC_DISTRIBUTION_LIST *dtm_svc_dist_list = NULL;
 
 static uint32_t dtm_prepare_and_send_svc_up_msg_for_node_up(NODE_ID node_id);
 
-
-uint32_t dtm_prepare_svc_up_msg(uint8_t *buffer, uint32_t server_type, uint32_t server_inst, uint32_t pid);
-uint32_t dtm_prepare_svc_down_msg(uint8_t *buffer, uint32_t server_type, uint32_t server_inst, uint32_t pid);
-
+uint32_t dtm_prepare_svc_up_msg(uint8_t *buffer, uint32_t server_type,
+				uint32_t server_inst, uint32_t pid);
+uint32_t dtm_prepare_svc_down_msg(uint8_t *buffer, uint32_t server_type,
+				  uint32_t server_inst, uint32_t pid);
 
 /**
  * Function to process rcv up message
@@ -41,7 +41,8 @@ uint32_t dtm_prepare_svc_down_msg(uint8_t *buffer, uint32_t server_type, uint32_
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_internode_process_rcv_up_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id)
+uint32_t dtm_internode_process_rcv_up_msg(uint8_t *buffer, uint16_t len,
+					  NODE_ID node_id)
 {
 	/* Post the event to the mailbox of the intra_thread */
 	DTM_RCV_MSG_ELEM *dtm_msg_elem = NULL;
@@ -55,7 +56,8 @@ uint32_t dtm_internode_process_rcv_up_msg(uint8_t *buffer, uint16_t len, NODE_ID
 	dtm_msg_elem->info.svc_event.len = len;
 	dtm_msg_elem->info.svc_event.node_id = node_id;
 	dtm_msg_elem->info.svc_event.buffer = buffer;
-	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
+	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem,
+			    dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(dtm_msg_elem);
 		TRACE("DTM :Intranode IPC_SEND : SVC UP EVENT : FAILED");
@@ -77,7 +79,8 @@ uint32_t dtm_internode_process_rcv_up_msg(uint8_t *buffer, uint16_t len, NODE_ID
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_internode_process_rcv_down_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id)
+uint32_t dtm_internode_process_rcv_down_msg(uint8_t *buffer, uint16_t len,
+					    NODE_ID node_id)
 {
 	/* Post the event to the mailbox of the intra_thread */
 	DTM_RCV_MSG_ELEM *dtm_msg_elem = NULL;
@@ -90,7 +93,8 @@ uint32_t dtm_internode_process_rcv_down_msg(uint8_t *buffer, uint16_t len, NODE_
 	dtm_msg_elem->info.svc_event.len = len;
 	dtm_msg_elem->info.svc_event.node_id = node_id;
 	dtm_msg_elem->info.svc_event.buffer = buffer;
-	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
+	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem,
+			    dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(buffer);
 		free(dtm_msg_elem);
@@ -113,7 +117,8 @@ uint32_t dtm_internode_process_rcv_down_msg(uint8_t *buffer, uint16_t len, NODE_
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_node_up(NODE_ID node_id, char *node_name, char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, SYSF_MBX mbx)
+uint32_t dtm_node_up(NODE_ID node_id, char *node_name, char *node_ip,
+		     DTM_IP_ADDR_TYPE i_addr_family, SYSF_MBX mbx)
 {
 	/* Function call from inter thread */
 	/* Post the event to the mailbox of the intra_thread */
@@ -130,13 +135,16 @@ uint32_t dtm_node_up(NODE_ID node_id, char *node_name, char *node_ip, DTM_IP_ADD
 	dtm_msg_elem->info.node.node_id = node_id;
 	dtm_msg_elem->info.node.mbx = mbx;
 	strcpy(dtm_msg_elem->info.node.node_name, node_name);
-	dtm_msg_elem->info.node.i_addr_family = i_addr_family;  /* Indicates V4 or V6 */
+	dtm_msg_elem->info.node.i_addr_family =
+	    i_addr_family; /* Indicates V4 or V6 */
 	strcpy(dtm_msg_elem->info.node.node_ip, node_ip);
-	TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d ", dtm_msg_elem->info.node.node_ip,
-			dtm_msg_elem->info.node.node_id, dtm_msg_elem->info.node.i_addr_family);
+	TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d ",
+	      dtm_msg_elem->info.node.node_ip, dtm_msg_elem->info.node.node_id,
+	      dtm_msg_elem->info.node.i_addr_family);
 
 	/* Do a mailbox post */
-	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
+	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem,
+			    dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(dtm_msg_elem);
 		TRACE("DTM : Intranode IPC_SEND : NODE UP EVENT : FAILED");
@@ -176,7 +184,8 @@ uint32_t dtm_node_down(NODE_ID node_id, char *node_name, SYSF_MBX mbx)
 	dtm_msg_elem->info.node.node_id = node_id;
 	dtm_msg_elem->info.node.mbx = mbx;
 	strcpy(dtm_msg_elem->info.node.node_name, node_name);
-	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
+	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem,
+			    dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(dtm_msg_elem);
 		TRACE("DTM : Intranode IPC_SEND : NODE DOWN EVENT : FAILED");
@@ -198,7 +207,8 @@ uint32_t dtm_node_down(NODE_ID node_id, char *node_name, SYSF_MBX mbx)
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_add_to_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid)
+uint32_t dtm_add_to_svc_dist_list(uint32_t server_type, uint32_t server_inst,
+				  uint32_t pid)
 {
 	/* Post the event to the mailbox of the inter_thread */
 	DTM_SND_MSG_ELEM *msg_elem = NULL;
@@ -211,7 +221,8 @@ uint32_t dtm_add_to_svc_dist_list(uint32_t server_type, uint32_t server_inst, ui
 	msg_elem->info.svc_event.server_type = server_type;
 	msg_elem->info.svc_event.server_inst = server_inst;
 	msg_elem->info.svc_event.pid = pid;
-	if ((m_NCS_IPC_SEND(&dtms_gl_cb->mbx, msg_elem, msg_elem->pri)) != NCSCC_RC_SUCCESS) {
+	if ((m_NCS_IPC_SEND(&dtms_gl_cb->mbx, msg_elem, msg_elem->pri)) !=
+	    NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(msg_elem);
 		TRACE("DTM : Internode IPC_SEND : SVC UP EVENT : FAILED");
@@ -233,7 +244,8 @@ uint32_t dtm_add_to_svc_dist_list(uint32_t server_type, uint32_t server_inst, ui
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid)
+uint32_t dtm_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst,
+				    uint32_t pid)
 {
 	/* Post the event to the mailbox of the inter_thread */
 	DTM_SND_MSG_ELEM *msg_elem = NULL;
@@ -246,7 +258,8 @@ uint32_t dtm_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst, 
 	msg_elem->info.svc_event.server_type = server_type;
 	msg_elem->info.svc_event.server_inst = server_inst;
 	msg_elem->info.svc_event.pid = pid;
-	if ((m_NCS_IPC_SEND(&dtms_gl_cb->mbx, msg_elem, msg_elem->pri)) != NCSCC_RC_SUCCESS) {
+	if ((m_NCS_IPC_SEND(&dtms_gl_cb->mbx, msg_elem, msg_elem->pri)) !=
+	    NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(msg_elem);
 		TRACE("DTM : Internode IPC_SEND : SVC UP EVENT : FAILED");
@@ -269,7 +282,8 @@ uint32_t dtm_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst, 
  */
 static uint32_t dtm_internode_init_svc_dist_list(void)
 {
-	if (NULL == (dtm_svc_dist_list = calloc(1, sizeof(DTM_SVC_DISTRIBUTION_LIST)))) {
+	if (NULL == (dtm_svc_dist_list =
+			 calloc(1, sizeof(DTM_SVC_DISTRIBUTION_LIST)))) {
 		LOG_ER("calloc failure for dtm_svc_dist_list");
 		osafassert(0);
 		return NCSCC_RC_FAILURE;
@@ -280,13 +294,14 @@ static uint32_t dtm_internode_init_svc_dist_list(void)
 /**
  * Function to add to svc dist list
  *
- * @param server_type server_inst pid 
+ * @param server_type server_inst pid
  *
  * @return NCSCC_RC_SUCCESS
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_internode_add_to_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid)
+uint32_t dtm_internode_add_to_svc_dist_list(uint32_t server_type,
+					    uint32_t server_inst, uint32_t pid)
 {
 	uint8_t *buffer = NULL;
 	DTM_SVC_DATA *add_ptr = NULL, *hdr = NULL, *tail = NULL;
@@ -324,7 +339,8 @@ uint32_t dtm_internode_add_to_svc_dist_list(uint32_t server_type, uint32_t serve
 
 	/* Now send this info to all the connected nodes */
 	dtm_prepare_svc_up_msg(buffer, server_type, server_inst, pid);
-	dtm_internode_snd_msg_to_all_nodes(buffer, (uint16_t)DTM_UP_MSG_SIZE_FULL);
+	dtm_internode_snd_msg_to_all_nodes(buffer,
+					   (uint16_t)DTM_UP_MSG_SIZE_FULL);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -338,7 +354,9 @@ uint32_t dtm_internode_add_to_svc_dist_list(uint32_t server_type, uint32_t serve
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid)
+uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type,
+					      uint32_t server_inst,
+					      uint32_t pid)
 {
 	DTM_SVC_DATA *back = NULL, *mov_ptr = NULL;
 	int check_val = 0;
@@ -356,13 +374,15 @@ uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type, uint32_t ser
 		return NCSCC_RC_FAILURE;
 	}
 
-	for (back = NULL, mov_ptr = dtm_svc_dist_list->data_ptr_hdr; mov_ptr != NULL;
-	     back = mov_ptr, mov_ptr = mov_ptr->next) {
-		if ((server_type == mov_ptr->type) && (server_inst == mov_ptr->inst) && (pid == mov_ptr->pid)) {
+	for (back = NULL, mov_ptr = dtm_svc_dist_list->data_ptr_hdr;
+	     mov_ptr != NULL; back = mov_ptr, mov_ptr = mov_ptr->next) {
+		if ((server_type == mov_ptr->type) &&
+		    (server_inst == mov_ptr->inst) && (pid == mov_ptr->pid)) {
 			if (back == NULL) {
 				dtm_svc_dist_list->data_ptr_hdr = mov_ptr->next;
 				if (NULL == mov_ptr->next) {
-					dtm_svc_dist_list->data_ptr_tail = mov_ptr->next;
+					dtm_svc_dist_list->data_ptr_tail =
+					    mov_ptr->next;
 				}
 			} else {
 				if (NULL == mov_ptr->next) {
@@ -373,7 +393,8 @@ uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type, uint32_t ser
 			free(mov_ptr);
 			mov_ptr = NULL;
 			dtm_svc_dist_list->num_elem--;
-			TRACE("DTM :Successfully deleted the node from svc dist list ");
+			TRACE(
+			    "DTM :Successfully deleted the node from svc dist list ");
 			check_val = 1;
 			break;
 		}
@@ -382,23 +403,25 @@ uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type, uint32_t ser
 	if (1 == check_val) {
 		uint8_t *buffer = calloc(1, DTM_DOWN_MSG_SIZE_FULL);
 		if (buffer == NULL) {
-			TRACE("DTM :CALLOC FAILED FOR buffer, unable to send down to all nodes");
+			TRACE(
+			    "DTM :CALLOC FAILED FOR buffer, unable to send down to all nodes");
 			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 		/* Now send this info to all the connected nodes */
 		dtm_prepare_svc_down_msg(buffer, server_type, server_inst, pid);
-		dtm_internode_snd_msg_to_all_nodes(buffer, (uint16_t)DTM_DOWN_MSG_SIZE_FULL);
+		dtm_internode_snd_msg_to_all_nodes(
+		    buffer, (uint16_t)DTM_DOWN_MSG_SIZE_FULL);
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	} else {
 		/* dont send to any node */
-		TRACE("DTM :No matching entry found in svc dist list for deletion");
+		TRACE(
+		    "DTM :No matching entry found in svc dist list for deletion");
 		/* osafassert */
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
-
 }
 
 /**
@@ -410,7 +433,8 @@ uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type, uint32_t ser
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_prepare_svc_up_msg(uint8_t *buffer, uint32_t server_type, uint32_t server_inst, uint32_t pid)
+uint32_t dtm_prepare_svc_up_msg(uint8_t *buffer, uint32_t server_type,
+				uint32_t server_inst, uint32_t pid)
 {
 	uint8_t *data = buffer;
 	TRACE_ENTER();
@@ -435,7 +459,8 @@ uint32_t dtm_prepare_svc_up_msg(uint8_t *buffer, uint32_t server_type, uint32_t 
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_prepare_svc_down_msg(uint8_t *buffer, uint32_t server_type, uint32_t server_inst, uint32_t pid)
+uint32_t dtm_prepare_svc_down_msg(uint8_t *buffer, uint32_t server_type,
+				  uint32_t server_inst, uint32_t pid)
 {
 	uint8_t *data = buffer;
 	TRACE_ENTER();
@@ -486,12 +511,14 @@ static uint32_t dtm_prepare_and_send_svc_up_msg_for_node_up(NODE_ID node_id)
 	} else {
 		uint8_t *buffer = NULL;
 		if (NULL == (buffer = calloc(1, buff_len))) {
-			TRACE("DTM :CALLOC FAILED FOR buffer, unable to send down to all nodes");
+			TRACE(
+			    "DTM :CALLOC FAILED FOR buffer, unable to send down to all nodes");
 			return NCSCC_RC_FAILURE;
 		}
 		data = buffer;
 		ncs_encode_16bit(&data, (uint16_t)(buff_len - 2));
-		ncs_encode_32bit(&data, (uint32_t)DTM_INTERNODE_SND_MSG_IDENTIFIER);
+		ncs_encode_32bit(&data,
+				 (uint32_t)DTM_INTERNODE_SND_MSG_IDENTIFIER);
 		ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
 		ncs_encode_8bit(&data, (uint8_t)DTM_UP_MSG_TYPE);
 		ncs_encode_16bit(&data, num_elem);

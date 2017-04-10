@@ -25,7 +25,7 @@
 
 #include <stdbool.h>
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -59,7 +59,7 @@ bool osaf_is_graph_utf8(const char* i_string);
  */
 bool osaf_is_valid_xml_utf8(const char* i_string);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

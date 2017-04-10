@@ -24,7 +24,7 @@
 #include "ntf/saf/saNtf.h"
 #include "base/ncsgl_defs.h"
 #include "mds/mds_papi.h"
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -124,13 +124,9 @@ struct ntfsv_send_not_req {
 };
 typedef struct ntfsv_send_not_req ntfsv_send_not_req_t;
 
-typedef struct {
-  SaVersionT version;
-} ntfsv_initialize_req_t;
+typedef struct { SaVersionT version; } ntfsv_initialize_req_t;
 
-typedef struct {
-  uint32_t client_id;
-} ntfsv_finalize_req_t;
+typedef struct { uint32_t client_id; } ntfsv_finalize_req_t;
 
 typedef struct {
   uint32_t client_id;
@@ -174,7 +170,7 @@ typedef struct {
 
 /* API param definition */
 typedef struct {
-  ntfsv_api_msg_type_t type;      /* api type */
+  ntfsv_api_msg_type_t type; /* api type */
   union {
     ntfsv_initialize_req_t init;
     ntfsv_finalize_req_t finalize;
@@ -195,8 +191,8 @@ typedef struct ntfsv_ntfa_clm_status_param_tag {
 
 /* wrapper structure for all the callbacks */
 typedef struct {
-  ntfsv_cbk_msg_type_t type;      /* callback type */
-  uint32_t ntfs_client_id;        /* ntfs client_id */
+  ntfsv_cbk_msg_type_t type; /* callback type */
+  uint32_t ntfs_client_id;   /* ntfs client_id */
   SaNtfSubscriptionIdT subscriptionId;
   MDS_SEND_PRIORITY_TYPE mds_send_priority;
   union {
@@ -207,39 +203,27 @@ typedef struct {
 } ntfsv_cbk_info_t;
 
 /* API Response parameter definitions */
-typedef struct {
-  uint32_t client_id;
-} ntfsv_initialize_rsp_t;
+typedef struct { uint32_t client_id; } ntfsv_initialize_rsp_t;
 
-typedef struct {
-  uint32_t readerId;
-} ntfsv_reader_init_rsp_t;
+typedef struct { uint32_t readerId; } ntfsv_reader_init_rsp_t;
 
-typedef struct {
-  uint32_t reader_id;
-} ntfsv_reader_finalize_rsp_t;
+typedef struct { uint32_t reader_id; } ntfsv_reader_finalize_rsp_t;
 
 typedef struct {
   ntfsv_send_not_req_t *readNotification;
 } ntfsv_read_next_rsp_t;
 
-typedef struct {
-  SaNtfSubscriptionIdT subscriptionId;
-} ntfsv_subscribe_rsp_t;
+typedef struct { SaNtfSubscriptionIdT subscriptionId; } ntfsv_subscribe_rsp_t;
 
-typedef struct {
-  SaNtfSubscriptionIdT subscriptionId;
-} ntfsv_unsubscribe_rsp_t;
+typedef struct { SaNtfSubscriptionIdT subscriptionId; } ntfsv_unsubscribe_rsp_t;
 
-typedef struct {
-  SaNtfIdentifierT notificationId;
-} ntfsv_send_not_rsp_t;
+typedef struct { SaNtfIdentifierT notificationId; } ntfsv_send_not_rsp_t;
 
 /* wrapper structure for all API responses
  */
 typedef struct {
-  ntfsv_api_resp_msg_type type;   /* response type */
-  SaAisErrorT rc; /* return code */
+  ntfsv_api_resp_msg_type type; /* response type */
+  SaAisErrorT rc;               /* return code */
   union {
     ntfsv_initialize_rsp_t init_rsp;
     ntfsv_subscribe_rsp_t subscribe_rsp;
@@ -257,11 +241,11 @@ typedef struct ntfsv_msg {
   ntfsv_msg_type_t type;  /* message type */
   union {
     /* elements encoded by NTFA (& decoded by NTFS) */
-    ntfsv_api_info_t api_info;      /* api info */
+    ntfsv_api_info_t api_info; /* api info */
 
     /* elements encoded by NTFS (& decoded by NTFA) */
-    ntfsv_cbk_info_t cbk_info;      /* callbk info */
-    ntfsv_api_rsp_info_t api_resp_info;     /* api response info */
+    ntfsv_cbk_info_t cbk_info;          /* callbk info */
+    ntfsv_api_rsp_info_t api_resp_info; /* api response info */
   } info;
 } ntfsv_msg_t;
 
@@ -270,7 +254,7 @@ struct NtfGlobals {
   SaUint64T clientIdCounter;
 };
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

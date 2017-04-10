@@ -21,7 +21,8 @@
 
   DESCRIPTION:
 
-  This file lists common EDP(EDU program) definitions for data structures in AVSV.
+  This file lists common EDP(EDU program) definitions for data structures in
+AVSV.
 
 ******************************************************************************
 */
@@ -32,17 +33,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
-uint32_t avsv_edp_csi_attr_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				      NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uint32_t avsv_edp_saamfprotectiongroupnotificationbuffert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-								NCSCONTEXT ptr, uint32_t *ptr_data_len,
-								EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t avsv_edp_attr_val(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_csi_attr_info(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                                uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                                EDP_OP_TYPE op, EDU_ERR *o_err);
+
+uint32_t avsv_edp_saamfprotectiongroupnotificationbuffert(
+    EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uint32_t *ptr_data_len,
+    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t avsv_edp_attr_val(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                           uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                           EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #ifdef __cplusplus
 }

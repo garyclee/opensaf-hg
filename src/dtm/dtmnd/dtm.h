@@ -34,10 +34,11 @@ extern uint8_t initial_discovery_phase;
 
 #define BMCAST_MSG_LEN ( sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t)
 
-#define m_NODE_DISCOVERY_TASKNAME       "NODE_DISCOVERY"
-#define m_NODE_DISCOVERY_STACKSIZE       NCS_STACKSIZE_HUGE
+#define m_NODE_DISCOVERY_TASKNAME "NODE_DISCOVERY"
+#define m_NODE_DISCOVERY_STACKSIZE NCS_STACKSIZE_HUGE
 
-/* The default value of SO_RCVBUF & SO_SNDBUF , it is set by the rmem_default/wmem_default  */
+/* The default value of SO_RCVBUF & SO_SNDBUF , it is set by the
+ * rmem_default/wmem_default  */
 #define DTM_MAX_TAG_LEN 256
 
 typedef enum {
@@ -102,14 +103,14 @@ typedef struct dtm_snd_msg_elem {
 } DTM_SND_MSG_ELEM;
 
 extern void node_discovery_process(void *arg);
-extern uint32_t dtm_cb_init(DTM_INTERNODE_CB * dtms_cb);
+extern uint32_t dtm_cb_init(DTM_INTERNODE_CB *dtms_cb);
 extern DTM_NODE_DB *dtm_node_get_by_id(uint32_t nodeid);
 extern DTM_NODE_DB *dtm_node_getnext_by_id(uint32_t node_id);
 extern DTM_NODE_DB *dtm_node_get_by_comm_socket(uint32_t comm_socket);
-extern uint32_t dtm_node_add(DTM_NODE_DB * node, int i);
-extern uint32_t dtm_node_delete(DTM_NODE_DB * nnode, int i);
-extern DTM_NODE_DB *dtm_node_new(DTM_NODE_DB * new_node);
-extern int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file);
+extern uint32_t dtm_node_add(DTM_NODE_DB *node, int i);
+extern uint32_t dtm_node_delete(DTM_NODE_DB *nnode, int i);
+extern DTM_NODE_DB *dtm_node_new(DTM_NODE_DB *new_node);
+extern int dtm_read_config(DTM_INTERNODE_CB *config, char *dtm_config_file);
 uint32_t dtm_service_discovery_init(DTM_INTERNODE_CB *dtms_cb);
 
 #endif  // DTM_DTMND_DTM_H_

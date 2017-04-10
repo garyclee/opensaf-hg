@@ -23,14 +23,14 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-  
+
 
 *****************************************************************************/
 
 #include "ckpt/ckptd/cpd.h"
 #define FUNC_NAME(DS) cpsv_edp_##DS##_info
 
-uint32_t FUNC_NAME(CPSV_EVT) ();
+uint32_t FUNC_NAME(CPSV_EVT)();
 
 uint32_t cpd_mds_callback(struct ncsmds_callback_info *info);
 static uint32_t cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *info);
@@ -38,18 +38,17 @@ static uint32_t cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *info);
 static uint32_t cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
 static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
 static uint32_t cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uint32_t cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t cpd_mds_svc_evt(CPD_CB *cb,
+				MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
 static uint32_t cpd_mds_quiesced_ack_process(CPD_CB *cb);
 
 /* Message Format Verion Tables at CPND */
 
-MDS_CLIENT_MSG_FORMAT_VER cpd_cpnd_msg_fmt_table[CPD_WRT_CPND_SUBPART_VER_RANGE] = {
-	1, 2, 3
-};
+MDS_CLIENT_MSG_FORMAT_VER
+    cpd_cpnd_msg_fmt_table[CPD_WRT_CPND_SUBPART_VER_RANGE] = {1, 2, 3};
 
-MDS_CLIENT_MSG_FORMAT_VER cpd_cpa_msg_fmt_table[CPD_WRT_CPA_SUBPART_VER_RANGE] = {
-	1, 2
-};
+MDS_CLIENT_MSG_FORMAT_VER cpd_cpa_msg_fmt_table[CPD_WRT_CPA_SUBPART_VER_RANGE] =
+    {1, 2};
 
 /****************************************************************************\
  PROCEDURE NAME : cpd_mds_vdest_create
@@ -65,7 +64,7 @@ uint32_t cpd_mds_vdest_create(CPD_CB *cb)
 {
 	NCSVDA_INFO arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-/*   SaNameT     name = {4,"CPD"}; */
+	/*   SaNameT     name = {4,"CPD"}; */
 
 	TRACE_ENTER();
 	memset(&arg, 0, sizeof(arg));
@@ -73,8 +72,8 @@ uint32_t cpd_mds_vdest_create(CPD_CB *cb)
 	cb->cpd_dest_id = CPD_VDEST_ID;
 
 	arg.req = NCSVDA_VDEST_CREATE;
-/*   arg.info.vdest_create.info.named.i_name = name;
-   arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_NAMED; */
+	/*   arg.info.vdest_create.info.named.i_name = name;
+	   arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_NAMED; */
 	arg.info.vdest_create.i_persistent = false;
 	arg.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
@@ -88,7 +87,7 @@ uint32_t cpd_mds_vdest_create(CPD_CB *cb)
 		return rc;
 	}
 
-/*   cb->cpd_dest_id = arg.info.vdest_create.info.named.o_vdest;  */
+	/*   cb->cpd_dest_id = arg.info.vdest_create.info.named.o_vdest;  */
 	/*  cb->cpd_anc     = arg.info.vdest_create.info.named.o_anc; */
 	cb->mds_handle = arg.info.vdest_create.o_mds_pwe1_hdl;
 	TRACE_LEAVE();
@@ -97,13 +96,13 @@ uint32_t cpd_mds_vdest_create(CPD_CB *cb)
 
 /****************************************************************************
   Name          : cpd_mds_register
- 
+
   Description   : This routine registers the CPD Service with MDS.
- 
+
   Arguments     : mqa_cb - ptr to the CPD control block
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 
@@ -111,15 +110,15 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCSMDS_INFO svc_info;
-	MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_CPND };
-	MDS_SVC_ID cpd_id[1] = { NCSMDS_SVC_ID_CPD };
+	MDS_SVC_ID svc_id[1] = {NCSMDS_SVC_ID_CPND};
+	MDS_SVC_ID cpd_id[1] = {NCSMDS_SVC_ID_CPD};
 	uint32_t phy_slot_sub_slot;
 
 	TRACE_ENTER();
 	/* Create the virtual Destination for  CPD */
 	rc = cpd_mds_vdest_create(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("cpd mds vdest create failed"); 
+		LOG_ER("cpd mds vdest create failed");
 		return rc;
 	}
 
@@ -132,10 +131,12 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 	svc_info.i_op = MDS_INSTALL;
 
 	svc_info.info.svc_install.i_yr_svc_hdl = cb->cpd_hdl;
-	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* node specific */
-	svc_info.info.svc_install.i_svc_cb = cpd_mds_callback;	/* callback */
+	svc_info.info.svc_install.i_install_scope =
+	    NCSMDS_SCOPE_NONE; /* node specific */
+	svc_info.info.svc_install.i_svc_cb = cpd_mds_callback; /* callback */
 	svc_info.info.svc_install.i_mds_q_ownership = false;
-	svc_info.info.svc_install.i_mds_svc_pvt_ver = CPD_MDS_PVT_SUBPART_VERSION;
+	svc_info.info.svc_install.i_mds_svc_pvt_ver =
+	    CPD_MDS_PVT_SUBPART_VERSION;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
 		LOG_ER("cpd mds install failed");
@@ -215,7 +216,7 @@ void cpd_mds_unregister(CPD_CB *cb)
 {
 	NCSMDS_INFO arg;
 	TRACE_ENTER();
-	/* Un-install your service into MDS. 
+	/* Un-install your service into MDS.
 	   No need to cancel the services that are subscribed */
 	memset(&arg, 0, sizeof(NCSMDS_INFO));
 
@@ -233,25 +234,26 @@ void cpd_mds_unregister(CPD_CB *cb)
 
 /****************************************************************************
   Name          : cpd_mds_callback
- 
+
   Description   : This callback routine will be called by MDS on event arrival
- 
+
   Arguments     : info - pointer to the mds callback info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 uint32_t cpd_mds_callback(struct ncsmds_callback_info *info)
 {
 	CPD_CB *cb = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
-	
+
 	TRACE_ENTER();
 	if (info == NULL)
 		return rc;
 
-	cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, (uint32_t)info->i_yr_svc_hdl);
+	cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD,
+				      (uint32_t)info->i_yr_svc_hdl);
 	if (!cb) {
 		TRACE_4("cpd cb take hdl failed");
 		return rc;
@@ -297,14 +299,14 @@ uint32_t cpd_mds_callback(struct ncsmds_callback_info *info)
 
 /****************************************************************************
   Name          : cpd_mds_enc
- 
+
   Description   : This function encodes an events sent from CPD.
- 
+
   Arguments     : cb    : CPD control Block.
-                  info  : Info for encoding
-  
+		  info  : Info for encoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
@@ -313,17 +315,17 @@ static uint32_t cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 	NCS_UBAID *io_uba = enc_info->io_uba;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
+	/* Get the Msg Format version from the SERVICE_ID &
+	 * RMT_SVC_PVT_SUBPART_VERSION */
 	if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_CPA) {
-		enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
-								CPD_WRT_CPA_SUBPART_VER_MIN,
-								CPD_WRT_CPA_SUBPART_VER_MAX, cpd_cpa_msg_fmt_table);
+		enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+		    enc_info->i_rem_svc_pvt_ver, CPD_WRT_CPA_SUBPART_VER_MIN,
+		    CPD_WRT_CPA_SUBPART_VER_MAX, cpd_cpa_msg_fmt_table);
 
 	} else if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_CPND) {
-		enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
-								CPD_WRT_CPND_SUBPART_VER_MIN,
-								CPD_WRT_CPND_SUBPART_VER_MAX, cpd_cpnd_msg_fmt_table);
-
+		enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+		    enc_info->i_rem_svc_pvt_ver, CPD_WRT_CPND_SUBPART_VER_MIN,
+		    CPD_WRT_CPND_SUBPART_VER_MAX, cpd_cpnd_msg_fmt_table);
 	}
 
 	if (enc_info->o_msg_fmt_ver) {
@@ -337,14 +339,18 @@ static uint32_t cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
 				pstream = ncs_enc_reserve_space(io_uba, 12);
 				if (!pstream)
-					return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,
-							       "Memory alloc failed in cpnd_mds_enc \n");
-				ncs_encode_32bit(&pstream, pevt->type);	
-				ncs_encode_32bit(&pstream, pevt->info.cpnd.error);
-				ncs_encode_32bit(&pstream, pevt->info.cpnd.type);
+					return m_CPSV_DBG_SINK(
+					    NCSCC_RC_FAILURE,
+					    "Memory alloc failed in cpnd_mds_enc \n");
+				ncs_encode_32bit(&pstream, pevt->type);
+				ncs_encode_32bit(&pstream,
+						 pevt->info.cpnd.error);
+				ncs_encode_32bit(&pstream,
+						 pevt->info.cpnd.type);
 				ncs_enc_claim_space(io_uba, 12);
 
-				rc = cpsv_d2nd_ckpt_create_2_encode(&pevt->info.cpnd.info.ckpt_create, io_uba);
+				rc = cpsv_d2nd_ckpt_create_2_encode(
+				    &pevt->info.cpnd.info.ckpt_create, io_uba);
 				return rc;
 
 			default:
@@ -353,25 +359,27 @@ static uint32_t cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		}
 
 		return (m_NCS_EDU_VER_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_EVT),
-					   enc_info->io_uba, EDP_OP_TYPE_ENC, pevt, &ederror,
+					   enc_info->io_uba, EDP_OP_TYPE_ENC,
+					   pevt, &ederror,
 					   enc_info->i_rem_svc_pvt_ver));
 	} else {
-		LOG_IN("INVALID MSG FORMAT IN ENC FULL");	/* Drop The Message,Format Version Invalid */
+		LOG_IN("INVALID MSG FORMAT IN ENC FULL"); /* Drop The
+							     Message,Format
+							     Version Invalid */
 		return NCSCC_RC_FAILURE;
 	}
-
 }
 
 /****************************************************************************
   Name          : cpd_mds_dec
- 
+
   Description   : This function decodes an events sent to CPD.
- 
+
   Arguments     : cb    : CPD control Block.
-                  info  : Info for decoding
-  
+		  info  : Info for decoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
@@ -384,9 +392,9 @@ static uint32_t cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	uint8_t local_data[20];
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
-		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
-							     CPD_WRT_CPND_SUBPART_VER_MIN,
-							     CPD_WRT_CPND_SUBPART_VER_MAX, cpd_cpnd_msg_fmt_table);
+		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(
+		    dec_info->i_msg_fmt_ver, CPD_WRT_CPND_SUBPART_VER_MIN,
+		    CPD_WRT_CPND_SUBPART_VER_MAX, cpd_cpnd_msg_fmt_table);
 	}
 	if (is_valid_msg_fmt) {
 		msg_ptr = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
@@ -395,32 +403,36 @@ static uint32_t cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 
 		memset(msg_ptr, 0, sizeof(CPSV_EVT));
 		dec_info->o_msg = (NCSCONTEXT)msg_ptr;
-		uint8_t *pstream = ncs_dec_flatten_space(dec_info->io_uba, local_data, 8);
+		uint8_t *pstream =
+		    ncs_dec_flatten_space(dec_info->io_uba, local_data, 8);
 		msg_ptr->type = ncs_decode_32bit(&pstream);
 
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_EVT),
-				    dec_info->io_uba, EDP_OP_TYPE_DEC, (CPSV_EVT **)&dec_info->o_msg, &ederror);
+				    dec_info->io_uba, EDP_OP_TYPE_DEC,
+				    (CPSV_EVT **)&dec_info->o_msg, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("cpd mds decode failed ");
-			m_MMGR_FREE_CPSV_EVT(dec_info->o_msg, NCS_SERVICE_ID_CPD);
+			m_MMGR_FREE_CPSV_EVT(dec_info->o_msg,
+					     NCS_SERVICE_ID_CPD);
 		}
 		return rc;
 	} else {
-		LOG_ER("cpd mds dec failed - invalid fmr_ver = %d", dec_info->i_msg_fmt_ver);
+		LOG_ER("cpd mds dec failed - invalid fmr_ver = %d",
+		       dec_info->i_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
 }
 
 /****************************************************************************
   Name          : cpd_mds_enc_flat
- 
+
   Description   : This function encodes an events sent from CPD.
- 
+
   Arguments     : cb    : CPD control Block.
-                  enc_info  : Info for encoding
-  
+		  enc_info  : Info for encoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
@@ -430,17 +442,17 @@ static uint32_t cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 	NCS_UBAID *uba = info->io_uba;
 
 	TRACE_ENTER();
-	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
+	/* Get the Msg Format version from the SERVICE_ID &
+	 * RMT_SVC_PVT_SUBPART_VERSION */
 	if (info->i_to_svc_id == NCSMDS_SVC_ID_CPA) {
-		info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(info->i_rem_svc_pvt_ver,
-							    CPD_WRT_CPA_SUBPART_VER_MIN,
-							    CPD_WRT_CPA_SUBPART_VER_MAX, cpd_cpa_msg_fmt_table);
+		info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+		    info->i_rem_svc_pvt_ver, CPD_WRT_CPA_SUBPART_VER_MIN,
+		    CPD_WRT_CPA_SUBPART_VER_MAX, cpd_cpa_msg_fmt_table);
 
 	} else if (info->i_to_svc_id == NCSMDS_SVC_ID_CPND) {
-		info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(info->i_rem_svc_pvt_ver,
-							    CPD_WRT_CPND_SUBPART_VER_MIN,
-							    CPD_WRT_CPND_SUBPART_VER_MAX, cpd_cpnd_msg_fmt_table);
-
+		info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+		    info->i_rem_svc_pvt_ver, CPD_WRT_CPND_SUBPART_VER_MIN,
+		    CPD_WRT_CPND_SUBPART_VER_MAX, cpd_cpnd_msg_fmt_table);
 	}
 
 	if (info->o_msg_fmt_ver) {
@@ -458,8 +470,7 @@ static uint32_t cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 
 		TRACE_4("cpd mds enc flat failed");
 		TRACE_LEAVE();
-		return NCSCC_RC_FAILURE;	/* Drop The Message */
-
+		return NCSCC_RC_FAILURE; /* Drop The Message */
 	}
 
 	/*   ncs_encode_n_octets_in_uba(uba,(uint8_t*)evt,size);   */
@@ -471,14 +482,14 @@ static uint32_t cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 
 /****************************************************************************
   Name          : cpd_mds_dec_flat
- 
+
   Description   : This function decodes an events sent to CPD.
- 
+
   Arguments     : cb    : CPD control Block.
-                  dec_info  : Info for decoding
-  
+		  dec_info  : Info for decoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
@@ -489,9 +500,9 @@ static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 	bool is_valid_msg_fmt = false;
 	TRACE_ENTER();
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
-		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,
-							     CPD_WRT_CPND_SUBPART_VER_MIN,
-							     CPD_WRT_CPND_SUBPART_VER_MAX, cpd_cpnd_msg_fmt_table);
+		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(
+		    info->i_msg_fmt_ver, CPD_WRT_CPND_SUBPART_VER_MIN,
+		    CPD_WRT_CPND_SUBPART_VER_MAX, cpd_cpnd_msg_fmt_table);
 	}
 	if (is_valid_msg_fmt) {
 
@@ -510,7 +521,8 @@ static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 			return rc;
 		}
 
-/*   ncs_decode_n_octets(uba->ub,(uint8_t*)evt,sizeof(CPSV_EVT)); */
+		/*   ncs_decode_n_octets(uba->ub,(uint8_t*)evt,sizeof(CPSV_EVT));
+		 */
 		/* Based on the event type copy the internal pointers TBD */
 		TRACE_LEAVE();
 		return rc;
@@ -519,9 +531,7 @@ static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 		TRACE_4("CPD MDS Decode Flat Failed");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
-
 	}
-
 }
 
 /****************************************************************************
@@ -550,7 +560,8 @@ static uint32_t cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	}
 
 	/* Put it in CPD's Event Queue */
-	rc = m_NCS_IPC_SEND(&cb->cpd_mbx, (NCSCONTEXT)pEvt, NCS_IPC_PRIORITY_NORMAL);
+	rc = m_NCS_IPC_SEND(&cb->cpd_mbx, (NCSCONTEXT)pEvt,
+			    NCS_IPC_PRIORITY_NORMAL);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("cpd ipc send failed for mds receive");
 	}
@@ -560,10 +571,10 @@ static uint32_t cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 /****************************************************************************
  * Name          : cpd_mds_svc_evt
  *
- * Description   : CPD is informed when MDS events occurr that he has 
+ * Description   : CPD is informed when MDS events occurr that he has
  *                 subscribed to
  *
- * Arguments     : 
+ * Arguments     :
  *   cb          : CPD control Block.
  *   enc_info    : Svc evt info.
  *
@@ -572,7 +583,8 @@ static uint32_t cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t cpd_mds_svc_evt(CPD_CB *cb,
+				MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 	CPSV_EVT *evt = NULL;
 	uint32_t rc;
@@ -597,7 +609,8 @@ static uint32_t cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 	evt->info.cpd.info.mds_info.node_id = svc_evt->i_node_id;
 
 	/* Put it in CPD's Event Queue */
-	rc = m_NCS_IPC_SEND(&cb->cpd_mbx, (NCSCONTEXT)evt, NCS_IPC_PRIORITY_HIGH);
+	rc = m_NCS_IPC_SEND(&cb->cpd_mbx, (NCSCONTEXT)evt,
+			    NCS_IPC_PRIORITY_HIGH);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("cpd evt mds info ipc send failed");
 		m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPD);
@@ -612,10 +625,10 @@ static uint32_t cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 /***********************************************************************************
  * Name   : cpd_mds_quiesced_ack_process
  *
- * Description   : This callback is received when cpd goes from active to quiesced,
-                   we change the mds role in csi set callback and from mds we get the 
-                  quiesced_ack callback , post an event to your cpd thread to process
-                  the events in mail box
+ * Description   : This callback is received when cpd goes from active to
+quiesced, we change the mds role in csi set callback and from mds we get the
+		  quiesced_ack callback , post an event to your cpd thread to
+process the events in mail box
  *
 *************************************************************************************/
 
@@ -657,9 +670,9 @@ uint32_t cpd_mds_quiesced_ack_process(CPD_CB *cb)
  *
  * Description   : Send the Response to Sync Requests
  *
- * Arguments     : 
+ * Arguments     :
  *
- * Return Values : 
+ * Return Values :
  *
  * Notes         :
  *****************************************************************************/
@@ -689,7 +702,7 @@ uint32_t cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
 
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("cpd mds send failed for dest %"PRIu64,s_info->dest);
+		LOG_ER("cpd mds send failed for dest %" PRIu64, s_info->dest);
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -697,20 +710,21 @@ uint32_t cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
 
 /****************************************************************************
   Name          : cpd_mds_msg_sync_send
- 
+
   Description   : This routine sends the Sinc requests from CPD
- 
+
   Arguments     : cb  - ptr to the CPD CB
-                  i_evt - ptr to the CPSV message
-                  o_evt - ptr to the CPSV message returned
-                  timeout - timeout value in 10 ms 
- 
+		  i_evt - ptr to the CPSV message
+		  o_evt - ptr to the CPSV message returned
+		  timeout - timeout value in 10 ms
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
-			    CPSV_EVT *i_evt, CPSV_EVT **o_evt, SaTimeT timeout)
+			       CPSV_EVT *i_evt, CPSV_EVT **o_evt,
+			       SaTimeT timeout)
 {
 
 	NCSMDS_INFO mds_info;
@@ -732,7 +746,8 @@ uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SNDRSP;
 
 	/* fill the send rsp strcuture */
-	mds_info.info.svc_send.info.sndrsp.i_time_to_wait = timeout;	/* timeto wait in 10ms */
+	mds_info.info.svc_send.info.sndrsp.i_time_to_wait =
+	    timeout; /* timeto wait in 10ms */
 	mds_info.info.svc_send.info.sndrsp.i_to_dest = to_dest;
 
 	/* send the message */
@@ -743,9 +758,8 @@ uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	if (rc == NCSCC_RC_SUCCESS) {
 		*o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
 		cpsv_evt_trace("cpd", CPSV_EVT_RECEIVE, *o_evt, to_dest);
-	}
-	else {
-		LOG_ER("cpd mds send failed for dest %"PRIu64,to_dest);
+	} else {
+		LOG_ER("cpd mds send failed for dest %" PRIu64, to_dest);
 	}
 
 	TRACE_LEAVE();
@@ -754,19 +768,20 @@ uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 
 /****************************************************************************
   Name          : cpd_mds_msg_send
- 
+
   Description   : This routine sends the Events from CPD
- 
+
   Arguments     : cb  - ptr to the CPD CB
-                  i_evt - ptr to the CPSV message
-                  o_evt - ptr to the CPSV message returned
-                  timeout - timeout value in 10 ms 
- 
+		  i_evt - ptr to the CPSV message
+		  o_evt - ptr to the CPSV message returned
+		  timeout - timeout value in 10 ms
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
-uint32_t cpd_mds_msg_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EVT *evt)
+uint32_t cpd_mds_msg_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
+			  CPSV_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
@@ -794,7 +809,7 @@ uint32_t cpd_mds_msg_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EV
 	rc = ncsmds_api(&mds_info);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("cpd mds send failed for dest: %"PRIu64,to_dest);
+		LOG_ER("cpd mds send failed for dest: %" PRIu64, to_dest);
 	}
 
 	TRACE_LEAVE();
@@ -804,12 +819,12 @@ uint32_t cpd_mds_msg_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EV
 /****************************************************************************
  * Name          : cpd_mds_bcast_send
  *
- * Description   : This is the function which is used to send the message 
+ * Description   : This is the function which is used to send the message
  *                 using MDS broadcast.
  *
- * Arguments     : mds_hdl  - MDS handle  
+ * Arguments     : mds_hdl  - MDS handle
  *                 from_svc - From Serivce ID.
- *                 evt      - Event to be sent. 
+ *                 evt      - Event to be sent.
  *                 to_svc   - To Service ID.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE

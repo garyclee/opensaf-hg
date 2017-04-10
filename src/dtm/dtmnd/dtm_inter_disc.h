@@ -20,8 +20,8 @@
 
 /*iden-4 , ver-1, type-1, num_elements-2, type-4, inst-4, pid-4 */
 
-#define DTM_UP_MSG_SIZE         20
-#define DTM_DOWN_MSG_SIZE       DTM_UP_MSG_SIZE
+#define DTM_UP_MSG_SIZE 20
+#define DTM_DOWN_MSG_SIZE DTM_UP_MSG_SIZE
 
 #define DTM_UP_MSG_SIZE_FULL (DTM_UP_MSG_SIZE + 2)
 #define DTM_DOWN_MSG_SIZE_FULL DTM_UP_MSG_SIZE_FULL
@@ -49,12 +49,15 @@ typedef struct dtm_up_msg {
 
 typedef DTM_UP_MSG DTM_DOWN_MSG;
 
-uint32_t dtm_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid);
-uint32_t dtm_add_to_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid);
+uint32_t dtm_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst,
+                                    uint32_t pid);
+uint32_t dtm_add_to_svc_dist_list(uint32_t server_type, uint32_t server_inst,
+                                  uint32_t pid);
 
-
-uint32_t dtm_internode_add_to_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid);
-uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid);
-
+uint32_t dtm_internode_add_to_svc_dist_list(uint32_t server_type,
+                                            uint32_t server_inst, uint32_t pid);
+uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type,
+                                              uint32_t server_inst,
+                                              uint32_t pid);
 
 #endif  // DTM_DTMND_DTM_INTER_DISC_H_

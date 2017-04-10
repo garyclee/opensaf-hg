@@ -29,24 +29,17 @@
 #include "base/ncs_main_papi.h"
 #include "rde/rded/rde_cb.h"
 
-const char *const Role::role_names_[] = {
-  "Undefined",
-  "ACTIVE",
-  "STANDBY",
-  "QUIESCED",
-  "QUIESCING",
-  "Invalid"
-};
+const char* const Role::role_names_[] = {"Undefined", "ACTIVE",    "STANDBY",
+                                         "QUIESCED",  "QUIESCING", "Invalid"};
 
-const char *const Role::pre_active_script_ = PKGLIBDIR "/opensaf_sc_active";
+const char* const Role::pre_active_script_ = PKGLIBDIR "/opensaf_sc_active";
 
-PCS_RDA_ROLE Role::role() const {
-  return role_;
-}
+PCS_RDA_ROLE Role::role() const { return role_; }
 
 const char* Role::to_string(PCS_RDA_ROLE role) {
-  return role >= 0 && role < sizeof(role_names_) / sizeof(role_names_[0]) ?
-                             role_names_[role] : role_names_[0];
+  return role >= 0 && role < sizeof(role_names_) / sizeof(role_names_[0])
+             ? role_names_[role]
+             : role_names_[0];
 }
 
 Role::Role(NODE_ID own_node_id)
@@ -56,9 +49,8 @@ Role::Role(NODE_ID own_node_id)
       election_end_time_{},
       discover_peer_timeout_{base::GetEnv("RDE_DISCOVER_PEER_TIMEOUT",
                                           kDefaultDiscoverPeerTimeout)},
-      pre_active_script_timeout_{base::GetEnv("RDE_PRE_ACTIVE_SCRIPT_TIMEOUT",
-                                          kDefaultPreActiveScriptTimeout)} {
-}
+      pre_active_script_timeout_{base::GetEnv(
+          "RDE_PRE_ACTIVE_SCRIPT_TIMEOUT", kDefaultPreActiveScriptTimeout)} {}
 
 timespec* Role::Poll(timespec* ts) {
   timespec* timeout = nullptr;
@@ -79,10 +71,7 @@ timespec* Role::Poll(timespec* ts) {
 
 void Role::ExecutePreActiveScript() {
   int argc = 1;
-  char* argv[] = {
-    const_cast<char*>(pre_active_script_),
-    nullptr
-  };
+  char* argv[] = {const_cast<char*>(pre_active_script_), nullptr};
   proc_->Execute(argc, argv,
                  std::chrono::milliseconds(pre_active_script_timeout_));
 }
@@ -109,7 +98,7 @@ uint32_t Role::SetRole(PCS_RDA_ROLE new_role) {
 
 void Role::ResetElectionTimer() {
   election_end_time_ = base::ReadMonotonicClock() +
-      base::MillisToTimespec(discover_peer_timeout_);
+                       base::MillisToTimespec(discover_peer_timeout_);
 }
 
 uint32_t Role::UpdateMdsRegistration(PCS_RDA_ROLE new_role,
@@ -135,13 +124,13 @@ uint32_t Role::UpdateMdsRegistration(PCS_RDA_ROLE new_role,
 
 void Role::SetPeerState(PCS_RDA_ROLE node_role, NODE_ID node_id) {
   if (role() == PCS_RDA_UNDEFINED) {
-    if (node_role == PCS_RDA_ACTIVE ||
-        node_role == PCS_RDA_STANDBY ||
+    if (node_role == PCS_RDA_ACTIVE || node_role == PCS_RDA_STANDBY ||
         (node_role == PCS_RDA_UNDEFINED && node_id < own_node_id_)) {
-    SetRole(PCS_RDA_QUIESCED);
-    LOG_NO("Giving up election against 0x%" PRIx32 " with role %s. "
-           "My role is now %s", node_id, to_string(node_role),
-           to_string(role()));
+      SetRole(PCS_RDA_QUIESCED);
+      LOG_NO("Giving up election against 0x%" PRIx32
+             " with role %s. "
+             "My role is now %s",
+             node_id, to_string(node_role), to_string(role()));
     }
   }
 }

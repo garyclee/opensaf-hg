@@ -30,4 +30,3 @@ void saLogFinalize_02(void)
 	rc = saLogFinalize(0);
 	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
-

@@ -38,13 +38,13 @@
 
 /****************************************************************************
   PROCEDURE     : mbcsv_client_queue_init
-  
+
   Description   : This routine is used to initialize the queue for the client.
- 
+
   Arguments     : mbc_reg - pointer to the MBCSV registration instance.
-                   
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None
 ******************************************************************************/
 uint32_t mbcsv_client_queue_init(MBCSV_REG *mbc_reg)
@@ -59,20 +59,20 @@ uint32_t mbcsv_client_queue_init(MBCSV_REG *mbc_reg)
 		m_NCS_IPC_RELEASE(&mbc_reg->mbx, NULL);
 	}
 
- 	TRACE_LEAVE2("Failed to create MBCSv mailbox");
+	TRACE_LEAVE2("Failed to create MBCSv mailbox");
 	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
   PROCEDURE     : mbcsv_client_cleanup_mbx
-  
+
   Description   : This routine is used to destroy the queue.
- 
+
   Arguments     : arg - Call back function argument.
-                  msg - Message from the mailbox..
+		  msg - Message from the mailbox..
 
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None
 ******************************************************************************/
 bool mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
@@ -90,20 +90,21 @@ bool mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 
 /****************************************************************************
   PROCEDURE     : mbcsv_client_queue_destroy
-  
+
   Description   : This routine is used to destroy the queue for the client.
- 
+
   Arguments     : mbc_reg - pointer to the MBCSV registration instance.
-                   
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None
 ******************************************************************************/
 void mbcsv_client_queue_destroy(MBCSV_REG *mbc_reg)
 {
 	TRACE_ENTER();
 	/* detach the mail box */
-	m_NCS_IPC_DETACH(&mbc_reg->mbx, mbcsv_client_cleanup_mbx, (NCSCONTEXT)mbc_reg);
+	m_NCS_IPC_DETACH(&mbc_reg->mbx, mbcsv_client_cleanup_mbx,
+			 (NCSCONTEXT)mbc_reg);
 
 	/* delete the mailbox */
 	m_NCS_IPC_RELEASE(&mbc_reg->mbx, NULL);

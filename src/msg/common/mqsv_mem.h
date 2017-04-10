@@ -20,8 +20,8 @@
 
 ..............................................................................
 
-  DESCRIPTION: MQSv messages Allocation & Free macros 
- 
+  DESCRIPTION: MQSv messages Allocation & Free macros
+
 ******************************************************************************
 */
 
@@ -38,29 +38,25 @@
                            Service Sub IDs for MQSv -ASAPi
 *******************************************************************************/
 typedef enum {
-	NCS_SERVICE_MQSV_SUB_ID_MQSV_EVT = 1,
+  NCS_SERVICE_MQSV_SUB_ID_MQSV_EVT = 1,
 
-	NCS_SERVICE_MQSV_SUB_ID_MAX	/* This should be the last id */
+  NCS_SERVICE_MQSV_SUB_ID_MAX /* This should be the last id */
 } NCS_SERVICE_MQSV_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-                        Memory Allocation and Release Macros 
+                        Memory Allocation and Release Macros
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-#define m_MMGR_ALLOC_MQSV_EVT(svc_id)        m_NCS_MEM_ALLOC( \
-                                                sizeof(MQSV_EVT), \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                svc_id, \
-                                                NCS_SERVICE_MQSV_SUB_ID_MQSV_EVT)
+#define m_MMGR_ALLOC_MQSV_EVT(svc_id)                                  \
+  m_NCS_MEM_ALLOC(sizeof(MQSV_EVT), NCS_MEM_REGION_PERSISTENT, svc_id, \
+                  NCS_SERVICE_MQSV_SUB_ID_MQSV_EVT)
 
-#define m_MMGR_FREE_MQSV_EVT(p, scv_id)      m_NCS_MEM_FREE(p, \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                scv_id, \
-                                                NCS_SERVICE_MQSV_SUB_ID_MQSV_EVT)
+#define m_MMGR_FREE_MQSV_EVT(p, scv_id)                \
+  m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, scv_id, \
+                 NCS_SERVICE_MQSV_SUB_ID_MQSV_EVT)
 
-#define m_MMGR_FREE_MQSV_OS_MEMORY(ptr) m_NCS_MEM_FREE(ptr,NCS_MEM_REGION_PERSISTENT, \
-                                   NCS_SERVICE_ID_OS_SVCS, \
-                                   0)
+#define m_MMGR_FREE_MQSV_OS_MEMORY(ptr) \
+  m_NCS_MEM_FREE(ptr, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
 #endif  // MSG_COMMON_MQSV_MEM_H_

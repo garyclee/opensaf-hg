@@ -76,35 +76,35 @@ static inline timespec& operator-=(timespec& ts1, const timespec& ts2) {
 
 namespace base {
 
-constexpr static const timespec kZeroSeconds{ 0, 0 };
-constexpr static const timespec kOneMillisecond{ 0, 1000000 };
-constexpr static const timespec kTenMilliseconds{ 0, 10000000 };
-constexpr static const timespec kTwentyMilliseconds{ 0, 20000000 };
-constexpr static const timespec kThirtyMilliseconds{ 0, 30000000 };
-constexpr static const timespec kFourtyMilliseconds{ 0, 40000000 };
-constexpr static const timespec kFiftyMilliseconds{ 0, 50000000 };
-constexpr static const timespec kOneHundredMilliseconds{ 0, 100000000 };
-constexpr static const timespec kTwoHundredMilliseconds{ 0, 200000000 };
-constexpr static const timespec kThreeHundredMilliseconds{ 0, 300000000 };
-constexpr static const timespec kFourHundredMilliseconds{ 0, 400000000 };
-constexpr static const timespec kFiveHundredMilliseconds{ 0, 500000000 };
-constexpr static const timespec kOneSecond{ 1, 0 };
-constexpr static const timespec kFiveSeconds{ 5, 0 };
-constexpr static const timespec kTenSeconds{ 10, 0 };
-constexpr static const timespec kFifteenSeconds{ 15, 0 };
-constexpr static const timespec kTwentySeconds{ 20, 0 };
-constexpr static const timespec kTwentyfiveSeconds{ 25, 0 };
-constexpr static const timespec kThirtySeconds{ 30, 0 };
-constexpr static const timespec kOneMinute{ 1 * 60, 0 };
-constexpr static const timespec kFiveMinutes{ 5 * 60, 0 };
-constexpr static const timespec kTenMinutes{ 10 * 60, 0 };
-constexpr static const timespec kFifteenMinutes{ 15 * 60, 0 };
-constexpr static const timespec kTwentyMinutes{ 20 * 60, 0 };
-constexpr static const timespec kTwentyfiveMinutes{ 25 * 60, 0 };
-constexpr static const timespec kThirtyMinutes{ 30 * 60, 0 };
-constexpr static const timespec kOneHour{ 60 * 60, 0 };
-constexpr static const timespec kTimespecMax{ sizeof(time_t) == 8 ? INT64_MAX :
-      INT32_MAX, 999999999 };
+constexpr static const timespec kZeroSeconds{0, 0};
+constexpr static const timespec kOneMillisecond{0, 1000000};
+constexpr static const timespec kTenMilliseconds{0, 10000000};
+constexpr static const timespec kTwentyMilliseconds{0, 20000000};
+constexpr static const timespec kThirtyMilliseconds{0, 30000000};
+constexpr static const timespec kFourtyMilliseconds{0, 40000000};
+constexpr static const timespec kFiftyMilliseconds{0, 50000000};
+constexpr static const timespec kOneHundredMilliseconds{0, 100000000};
+constexpr static const timespec kTwoHundredMilliseconds{0, 200000000};
+constexpr static const timespec kThreeHundredMilliseconds{0, 300000000};
+constexpr static const timespec kFourHundredMilliseconds{0, 400000000};
+constexpr static const timespec kFiveHundredMilliseconds{0, 500000000};
+constexpr static const timespec kOneSecond{1, 0};
+constexpr static const timespec kFiveSeconds{5, 0};
+constexpr static const timespec kTenSeconds{10, 0};
+constexpr static const timespec kFifteenSeconds{15, 0};
+constexpr static const timespec kTwentySeconds{20, 0};
+constexpr static const timespec kTwentyfiveSeconds{25, 0};
+constexpr static const timespec kThirtySeconds{30, 0};
+constexpr static const timespec kOneMinute{1 * 60, 0};
+constexpr static const timespec kFiveMinutes{5 * 60, 0};
+constexpr static const timespec kTenMinutes{10 * 60, 0};
+constexpr static const timespec kFifteenMinutes{15 * 60, 0};
+constexpr static const timespec kTwentyMinutes{20 * 60, 0};
+constexpr static const timespec kTwentyfiveMinutes{25 * 60, 0};
+constexpr static const timespec kThirtyMinutes{30 * 60, 0};
+constexpr static const timespec kOneHour{60 * 60, 0};
+constexpr static const timespec kTimespecMax{
+    sizeof(time_t) == 8 ? INT64_MAX : INT32_MAX, 999999999};
 
 /**
  *  Read the current value of the system's real-time clock. For more
@@ -138,7 +138,7 @@ static inline void Sleep(const timespec& duration) {
 /**
  *  Convert the specified @a duration to a timespec structure.
  */
-template<class Rep, class Period>
+template <class Rep, class Period>
 static inline timespec DurationToTimespec(
     const std::chrono::duration<Rep, Period>& duration) {
   timespec ts;
@@ -278,8 +278,7 @@ static inline timespec Max(const timespec& ts1, const timespec& ts2,
 class Timer {
  public:
   // Set time in ms when creating Timer object
-  explicit Timer(uint64_t i_millis)
-    : m_ts_timeout_time({0, 0}) {
+  explicit Timer(uint64_t i_millis) : m_ts_timeout_time({0, 0}) {
     set_timeout_time(i_millis);
   }
   ~Timer() {}
@@ -290,9 +289,7 @@ class Timer {
   }
 
   // Return true if on set time or set time has expired
-  const bool is_timeout() {
-    return osaf_is_timeout(&m_ts_timeout_time);
-  }
+  const bool is_timeout() { return osaf_is_timeout(&m_ts_timeout_time); }
 
   // Return time left before timeout in ms
   const uint64_t time_left() {
@@ -305,6 +302,6 @@ class Timer {
   DELETE_COPY_AND_MOVE_OPERATORS(Timer);
 };
 
-} // namespace base
+}  // namespace base
 
 #endif  // BASE_TIME_H_

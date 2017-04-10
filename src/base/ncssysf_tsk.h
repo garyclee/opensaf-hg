@@ -37,7 +37,7 @@
 
 extern uint32_t ncs_task_join(void *task_handle);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -74,11 +74,9 @@ typedef void *SYSF_THREAD_CB;
  * NCSCC_RC_SUCCESS  if task created and initialized successfully.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_TASK_CREATE(entry, arg, name, prio, policy, stack_size, p_t_handle) \
-  ncs_task_create(entry, arg,                                           \
-                  name, prio, policy,                                   \
-                  stack_size,                                           \
-                  p_t_handle)
+#define m_NCS_TASK_CREATE(entry, arg, name, prio, policy, stack_size, \
+                          p_t_handle)                                 \
+  ncs_task_create(entry, arg, name, prio, policy, stack_size, p_t_handle)
 
 /****************************************************************************
  * m_NCS_TASK_RELEASE
@@ -95,7 +93,7 @@ typedef void *SYSF_THREAD_CB;
  * NCSCC_RC_SUCCESS  if task released successfully.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_TASK_RELEASE(t_handle)           ncs_task_release(t_handle)
+#define m_NCS_TASK_RELEASE(t_handle) ncs_task_release(t_handle)
 
 /****************************************************************************
  * m_NCS_TASK_JOIN
@@ -111,7 +109,7 @@ typedef void *SYSF_THREAD_CB;
  * NCSCC_RC_SUCCESS  if task Joins successfully.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_TASK_JOIN(t_handle)           ncs_task_join(t_handle)
+#define m_NCS_TASK_JOIN(t_handle) ncs_task_join(t_handle)
 
 /****************************************************************************
  * m_NCS_TASK_DETACH
@@ -127,7 +125,7 @@ typedef void *SYSF_THREAD_CB;
  * NCSCC_RC_SUCCESS  if task made detachable successfully.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_TASK_DETACH(t_handle)             ncs_task_detach(t_handle)
+#define m_NCS_TASK_DETACH(t_handle) ncs_task_detach(t_handle)
 
 /****************************************************************************
  * m_NCS_TASK_START
@@ -144,7 +142,7 @@ typedef void *SYSF_THREAD_CB;
  * NCSCC_RC_SUCCESS  if task started successfully.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_TASK_START(t_handle)             ncs_task_start(t_handle)
+#define m_NCS_TASK_START(t_handle) ncs_task_start(t_handle)
 
 /****************************************************************************
  * m_NCS_TASK_STOP
@@ -161,7 +159,7 @@ typedef void *SYSF_THREAD_CB;
  * NCSCC_RC_SUCCESS  if task stopped successfully.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_TASK_STOP(t_handle)              ncs_task_stop(t_handle)
+#define m_NCS_TASK_STOP(t_handle) ncs_task_stop(t_handle)
 
 /****************************************************************************
  * m_NCS_TASK_SLEEP
@@ -178,7 +176,7 @@ typedef void *SYSF_THREAD_CB;
  * NCSCC_RC_SUCCESS  if task slept successfully.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_TASK_SLEEP(delay_ms)   ncs_task_sleep(delay_ms)
+#define m_NCS_TASK_SLEEP(delay_ms) ncs_task_sleep(delay_ms)
 
 /****************************************************************************
  * m_NCS_TASK_CURRENT
@@ -198,13 +196,14 @@ typedef void *SYSF_THREAD_CB;
  */
 #define m_NCS_TASK_CURRENT(p_t_handle) ncs_task_current(p_t_handle)
 
-    /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-      FUNCTION PROTOTYPES
+  FUNCTION PROTOTYPES
 
-      @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-uint32_t ncs_task_create(NCS_OS_CB, void *, const char *, unsigned int, int, unsigned int, void **);
+uint32_t ncs_task_create(NCS_OS_CB, void *, const char *, unsigned int, int,
+                         unsigned int, void **);
 uint32_t ncs_task_release(void *);
 uint32_t ncs_task_detach(void *);
 uint32_t ncs_task_start(void *);
@@ -213,7 +212,7 @@ uint32_t ncs_task_sleep(unsigned int);
 uint32_t ncs_task_current(void **);
 int ncs_task_entry(NCS_OS_TASK *task);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

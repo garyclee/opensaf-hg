@@ -19,17 +19,20 @@
 
 void saImmOiSelectionObjectGet_01(void)
 {
-    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
-    rc = saImmOiSelectionObjectGet(immOiHandle, &selectionObject);
-    test_validate(rc, SA_AIS_OK);
-    safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+	safassert(
+	    saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion),
+	    SA_AIS_OK);
+	rc = saImmOiSelectionObjectGet(immOiHandle, &selectionObject);
+	test_validate(rc, SA_AIS_OK);
+	safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
 }
 
 void saImmOiSelectionObjectGet_02(void)
 {
-    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
-    rc = saImmOiSelectionObjectGet(-1, &selectionObject);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
-    safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+	safassert(
+	    saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion),
+	    SA_AIS_OK);
+	rc = saImmOiSelectionObjectGet(-1, &selectionObject);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
 }
-

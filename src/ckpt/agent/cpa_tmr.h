@@ -20,31 +20,31 @@
 
 #include "base/ncssysf_tmr.h"
 
-#define CPA_OPEN_ASYNC_WAIT_TIME    1000	/* Milli Seconds */
-#define CPA_SYNC_ASYNC_WAIT_TIME    1000	/* Milli Seconds */
+#define CPA_OPEN_ASYNC_WAIT_TIME 1000 /* Milli Seconds */
+#define CPA_SYNC_ASYNC_WAIT_TIME 1000 /* Milli Seconds */
 
 typedef enum cpa_tmr_type {
-	CPA_TMR_TYPE_CPND_RETENTION = 1,
-	CPA_TMR_TYPE_OPEN,
-	CPA_TMR_TYPE_SYNC,
-	CPA_TMR_TYPE_MAX = CPA_TMR_TYPE_SYNC
+  CPA_TMR_TYPE_CPND_RETENTION = 1,
+  CPA_TMR_TYPE_OPEN,
+  CPA_TMR_TYPE_SYNC,
+  CPA_TMR_TYPE_MAX = CPA_TMR_TYPE_SYNC
 } CPA_TMR_TYPE;
 
 typedef struct cpa_tmr {
-	CPA_TMR_TYPE type;
-	tmr_t tmr_id;
-	uint32_t uarg;
-	bool is_active;
-	union {
-		struct {
-			SaCkptCheckpointHandleT lcl_ckpt_hdl;
-			SaCkptHandleT client_hdl;
-			SaInvocationT invocation;
-		} ckpt;
-		struct {
-			uint32_t dummy;
-		} cpnd;
-	} info;
+  CPA_TMR_TYPE type;
+  tmr_t tmr_id;
+  uint32_t uarg;
+  bool is_active;
+  union {
+    struct {
+      SaCkptCheckpointHandleT lcl_ckpt_hdl;
+      SaCkptHandleT client_hdl;
+      SaInvocationT invocation;
+    } ckpt;
+    struct {
+      uint32_t dummy;
+    } cpnd;
+  } info;
 } CPA_TMR;
 
 uint32_t cpa_tmr_start(CPA_TMR *tmr, SaTimeT duration);

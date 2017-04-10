@@ -24,7 +24,6 @@
 #include "base/ncssysf_tsk.h"
 #include "base/ncssysf_mem.h"
 
-
 typedef enum dtm_lib_types {
   MDTM_LIB_UP_TYPE = 1,
   MDTM_LIB_DOWN_TYPE = 2,
@@ -32,7 +31,6 @@ typedef enum dtm_lib_types {
   MDTM_LIB_NODE_DOWN_TYPE = 4,
   MDTM_LIB_MESSAGE_TYPE = 5,
 } MDTM_LIB_TYPES;
-
 
 uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req);
 

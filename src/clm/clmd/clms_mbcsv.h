@@ -31,10 +31,10 @@ typedef enum clms_ckpt_rec_type {
   CLMS_CKPT_CLIENT_INFO_REC,
   CLMS_CKPT_FINALIZE_REC,
   CLMS_CKPT_TRACK_CHANGES_REC,
-  CLMS_CKPT_NODE_REC,     /*For Cold Sync */
-  CLMS_CKPT_NODE_CONFIG_REC,      /* For CCB create */
-  CLMS_CKPT_NODE_RUNTIME_REC,     /* For Async updates */
-  CLMS_CKPT_NODE_DEL_REC, /* For CCB delete */
+  CLMS_CKPT_NODE_REC,         /*For Cold Sync */
+  CLMS_CKPT_NODE_CONFIG_REC,  /* For CCB create */
+  CLMS_CKPT_NODE_RUNTIME_REC, /* For Async updates */
+  CLMS_CKPT_NODE_DEL_REC,     /* For CCB delete */
   CLMS_CKPT_AGENT_DOWN_REC,
   CLMS_CKPT_NODE_DOWN_REC,
   CLMS_CKPT_MSG_MAX
@@ -60,9 +60,9 @@ typedef struct clms_ckpt_node_rec {
   SaTimeT boot_time;
   SaUint64T init_view;
   SaClmAdminStateT admin_state;
-  ADMIN_OP admin_op;      /*plm or clm operation */
+  ADMIN_OP admin_op; /*plm or clm operation */
   SaClmClusterChangesT change;
-  SaBoolT nodeup;         /*Check for the connectivity */
+  SaBoolT nodeup; /*Check for the connectivity */
 #ifdef ENABLE_AIS_PLM
   SaPlmReadinessStateT ee_red_state;
 #endif
@@ -98,16 +98,17 @@ typedef struct clms_ckpt_node {
 #ifdef ENABLE_AIS_PLM
   SaPlmReadinessStateT ee_red_state;
 #endif
-  SaBoolT nodeup;         /*Check for the connectivity */
+  SaBoolT nodeup; /*Check for the connectivity */
   SaInvocationT curr_admin_inv;
-  SaBoolT stat_change;    /*Required to check for the number of nodes on which change has occured */
-  ADMIN_OP admin_op;      /*plm or clm operation */
-  SaInvocationT plm_invid;        /*plmtrack callback invocation id */
+  SaBoolT stat_change;     /*Required to check for the number of nodes on which
+                              change has occured */
+  ADMIN_OP admin_op;       /*plm or clm operation */
+  SaInvocationT plm_invid; /*plmtrack callback invocation id */
 } CLMSV_CKPT_NODE;
 
 /* Checkpoint structure for node's delete data */
 typedef struct clms_ckpt_node_del_rec {
-  SaNameT node_name;      /* Async update for CCB node delete */
+  SaNameT node_name; /* Async update for CCB node delete */
 } CLMSV_CKPT_NODE_DEL_REC;
 
 /* Checkpoint structure for tracklist per node */
@@ -133,9 +134,9 @@ typedef struct clms_ckpt_agent_down {
  * Used during cold and async updates.
  */
 typedef struct clms_ckpt_header_t {
-  CLMS_CKPT_REC_TYPE type;        /* Checkpoint record type */
+  CLMS_CKPT_REC_TYPE type; /* Checkpoint record type */
   uint32_t num_ckpt_records;
-  uint32_t data_len;              /* Total length of encoded checkpoint data of this type */
+  uint32_t data_len; /* Total length of encoded checkpoint data of this type */
 } CLMSV_CKPT_HEADER;
 
 /* Top level structure for Checkpointing */
@@ -155,18 +156,24 @@ typedef struct clms_ckpt_rec_t {
   } param;
 } CLMS_CKPT_REC;
 
-typedef uint32_t (*CLMS_CKPT_HDLR) (CLMS_CB * cb, CLMS_CKPT_REC * data);
-extern uint32_t clms_mbcsv_change_HA_state(CLMS_CB * cb, SaAmfHAStateT ha_state);
-extern uint32_t clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uint32_t action);
-extern void prepare_ckpt_node(CLMSV_CKPT_NODE * node, CLMS_CLUSTER_NODE * cluster_node);
-extern void prepare_cluster_node(CLMS_CLUSTER_NODE * node, CLMSV_CKPT_NODE * cluster_node);
-extern void prepare_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node, CLMS_CLUSTER_NODE * cluster_node);
-extern uint32_t clms_mbcsv_init(CLMS_CB * cb, SaAmfHAStateT ha_state);
+typedef uint32_t (*CLMS_CKPT_HDLR)(CLMS_CB *cb, CLMS_CKPT_REC *data);
+extern uint32_t clms_mbcsv_change_HA_state(CLMS_CB *cb, SaAmfHAStateT ha_state);
+extern uint32_t clms_send_async_update(CLMS_CB *cb, CLMS_CKPT_REC *ckpt_rec,
+                                       uint32_t action);
+extern void prepare_ckpt_node(CLMSV_CKPT_NODE *node,
+                              CLMS_CLUSTER_NODE *cluster_node);
+extern void prepare_cluster_node(CLMS_CLUSTER_NODE *node,
+                                 CLMSV_CKPT_NODE *cluster_node);
+extern void prepare_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC *node,
+                                     CLMS_CLUSTER_NODE *cluster_node);
+extern uint32_t clms_mbcsv_init(CLMS_CB *cb, SaAmfHAStateT ha_state);
 extern uint32_t clms_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
-extern void prepare_ckpt_to_ckpt_node(CLMSV_CKPT_NODE * node, CLMSV_CKPT_NODE * cluster_node);
-extern void prepare_ckpt_to_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node,
-                                             CLMSV_CKPT_NODE_CONFIG_REC * cluster_node);
-extern uint32_t encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress);
+extern void prepare_ckpt_to_ckpt_node(CLMSV_CKPT_NODE *node,
+                                      CLMSV_CKPT_NODE *cluster_node);
+extern void prepare_ckpt_to_ckpt_config_node(
+    CLMSV_CKPT_NODE_CONFIG_REC *node, CLMSV_CKPT_NODE_CONFIG_REC *cluster_node);
+extern uint32_t encodeNodeAddressT(NCS_UBAID *uba,
+                                   SaClmNodeAddressT *nodeAddress);
 
 extern void send_async_update_for_node_rec(CLMS_CLUSTER_NODE *cluster_node);
 #endif  // CLM_CLMD_CLMS_MBCSV_H_

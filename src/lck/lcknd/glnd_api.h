@@ -22,6 +22,7 @@ uint32_t glnd_se_lib_create(uint8_t pool_id);
 uint32_t glnd_se_lib_destroy(void);
 void glnd_process_mbx(GLND_CB *cb, SYSF_MBX *mbx);
 
-GLND_RESOURCE_INFO *glnd_resource_node_find(GLND_CB *glnd_cb, SaLckResourceIdT res_id);
+GLND_RESOURCE_INFO *glnd_resource_node_find(GLND_CB *glnd_cb,
+                                            SaLckResourceIdT res_id);
 
 #endif  // LCK_LCKND_GLND_API_H_

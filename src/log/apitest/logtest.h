@@ -52,8 +52,8 @@
 #define DEFAULT_MAX_FILE_ROTATED 4
 
 #define LOGTST_IMM_LOG_CONFIGURATION "logConfig=1,safApp=safLogService"
-#define LOGTST_IMM_LOG_RUNTIME       "logConfig=currentConfig,safApp=safLogService"
-#define LOGTST_IMM_LOG_GCFG          "opensafConfigId=opensafGlobalConfig,safApp=OpenSAF"
+#define LOGTST_IMM_LOG_RUNTIME "logConfig=currentConfig,safApp=safLogService"
+#define LOGTST_IMM_LOG_GCFG "opensafConfigId=opensafGlobalConfig,safApp=OpenSAF"
 
 extern SaNameT systemStreamName;
 extern SaNameT alarmStreamName;
@@ -80,20 +80,20 @@ extern char log_root_path[];
 
 /* Vebose mode. If set some test cases will print extra information */
 bool verbose_flg;
-void printf_v(const char *format, ...) __attribute__ ((format(printf, 1, 2)));
+void printf_v(const char *format, ...) __attribute__((format(printf, 1, 2)));
 
 /* Silent mode. If set test cases printing information will be silent
  * Only affects stdout. Do not affect default printouts for PASS/FAIL info
  */
 bool silent_flg;
-void printf_s(const char *format, ...) __attribute__ ((format(printf, 1, 2)));
+void printf_s(const char *format, ...) __attribute__((format(printf, 1, 2)));
 
 /* Tag mode. Same as silent mode except that a TAG is printed on stdout when
  * time to take an external action. E.g. TAG_ND means stop SC nodes.
  * The tag is printed on a separate line.
  */
 bool tag_flg;
-void print_t(const char *format, ...) __attribute__ ((format(printf, 1, 2)));
+void print_t(const char *format, ...) __attribute__((format(printf, 1, 2)));
 
 /* Extra test cases */
 void add_suite_9(void);
@@ -117,24 +117,22 @@ typedef struct {
  *
  * @param tm[out]
  */
-static inline void time_meas_start(time_meas_t* tm) {
+static inline void time_meas_start(time_meas_t *tm) {
   osaf_clock_gettime(CLOCK_REALTIME, &tm->start_time);
 }
 
-static inline void time_meas_log(time_meas_t* tm, char *id) {
+static inline void time_meas_log(time_meas_t *tm, char *id) {
   osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
   osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
-  LOG_NO("%s [%s]\t Elapsed time %ld sec, %ld nsec",
-         __FUNCTION__, id,
+  LOG_NO("%s [%s]\t Elapsed time %ld sec, %ld nsec", __FUNCTION__, id,
          tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
 }
 
-
-static inline void time_meas_print_v(time_meas_t* tm, char *id) {
+static inline void time_meas_print_v(time_meas_t *tm, char *id) {
   osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
   osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
-  printf_v("\n%s. Elapsed time %ld.%09ld sec\n", id,
-           tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
+  printf_v("\n%s. Elapsed time %ld.%09ld sec\n", id, tm->diff_time.tv_sec,
+           tm->diff_time.tv_nsec);
 }
 
 #endif  // LOG_APITEST_LOGTEST_H_

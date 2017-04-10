@@ -26,8 +26,8 @@ void saLogStreamOpenAsync_2_01(void)
 		test_validate(rc, SA_AIS_OK);
 		return;
 	}
-	rc = saLogStreamOpenAsync_2(logHandle, &systemStreamName, NULL, 0, invocation);
+	rc = saLogStreamOpenAsync_2(logHandle, &systemStreamName, NULL, 0,
+				    invocation);
 	logFinalize();
 	test_validate(rc, SA_AIS_ERR_NOT_SUPPORTED);
 }
-

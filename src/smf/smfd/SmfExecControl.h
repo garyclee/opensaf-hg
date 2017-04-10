@@ -33,26 +33,26 @@
  * single steps across the nodes a total service outage can be avoided.
  */
 namespace execctrl {
-  /*
-   * Creates empty procedures with the configuration provided in the
-   * ExecControl object. The Campaign object need these empty procedures to
-   * spawn procedure threads. Once started the steps will be built and added to
-   * the procedure.
-   */
-  bool createBalancedProcs();
-  /*
-   * Create the merged step for a balanced procedure. This merged step is based
-   * on steps from original procedures matching the balanced group.
-   */
-  bool createStepForBalancedProc(SmfUpgradeProcedure* procedure);
-  /*
-   * Set the steps that will be merged to completed state and move the wrapup
-   * actions to the last procedure if all steps are to be merged. This is
-   * because we don't want to call the wrapup actions twice if it is not
-   * needed.
-   */
-  void disableMergeSteps(SmfUpgradeProcedure* procedure);
+/*
+ * Creates empty procedures with the configuration provided in the
+ * ExecControl object. The Campaign object need these empty procedures to
+ * spawn procedure threads. Once started the steps will be built and added to
+ * the procedure.
+ */
+bool createBalancedProcs();
+/*
+ * Create the merged step for a balanced procedure. This merged step is based
+ * on steps from original procedures matching the balanced group.
+ */
+bool createStepForBalancedProc(SmfUpgradeProcedure* procedure);
+/*
+ * Set the steps that will be merged to completed state and move the wrapup
+ * actions to the last procedure if all steps are to be merged. This is
+ * because we don't want to call the wrapup actions twice if it is not
+ * needed.
+ */
+void disableMergeSteps(SmfUpgradeProcedure* procedure);
 
-} // namespace execctrl
+}  // namespace execctrl
 
 #endif  // SMF_SMFD_SMFEXECCONTROL_H_

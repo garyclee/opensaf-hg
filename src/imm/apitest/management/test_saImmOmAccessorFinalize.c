@@ -21,29 +21,34 @@ static SaImmAccessorHandleT accessorHandle;
 
 void saImmOmAccessorFinalize_01(void)
 {
-    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
-    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
-    rc = saImmOmAccessorFinalize(accessorHandle);
-    test_validate(rc, SA_AIS_OK);
-    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+	safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion),
+		  SA_AIS_OK);
+	safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle),
+		  SA_AIS_OK);
+	rc = saImmOmAccessorFinalize(accessorHandle);
+	test_validate(rc, SA_AIS_OK);
+	safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
 void saImmOmAccessorFinalize_02(void)
 {
-    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
-    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
-    rc = saImmOmAccessorFinalize(-1);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
-    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+	safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion),
+		  SA_AIS_OK);
+	safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle),
+		  SA_AIS_OK);
+	rc = saImmOmAccessorFinalize(-1);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
 void saImmOmAccessorFinalize_03(void)
 {
-    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
-    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
-    safassert(saImmOmAccessorFinalize(accessorHandle), SA_AIS_OK);
-    rc = saImmOmAccessorFinalize(accessorHandle);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
-    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+	safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion),
+		  SA_AIS_OK);
+	safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle),
+		  SA_AIS_OK);
+	safassert(saImmOmAccessorFinalize(accessorHandle), SA_AIS_OK);
+	rc = saImmOmAccessorFinalize(accessorHandle);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
-

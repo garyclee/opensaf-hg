@@ -28,15 +28,10 @@
 
 constexpr static const int kDaemonStartWaitTimeInSeconds = 15;
 
-enum Termination {
-  kExit,
-  kDaemonExit,
-  kReboot
-};
+enum Termination { kExit, kDaemonExit, kReboot };
 
 struct Result {
-  Result(Termination t, const char* m, int e) :
-      term{t}, msg{m}, error{e} {}
+  Result(Termination t, const char* m, int e) : term{t}, msg{m}, error{e} {}
   Termination term;
   const char* msg;
   int error;
@@ -71,7 +66,7 @@ Result MainFunction(int term_fd) {
     pthread_attr_destroy(&attr);
     return Result{kExit, "pthread_attr_setschedpolicy() failed", result};
   }
-  struct sched_param param{};
+  struct sched_param param {};
   param.sched_priority = sched_get_priority_min(SCHED_OTHER);
   if (param.sched_priority == -1) {
     pthread_attr_destroy(&attr);
@@ -89,8 +84,8 @@ Result MainFunction(int term_fd) {
   }
   LogServer log_server{term_fd};
   pthread_t thread_id;
-  result = pthread_create(&thread_id, &attr,
-                          LogServerStartFunction, &log_server);
+  result =
+      pthread_create(&thread_id, &attr, LogServerStartFunction, &log_server);
   if (result != 0) {
     pthread_attr_destroy(&attr);
     return Result{kExit, "pthread_create() failed", result};
@@ -103,7 +98,8 @@ Result MainFunction(int term_fd) {
   }
   TransportMonitor monitor{term_fd};
   if (!monitor.use_tipc()) {
-    pid_t pid = monitor.WaitForDaemon("osafdtmd", kDaemonStartWaitTimeInSeconds);
+    pid_t pid =
+        monitor.WaitForDaemon("osafdtmd", kDaemonStartWaitTimeInSeconds);
     if (pid == pid_t{-1}) {
       StopLogServerThread();
       JoinLogServerThread(thread_id);
@@ -113,8 +109,7 @@ Result MainFunction(int term_fd) {
     if (!monitor.Sleep(0)) {
       StopLogServerThread();
       JoinLogServerThread(thread_id);
-      return Result{kReboot,
-            "osafdtmd Process down, Rebooting the node", 0};
+      return Result{kReboot, "osafdtmd Process down, Rebooting the node", 0};
     }
   }
   JoinLogServerThread(thread_id);

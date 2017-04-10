@@ -27,7 +27,7 @@ G_GLND_MEMFAIL(GLND_RESTART_RSC_LOCK_LIST_ALLOC_FAILED);
   DESCRIPTION:
 
   This module is the main include file for Global Lock Node Director (GLND).
-  
+
 ******************************************************************************
 */
 

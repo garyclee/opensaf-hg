@@ -20,16 +20,15 @@
 
 #include "ntfimcn_main.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 int ntfimcn_imm_init(ntfimcn_cb_t *cb);
 void ntfimcn_special_applier_clear(void);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
 #endif  // NTF_NTFIMCND_NTFIMCN_IMM_H_
-

@@ -32,6 +32,7 @@ class UnixClientSocket : public UnixSocket {
   // Closes the client socket if it was open, but does not delete the socket
   // from the file system.
   virtual ~UnixClientSocket();
+
  protected:
   virtual bool OpenHook(int sock);
 };

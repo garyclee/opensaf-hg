@@ -51,11 +51,11 @@ int path_is_writeable_dir_hdl(void *indata, void *outdata, size_t max_outsize) {
   int is_writeable_dir = 0;
   struct stat pathstat;
 
-  char *pathname = (char *) indata;
+  char *pathname = (char *)indata;
 
   TRACE_ENTER();
 
-  TRACE("%s - pathname \"%s\"",__FUNCTION__,pathname);
+  TRACE("%s - pathname \"%s\"", __FUNCTION__, pathname);
 
   osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section */
 
@@ -83,7 +83,7 @@ int path_is_writeable_dir_hdl(void *indata, void *outdata, size_t max_outsize) {
 
   is_writeable_dir = 1;
 done:
-  TRACE_LEAVE2("is_writeable_dir = %d",is_writeable_dir);
+  TRACE_LEAVE2("is_writeable_dir = %d", is_writeable_dir);
   return is_writeable_dir;
 }
 
@@ -97,14 +97,14 @@ done:
  */
 int check_path_exists_hdl(void *indata, void *outdata, size_t max_outsize) {
   struct stat pathstat;
-  char *path_str = (char *) indata;
+  char *path_str = (char *)indata;
   int rc = 0;
 
   osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section */
 
   rc = stat(path_str, &pathstat);
-  TRACE("%s - path_str \"%s\", rc=%d",__FUNCTION__,path_str,rc);
-  TRACE("%s - errno \"%s\"",__FUNCTION__,strerror(errno));
+  TRACE("%s - path_str \"%s\", rc=%d", __FUNCTION__, path_str, rc);
+  TRACE("%s - errno \"%s\"", __FUNCTION__, strerror(errno));
 
   osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 
@@ -156,14 +156,13 @@ int create_config_file_hdl(void *indata, void *outdata, size_t max_outsize) {
 
   TRACE_ENTER();
 
-  TRACE("%s - file_path \"%s\"",__FUNCTION__,file_path);
+  TRACE("%s - file_path \"%s\"", __FUNCTION__, file_path);
 
   osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section */
 
   /* Create the config file */
   do {
-    if ((filp = fopen(file_path, "w")) != NULL)
-      break;
+    if ((filp = fopen(file_path, "w")) != NULL) break;
   } while (errno == EINTR);
   if (filp == NULL) {
     LOG_NO("Could not open '%s' - %s", file_path, strerror(errno));
@@ -172,41 +171,43 @@ int create_config_file_hdl(void *indata, void *outdata, size_t max_outsize) {
   }
 
   /* version */
-  if ((rc = fprintf(filp, "%s %c.%d.%d\n", LOG_VER_EXP,
-                    params_in->version.releaseCode,
-                    params_in->version.majorVersion,
-                    params_in->version.minorVersion)) == -1) {
-    TRACE("%s - Print version failed",__FUNCTION__);
+  if ((rc = fprintf(
+           filp, "%s %c.%d.%d\n", LOG_VER_EXP, params_in->version.releaseCode,
+           params_in->version.majorVersion, params_in->version.minorVersion)) ==
+      -1) {
+    TRACE("%s - Print version failed", __FUNCTION__);
     goto fprintf_done;
   }
 
   /* Format expression */
   if ((rc = fprintf(filp, "%s%s\n", FMAT_EXP, logFileFormat)) == -1) {
-    TRACE("%s - Print Format expression failed",__FUNCTION__);
+    TRACE("%s - Print Format expression failed", __FUNCTION__);
     goto fprintf_done;
   }
 
   /* Max logfile size */
-  if ((rc = fprintf(filp, "%s %llu\n", CFG_EXP_MAX_FILE_SIZE, params_in->maxLogFileSize)) == -1) {
-    TRACE("%s - Print Max logfile size failed",__FUNCTION__);
+  if ((rc = fprintf(filp, "%s %llu\n", CFG_EXP_MAX_FILE_SIZE,
+                    params_in->maxLogFileSize)) == -1) {
+    TRACE("%s - Print Max logfile size failed", __FUNCTION__);
     goto fprintf_done;
   }
 
   /* Fixed log record size */
-  if ((rc = fprintf(filp, "%s %d\n", CFG_EXP_FIXED_LOG_REC_SIZE, params_in->fixedLogRecordSize)) == -1) {
-    TRACE("%s - Print Fixed log record size failed",__FUNCTION__);
+  if ((rc = fprintf(filp, "%s %d\n", CFG_EXP_FIXED_LOG_REC_SIZE,
+                    params_in->fixedLogRecordSize)) == -1) {
+    TRACE("%s - Print Fixed log record size failed", __FUNCTION__);
     goto fprintf_done;
   }
 
   /* Log file full action */
-  rc = fprintf(filp, "%s %s %d\n", CFG_EXP_LOG_FULL_ACTION, DEFAULT_ALM_ACTION, params_in->maxFilesRotated);
+  rc = fprintf(filp, "%s %s %d\n", CFG_EXP_LOG_FULL_ACTION, DEFAULT_ALM_ACTION,
+               params_in->maxFilesRotated);
   if (rc == -1) {
-    TRACE("%s - Print version failed",__FUNCTION__);
+    TRACE("%s - Print version failed", __FUNCTION__);
   }
 
 fprintf_done:
-  if (rc == -1)
-    LOG_NO("Could not write to \"%s\"", file_path);
+  if (rc == -1) LOG_NO("Could not write to \"%s\"", file_path);
 
   /* Close the file */
   rc = fclose(filp);
@@ -229,13 +230,15 @@ done:
  * @param max_outsize[in], always sizeof(int)
  * @return (-1) on error or number of written bytes
  */
-int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize, bool *timeout_f) {
+int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize,
+                         bool *timeout_f) {
   int rc = 0;
   uint32_t bytes_written = 0;
   off_t file_length = 0;
   wlrh_t *params_in = static_cast<wlrh_t *>(indata);
   /* Get log record pointed by lgs_rec pointer */
-  char *logrecord = const_cast<char *>(static_cast<const char*>(params_in->lgs_rec));
+  char *logrecord =
+      const_cast<char *>(static_cast<const char *>(params_in->lgs_rec));
   int *errno_out_p = static_cast<int *>(outdata);
   *errno_out_p = 0;
 
@@ -247,17 +250,15 @@ retry:
   rc = write(params_in->fd, &logrecord[bytes_written],
              params_in->record_size - bytes_written);
   if (rc == -1) {
-    if (errno == EINTR)
-      goto retry;
+    if (errno == EINTR) goto retry;
 
-    LOG_ER("%s - write FAILED: %s",__FUNCTION__, strerror(errno));
+    LOG_ER("%s - write FAILED: %s", __FUNCTION__, strerror(errno));
     *errno_out_p = errno;
     goto done;
   } else {
     /* Handle partial writes */
     bytes_written += rc;
-    if (bytes_written < params_in->record_size)
-      goto retry;
+    if (bytes_written < params_in->record_size) goto retry;
   }
   osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 
@@ -276,10 +277,10 @@ retry:
 
     if (file_length == -1) {
       LOG_WA("%s - lseek error, Could not remove redundant log record, %s",
-             __FUNCTION__,strerror(errno));
+             __FUNCTION__, strerror(errno));
     } else if (rc == -1) {
       LOG_WA("%s - ftruncate error, Could not remove redundant log record, %s",
-             __FUNCTION__,strerror(errno));
+             __FUNCTION__, strerror(errno));
     }
   }
 
@@ -308,7 +309,7 @@ done:
     logrecord = NULL;
   }
 
-  TRACE_LEAVE2("rc = %d",rc);
+  TRACE_LEAVE2("rc = %d", rc);
   return rc;
 }
 
@@ -408,7 +409,8 @@ done:
  * @param max_outsize[in], always sizeof(int)
  * @return file descriptor or -1 if error
  */
-int fileopen_hdl(void *indata, void *outdata, size_t max_outsize, bool *timeout_f) {
+int fileopen_hdl(void *indata, void *outdata, size_t max_outsize,
+                 bool *timeout_f) {
   int errno_save = 0;
   fopen_in_t *param_in = static_cast<fopen_in_t *>(indata);
   int *errno_out_p = static_cast<int *>(outdata);
@@ -417,7 +419,7 @@ int fileopen_hdl(void *indata, void *outdata, size_t max_outsize, bool *timeout_
 
   TRACE_ENTER();
 
-  TRACE("%s - filepath \"%s\"",__FUNCTION__,param_in->filepath);
+  TRACE("%s - filepath \"%s\"", __FUNCTION__, param_in->filepath);
   osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section  */
 
   gid = lgs_get_data_gid(param_in->groupname);
@@ -427,16 +429,14 @@ open_retry:
             S_IRUSR | S_IWUSR | S_IRGRP);
 
   if (fd == -1) {
-    if (errno == EINTR)
-      goto open_retry;
+    if (errno == EINTR) goto open_retry;
     /* save errno for caller logging */
     errno_save = errno;
     /* Do not log with higher severity here to avoid flooding the log.
      * Can be called in context of log_stream_write */
-    LOG_IN("Could not open: %s - %s", param_in->filepath,
-           strerror(errno));
+    LOG_IN("Could not open: %s - %s", param_in->filepath, strerror(errno));
   } else {
-    if (fchown(fd, (uid_t)-1, gid) == -1){
+    if (fchown(fd, (uid_t)-1, gid) == -1) {
       LOG_WA("Failed to change log file ownership, %s", strerror(errno));
     }
   }
@@ -450,7 +450,7 @@ open_retry:
    * be closed again in order to not get a stray fd.
    */
   if ((*timeout_f == true) && (fd != -1)) {
-    (void) close(fd);
+    (void)close(fd);
     fd = -1;
     errno_save = 0;
   }
@@ -480,14 +480,14 @@ int fileclose_hdl(void *indata, void *outdata, size_t max_outsize) {
     if ((errno == EROFS) || (errno == EINVAL)) {
       TRACE("Synchronization is not supported for this file");
     } else {
-      LOG_NO("%s: fdatasync() error \"%s\"",__FUNCTION__, strerror(errno));
+      LOG_NO("%s: fdatasync() error \"%s\"", __FUNCTION__, strerror(errno));
     }
   }
 
   /* Close the file */
   rc = close(*fd);
   if (rc == -1) {
-    LOG_ER("fileclose() %s",strerror(errno));
+    LOG_ER("fileclose() %s", strerror(errno));
   } else {
     // When file system is busy, operations on files will take time.
     // In that case, file handle thread will get timeout and the `requester`
@@ -532,7 +532,9 @@ int delete_file_hdl(void *indata, void *outdata, size_t max_outsize) {
 /******************************************************************************
  * Utility functions for get_number_of_log_files_hdl
  */
-static int check_log_oldest(char *line, char *fname_prefix, int fname_prefix_size, int *old_date, int *old_time) {
+static int check_log_oldest(char *line, char *fname_prefix,
+                            int fname_prefix_size, int *old_date,
+                            int *old_time) {
   int date, time, c, d;
   date = time = c = d = 0;
   std::string name_format;
@@ -543,8 +545,8 @@ static int check_log_oldest(char *line, char *fname_prefix, int fname_prefix_siz
 
   name_format = name_format + time_stamps;
   if (sscanf(line, name_format.c_str(), &date, &time, &c, &d) >= 2) {
-    TRACE_3("%s: line: arg 1: %d 2: %d 3: %d 4: %d ok", __FUNCTION__,
-            date, time, c, d);
+    TRACE_3("%s: line: arg 1: %d 2: %d 3: %d 4: %d ok", __FUNCTION__, date,
+            time, c, d);
     if (date < *old_date || *old_date == -1) {
       *old_date = date;
       *old_time = time;
@@ -563,20 +565,20 @@ static int check_log_oldest(char *line, char *fname_prefix, int fname_prefix_siz
 /******************************************************************************
  * Utility functions for get_number_of_cfg_files_hdl
  */
-static int check_cfg_oldest(char *line, char *fname_prefix, int fname_prefix_size, int *old_date, int *old_time) {
+static int check_cfg_oldest(char *line, char *fname_prefix,
+                            int fname_prefix_size, int *old_date,
+                            int *old_time) {
   int date, time;
   date = time = 0;
   std::string name_format;
   char time_stamps[] = "_%d_%d.cfg";
 
- 
   name_format = std::string(fname_prefix);
   TRACE_3("fname: %s", name_format.c_str());
- 
+
   name_format = name_format + time_stamps;
   if (sscanf(line, name_format.c_str(), &date, &time) >= 1) {
-    TRACE_3("%s: line: arg 1: %d 2: %d ok", __FUNCTION__,
-            date, time);
+    TRACE_3("%s: line: arg 1: %d 2: %d ok", __FUNCTION__, date, time);
     if (date < *old_date || *old_date == -1) {
       *old_date = date;
       *old_time = time;
@@ -599,8 +601,8 @@ static int log_filter_func(const struct dirent *finfo) {
   int ret;
   int filenameLen = strlen(finfo->d_name) - strlen(".log");
 
-  ret = strncmp(file_prefix.c_str(), finfo->d_name, file_prefix.size())
-      || strcmp(finfo->d_name + filenameLen, ".log");
+  ret = strncmp(file_prefix.c_str(), finfo->d_name, file_prefix.size()) ||
+        strcmp(finfo->d_name + filenameLen, ".log");
 
   return !ret;
 }
@@ -609,10 +611,10 @@ static int log_filter_func(const struct dirent *finfo) {
 static int cfg_filter_func(const struct dirent *finfo) {
   int ret;
   int filenameLen = strlen(finfo->d_name) - strlen(".cfg");
- 
-  ret = strncmp(file_prefix.c_str(), finfo->d_name, file_prefix.size())
-      || strcmp(finfo->d_name + filenameLen, ".cfg");
- 
+
+  ret = strncmp(file_prefix.c_str(), finfo->d_name, file_prefix.size()) ||
+        strcmp(finfo->d_name + filenameLen, ".cfg");
+
   return !ret;
 }
 
@@ -624,7 +626,8 @@ static int cfg_filter_func(const struct dirent *finfo) {
  *
  * @return int, number of logfiles or -1 if error
  */
-int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize) {
+int get_number_of_log_files_hdl(void *indata, void *outdata,
+                                size_t max_outsize) {
   struct dirent **namelist;
   int n, old_date = -1, old_time = -1, old_ind = -1, files, i, failed = 0;
   std::string path;
@@ -664,16 +667,16 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
   while (n--) {
     TRACE_3("%s", namelist[n]->d_name);
     if (check_log_oldest(namelist[n]->d_name, params_in->file_name,
-                     strlen(params_in->file_name), &old_date, &old_time)) {
+                         strlen(params_in->file_name), &old_date, &old_time)) {
       old_ind = n;
     } else {
-      failed++;       /* wrong format */
+      failed++; /* wrong format */
     }
   }
   if (old_ind != -1) {
     TRACE_1("oldest: %s", namelist[old_ind]->d_name);
-    n = snprintf(oldest_file, max_outsize, "%s/%s",
-                 path.c_str(), namelist[old_ind]->d_name);
+    n = snprintf(oldest_file, max_outsize, "%s/%s", path.c_str(),
+                 namelist[old_ind]->d_name);
     if (n < 0 || static_cast<uint32_t>(n) >= max_outsize) {
       LOG_WA("oldest_file > max_outsize");
       rc = -1;
@@ -687,8 +690,7 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 
 done_free:
   /* Free scandir allocated memory */
-  for (i = 0; i < files; i++)
-    free(namelist[i]);
+  for (i = 0; i < files; i++) free(namelist[i]);
   free(namelist);
 
 done_exit:
@@ -704,18 +706,20 @@ done_exit:
  *
  * @return int, number of cfgfiles or -1 if error
  */
-int get_number_of_cfg_files_hdl(void *indata, void *outdata, size_t max_outsize) {
+int get_number_of_cfg_files_hdl(void *indata, void *outdata,
+                                size_t max_outsize) {
   struct dirent **cfg_namelist = nullptr;
   struct dirent **log_namelist = nullptr;
-  int n, cfg_old_date = -1, cfg_old_time = -1, old_ind = -1, cfg_files = 0, i, failed = 0;
-  int log_old_date = -1, log_old_time = -1 , log_files = 0;
+  int n, cfg_old_date = -1, cfg_old_time = -1, old_ind = -1, cfg_files = 0, i,
+         failed = 0;
+  int log_old_date = -1, log_old_time = -1, log_files = 0;
   std::string path;
   gnolfh_in_t *params_in;
   char *oldest_file;
   int rc = 0;
- 
+
   TRACE_ENTER();
- 
+
   params_in = static_cast<gnolfh_in_t *>(indata);
   oldest_file = static_cast<char *>(outdata);
   /* Initialize the filter */
@@ -723,32 +727,34 @@ int get_number_of_cfg_files_hdl(void *indata, void *outdata, size_t max_outsize)
   path = std::string(params_in->logsv_root_dir) + "/" + params_in->pathName;
 
   osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
-  log_files = n = scandir(path.c_str(), &log_namelist, log_filter_func, alphasort);
+  log_files = n =
+      scandir(path.c_str(), &log_namelist, log_filter_func, alphasort);
   osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
- 
+
   if (n == -1 && errno == ENOENT) {
     rc = 0;
     goto done_exit;
   }
- 
+
   if (n < 0) {
     LOG_WA("scandir:%s - %s", strerror(errno), path.c_str());
     rc = -1;
     goto done_exit;
   }
- 
+
   if (n == 0) {
     rc = log_files;
     goto done_exit;
   }
- 
+
   while (n--) {
     TRACE_3("%s", log_namelist[n]->d_name);
     if (check_log_oldest(log_namelist[n]->d_name, params_in->file_name,
-                     strlen(params_in->file_name), &log_old_date, &log_old_time)) {
+                         strlen(params_in->file_name), &log_old_date,
+                         &log_old_time)) {
       old_ind = n;
     } else {
-      failed++;       /* wrong format */
+      failed++; /* wrong format */
     }
   }
 
@@ -757,7 +763,8 @@ int get_number_of_cfg_files_hdl(void *indata, void *outdata, size_t max_outsize)
     old_ind = -1;
     failed = 0;
     osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
-    cfg_files = n = scandir(path.c_str(), &cfg_namelist, cfg_filter_func, alphasort);
+    cfg_files = n =
+        scandir(path.c_str(), &cfg_namelist, cfg_filter_func, alphasort);
     osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 
     if (n == -1 && errno == ENOENT) {
@@ -778,18 +785,22 @@ int get_number_of_cfg_files_hdl(void *indata, void *outdata, size_t max_outsize)
 
     while (n--) {
       if (check_cfg_oldest(cfg_namelist[n]->d_name, params_in->file_name,
-                     strlen(params_in->file_name), &cfg_old_date, &cfg_old_time)) {
-      old_ind = n;
+                           strlen(params_in->file_name), &cfg_old_date,
+                           &cfg_old_time)) {
+        old_ind = n;
       } else {
-        failed++;       /* wrong format */
+        failed++; /* wrong format */
       }
     }
 
-    if ((old_ind != -1) && (cfg_old_date == log_old_date) && (cfg_old_time <= log_old_time)) {
-      TRACE_1(" (cfg_old_date:%d == log_old_date:%d) && (cfg_old_time:%d <= log_old_time:%d )", cfg_old_date, log_old_date, cfg_old_time, log_old_time);
+    if ((old_ind != -1) && (cfg_old_date == log_old_date) &&
+        (cfg_old_time <= log_old_time)) {
+      TRACE_1(
+          " (cfg_old_date:%d == log_old_date:%d) && (cfg_old_time:%d <= log_old_time:%d )",
+          cfg_old_date, log_old_date, cfg_old_time, log_old_time);
       TRACE_1("oldest: %s", cfg_namelist[old_ind]->d_name);
-      n = snprintf(oldest_file, max_outsize, "%s/%s",
-                     path.c_str(), cfg_namelist[old_ind]->d_name);
+      n = snprintf(oldest_file, max_outsize, "%s/%s", path.c_str(),
+                   cfg_namelist[old_ind]->d_name);
 
       if (n < 0 || static_cast<uint32_t>(n) >= max_outsize) {
         LOG_WA("oldest_file > max_outsize");
@@ -798,25 +809,23 @@ int get_number_of_cfg_files_hdl(void *indata, void *outdata, size_t max_outsize)
       } else {
         rc = (cfg_files - failed);
       }
-    } 
+    }
   }
 
 done_cfg_free:
   /* Free scandir allocated memory */
   if (cfg_namelist != nullptr) {
-    for (i = 0; i < cfg_files; i++)
-      free(cfg_namelist[i]);
+    for (i = 0; i < cfg_files; i++) free(cfg_namelist[i]);
     free(cfg_namelist);
   }
 
 done_log_free:
   /* Free scandir allocated memory */
   if (log_namelist != nullptr) {
-    for (i = 0; i < log_files; i++)
-      free(log_namelist[i]);
+    for (i = 0; i < log_files; i++) free(log_namelist[i]);
     free(log_namelist);
   }
- 
+
 done_exit:
   TRACE_LEAVE();
   return rc;
@@ -832,7 +841,8 @@ done_exit:
  *
  * @return int, 0 on success or -1 if error
  */
-int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) {
+int own_log_files_by_group_hdl(void *indata, void *outdata,
+                               size_t max_outsize) {
   struct dirent **namelist;
   int n, files, i;
   olfbgh_t *params_in;
@@ -847,7 +857,8 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) 
   file_prefix = params_in->file_name;
 
   osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
-  files = n = scandir(params_in->dir_path, &namelist, log_filter_func, alphasort);
+  files = n =
+      scandir(params_in->dir_path, &namelist, log_filter_func, alphasort);
 
   if (n == -1 && errno == ENOENT) {
     rc = 0;
@@ -873,14 +884,14 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) 
 
     TRACE_3("%s", file.c_str());
 
-    if (chown(file.c_str(), (uid_t) -1, gid) != 0) {
-      LOG_WA("Failed to change the ownership of %s - %s", namelist[n]->d_name, strerror(errno));
+    if (chown(file.c_str(), (uid_t)-1, gid) != 0) {
+      LOG_WA("Failed to change the ownership of %s - %s", namelist[n]->d_name,
+             strerror(errno));
     }
   }
 
   /* Free scandir allocated memory */
-  for (i = 0; i < files; i++)
-    free(namelist[i]);
+  for (i = 0; i < files; i++) free(namelist[i]);
   free(namelist);
 
 done_exit:
@@ -921,12 +932,10 @@ static int chr_cnt_b(char *str, char c, int lim) {
   char *ptr_str_pos = ptr_str_end - 1;
 
   while (1) {
-    if (*ptr_str_pos == c)
-      cnt++;
+    if (*ptr_str_pos == c) cnt++;
 
     /* End if beginning of file or char limit */
-    if ((ptr_str_pos == str) || (cnt >= lim))
-      break;
+    if ((ptr_str_pos == str) || (cnt >= lim)) break;
 
     ptr_str_pos--;
   }
@@ -948,10 +957,9 @@ static int filter_logfile_name(const struct dirent *finfo) {
 
   if (strstr(finfo->d_name, file_name_find_g.c_str()) != NULL)
     name_found = true;
-  if (strstr(finfo->d_name, ".log") != NULL)
-    ext_found = true;
+  if (strstr(finfo->d_name, ".log") != NULL) ext_found = true;
 
-  return (int) (name_found && ext_found);
+  return (int)(name_found && ext_found);
 }
 
 /**
@@ -966,10 +974,9 @@ static int filter_logfile_name(const struct dirent *finfo) {
  * @param fsize[out]        Size of current log file
  * @return -1 on error filename_o is not valid
  */
-static int filename_get(
-    char *filepath_i, char *filename_i,
-    std::string &filename_o, std::string &curname_o,
-    uint32_t *fsize) {
+static int filename_get(char *filepath_i, char *filename_i,
+                        std::string &filename_o, std::string &curname_o,
+                        uint32_t *fsize) {
   int rc = 0;
   int num_files = 0;
   int i = 0;
@@ -1120,20 +1127,18 @@ static int record_id_get(const char *file_path) {
     fd = fopen(file_path, "r");
     if (fd != NULL) {
       break;
-    } else if (errno != EINTR){
-      TRACE("%s fopen Fail %s",
-            __FUNCTION__, strerror(errno));
+    } else if (errno != EINTR) {
+      TRACE("%s fopen Fail %s", __FUNCTION__, strerror(errno));
       id_rc = -1;
       goto done;
     }
   }
 
   /* Get last pos in file */
-  while(1) {
+  while (1) {
     if (fseek(fd, 0, SEEK_END) == -1) {
-      if (errno == EINTR)
-        continue;
-      TRACE("\t %d fseek Fail %s",__LINE__, strerror(errno));
+      if (errno == EINTR) continue;
+      TRACE("\t %d fseek Fail %s", __LINE__, strerror(errno));
       id_rc = -1;
       goto done;
     }
@@ -1151,12 +1156,10 @@ static int record_id_get(const char *file_path) {
    * or beginning of file
    */
   for (i = 2; i < endpos; i++) {
-    while(1) {
+    while (1) {
       if (fseek(fd, -i, SEEK_END) == -1) {
-        if (errno == EINTR)
-          continue;
-        TRACE("\t %d fseek Fail %s",
-              __LINE__, strerror(errno));
+        if (errno == EINTR) continue;
+        TRACE("\t %d fseek Fail %s", __LINE__, strerror(errno));
         id_rc = -1;
         goto done;
       }
@@ -1164,8 +1167,7 @@ static int record_id_get(const char *file_path) {
     }
 
     c = getc(fd);
-    if (c == '\n')
-      break;
+    if (c == '\n') break;
   }
 
   /* Get pos for line start */
@@ -1174,15 +1176,13 @@ static int record_id_get(const char *file_path) {
   /* Read the last record and get record id */
   line_len = getline(&read_line, &dummy_n, fd);
   if (line_len == -1) {
-    TRACE("%s: getline Fail %s",
-          __FUNCTION__, strerror(errno));
+    TRACE("%s: getline Fail %s", __FUNCTION__, strerror(errno));
     id_rc = -1;
     goto done;
   }
   id_rc = atoi(read_line);
   if (id_rc == 0) {
-    TRACE("%s: \"%s\" has no number. Id set to 0",
-          __FUNCTION__, read_line);
+    TRACE("%s: \"%s\" has no number. Id set to 0", __FUNCTION__, read_line);
     id_rc = 0;
     goto done_free;
   }
@@ -1191,8 +1191,7 @@ done_free:
   free(read_line);
 
 done:
-  if (fd != NULL)
-    fclose(fd);
+  if (fd != NULL) fclose(fd);
 
   TRACE_LEAVE();
   return id_rc;
@@ -1253,12 +1252,10 @@ int lgs_get_file_params_hdl(void *indata, void *outdata, size_t max_outsize) {
 
   TRACE("file_path = %s, file_name = %s", par_in->file_path, par_in->file_name);
   /* Get log file to get info from and its size */
-  int_rc = filename_get(
-      par_in->file_path, par_in->file_name,
-      file_name, file_name_cur, &file_size
-                        );
+  int_rc = filename_get(par_in->file_path, par_in->file_name, file_name,
+                        file_name_cur, &file_size);
   if (int_rc == -1) {
-    TRACE("%s: filename_get Fail",__FUNCTION__);
+    TRACE("%s: filename_get Fail", __FUNCTION__);
     rc = -1;
     goto done;
   }
@@ -1285,8 +1282,8 @@ int lgs_get_file_params_hdl(void *indata, void *outdata, size_t max_outsize) {
   par_out->curFileSize = file_size;
   if (file_name_cur.empty() == false) {
     // This allocated memory will be freed by the caller
-    par_out->curFileName = static_cast<char *>(
-        calloc(1, file_name_cur.size() + 1));
+    par_out->curFileName =
+        static_cast<char *>(calloc(1, file_name_cur.size() + 1));
     if (par_out->curFileName == NULL) {
       LOG_ER("%s Failed to allocate memory", __FUNCTION__);
       rc = -1;

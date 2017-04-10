@@ -30,12 +30,7 @@ namespace base {
 
 class FileNotify {
  public:
-  enum class FileNotifyErrors {
-    kOK = 0,
-    kTimeOut,
-    kError,
-    kUserFD
-  };
+  enum class FileNotifyErrors { kOK = 0, kTimeOut, kError, kUserFD };
 
   FileNotify();
   virtual ~FileNotify();
@@ -44,16 +39,16 @@ class FileNotify {
    * @brief Wait for a file to be created with a timeout.
    *
    * @a file name in format /path/file.
-   * This function blocks until the file has been created or until the @a timeout expires,
-   * whichever happens first.
+   * This function blocks until the file has been created or until the @a
+   * timeout expires, whichever happens first.
    *
    */
-  FileNotifyErrors
-  WaitForFileCreation(const std::string &file_name,
-                      const std::vector<int>& user_fds, int timeout);
+  FileNotifyErrors WaitForFileCreation(const std::string &file_name,
+                                       const std::vector<int> &user_fds,
+                                       int timeout);
 
-  FileNotifyErrors
-  WaitForFileCreation(const std::string &file_name, int timeout) {
+  FileNotifyErrors WaitForFileCreation(const std::string &file_name,
+                                       int timeout) {
     std::vector<int> empty_user_fds;
     return WaitForFileCreation(file_name, empty_user_fds, timeout);
   }
@@ -62,26 +57,26 @@ class FileNotify {
    * @brief Wait for a file to be deleted.
    *
    * @a file name in format /path/file.
-   * This function blocks until the file has been deleted or until the @a timeout expires,
-   * whichever happens first.
+   * This function blocks until the file has been deleted or until the @a
+   * timeout expires, whichever happens first.
    *
    */
-  FileNotifyErrors
-  WaitForFileDeletion(const std::string &file_name,
-                      const std::vector<int>& user_fds, int timeout);
+  FileNotifyErrors WaitForFileDeletion(const std::string &file_name,
+                                       const std::vector<int> &user_fds,
+                                       int timeout);
 
-  FileNotifyErrors
-    WaitForFileDeletion(const std::string &file_name, int timeout) {
+  FileNotifyErrors WaitForFileDeletion(const std::string &file_name,
+                                       int timeout) {
     std::vector<int> empty_user_fds;
     return WaitForFileDeletion(file_name, empty_user_fds, timeout);
   }
 
  private:
-  static const int kBufferSize = 10 * (sizeof (inotify_event) + NAME_MAX + 1);
+  static const int kBufferSize = 10 * (sizeof(inotify_event) + NAME_MAX + 1);
 
-  FileNotifyErrors ProcessEvents(const std::vector<int>& user_fds, int timeout);
+  FileNotifyErrors ProcessEvents(const std::vector<int> &user_fds, int timeout);
 
-  bool FileExists(const std::string& file_name) const {
+  bool FileExists(const std::string &file_name) const {
     struct stat buffer;
     return stat(file_name.c_str(), &buffer) == 0;
   }

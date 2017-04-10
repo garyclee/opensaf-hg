@@ -54,7 +54,7 @@ class Process {
    * instance of this class, since the timeout handling only supports waiting
    * for one program at a time.
    */
-  void Execute(int argc, char *argv[], const Duration& timeout);
+  void Execute(int argc, char* argv[], const Duration& timeout);
   /**
    * @brief Check if there is currently an executing process.
    *
@@ -64,9 +64,7 @@ class Process {
    * because the timeout has expired), this method may return false even though
    * not all processes have yet been killed.
    */
-  bool is_executing() const {
-    return process_group_id_ > 1;
-  }
+  bool is_executing() const { return process_group_id_ > 1; }
   /**
    * @brief Kill the currently executing program.
    *

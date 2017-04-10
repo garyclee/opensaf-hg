@@ -18,7 +18,7 @@
 /****************************************************************************
 
   DESCRIPTION: Application type class
-  
+
 ****************************************************************************/
 #ifndef AMF_AMFD_APPTYPE_H_
 #define AMF_AMFD_APPTYPE_H_
@@ -35,19 +35,20 @@ class AVD_APP;
 
 class AVD_APP_TYPE {
  public:
-  explicit AVD_APP_TYPE(const std::string& dn);
+  explicit AVD_APP_TYPE(const std::string &dn);
   ~AVD_APP_TYPE();
-  std::string name {};
-  std::vector<std::string> sgAmfApptSGTypes {};
-  AVD_APP *list_of_app {};
+  std::string name{};
+  std::vector<std::string> sgAmfApptSGTypes{};
+  AVD_APP *list_of_app{};
+
  private:
   AVD_APP_TYPE();
   // disallow copy and assign
-  AVD_APP_TYPE(const AVD_APP_TYPE&);
-  void operator=(const AVD_APP_TYPE&);
+  AVD_APP_TYPE(const AVD_APP_TYPE &);
+  void operator=(const AVD_APP_TYPE &);
 };
 
-extern AVD_APP_TYPE *avd_apptype_get(const std::string& dn);
+extern AVD_APP_TYPE *avd_apptype_get(const std::string &dn);
 extern void avd_apptype_add_app(AVD_APP *app);
 extern void avd_apptype_remove_app(AVD_APP *app);
 extern SaAisErrorT avd_apptype_config_get(void);

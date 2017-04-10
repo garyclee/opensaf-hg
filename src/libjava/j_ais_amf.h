@@ -49,51 +49,46 @@ extern jfieldID FID_RR_value;
 
 // CALLBACKS
 extern void SaAmfHealthcheckCallback(SaInvocationT saInvocation,
-				     const SaNameT *saCompNamePtr,
-				     SaAmfHealthcheckKeyT *saHealthcheckKeyPtr);
+                                     const SaNameT *saCompNamePtr,
+                                     SaAmfHealthcheckKeyT *saHealthcheckKeyPtr);
 extern void SaAmfCSISetCallback(SaInvocationT saInvocation,
-				const SaNameT *saCompNamePtr,
-				SaAmfHAStateT saHaState,
-				SaAmfCSIDescriptorT saCsiDescriptor);
+                                const SaNameT *saCompNamePtr,
+                                SaAmfHAStateT saHaState,
+                                SaAmfCSIDescriptorT saCsiDescriptor);
 extern void SaAmfCSIRemoveCallback(SaInvocationT saInvocation,
-				   const SaNameT *saCompNamePtr,
-				   const SaNameT *saCsiNamePtr,
-				   SaAmfCSIFlagsT saCsiFlags);
+                                   const SaNameT *saCompNamePtr,
+                                   const SaNameT *saCsiNamePtr,
+                                   SaAmfCSIFlagsT saCsiFlags);
 extern void SaAmfComponentTerminateCallback(SaInvocationT saInvocation,
-					    const SaNameT *saCompNamePtr);
-extern void SaAmfProxiedComponentInstantiateCallback(SaInvocationT saInvocation,
-						     const SaNameT
-						     *saProxiedCompNamePtr);
-extern void SaAmfProxiedComponentCleanupCallback(SaInvocationT saInvocation,
-						 const SaNameT
-						 *saProxiedCompNamePtr);
-extern void SaAmfProtectionGroupTrackCallback(const SaNameT *saCsiNamePtr,
-					      SaAmfProtectionGroupNotificationBufferT
-					      *saNotificationBufferPtr,
-					      SaUint32T saNumberOfMembers,
-					      SaAisErrorT saError);
+                                            const SaNameT *saCompNamePtr);
+extern void SaAmfProxiedComponentInstantiateCallback(
+    SaInvocationT saInvocation, const SaNameT *saProxiedCompNamePtr);
+extern void SaAmfProxiedComponentCleanupCallback(
+    SaInvocationT saInvocation, const SaNameT *saProxiedCompNamePtr);
+extern void SaAmfProtectionGroupTrackCallback(
+    const SaNameT *saCsiNamePtr,
+    SaAmfProtectionGroupNotificationBufferT *saNotificationBufferPtr,
+    SaUint32T saNumberOfMembers, SaAisErrorT saError);
 
 // CLASS ais.amf.CsiDescriptor
 extern jboolean JNU_CsiDescriptor_initIDs_OK(JNIEnv *jniEnv);
-extern jobject JNU_CsiDescriptor_create(JNIEnv *jniEnv,
-					const SaAmfCSIDescriptorT
-					*saCsiDescriptorPtr,
-					SaAmfHAStateT saHaState);
+extern jobject JNU_CsiDescriptor_create(
+    JNIEnv *jniEnv, const SaAmfCSIDescriptorT *saCsiDescriptorPtr,
+    SaAmfHAStateT saHaState);
 
 // CLASS ais.amf.CsiActiveDescriptor
 extern jboolean JNU_CsiActiveDescriptor_initIDs_OK(JNIEnv *jniEnv);
-extern jobject JNU_CsiActiveDescriptor_create(JNIEnv *jniEnv,
-					      const SaAmfCSIActiveDescriptorT
-					      *saCsiActiveDescriptorPtr);
+extern jobject JNU_CsiActiveDescriptor_create(
+    JNIEnv *jniEnv, const SaAmfCSIActiveDescriptorT *saCsiActiveDescriptorPtr);
 
 // ENUM ais.amf.CsiActiveDescriptor$TransitionDescriptor
 extern jboolean JNU_TransitionDescriptor_initIDs_OK(JNIEnv *jniEnv);
 
 // CLASS ais.amf.CsiStandbyDescriptor
 extern jboolean JNU_CsiStandbyDescriptor_initIDs_OK(JNIEnv *jniEnv);
-extern jobject JNU_CsiStandbyDescriptor_create(JNIEnv *jniEnv,
-					       const SaAmfCSIStandbyDescriptorT
-					       *saCsiStandbyDescriptorPtr);
+extern jobject JNU_CsiStandbyDescriptor_create(
+    JNIEnv *jniEnv,
+    const SaAmfCSIStandbyDescriptorT *saCsiStandbyDescriptorPtr);
 
 // ENUM ais.amf.HaState
 extern jboolean JNU_HaState_initIDs_OK(JNIEnv *jniEnv);

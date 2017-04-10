@@ -26,13 +26,11 @@
 
 #include <pthread.h>
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-enum {
-  kOsafUseSafeReboot = 1
-};
+enum { kOsafUseSafeReboot = 1 };
 
 /**
  * @brief Lock a pthreads mutex and abort the process in case of failure.
@@ -43,7 +41,7 @@ enum {
  * aborting the process.
  */
 static inline void osaf_mutex_lock_ordie(pthread_mutex_t* io_mutex)
-    __attribute__ ((nonnull, nothrow, always_inline));
+    __attribute__((nonnull, nothrow, always_inline));
 
 /**
  * @brief Unlock a pthreads mutex and abort the process in case of failure.
@@ -54,7 +52,7 @@ static inline void osaf_mutex_lock_ordie(pthread_mutex_t* io_mutex)
  * aborting the process.
  */
 static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* io_mutex)
-    __attribute__ ((nonnull, nothrow, always_inline));
+    __attribute__((nonnull, nothrow, always_inline));
 
 /**
  * @brief Log an error message and abort the process.
@@ -65,15 +63,13 @@ static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* io_mutex)
  * example could be an error code. In addition, this function will log the
  * current value of errno.
  */
-extern void osaf_abort(long i_cause)
-    __attribute__ ((
+extern void osaf_abort(long i_cause) __attribute__((
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-        cold,
+    cold,
 #endif
-        nothrow, noreturn));
+    nothrow, noreturn));
 
-extern void osaf_safe_reboot(void)
-    __attribute__ ((nothrow));
+extern void osaf_safe_reboot(void) __attribute__((nothrow));
 
 static inline void osaf_mutex_lock_ordie(pthread_mutex_t* io_mutex) {
   int result = pthread_mutex_lock(io_mutex);
@@ -85,7 +81,7 @@ static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* io_mutex) {
   if (result != 0) osaf_abort(result);
 }
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

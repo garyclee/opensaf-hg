@@ -29,21 +29,20 @@
 #include "amf/saf/saAmf.h"
 
 struct SaAmfSIAssignment {
-	public:
-		SaNameT su;
-		SaNameT si;
-		SaAmfHAStateT saAmfSISUHAState;
-		uint32_t saAmfSISUHAReadinessState;
-		uint32_t assignmentAct;
+ public:
+  SaNameT su;
+  SaNameT si;
+  SaAmfHAStateT saAmfSISUHAState;
+  uint32_t saAmfSISUHAReadinessState;
+  uint32_t assignmentAct;
 };
 
 struct SaAmfCSIAssignment {
-	public:
-		SaNameT csi;
-		SaNameT comp;
-		SaAmfHAStateT saAmfCSICompHAState;
-		uint32_t saAmfCSICompHAReadinessState;
+ public:
+  SaNameT csi;
+  SaNameT comp;
+  SaAmfHAStateT saAmfCSICompHAState;
+  uint32_t saAmfCSICompHAReadinessState;
 };
 
 #endif  // AMF_COMMON_AMF_SI_ASSIGN_H_
-

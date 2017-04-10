@@ -72,7 +72,6 @@ typedef struct exec_mod_info {
 } EXEC_MOD_INFO;
 
 typedef struct sysf_execute_module_cb {
-
   NCS_LOCK tree_lock;
   NCSCONTEXT em_task_handle;
   NCS_PATRICIA_TREE pid_list;
@@ -81,9 +80,8 @@ typedef struct sysf_execute_module_cb {
   bool init;
 } SYSF_EXECUTE_MODULE_CB;
 
-
 #ifndef NCS_EXEC_MOD_STACKSIZE
-#define NCS_EXEC_MOD_STACKSIZE     NCS_STACKSIZE_HUGE
+#define NCS_EXEC_MOD_STACKSIZE NCS_STACKSIZE_HUGE
 #endif
 
 extern SYSF_EXECUTE_MODULE_CB module_cb;
@@ -93,7 +91,8 @@ extern void ncs_exc_mdl_stop_timer(SYSF_PID_LIST *exec_pid);
 extern void ncs_exec_module_signal_hdlr(int signal);
 extern void ncs_exec_module_timer_hdlr(void *uarg);
 extern void ncs_exec_mod_hdlr(void);
-extern uint32_t add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uint32_t pid);
+extern uint32_t add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req,
+                                        uint32_t pid);
 extern uint32_t init_exec_mod_cb(void);
 extern uint32_t start_exec_mod_cb(void);
 extern uint32_t exec_mod_cb_destroy(void);

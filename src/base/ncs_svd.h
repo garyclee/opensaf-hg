@@ -37,7 +37,7 @@
 
 #include "base/ncsgl_defs.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -91,7 +91,7 @@ typedef enum ncs_service_id {
   UD_DTSV_DEMO_SERVICE1,
   UD_DTSV_DEMO_SERVICE2,
 
-  NCS_SERVICE_ID_LGA,     /* SAF LOG Service */
+  NCS_SERVICE_ID_LGA, /* SAF LOG Service */
   NCS_SERVICE_ID_LGS,
 
   NCS_SERVICE_ID_FMA_GFM,
@@ -124,7 +124,7 @@ typedef enum ncs_service_id {
   UD_SERVICE_ID_END = 3000
 } NCS_SERVICE_ID;
 
-typedef NCS_SERVICE_ID SS_SVC_ID;       /* Subsystem Service ID     */
+typedef NCS_SERVICE_ID SS_SVC_ID; /* Subsystem Service ID     */
 
 /************************************************************************
 
@@ -137,7 +137,7 @@ typedef NCS_SERVICE_ID SS_SVC_ID;       /* Subsystem Service ID     */
 
 *************************************************************************/
 
-#define SYSF_MAX_KEY_LEN  42    /* picked as 'big enough' so far */
+#define SYSF_MAX_KEY_LEN 42 /* picked as 'big enough' so far */
 
 typedef struct ncs_octstr {
   uint8_t len;
@@ -145,15 +145,15 @@ typedef struct ncs_octstr {
 } NCS_OCTSTR;
 
 typedef struct ncs_key {
-  NCS_SERVICE_ID svc;     /* an object based in this service */
-  uint8_t type;   /* type or component of service   */
-  uint8_t fmat;   /* value format NUM|HDL|STR|OCT   */
+  NCS_SERVICE_ID svc; /* an object based in this service */
+  uint8_t type;       /* type or component of service   */
+  uint8_t fmat;       /* value format NUM|HDL|STR|OCT   */
 
   union {
     uint32_t num;
     NCSCONTEXT hdl;
     NCS_OCTSTR oct;
-    uint8_t str[SYSF_MAX_KEY_LEN];  /* null terminated string       */
+    uint8_t str[SYSF_MAX_KEY_LEN]; /* null terminated string       */
   } val;
 
 } NCS_KEY;
@@ -161,13 +161,12 @@ typedef struct ncs_key {
 /* NCS_KEY::fmat values */
 
 #define NCS_FMT_EMPTY 0
-#define NCS_FMT_NUM   1
-#define NCS_FMT_HDL   2
-#define NCS_FMT_STR   3
-#define NCS_FMT_OCT   4
+#define NCS_FMT_NUM 1
+#define NCS_FMT_HDL 2
+#define NCS_FMT_STR 3
+#define NCS_FMT_OCT 4
 
-
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

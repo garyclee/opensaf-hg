@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include "osaf/saf/saAis.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -225,7 +225,7 @@ static inline bool osaf_is_extended_names_enabled(void) {
   return osaf_extended_names_enabled;
 }
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

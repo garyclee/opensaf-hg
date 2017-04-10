@@ -34,7 +34,7 @@
  * Note1:
  * The primary interfaces are used for updating e.g. in OI, verifying values
  * e.g. in OI and getting values.
- * There are also some help interfaces used for event handling of the 
+ * There are also some help interfaces used for event handling of the
  * OpenSafLogCurrentConfig information runtime object
  *
  */
@@ -87,7 +87,7 @@ typedef enum {
   LGS_IMM_LOG_NUMEND
 } lgs_logconfGet_t;
 
-static inline lgs_logconfGet_t param_name_to_id(const std::string& param_name) {
+static inline lgs_logconfGet_t param_name_to_id(const std::string &param_name) {
   if (param_name == LOG_ROOT_DIRECTORY) {
     return LGS_IMM_LOG_ROOT_DIRECTORY;
   } else if (param_name == LOG_DATA_GROUPNAME) {
@@ -115,7 +115,7 @@ static inline lgs_logconfGet_t param_name_to_id(const std::string& param_name) {
   } else if (param_name == LOG_RECORD_DESTINATION_STATUS) {
     return LGS_IMM_LOG_RECORD_DESTINATION_STATUS;
   } else {
-    return LGS_IMM_LOG_NUMEND; // Error
+    return LGS_IMM_LOG_NUMEND;  // Error
   }
 }
 
@@ -123,9 +123,9 @@ static inline lgs_logconfGet_t param_name_to_id(const std::string& param_name) {
  * Structure for log server configuration changing data
  */
 typedef struct config_chkpt {
-  char *ckpt_buffer_ptr;          /* Buffer for config data */
-  uint64_t ckpt_buffer_size;      /* Total size of the buffer */
-}lgs_config_chg_t;
+  char *ckpt_buffer_ptr;     /* Buffer for config data */
+  uint64_t ckpt_buffer_size; /* Total size of the buffer */
+} lgs_config_chg_t;
 
 /* ----------------------------
  * Primary interface functions
@@ -138,7 +138,7 @@ typedef struct config_chkpt {
 void lgs_cfg_init(SaImmOiHandleT immOiHandle, SaAmfHAStateT ha_state);
 
 /**
- * Get value of log service configuration parameter from the configuration data 
+ * Get value of log service configuration parameter from the configuration data
  * struct. The scope of configuration data is restricted to this file.
  * This function gives read access to the configuration data
  * Note: The type of the returned value is void. This means that the reader
@@ -218,8 +218,8 @@ void lgs_cfgupd_list_create(const char *name_str, char *value_str,
  * Add a list of new values to the existing values in the attribute
  *
  */
-void lgs_cfgupd_multival_add(const std::string& attribute_name,
-                             const std::vector<std::string>& value_list,
+void lgs_cfgupd_multival_add(const std::string &attribute_name,
+                             const std::vector<std::string> &value_list,
                              lgs_config_chg_t *config_data);
 
 /**
@@ -227,16 +227,16 @@ void lgs_cfgupd_multival_add(const std::string& attribute_name,
  * Note: The attribute shall have the NO_DUPLICATES flag
  *
  */
-void lgs_cfgupd_multival_delete(const std::string& attribute_name,
-                                const std::vector<std::string>& value_list,
+void lgs_cfgupd_multival_delete(const std::string &attribute_name,
+                                const std::vector<std::string> &value_list,
                                 lgs_config_chg_t *config_data);
 
 /**
  * Replace all existing values in the multi value attribute with the values in
  * the list
  */
-void lgs_cfgupd_mutival_replace(const std::string& attribute_name,
-                                const std::vector<std::string>& value_list,
+void lgs_cfgupd_mutival_replace(const std::string &attribute_name,
+                                const std::vector<std::string> &value_list,
                                 lgs_config_chg_t *config_data);
 
 /**
@@ -298,14 +298,13 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data);
 bool lgs_path_is_writeable_dir_h(const std::string &pathname);
 int lgs_cfg_verify_root_dir(const std::string &root_str_in);
 int lgs_cfg_verify_log_data_groupname(char *group_name);
-int lgs_cfg_verify_log_file_format(const char* log_file_format);
+int lgs_cfg_verify_log_file_format(const char *log_file_format);
 int lgs_cfg_verify_max_logrecsize(uint32_t max_logrecsize_in);
 int lgs_cfg_verify_mbox_limit(uint32_t high, uint32_t low);
 int lgs_cfg_verify_max_application_streams(uint32_t max_app_streams);
 int lgs_cfg_verify_file_io_timeout(uint32_t log_file_io_timeout);
 int lgs_cfg_verify_log_record_destination_configuration(
-    std::vector<std::string>& vdest,
-    SaImmAttrModificationTypeT type);
+    std::vector<std::string> &vdest, SaImmAttrModificationTypeT type);
 /*
  * Functions for updating some parameters. Used to support check-point before
  * version 5
@@ -318,7 +317,8 @@ void lgs_groupnameconf_set(const char *data_groupname_str);
  * related information
  */
 void conf_runtime_obj_create(SaImmOiHandleT immOiHandle);
-void conf_runtime_obj_hdl(SaImmOiHandleT immOiHandle, const SaImmAttrNameT *attributeNames);
+void conf_runtime_obj_hdl(SaImmOiHandleT immOiHandle,
+                          const SaImmAttrNameT *attributeNames);
 
 /*
  *  Trace functions
@@ -327,4 +327,3 @@ void lgs_trace_config();
 void lgs_cfg_read_trace();
 
 #endif  // LOG_LOGD_LGS_CONFIG_H_
-

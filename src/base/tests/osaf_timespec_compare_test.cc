@@ -18,9 +18,9 @@
 #include "base/osaf_time.h"
 #include "gtest/gtest.h"
 
-static const timespec kZeroDotOneSeconds = { 0, 100000000 };
-static const timespec kZeroDotNineSeconds = { 0, 900000000 };
-static const timespec kOneDotOneSeconds = { 1, 100000000 };
+static const timespec kZeroDotOneSeconds = {0, 100000000};
+static const timespec kZeroDotNineSeconds = {0, 900000000};
+static const timespec kOneDotOneSeconds = {1, 100000000};
 
 TEST(OsafTimespecCompare, ZeroWithZero) {
   EXPECT_EQ(osaf_timespec_compare(&kZeroSeconds, &kZeroSeconds), 0);
@@ -55,15 +55,18 @@ TEST(OsafTimespecCompare, OneDotOneWithOne) {
 }
 
 TEST(OsafTimespecCompare, ZeroDotNineWithZeroDotNine) {
-  EXPECT_EQ(osaf_timespec_compare(&kZeroDotNineSeconds, &kZeroDotNineSeconds), 0);
+  EXPECT_EQ(osaf_timespec_compare(&kZeroDotNineSeconds, &kZeroDotNineSeconds),
+            0);
 }
 
 TEST(OsafTimespecCompare, ZeroDotNineWithOneDotOne) {
-  EXPECT_EQ(osaf_timespec_compare(&kZeroDotNineSeconds, &kOneDotOneSeconds), -1);
+  EXPECT_EQ(osaf_timespec_compare(&kZeroDotNineSeconds, &kOneDotOneSeconds),
+            -1);
 }
 
 TEST(OsafTimespecCompare, ZeroDotNineWithZeroDotOne) {
-  EXPECT_EQ(osaf_timespec_compare(&kZeroDotNineSeconds, &kZeroDotOneSeconds), 1);
+  EXPECT_EQ(osaf_timespec_compare(&kZeroDotNineSeconds, &kZeroDotOneSeconds),
+            1);
 }
 
 TEST(OsafTimespecCompare, OneDotOneWithZeroDotNine) {
@@ -71,5 +74,6 @@ TEST(OsafTimespecCompare, OneDotOneWithZeroDotNine) {
 }
 
 TEST(OsafTimespecCompare, ZeroDotOneWithZeroDotNine) {
-  EXPECT_EQ(osaf_timespec_compare(&kZeroDotOneSeconds, &kZeroDotNineSeconds), -1);
+  EXPECT_EQ(osaf_timespec_compare(&kZeroDotOneSeconds, &kZeroDotNineSeconds),
+            -1);
 }

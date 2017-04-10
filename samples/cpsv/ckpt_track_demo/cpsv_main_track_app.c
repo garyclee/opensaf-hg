@@ -14,7 +14,6 @@
  * Author(s): Emerson Network Power
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -24,9 +23,9 @@ int main(int argc, char *argv[])
 {
 	unsigned int temp_var;
 
-	if (argc != 2)
-	{
-		printf("\nWrong Arguments USAGE: <ckpt_track_demo><1(Writer)/0(Reader)>\n");
+	if (argc != 2) {
+		printf(
+		    "\nWrong Arguments USAGE: <ckpt_track_demo><1(Writer)/0(Reader)>\n");
 		return -1;
 	}
 
@@ -35,8 +34,7 @@ int main(int argc, char *argv[])
 	/* initiliase the Environment */
 	/*   ncs_agents_startup(0, 0); */
 
-
-	/* start the application */ 
+	/* start the application */
 	cpsv_test_sync_app_process((void *)(long)temp_var);
 	return 0;
 }

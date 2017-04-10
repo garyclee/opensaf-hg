@@ -24,23 +24,26 @@
 
 /*
 NTFS_CKPT_DATA_HEADER
-       4                4               4                 2            
+       4                4               4                 2
 -----------------------------------------------------------------
-| ckpt_rec_type | num_ckpt_records | tot_data_len |  checksum   | 
+| ckpt_rec_type | num_ckpt_records | tot_data_len |  checksum   |
 -----------------------------------------------------------------
 
 NTFSV_CKPT_COLD_SYNC_MSG
 ----------------------------------------------------------------------------------------------------------------------
-| NTFS_CKPT_DATA_HEADER|CLIENTS|NTFS_CKPT_DATA_HEADER|SUBSCRIPTIONS|NTFS_CKPT_DATA_HEADER|NOTIFICATIONS|async_upd_cnt|
+|
+NTFS_CKPT_DATA_HEADER|CLIENTS|NTFS_CKPT_DATA_HEADER|SUBSCRIPTIONS|NTFS_CKPT_DATA_HEADER|NOTIFICATIONS|async_upd_cnt|
 -----------------------------------------------------------------------------------------------------------------------
 */
 
 static uint32_t edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
+				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+				    EDU_ERR *o_err);
 static uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			       NCSCONTEXT ptr, uint32_t *ptr_data_len,
-			       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+				  NCSCONTEXT ptr, uint32_t *ptr_data_len,
+				  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+				  EDU_ERR *o_err);
 
 static uint32_t ckpt_proc_reg_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 static uint32_t ckpt_proc_finalize_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
@@ -48,22 +51,33 @@ static uint32_t ckpt_proc_agent_down_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 static uint32_t ckpt_proc_notification(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 static uint32_t ckpt_proc_subscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 static uint32_t ckpt_proc_unsubscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-static uint32_t ckpt_proc_not_log_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-static uint32_t ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_not_log_confirm(ntfs_cb_t *cb,
+					  ntfsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_not_send_confirm(ntfs_cb_t *cb,
+					   ntfsv_ckpt_msg_t *data);
 
 static void enc_ckpt_header(uint8_t *pdata, ntfsv_ckpt_header_t header);
 static uint32_t dec_ckpt_header(NCS_UBAID *uba, ntfsv_ckpt_header_t *header);
 static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
 static uint32_t decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param);
-static uint32_t decode_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param);
-static uint32_t decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param);
-static uint32_t decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param);
-static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg);	/* Common Callback interface to mbcsv */
-static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t decode_subscribe_msg(NCS_UBAID *uba,
+				     ntfsv_subscribe_req_t *param);
+static uint32_t decode_not_log_confirm_msg(NCS_UBAID *uba,
+					   ntfs_ckpt_not_log_confirm_t *param);
+static uint32_t
+decode_not_send_confirm_msg(NCS_UBAID *uba,
+			    ntfs_ckpt_not_send_confirm_t *param);
+static uint32_t
+mbcsv_callback(NCS_MBCSV_CB_ARG *arg); /* Common Callback interface to mbcsv */
+static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb,
+					 NCS_MBCSV_CB_ARG *cbk_arg);
 
 static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uint32_t ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cbk_arg, bool data_req);
-static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb,
+					NCS_MBCSV_CB_ARG *cbk_arg,
+					bool data_req);
+static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl,
+					 NCS_MBCSV_CB_ARG *cbk_arg);
 static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg);
 static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 static uint32_t ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg);
@@ -73,23 +87,22 @@ static uint32_t process_ckpt_data(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 static void ntfs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr);
 
 static NTFS_CKPT_HDLR ckpt_data_handler[NTFS_CKPT_MSG_MAX] = {
-	NULL,
-	ckpt_proc_reg_rec,
-	ckpt_proc_finalize_rec,
-	ckpt_proc_agent_down_rec,
-	ckpt_proc_notification,
-	ckpt_proc_subscribe,
-	ckpt_proc_unsubscribe,
-	ckpt_proc_not_log_confirm,
-	ckpt_proc_not_send_confirm
-};
+    NULL,
+    ckpt_proc_reg_rec,
+    ckpt_proc_finalize_rec,
+    ckpt_proc_agent_down_rec,
+    ckpt_proc_notification,
+    ckpt_proc_subscribe,
+    ckpt_proc_unsubscribe,
+    ckpt_proc_not_log_confirm,
+    ckpt_proc_not_send_confirm};
 
 /****************************************************************************
- * Name          : ntfsv_mbcsv_init 
+ * Name          : ntfsv_mbcsv_init
  *
  * Description   : This function initializes the mbcsv interface and
  *                 obtains a selection object from mbcsv.
- *                 
+ *
  * Arguments     : NTFS_CB * - A pointer to the ntfs control block.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
@@ -153,16 +166,16 @@ uint32_t ntfs_mbcsv_init(ntfs_cb_t *cb, SaAmfHAStateT ha_state)
 
 	rc = ntfs_mbcsv_change_HA_state(ntfs_cb, ha_state);
 
- done:
+done:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
- * Name          : ntfs_mbcsv_change_HA_state 
+ * Name          : ntfs_mbcsv_change_HA_state
  *
- * Description   : This function inform mbcsv of our HA state. 
- *                 All checkpointing operations are triggered based on the 
+ * Description   : This function inform mbcsv of our HA state.
+ *                 All checkpointing operations are triggered based on the
  *                 state.
  *
  * Arguments     : NTFS_CB * - A pointer to the ntfs control block.
@@ -193,16 +206,16 @@ uint32_t ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb, SaAmfHAStateT ha_state)
 
 	TRACE_LEAVE();
 	return rc;
-}	/*End ntfs_mbcsv_change_HA_state */
+} /*End ntfs_mbcsv_change_HA_state */
 
 /****************************************************************************
- * Name          : ntfs_mbcsv_change_HA_state 
+ * Name          : ntfs_mbcsv_change_HA_state
  *
- * Description   : This function inform mbcsv of our HA state. 
- *                 All checkpointing operations are triggered based on the 
+ * Description   : This function inform mbcsv of our HA state.
+ *                 All checkpointing operations are triggered based on the
  *                 state.
  *
- * Arguments     : NCS_MBCSV_HDL - Handle provided by MBCSV during op_init. 
+ * Arguments     : NCS_MBCSV_HDL - Handle provided by MBCSV during op_init.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -224,8 +237,8 @@ uint32_t ntfs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 /****************************************************************************
  * Name          : mbcsv_callback
  *
- * Description   : This callback is the single entry point for mbcsv to 
- *                 notify ntfs of all checkpointing operations. 
+ * Description   : This callback is the single entry point for mbcsv to
+ *                 notify ntfs of all checkpointing operations.
  *
  * Arguments     : NCS_MBCSV_CB_ARG - Callback Info pertaining to the mbcsv
  *                 event from ACTIVE/STANDBY NTFS peer.
@@ -300,8 +313,9 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	osafassert(cbk_arg != NULL);
 
-	mbcsv_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.encode.i_peer_version,
-					    NTFS_MBCSV_VERSION, NTFS_MBCSV_VERSION_MIN);
+	mbcsv_version =
+	    m_NCS_MBCSV_FMT_GET(cbk_arg->info.encode.i_peer_version,
+				NTFS_MBCSV_VERSION, NTFS_MBCSV_VERSION_MIN);
 	if (0 == mbcsv_version) {
 		TRACE("Wrong mbcsv_version!!!\n");
 		return NCSCC_RC_FAILURE;
@@ -310,7 +324,9 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	switch (cbk_arg->info.encode.io_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
 		/* Encode async update */
-		if ((rc = ckpt_encode_async_update(ntfs_cb, ntfs_cb->edu_hdl, cbk_arg)) != NCSCC_RC_SUCCESS)
+		if ((rc = ckpt_encode_async_update(ntfs_cb, ntfs_cb->edu_hdl,
+						   cbk_arg)) !=
+		    NCSCC_RC_SUCCESS)
 			TRACE("  ckpt_encode_async_update FAILED");
 		break;
 
@@ -338,18 +354,19 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	case NCS_MBCSV_MSG_DATA_RESP:
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
-		if ((rc = ckpt_enc_cold_sync_data(ntfs_cb, cbk_arg, true)) != NCSCC_RC_SUCCESS)
+		if ((rc = ckpt_enc_cold_sync_data(ntfs_cb, cbk_arg, true)) !=
+		    NCSCC_RC_SUCCESS)
 			TRACE("  ckpt_enc_cold_sync_data FAILED");
 		break;
 	default:
 		rc = NCSCC_RC_FAILURE;
 		TRACE("  default FAILED");
 		break;
-	}			/*End switch(io_msg_type) */
+	} /*End switch(io_msg_type) */
 
 	return rc;
 
-}	/*End ckpt_encode_cbk_handler() */
+} /*End ckpt_encode_cbk_handler() */
 
 /****************************************************************************
  * Name          : ckpt_enc_cold_sync_data
@@ -362,7 +379,7 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  *                 Each records contain a header specifying the record type
  *                 and number of such records.
  *
- * Arguments     : ntfs_cb - pointer to the ntfs control block. 
+ * Arguments     : ntfs_cb - pointer to the ntfs control block.
  *                 cbk_arg - Pointer to NCS_MBCSV_CB_ARG with encode info.
  *                 data_req - Flag to specify if its for cold sync or data
  *                 request for warm sync.
@@ -371,7 +388,9 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cbk_arg, bool data_req)
+static uint32_t ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb,
+					NCS_MBCSV_CB_ARG *cbk_arg,
+					bool data_req)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
@@ -387,7 +406,8 @@ static uint32_t ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cb
 
 	/* This will have the count of async updates that have been sent,
 	   this will be 0 initially */
-	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
+	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba,
+					      sizeof(uint32_t));
 	if (async_upd_cnt == NULL) {
 		TRACE("ncs_enc_reserve_space FAILED");
 		return NCSCC_RC_FAILURE;
@@ -397,12 +417,14 @@ static uint32_t ckpt_enc_cold_sync_data(ntfs_cb_t *ntfs_cb, NCS_MBCSV_CB_ARG *cb
 
 	/* Set response mbcsv msg type to complete */
 	if (data_req == true)
-		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
+		cbk_arg->info.encode.io_msg_type =
+		    NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
 	else
-		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
+		cbk_arg->info.encode.io_msg_type =
+		    NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
 	TRACE_2("COLD SYNC ENCODE END........");
 	return rc;
-}	/*End  ckpt_enc_cold_sync_data() */
+} /*End  ckpt_enc_cold_sync_data() */
 
 uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 {
@@ -411,7 +433,7 @@ uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 	TRACE_ENTER();
 
 	osafassert(uba != NULL);
-    /** encode the contents **/
+	/** encode the contents **/
 	if (ntfs_cb->peer_mbcsv_version == NTFS_MBCSV_VERSION_1) {
 		p8 = ncs_enc_reserve_space(uba, 12);
 	} else {
@@ -437,18 +459,20 @@ uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uint32_t enc_mbcsv_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
+static uint32_t enc_mbcsv_subscribe_msg(NCS_UBAID *uba,
+					ntfsv_subscribe_req_t *param)
 {
 	return ntfsv_enc_subscribe_msg(uba, param);
 }
 
-static uint32_t enc_mbcsv_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param)
+static uint32_t enc_mbcsv_log_confirm_msg(NCS_UBAID *uba,
+					  ntfs_ckpt_not_log_confirm_t *param)
 {
 	uint8_t *p8;
 
 	TRACE_ENTER();
 	osafassert(uba != NULL);
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -461,13 +485,14 @@ static uint32_t enc_mbcsv_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_conf
 	return NCSCC_RC_SUCCESS;
 }
 
-static uint32_t enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param)
+static uint32_t enc_mbcsv_send_confirm_msg(NCS_UBAID *uba,
+					   ntfs_ckpt_not_send_confirm_t *param)
 {
 	uint8_t *p8;
 
 	TRACE_ENTER();
 	osafassert(uba != NULL);
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 20);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -489,7 +514,7 @@ static uint32_t enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_co
  * Description   : This function encodes data to be sent as an async update.
  *                 The caller of this function would set the address of the
  *                 record to be encoded in the reo_hdl field(while invoking
- *                 SEND_CKPT option of ncs_mbcsv_svc. 
+ *                 SEND_CKPT option of ncs_mbcsv_svc.
  *
  * Arguments     : cb - pointer to the NTFS control block.
  *                 cbk_arg - Pointer to NCS MBCSV callback argument struct.
@@ -499,7 +524,8 @@ static uint32_t enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_co
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl,
+					 NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	ntfsv_ckpt_msg_t *data = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -554,10 +580,10 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 		enc_ckpt_header(pheader, ckpt_hdr);
 
 		TRACE_2("FINALIZE REC: AUPDATE");
-		rc = m_NCS_EDU_EXEC(&ntfs_cb->edu_hdl,
-				    edp_ed_finalize_rec,
+		rc = m_NCS_EDU_EXEC(&ntfs_cb->edu_hdl, edp_ed_finalize_rec,
 				    &cbk_arg->info.encode.io_uba,
-				    EDP_OP_TYPE_ENC, &data->ckpt_rec.finalize_rec, &ederror);
+				    EDP_OP_TYPE_ENC,
+				    &data->ckpt_rec.finalize_rec, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
 			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
 			/* free(data); FIX ??? */
@@ -568,7 +594,7 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 		TRACE("Async update NTFS_CKPT_SUBSCRIBE");
 		ckpt_hdr.ckpt_rec_type = NTFS_CKPT_SUBSCRIBE;
 		ckpt_hdr.num_ckpt_records = 1;
-		ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
+		ckpt_hdr.data_len = 0; /*Not in Use for Cold Sync */
 		enc_ckpt_header(pheader, ckpt_hdr);
 
 		subscribe_rec.arg = data->ckpt_rec.subscribe.arg;
@@ -578,18 +604,20 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 		TRACE("Async update NTFS_CKPT_UNSUBSCRIBE");
 		ckpt_hdr.ckpt_rec_type = NTFS_CKPT_UNSUBSCRIBE;
 		ckpt_hdr.num_ckpt_records = 1;
-		ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
+		ckpt_hdr.data_len = 0; /*Not in Use for Cold Sync */
 		enc_ckpt_header(pheader, ckpt_hdr);
 
-		unsubscribe_rec.arg.client_id = data->ckpt_rec.unsubscribe.arg.client_id;
-		unsubscribe_rec.arg.subscriptionId = data->ckpt_rec.unsubscribe.arg.subscriptionId;
+		unsubscribe_rec.arg.client_id =
+		    data->ckpt_rec.unsubscribe.arg.client_id;
+		unsubscribe_rec.arg.subscriptionId =
+		    data->ckpt_rec.unsubscribe.arg.subscriptionId;
 		rc = ntfsv_enc_unsubscribe_msg(uba, &unsubscribe_rec.arg);
 		break;
 	case NTFS_CKPT_NOTIFICATION:
 		TRACE("Async update NTFS_CKPT_NOTIFICATION");
 		ckpt_hdr.ckpt_rec_type = NTFS_CKPT_NOTIFICATION;
 		ckpt_hdr.num_ckpt_records = 1;
-		ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
+		ckpt_hdr.data_len = 0; /*Not in Use for Cold Sync */
 		enc_ckpt_header(pheader, ckpt_hdr);
 		rc = ntfsv_enc_not_msg(uba, data->ckpt_rec.notification.arg);
 		break;
@@ -597,18 +625,20 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 		TRACE("Async update NTFS_CKPT_NOT_LOG_CONFIRM");
 		ckpt_hdr.ckpt_rec_type = NTFS_CKPT_NOT_LOG_CONFIRM;
 		ckpt_hdr.num_ckpt_records = 1;
-		ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
+		ckpt_hdr.data_len = 0; /*Not in Use for Cold Sync */
 		enc_ckpt_header(pheader, ckpt_hdr);
-		rc = enc_mbcsv_log_confirm_msg(uba, &data->ckpt_rec.log_confirm);
+		rc =
+		    enc_mbcsv_log_confirm_msg(uba, &data->ckpt_rec.log_confirm);
 		break;
 
 	case NTFS_CKPT_NOT_SEND_CONFIRM:
 		TRACE("Async update NTFS_CKPT_NOT_SEND_CONFIRM");
 		ckpt_hdr.ckpt_rec_type = NTFS_CKPT_NOT_SEND_CONFIRM;
 		ckpt_hdr.num_ckpt_records = 1;
-		ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
+		ckpt_hdr.data_len = 0; /*Not in Use for Cold Sync */
 		enc_ckpt_header(pheader, ckpt_hdr);
-		rc = enc_mbcsv_send_confirm_msg(uba, &data->ckpt_rec.send_confirm);
+		rc = enc_mbcsv_send_confirm_msg(uba,
+						&data->ckpt_rec.send_confirm);
 		break;
 	default:
 		TRACE_3("FAILED no type: %d", data->header.ckpt_rec_type);
@@ -627,8 +657,8 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
  * Name          : ckpt_decode_cbk_handler
  *
  * Description   : This function is the single entry point to all decode
- *                 requests from mbcsv. 
- *                 Invokes the corresponding decode routine based on the 
+ *                 requests from mbcsv.
+ *                 Invokes the corresponding decode routine based on the
  *                 MBCSv decode request type.
  *
  * Arguments     : arg - Pointer to NCS_MBCSV_CB_ARG with decode info
@@ -645,13 +675,15 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	osafassert(cbk_arg != NULL);
 
-	msg_fmt_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
-					      NTFS_MBCSV_VERSION, NTFS_MBCSV_VERSION_MIN);
+	msg_fmt_version =
+	    m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
+				NTFS_MBCSV_VERSION, NTFS_MBCSV_VERSION_MIN);
 	if (0 == msg_fmt_version) {
 		TRACE("wrong msg_fmt_version!!!\n");
 		return NCSCC_RC_FAILURE;
 	}
-	TRACE_2("decode msg type: %u", (unsigned int)cbk_arg->info.decode.i_msg_type);
+	TRACE_2("decode msg type: %u",
+		(unsigned int)cbk_arg->info.decode.i_msg_type);
 	switch (cbk_arg->info.decode.i_msg_type) {
 	case NCS_MBCSV_MSG_COLD_SYNC_REQ:
 		TRACE_2(" COLD SYNC REQ DECODE called");
@@ -660,11 +692,15 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
 		TRACE_2(" COLD SYNC RESP DECODE called");
-		if (ntfs_cb->ckpt_state != COLD_SYNC_COMPLETE) {	/*this check is needed to handle repeated requests */
-			if ((rc = ckpt_decode_cold_sync(ntfs_cb, cbk_arg)) != NCSCC_RC_SUCCESS) {
+		if (ntfs_cb->ckpt_state !=
+		    COLD_SYNC_COMPLETE) { /*this check is needed to handle
+					     repeated requests */
+			if ((rc = ckpt_decode_cold_sync(ntfs_cb, cbk_arg)) !=
+			    NCSCC_RC_SUCCESS) {
 				TRACE(" COLD SYNC RESPONSE DECODE ....");
 			} else {
-				TRACE_2(" COLD SYNC RESPONSE DECODE SUCCESS....");
+				TRACE_2(
+				    " COLD SYNC RESPONSE DECODE SUCCESS....");
 				ntfs_cb->ckpt_state = COLD_SYNC_COMPLETE;
 			}
 		}
@@ -672,7 +708,8 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
 		TRACE_2(" ASYNC UPDATE DECODE called");
-		if ((rc = ckpt_decode_async_update(ntfs_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+		if ((rc = ckpt_decode_async_update(ntfs_cb, cbk_arg)) !=
+		    NCSCC_RC_SUCCESS)
 			TRACE("  ckpt_decode_async_update FAILED");
 		break;
 
@@ -685,7 +722,8 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	case NCS_MBCSV_MSG_DATA_RESP:
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
 		TRACE_2("DATA RESP COMPLETE DECODE called");
-		if ((rc = ckpt_decode_cold_sync(ntfs_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+		if ((rc = ckpt_decode_cold_sync(ntfs_cb, cbk_arg)) !=
+		    NCSCC_RC_SUCCESS)
 			TRACE("   FAILED");
 		break;
 
@@ -695,17 +733,17 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 		TRACE("  INCORRECT DECODE called, FAILED");
 		m_LEAP_DBG_SINK_VOID;
 		break;
-	}			/*End switch(io_msg_type) */
+	} /*End switch(io_msg_type) */
 
 	return rc;
 
-}	/*End ckpt_decode_cbk_handler() */
+} /*End ckpt_decode_cbk_handler() */
 
 /****************************************************************************
- * Name          : ckpt_decode_async_update 
+ * Name          : ckpt_decode_async_update
  *
- * Description   : This function decodes async update data, based on the 
- *                 record type contained in the header. 
+ * Description   : This function decodes async update data, based on the
+ *                 record type contained in the header.
  *
  * Arguments     : arg - Pointer to NCS_MBCSV_CB_ARG with decode info
  *                 cb - pointer to ntfs cb.
@@ -715,7 +753,8 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb,
+					 NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
@@ -734,8 +773,9 @@ static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_ar
 
 	/* Decode the message header */
 	hdr = &ckpt_msg->header;
-	rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_ed_header_rec, &cbk_arg->info.decode.i_uba,
-			    EDP_OP_TYPE_DEC, &hdr, &ederror);
+	rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_ed_header_rec,
+			    &cbk_arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &hdr,
+			    &ederror);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("m_NCS_EDU_EXEC FAILED");
 		m_NCS_EDU_PRINT_ERROR_STRING(ederror);
@@ -757,40 +797,48 @@ static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_ar
 		TRACE_2("NOTIFICATION: AUPDATE");
 		/* freed in notificationReceivedUpdate(...) or
 		   in NtfNotification destructor */
-		ckpt_msg->ckpt_rec.notification.arg = calloc(1, sizeof(ntfsv_send_not_req_t));
-		rc = ntfsv_dec_not_msg(&cbk_arg->info.decode.i_uba, ckpt_msg->ckpt_rec.notification.arg);
+		ckpt_msg->ckpt_rec.notification.arg =
+		    calloc(1, sizeof(ntfsv_send_not_req_t));
+		rc = ntfsv_dec_not_msg(&cbk_arg->info.decode.i_uba,
+				       ckpt_msg->ckpt_rec.notification.arg);
 		break;
 
 	case NTFS_CKPT_NOT_LOG_CONFIRM:
 		TRACE_2("NOT_LOG_CONFIRM: AUPDATE");
-		rc = decode_not_log_confirm_msg(&cbk_arg->info.decode.i_uba, &ckpt_msg->ckpt_rec.log_confirm);
+		rc =
+		    decode_not_log_confirm_msg(&cbk_arg->info.decode.i_uba,
+					       &ckpt_msg->ckpt_rec.log_confirm);
 		break;
 	case NTFS_CKPT_NOT_SEND_CONFIRM:
 		TRACE_2("NOT_SEND_CONFIRM: AUPDATE");
-		rc = decode_not_send_confirm_msg(&cbk_arg->info.decode.i_uba, &ckpt_msg->ckpt_rec.send_confirm);
+		rc = decode_not_send_confirm_msg(
+		    &cbk_arg->info.decode.i_uba,
+		    &ckpt_msg->ckpt_rec.send_confirm);
 		break;
 
 	case NTFS_CKPT_SUBSCRIBE:
 		TRACE_2("SUBSCRIBE: AUPDATE");
 		subscribe_rec = &ckpt_msg->ckpt_rec.subscribe;
 
-		rc = decode_subscribe_msg(&cbk_arg->info.decode.i_uba, &subscribe_rec->arg);
+		rc = decode_subscribe_msg(&cbk_arg->info.decode.i_uba,
+					  &subscribe_rec->arg);
 		break;
 
 	case NTFS_CKPT_UNSUBSCRIBE:
 		TRACE_2("UNSUBSCRIBE: AUPDATE");
 		unsubscribe_rec = &ckpt_msg->ckpt_rec.unsubscribe;
 
-		rc = ntfsv_dec_unsubscribe_msg(&cbk_arg->info.decode.i_uba, &unsubscribe_rec->arg);
+		rc = ntfsv_dec_unsubscribe_msg(&cbk_arg->info.decode.i_uba,
+					       &unsubscribe_rec->arg);
 		break;
 
 	case NTFS_CKPT_FINALIZE_REC:
 		TRACE_2("FINALIZE REC: AUPDATE");
 		reg_rec = &ckpt_msg->ckpt_rec.reg_rec;
 		finalize = &ckpt_msg->ckpt_rec.finalize_rec;
-		rc = m_NCS_EDU_EXEC(&cb->edu_hdl,
-				    edp_ed_finalize_rec,
-				    &cbk_arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &finalize, &ederror);
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_ed_finalize_rec,
+				    &cbk_arg->info.decode.i_uba,
+				    EDP_OP_TYPE_DEC, &finalize, &ederror);
 
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE("   FAILED");
@@ -801,7 +849,8 @@ static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_ar
 	case NTFS_CKPT_AGENT_DOWN:
 		TRACE_2("AGENT DOWN REC: AUPDATE");
 		agent_dest = &ckpt_msg->ckpt_rec.agent_dest;
-		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ncs_edp_mds_dest, &cbk_arg->info.decode.i_uba,
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ncs_edp_mds_dest,
+				    &cbk_arg->info.decode.i_uba,
 				    EDP_OP_TYPE_DEC, &agent_dest, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE("   FAILED");
@@ -815,13 +864,13 @@ static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_ar
 		TRACE("   FAILED");
 		goto done;
 		break;
-	}			/*end switch */
-	if(rc == NCSCC_RC_SUCCESS) {
+	} /*end switch */
+	if (rc == NCSCC_RC_SUCCESS) {
 		rc = process_ckpt_data(cb, ckpt_msg);
 		/* Update the Async Update Count at standby */
 		cb->async_upd_cnt++;
 	}
- done:
+done:
 	free(ckpt_msg);
 	TRACE_LEAVE();
 	return rc;
@@ -839,7 +888,7 @@ static uint32_t decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 		param->client_id = ncs_decode_32bit(&p8);
 		param->mds_dest = ncs_decode_64bit(&p8);
 		ncs_dec_skip_space(uba, 12);
-        } else {
+	} else {
 		uint8_t local_data[15];
 		p8 = ncs_dec_flatten_space(uba, local_data, 15);
 		param->client_id = ncs_decode_32bit(&p8);
@@ -848,17 +897,19 @@ static uint32_t decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 		param->version.majorVersion = ncs_decode_8bit(&p8);
 		param->version.minorVersion = ncs_decode_8bit(&p8);
 		ncs_dec_skip_space(uba, 15);
-        }
+	}
 	TRACE_8("decode_client_msg");
 	return NCSCC_RC_SUCCESS;
 }
 
-static uint32_t decode_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
+static uint32_t decode_subscribe_msg(NCS_UBAID *uba,
+				     ntfsv_subscribe_req_t *param)
 {
 	return ntfsv_dec_subscribe_msg(uba, param);
 }
 
-static uint32_t decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_confirm_t *param)
+static uint32_t decode_not_log_confirm_msg(NCS_UBAID *uba,
+					   ntfs_ckpt_not_log_confirm_t *param)
 {
 	uint8_t *p8;
 	uint8_t local_data[8];
@@ -871,7 +922,8 @@ static uint32_t decode_not_log_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_log_con
 	return NCSCC_RC_SUCCESS;
 }
 
-static uint32_t decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confirm_t *param)
+static uint32_t decode_not_send_confirm_msg(NCS_UBAID *uba,
+					    ntfs_ckpt_not_send_confirm_t *param)
 {
 	uint8_t *p8;
 	uint8_t local_data[20];
@@ -888,10 +940,10 @@ static uint32_t decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_c
 }
 
 /****************************************************************************
- * Name          : ckpt_decode_cold_sync 
+ * Name          : ckpt_decode_cold_sync
  *
- * Description   : This function decodes async update data, based on the 
- *                 record type contained in the header. 
+ * Description   : This function decodes async update data, based on the
+ *                 record type contained in the header.
  *
  * Arguments     : arg - Pointer to NCS_MBCSV_CB_ARG with decode info
  *                 cb - pointer to ntfs cb.
@@ -900,12 +952,12 @@ static uint32_t decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_c
  *
  * Notes         : COLD SYNC RECORDS are expected in an order
  *                 1. REG RECORDS
- *                 2. 
- *                 
+ *                 2.
+ *
  *                 For each record type,
  *                     a) decode header.
- *                     b) decode individual records for 
- *                        header->num_records times, 
+ *                     b) decode individual records for
+ *                        header->num_records times,
  *****************************************************************************/
 
 static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
@@ -925,12 +977,14 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 
 	TRACE_ENTER2("COLD SYNC DECODE START........");
 	/* Decode the current message header */
-	if ((rc = dec_ckpt_header(&cbk_arg->info.decode.i_uba, &data->header)) != NCSCC_RC_SUCCESS) {
+	if ((rc = dec_ckpt_header(&cbk_arg->info.decode.i_uba,
+				  &data->header)) != NCSCC_RC_SUCCESS) {
 		goto done;
 	}
 	/* Check if the first in the order of records is reg record */
 	if (data->header.ckpt_rec_type != NTFS_CKPT_INITIALIZE_REC) {
-		TRACE("FAILED data->header.ckpt_rec_type != NTFS_CKPT_INITIALIZE_REC");
+		TRACE(
+		    "FAILED data->header.ckpt_rec_type != NTFS_CKPT_INITIALIZE_REC");
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -952,18 +1006,20 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		}
 		memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
 		--num_rec;
-	}			/*End while, reg records */
+	} /*End while, reg records */
 
 	while (num_clients) {
 		/* Decode the current message header */
-		if ((rc = dec_ckpt_header(&cbk_arg->info.decode.i_uba, &data->header))
-		    != NCSCC_RC_SUCCESS) {
+		if ((rc = dec_ckpt_header(&cbk_arg->info.decode.i_uba,
+					  &data->header)) != NCSCC_RC_SUCCESS) {
 			goto done;
 		}
 
-		/* Check if the second in the order of records is subscription record */
+		/* Check if the second in the order of records is subscription
+		 * record */
 		if (data->header.ckpt_rec_type != NTFS_CKPT_SUBSCRIBE) {
-			TRACE("FAILED data->header.ckpt_rec_type != NTFS_CKPT_SUBSCRIBE");
+			TRACE(
+			    "FAILED data->header.ckpt_rec_type != NTFS_CKPT_SUBSCRIBE");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -971,7 +1027,8 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		TRACE_2("subscribers num_rec: %u", num_rec);
 		while (num_rec) {
 			ntfsv_subscribe_req_t subscribe_rec;
-			rc = decode_subscribe_msg(&cbk_arg->info.decode.i_uba, &subscribe_rec);
+			rc = decode_subscribe_msg(&cbk_arg->info.decode.i_uba,
+						  &subscribe_rec);
 			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE("decode_subscribe_msg FAILED");
 				goto done;
@@ -983,15 +1040,17 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	}
 
 	/* decode highest notification id */
-	ntfsv_dec_64bit_msg(&cbk_arg->info.decode.i_uba, (uint64_t *)&ntfGlobals.notificationId);
+	ntfsv_dec_64bit_msg(&cbk_arg->info.decode.i_uba,
+			    (uint64_t *)&ntfGlobals.notificationId);
 	TRACE_8("notification_id: %llu", ntfGlobals.notificationId);
-	ntfsv_dec_64bit_msg(&cbk_arg->info.decode.i_uba, (uint64_t *)&ntfGlobals.clientIdCounter);
+	ntfsv_dec_64bit_msg(&cbk_arg->info.decode.i_uba,
+			    (uint64_t *)&ntfGlobals.clientIdCounter);
 	TRACE_8("client_id: %llu", ntfGlobals.clientIdCounter);
 	syncGlobals(&ntfGlobals);
 
 	/* Decode the current message header */
-	if ((rc = dec_ckpt_header(&cbk_arg->info.decode.i_uba, &data->header))
-	    != NCSCC_RC_SUCCESS) {
+	if ((rc = dec_ckpt_header(&cbk_arg->info.decode.i_uba,
+				  &data->header)) != NCSCC_RC_SUCCESS) {
 		goto done;
 	}
 
@@ -999,7 +1058,8 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 
 	/* Check if the second in the order of records is notification record */
 	if (data->header.ckpt_rec_type != NTFS_CKPT_NOTIFICATION) {
-		TRACE("FAILED data->header.ckpt_rec_type != NTFS_CKPT_NOTIFICATION");
+		TRACE(
+		    "FAILED data->header.ckpt_rec_type != NTFS_CKPT_NOTIFICATION");
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -1009,7 +1069,8 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	while (num_rec) {
 		uint32_t noOfSubscriptions = 0, logged = 0;
 		/* freed in NtfNotification destructor */
-		ntfsv_send_not_req_t *notification_rec = calloc(1, sizeof(ntfsv_send_not_req_t));
+		ntfsv_send_not_req_t *notification_rec =
+		    calloc(1, sizeof(ntfsv_send_not_req_t));
 
 		if (notification_rec == NULL) {
 			TRACE("calloc FAILED");
@@ -1017,23 +1078,29 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 			goto done;
 		}
 
-		rc = ntfsv_dec_not_msg(&cbk_arg->info.decode.i_uba, notification_rec);
+		rc = ntfsv_dec_not_msg(&cbk_arg->info.decode.i_uba,
+				       notification_rec);
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE("decode_subscribe_msg FAILED");
 			goto done;
 		}
 		notificationReceivedColdSync(notification_rec->client_id,
-					     notification_rec->notificationType, notification_rec);
+					     notification_rec->notificationType,
+					     notification_rec);
 
-		ntfsv_dec_32bit_msg(&cbk_arg->info.decode.i_uba, &noOfSubscriptions);
+		ntfsv_dec_32bit_msg(&cbk_arg->info.decode.i_uba,
+				    &noOfSubscriptions);
 		TRACE_2("noOfSubscriptions: %u", noOfSubscriptions);
 		while (noOfSubscriptions != 0) {
 			unsigned int subscription_id = 0, client_id;
-			ntfsv_dec_32bit_msg(&cbk_arg->info.decode.i_uba, &subscription_id);
-			ntfsv_dec_32bit_msg(&cbk_arg->info.decode.i_uba, &client_id);
+			ntfsv_dec_32bit_msg(&cbk_arg->info.decode.i_uba,
+					    &subscription_id);
+			ntfsv_dec_32bit_msg(&cbk_arg->info.decode.i_uba,
+					    &client_id);
 			TRACE_2("subscription: %u", subscription_id);
 			ntfsv_get_ntf_header(notification_rec, &header);
-			storeMatchingSubscription(*header->notificationId, client_id, subscription_id);
+			storeMatchingSubscription(*header->notificationId,
+						  client_id, subscription_id);
 			noOfSubscriptions--;
 		}
 		ntfsv_dec_32bit_msg(&cbk_arg->info.decode.i_uba, &logged);
@@ -1044,13 +1111,14 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	}
 
 	/* Get the async update count */
-	ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba, data_cnt, sizeof(uint32_t));
+	ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba, data_cnt,
+				    sizeof(uint32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
 	cb->async_upd_cnt = num_of_async_upd;
 	ncs_dec_skip_space(&cbk_arg->info.decode.i_uba, 4);
 
-	/* If we reached here, we are through. Good enough for coldsync with ACTIVE */
- done:
+/* If we reached here, we are through. Good enough for coldsync with ACTIVE */
+done:
 	if (rc != NCSCC_RC_SUCCESS) {
 		/* Do not allow standby to get out of sync */
 		ntfs_exit("Cold sync failed", SA_AMF_COMPONENT_RESTART);
@@ -1063,11 +1131,11 @@ static uint32_t ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
  * Name          : process_ckpt_data
  *
  * Description   : This function updates the ntfs internal databases
- *                 based on the data type. 
+ *                 based on the data type.
  *
- * Arguments     : cb - pointer to NTFS ControlBlock. 
- *                 data - pointer to  NTFS_CHECKPOINT_DATA. 
- * 
+ * Arguments     : cb - pointer to NTFS ControlBlock.
+ *                 data - pointer to  NTFS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1082,28 +1150,30 @@ static uint32_t process_ckpt_data(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 		return (rc = NCSCC_RC_FAILURE);
 	}
 
-	if ((cb->ha_state == SA_AMF_HA_STANDBY) || (cb->ha_state == SA_AMF_HA_QUIESCED)) {
+	if ((cb->ha_state == SA_AMF_HA_STANDBY) ||
+	    (cb->ha_state == SA_AMF_HA_QUIESCED)) {
 		if (data->header.ckpt_rec_type >= NTFS_CKPT_MSG_MAX) {
-			TRACE("FAILED: data->header.ckpt_rec_type >= NTFS_CKPT_MSG_MAX");
+			TRACE(
+			    "FAILED: data->header.ckpt_rec_type >= NTFS_CKPT_MSG_MAX");
 			return NCSCC_RC_FAILURE;
 		}
 		/* Update the internal database */
-		rc = ckpt_data_handler[data->header.ckpt_rec_type] (cb, data);
+		rc = ckpt_data_handler[data->header.ckpt_rec_type](cb, data);
 		return rc;
 	} else {
 		return (rc = NCSCC_RC_FAILURE);
 	}
-}	/*End ntfs_process_ckpt_data() */
+} /*End ntfs_process_ckpt_data() */
 
 /****************************************************************************
  * Name          : ckpt_proc_reg_rec
  *
- * Description   : This function updates the ntfs reglist based on the 
+ * Description   : This function updates the ntfs reglist based on the
  *                 info received from the ACTIVE ntfs peer.
  *
  * Arguments     : cb - pointer to NTFS  ControlBlock.
- *                 data - pointer to  NTFS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  NTFS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1121,10 +1191,12 @@ static uint32_t ckpt_proc_reg_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 		return NCSCC_RC_FAILURE;
 	}
 	if (ntfs_cb->peer_mbcsv_version == NTFS_MBCSV_VERSION_1) {
-		SaVersionT version = { NTF_RELEASE_CODE_0, NTF_MAJOR_VERSION_0, NTF_MINOR_VERSION_0 };
+		SaVersionT version = {NTF_RELEASE_CODE_0, NTF_MAJOR_VERSION_0,
+				      NTF_MINOR_VERSION_0};
 		clientAdded(param->client_id, param->mds_dest, NULL, &version);
 	} else {
-		clientAdded(param->client_id, param->mds_dest, NULL, &param->version);
+		clientAdded(param->client_id, param->mds_dest, NULL,
+			    &param->version);
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1133,13 +1205,13 @@ static uint32_t ckpt_proc_reg_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 /****************************************************************************
  * Name          : ckpt_proc_notification
  *
- * Description   : 
- *                 
- *                 
+ * Description   :
+ *
+ *
  *
  * Arguments     : cb - pointer to NTFS  ControlBlock.
- *                 data - pointer to  NTFS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  NTFS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1151,7 +1223,8 @@ static uint32_t ckpt_proc_notification(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	ntfsv_send_not_req_t *param = data->ckpt_rec.notification.arg;
-	notificationReceivedUpdate(param->client_id, param->notificationType, param);
+	notificationReceivedUpdate(param->client_id, param->notificationType,
+				   param);
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1169,36 +1242,42 @@ static uint32_t ckpt_proc_not_log_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
  * Name          : ckpt_proc_not_send_confirm
  *
  * Description   : confirm that a notification has been sent to a subscriber,
- *                 been discarded or that a discarded message has been sent.                 
- *                 
+ *                 been discarded or that a discarded message has been sent.
+ *
  * Arguments     : cb - pointer to NTFS  ControlBlock.
- *                 data - pointer to  NTFS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  NTFS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS
  *
  * Notes         : None.
  ****************************************************************************/
 
-static uint32_t ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_not_send_confirm(ntfs_cb_t *cb,
+					   ntfsv_ckpt_msg_t *data)
 {
 	TRACE_ENTER2("discarded %d", data->ckpt_rec.send_confirm.discarded);
-	if (data->ckpt_rec.send_confirm.discarded == NTFS_NOTIFICATION_OK) {	
-		notificationSentConfirmed(data->ckpt_rec.send_confirm.clientId,
-			data->ckpt_rec.send_confirm.subscriptionId, data->ckpt_rec.send_confirm.notificationId,
-			data->ckpt_rec.send_confirm.discarded);
-	}
-	else if (data->ckpt_rec.send_confirm.discarded == NTFS_NOTIFICATION_DISCARDED) {	
-		discardedAdd(data->ckpt_rec.send_confirm.clientId, data->ckpt_rec.send_confirm.subscriptionId,
-			data->ckpt_rec.send_confirm.notificationId);
-		notificationSentConfirmed(data->ckpt_rec.send_confirm.clientId,
-			data->ckpt_rec.send_confirm.subscriptionId, data->ckpt_rec.send_confirm.notificationId,
-			data->ckpt_rec.send_confirm.discarded);
-	}
-	else if (data->ckpt_rec.send_confirm.discarded == NTFS_NOTIFICATION_DISCARDED_LIST_SENT) {	
-		discardedClear(data->ckpt_rec.send_confirm.clientId, data->ckpt_rec.send_confirm.subscriptionId);
-	}
-	else 
+	if (data->ckpt_rec.send_confirm.discarded == NTFS_NOTIFICATION_OK) {
+		notificationSentConfirmed(
+		    data->ckpt_rec.send_confirm.clientId,
+		    data->ckpt_rec.send_confirm.subscriptionId,
+		    data->ckpt_rec.send_confirm.notificationId,
+		    data->ckpt_rec.send_confirm.discarded);
+	} else if (data->ckpt_rec.send_confirm.discarded ==
+		   NTFS_NOTIFICATION_DISCARDED) {
+		discardedAdd(data->ckpt_rec.send_confirm.clientId,
+			     data->ckpt_rec.send_confirm.subscriptionId,
+			     data->ckpt_rec.send_confirm.notificationId);
+		notificationSentConfirmed(
+		    data->ckpt_rec.send_confirm.clientId,
+		    data->ckpt_rec.send_confirm.subscriptionId,
+		    data->ckpt_rec.send_confirm.notificationId,
+		    data->ckpt_rec.send_confirm.discarded);
+	} else if (data->ckpt_rec.send_confirm.discarded ==
+		   NTFS_NOTIFICATION_DISCARDED_LIST_SENT) {
+		discardedClear(data->ckpt_rec.send_confirm.clientId,
+			       data->ckpt_rec.send_confirm.subscriptionId);
+	} else
 		osafassert(0);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1207,11 +1286,11 @@ static uint32_t ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data
 /****************************************************************************
  * Name          : ckpt_proc_unsubscribe
  *
- * Description   : 
+ * Description   :
  *
  * Arguments     : cb - pointer to NTFS  ControlBlock.
- *                 data - pointer to  NTFS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  NTFS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1237,13 +1316,13 @@ static uint32_t ckpt_proc_unsubscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 /****************************************************************************
  * Name          : ckpt_proc_subscribe
  *
- * Description   : 
- *                 
- *                 
+ * Description   :
+ *
+ *
  *
  * Arguments     : cb - pointer to NTFS  ControlBlock.
- *                data - pointer to  NTFS_CHECKPOINT_DATA. 
- * 
+ *                data - pointer to  NTFS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1269,12 +1348,12 @@ uint32_t ckpt_proc_subscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 /****************************************************************************
  * Name          : ckpt_proc_finalize_rec
  *
- * Description   : This function clears the ntfs reglist and assosicated DB 
+ * Description   : This function clears the ntfs reglist and assosicated DB
  *                 based on the info received from the ACTIVE ntfs peer.
  *
  * Arguments     : cb - pointer to NTFS ControlBlock.
- *                 data - pointer to  NTFS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  NTFS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1285,7 +1364,8 @@ static uint32_t ckpt_proc_finalize_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
 	ntfsv_ckpt_finalize_msg_t *param = &data->ckpt_rec.finalize_rec;
 	TRACE_ENTER();
-	/* This insure all resources allocated by this registration are freed. */
+	/* This insure all resources allocated by this registration are freed.
+	 */
 	clientRemoved(param->client_id);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1294,16 +1374,16 @@ static uint32_t ckpt_proc_finalize_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 /****************************************************************************
  * Name          : ckpt_proc_agent_down_rec
  *
- * Description   : This function processes a agent down message 
- *                 received from the ACTIVE NTFS peer.      
+ * Description   : This function processes a agent down message
+ *                 received from the ACTIVE NTFS peer.
  *
  * Arguments     : cb - pointer to NTFS ControlBlock.
- *                 data - pointer to  NTFS_CHECKPOINT_DATA. 
- * 
+ *                 data - pointer to  NTFS_CHECKPOINT_DATA.
+ *
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
- * Notes         : None 
+ * Notes         : None
  ****************************************************************************/
 
 static uint32_t ckpt_proc_agent_down_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
@@ -1336,7 +1416,8 @@ static uint32_t ckpt_proc_agent_down_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
  *                 retrieve the record for encoding the same.
  *****************************************************************************/
 
-uint32_t ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uint32_t action)
+uint32_t ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec,
+				uint32_t action)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_MBCSV_ARG mbcsv_arg;
@@ -1346,11 +1427,13 @@ uint32_t ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uint3
 	mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.send_ckpt.i_action = action;
-	mbcsv_arg.info.send_ckpt.i_ckpt_hdl = (NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
-	mbcsv_arg.info.send_ckpt.i_reo_hdl = NCS_PTR_TO_UNS64_CAST(ckpt_rec);	/*Will be used in encode callback */
+	mbcsv_arg.info.send_ckpt.i_ckpt_hdl =
+	    (NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
+	mbcsv_arg.info.send_ckpt.i_reo_hdl = NCS_PTR_TO_UNS64_CAST(
+	    ckpt_rec); /*Will be used in encode callback */
 
-	/* Just store the address of the data to be send as an 
-	 * async update record in reo_hdl. The same shall then be 
+	/* Just store the address of the data to be send as an
+	 * async update record in reo_hdl. The same shall then be
 	 *dereferenced during encode callback */
 
 	mbcsv_arg.info.send_ckpt.i_reo_type = ckpt_rec->header.ckpt_rec_type;
@@ -1364,13 +1447,13 @@ uint32_t ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uint3
 	}
 	TRACE_LEAVE();
 	return rc;
-}	/*End send_async_update() */
+} /*End send_async_update() */
 
 /****************************************************************************
- * Name          : ckpt_peer_info_cbk_handler 
+ * Name          : ckpt_peer_info_cbk_handler
  *
  * Description   : This callback is invoked by mbcsv when a peer info message
- *                 is received from NTFS STANDBY. 
+ *                 is received from NTFS STANDBY.
  *
  * Arguments     : NCS_MBCSV_ARG containing info pertaining to the STANDBY.
  *
@@ -1389,15 +1472,15 @@ static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		return NCSCC_RC_FAILURE;
 	}
 	ntfs_cb->peer_mbcsv_version = arg->info.peer.i_peer_version;
-	TRACE("peer_mbcsv_version:%u",ntfs_cb->peer_mbcsv_version);
+	TRACE("peer_mbcsv_version:%u", ntfs_cb->peer_mbcsv_version);
 	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
- * Name          : ckpt_notify_cbk_handler 
+ * Name          : ckpt_notify_cbk_handler
  *
  * Description   : This callback is invoked by mbcsv when a notify message
- *                 is received from NTFS STANDBY. 
+ *                 is received from NTFS STANDBY.
  *
  * Arguments     : NCS_MBCSV_ARG - contains notification info from STANDBY.
  *
@@ -1412,10 +1495,10 @@ static uint32_t ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 }
 
 /****************************************************************************
- * Name          : ckpt_err_ind_cbk_handler 
+ * Name          : ckpt_err_ind_cbk_handler
  *
  * Description   : This callback is invoked by mbcsv when a notify message
- *                 is received from NTFS STANDBY. 
+ *                 is received from NTFS STANDBY.
  *
  *
  * Arguments     : NCS_MBCSV_ARG - contains notification info from STANDBY.
@@ -1435,14 +1518,14 @@ static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Description   : This function is an EDU program for encoding/decoding
  *                 ntfsv checkpoint finalize async updates record.
- * 
+ *
  * Arguments     : EDU_HDL - pointer to edu handle,
  *                 EDU_TKN - internal edu token to help encode/decode,
  *                 POINTER to the structure to encode/decode from/to,
  *                 data length specifying number of structures,
  *                 EDU_BUF_ENV - pointer to buffer for encoding/decoding.
- *                 op - operation type being encode/decode. 
- *                 EDU_ERR - out param to indicate errors in processing. 
+ *                 op - operation type being encode/decode.
+ *                 EDU_ERR - out param to indicate errors in processing.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1450,16 +1533,20 @@ static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *****************************************************************************/
 
 static uint32_t edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
+				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+				    EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	ntfsv_ckpt_finalize_msg_t *ckpt_final_msg_ptr = NULL, **ckpt_final_msg_dec_ptr;
+	ntfsv_ckpt_finalize_msg_t *ckpt_final_msg_ptr = NULL,
+				  **ckpt_final_msg_dec_ptr;
 
 	EDU_INST_SET ckpt_final_rec_ed_rules[] = {
-		{EDU_START, edp_ed_finalize_rec, 0, 0, 0, sizeof(ntfsv_ckpt_finalize_msg_t), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((ntfsv_ckpt_finalize_msg_t *)0)->client_id, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	    {EDU_START, edp_ed_finalize_rec, 0, 0, 0,
+	     sizeof(ntfsv_ckpt_finalize_msg_t), 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ntfsv_ckpt_finalize_msg_t *)0)->client_id, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
@@ -1470,30 +1557,32 @@ static uint32_t edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
-		memset(*ckpt_final_msg_dec_ptr, '\0', sizeof(ntfsv_ckpt_finalize_msg_t));
+		memset(*ckpt_final_msg_dec_ptr, '\0',
+		       sizeof(ntfsv_ckpt_finalize_msg_t));
 		ckpt_final_msg_ptr = *ckpt_final_msg_dec_ptr;
 	} else {
 		ckpt_final_msg_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_final_rec_ed_rules, ckpt_final_msg_ptr, ptr_data_len,
-				 buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_final_rec_ed_rules,
+				 ckpt_final_msg_ptr, ptr_data_len, buf_env, op,
+				 o_err);
 	return rc;
 
-}	/* End edp_ed_finalize_rec() */
+} /* End edp_ed_finalize_rec() */
 
 /****************************************************************************
- * Name          : edp_ed_header_rec 
+ * Name          : edp_ed_header_rec
  *
  * Description   : This function is an EDU program for encoding/decoding
  *                 ntfsv checkpoint message header record.
- * 
+ *
  * Arguments     : EDU_HDL - pointer to edu handle,
  *                 EDU_TKN - internal edu token to help encode/decode,
  *                 POINTER to the structure to encode/decode from/to,
  *                 data length specifying number of structures,
  *                 EDU_BUF_ENV - pointer to buffer for encoding/decoding.
- *                 op - operation type being encode/decode. 
- *                 EDU_ERR - out param to indicate errors in processing. 
+ *                 op - operation type being encode/decode.
+ *                 EDU_ERR - out param to indicate errors in processing.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1501,18 +1590,23 @@ static uint32_t edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *****************************************************************************/
 
 static uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			       NCSCONTEXT ptr, uint32_t *ptr_data_len,
-			       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+				  NCSCONTEXT ptr, uint32_t *ptr_data_len,
+				  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+				  EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_ckpt_header_t *ckpt_header_ptr = NULL, **ckpt_header_dec_ptr;
 
 	EDU_INST_SET ckpt_header_rec_ed_rules[] = {
-		{EDU_START, edp_ed_header_rec, 0, 0, 0, sizeof(ntfsv_ckpt_header_t), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((ntfsv_ckpt_header_t *)0)->ckpt_rec_type, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((ntfsv_ckpt_header_t *)0)->num_ckpt_records, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((ntfsv_ckpt_header_t *)0)->data_len, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	    {EDU_START, edp_ed_header_rec, 0, 0, 0, sizeof(ntfsv_ckpt_header_t),
+	     0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ntfsv_ckpt_header_t *)0)->ckpt_rec_type, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ntfsv_ckpt_header_t *)0)->num_ckpt_records, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ntfsv_ckpt_header_t *)0)->data_len, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
@@ -1528,15 +1622,17 @@ static uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	} else {
 		ckpt_header_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_header_rec_ed_rules, ckpt_header_ptr, ptr_data_len,
-				 buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_header_rec_ed_rules,
+				 ckpt_header_ptr, ptr_data_len, buf_env, op,
+				 o_err);
 	return rc;
 
-}	/* End edp_ed_header_rec() */
+} /* End edp_ed_header_rec() */
 
 /* Non EDU routines */
 
-uint32_t enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type, uint32_t num_rec, uint32_t len)
+uint32_t enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type,
+				uint32_t num_rec, uint32_t len)
 {
 	ntfsv_ckpt_header_t ckpt_hdr;
 	uint8_t *pheader = NULL;
@@ -1562,10 +1658,10 @@ uint32_t enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type, uint
  * Name          : ntfs_enc_ckpt_header
  *
  * Description   : This function encodes the checkpoint message header
- *                 using leap provided apis. 
+ *                 using leap provided apis.
  *
- * Arguments     : pdata - pointer to the buffer to encode this struct in. 
- *                 NTFS_CKPT_HEADER - ntfsv checkpoint message header. 
+ * Arguments     : pdata - pointer to the buffer to encode this struct in.
+ *                 NTFS_CKPT_HEADER - ntfsv checkpoint message header.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1583,10 +1679,10 @@ static void enc_ckpt_header(uint8_t *pdata, ntfsv_ckpt_header_t header)
  * Name          : ntfs_dec_ckpt_header
  *
  * Description   : This function decodes the checkpoint message header
- *                 using leap provided apis. 
+ *                 using leap provided apis.
  *
  * Arguments     : NCS_UBAID - pointer to the NCS_UBAID containing data.
- *                 NTFS_CKPT_HEADER - ntfsv checkpoint message header. 
+ *                 NTFS_CKPT_HEADER - ntfsv checkpoint message header.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -1615,11 +1711,12 @@ static uint32_t dec_ckpt_header(NCS_UBAID *uba, ntfsv_ckpt_header_t *header)
 	ncs_dec_skip_space(uba, 4);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
-}	/*End ntfs_dec_ckpt_header */
+} /*End ntfs_dec_ckpt_header */
 
 static void ntfs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr)
 {
 	LOG_ER("Exiting with message: %s", msg);
-	(void)saAmfComponentErrorReport(ntfs_cb->amf_hdl, &ntfs_cb->comp_name, 0, rec_rcvr, SA_NTF_IDENTIFIER_UNUSED);
+	(void)saAmfComponentErrorReport(ntfs_cb->amf_hdl, &ntfs_cb->comp_name,
+					0, rec_rcvr, SA_NTF_IDENTIFIER_UNUSED);
 	exit(EXIT_FAILURE);
 }

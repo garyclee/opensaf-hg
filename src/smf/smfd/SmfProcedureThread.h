@@ -34,69 +34,53 @@
 
 /* SmfProcedureThread event enums */
 typedef enum {
-	PROCEDURE_EVT_TERMINATE = 1,
-	PROCEDURE_EVT_EXECUTE = 2,
-	PROCEDURE_EVT_EXECUTE_STEP = 4,
-	PROCEDURE_EVT_ROLLBACK_STEP = 5,
-	PROCEDURE_EVT_SUSPEND = 6,
-	PROCEDURE_EVT_COMMIT = 7,
-	PROCEDURE_EVT_ROLLBACK = 8,
-	PROCEDURE_EVT_SWRESULT = 9,
-	PROCEDURE_EVT_MAX
+  PROCEDURE_EVT_TERMINATE = 1,
+  PROCEDURE_EVT_EXECUTE = 2,
+  PROCEDURE_EVT_EXECUTE_STEP = 4,
+  PROCEDURE_EVT_ROLLBACK_STEP = 5,
+  PROCEDURE_EVT_SUSPEND = 6,
+  PROCEDURE_EVT_COMMIT = 7,
+  PROCEDURE_EVT_ROLLBACK = 8,
+  PROCEDURE_EVT_SWRESULT = 9,
+  PROCEDURE_EVT_MAX
 } PROCEDURE_EVT_TYPE;
 
 /*** PROCEDURE event definitions ***/
-typedef struct {
-	uint32_t dummy;
-} procedure_evt_terminate;
+typedef struct { uint32_t dummy; } procedure_evt_terminate;
+
+typedef struct { uint32_t dummy; } procedure_evt_execute;
+
+typedef struct { uint32_t dummy; } procedure_evt_execute_init;
+
+typedef struct { uint32_t dummy; } procedure_evt_execute_step;
+
+typedef struct { uint32_t dummy; } procedure_evt_execute_wrapup;
+
+typedef struct { uint32_t dummy; } procedure_evt_suspend;
+
+typedef struct { uint32_t dummy; } procedure_evt_commit;
+
+typedef struct { uint32_t dummy; } procedure_evt_rollback;
 
 typedef struct {
-	uint32_t dummy;
-} procedure_evt_execute;
-
-typedef struct {
-	uint32_t dummy;
-} procedure_evt_execute_init;
-
-typedef struct {
-	uint32_t dummy;
-} procedure_evt_execute_step;
-
-typedef struct {
-	uint32_t dummy;
-} procedure_evt_execute_wrapup;
-
-typedef struct {
-	uint32_t dummy;
-} procedure_evt_suspend;
-
-typedef struct {
-	uint32_t dummy;
-} procedure_evt_commit;
-
-typedef struct {
-	uint32_t dummy;
-} procedure_evt_rollback;
-
-typedef struct {
-	char *nodeName;
-	uint32_t rc;
+  char *nodeName;
+  uint32_t rc;
 } procedure_evt_swResult;
 
 typedef struct {
-	void *next;		/* needed by mailbox send/receive */
-	PROCEDURE_EVT_TYPE type;	/* evt type */
-	union {
-		procedure_evt_terminate terminate;
-		procedure_evt_execute execute;
-		procedure_evt_execute_init executeInit;
-		procedure_evt_execute_step executeStep;
-		procedure_evt_execute_wrapup executeWrapup;
-		procedure_evt_suspend suspend;
-		procedure_evt_commit commit;
-		procedure_evt_rollback rollback;
-		procedure_evt_swResult swResult;
-	} event;
+  void *next;              /* needed by mailbox send/receive */
+  PROCEDURE_EVT_TYPE type; /* evt type */
+  union {
+    procedure_evt_terminate terminate;
+    procedure_evt_execute execute;
+    procedure_evt_execute_init executeInit;
+    procedure_evt_execute_step executeStep;
+    procedure_evt_execute_wrapup executeWrapup;
+    procedure_evt_suspend suspend;
+    procedure_evt_commit commit;
+    procedure_evt_rollback rollback;
+    procedure_evt_swResult swResult;
+  } event;
 } PROCEDURE_EVT;
 
 class SmfUpgradeProcedure;
@@ -107,43 +91,43 @@ class SmfUpgradeProcedure;
 
 class SmfProcedureThread {
  public:
-	SmfProcedureThread(SmfUpgradeProcedure * procedure);
-	~SmfProcedureThread();
+  SmfProcedureThread(SmfUpgradeProcedure *procedure);
+  ~SmfProcedureThread();
 
-	int start(void);
-	int stop(void);
+  int start(void);
+  int stop(void);
 
-	int updateImmAttr(const char *dn, SaImmAttrNameT attributeName, SaImmValueTypeT attrValueType, void *value);
+  int updateImmAttr(const char *dn, SaImmAttrNameT attributeName,
+                    SaImmValueTypeT attrValueType, void *value);
 
-	int send(PROCEDURE_EVT * evt);
+  int send(PROCEDURE_EVT *evt);
 
-	SaImmOiHandleT getImmHandle();
+  SaImmOiHandleT getImmHandle();
 
-	SYSF_MBX & getMbx();
-	SYSF_MBX & getCbkMbx();
+  SYSF_MBX &getMbx();
+  SYSF_MBX &getCbkMbx();
 
  private:
+  void main(void);
+  int init(void);
+  int handleEvents(void);
+  void processEvt(void);
 
-	void main(void);
-	int init(void);
-	int handleEvents(void);
-	void processEvt(void);
+  SaAisErrorT getImmProcedure(SmfUpgradeProcedure *procedure);
+  SaAisErrorT createImmProcedure(SmfUpgradeProcedure *procedure);
+  SaAisErrorT createImmHandle(void);
+  SaAisErrorT deleteImmHandle(void);
 
-	SaAisErrorT getImmProcedure(SmfUpgradeProcedure * procedure);
-	SaAisErrorT createImmProcedure(SmfUpgradeProcedure * procedure);
-	SaAisErrorT createImmHandle(void);
-	SaAisErrorT deleteImmHandle(void);
+  static void main(NCSCONTEXT info);
 
-        static void main(NCSCONTEXT info);
-
-	NCSCONTEXT m_task_hdl;
-	SYSF_MBX m_mbx;		/* mailbox */
-	SYSF_MBX m_cbk_mbx;	/* mailbox to send/receive callback/response */
-	bool m_running;
-	SmfUpgradeProcedure *m_procedure;
-	SaImmOiHandleT m_procOiHandle;	/* IMM OI handle */
-	bool m_useCampaignOiHandle;
-	sem_t* m_semaphore;
+  NCSCONTEXT m_task_hdl;
+  SYSF_MBX m_mbx;     /* mailbox */
+  SYSF_MBX m_cbk_mbx; /* mailbox to send/receive callback/response */
+  bool m_running;
+  SmfUpgradeProcedure *m_procedure;
+  SaImmOiHandleT m_procOiHandle; /* IMM OI handle */
+  bool m_useCampaignOiHandle;
+  sem_t *m_semaphore;
 };
 
 #endif  // SMF_SMFD_SMFPROCEDURETHREAD_H_

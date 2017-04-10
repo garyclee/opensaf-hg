@@ -29,7 +29,7 @@ typedef struct {
   char *pathName;
   SaUint64T maxLogFileSize;
   SaUint32T fixedLogRecordSize;
-  SaBoolT haProperty;     /* app log stream only */
+  SaBoolT haProperty; /* app log stream only */
   SaLogFileFullActionT logFullAction;
   SaUint32T logFullHaltThreshold; /* !app log stream */
   SaUint32T maxFilesRotated;
@@ -42,10 +42,10 @@ typedef struct {
 
 /* Initialize checkpoint record, used in cold/async checkpoint updates */
 typedef struct {
-  uint32_t client_id;     /* Client Id at Active */
-  MDS_DEST mds_dest;      /* Handy when an LGA instance goes away */
+  uint32_t client_id; /* Client Id at Active */
+  MDS_DEST mds_dest;  /* Handy when an LGA instance goes away */
   lgs_stream_list_t *stream_list;
-  SaVersionT client_ver;  /* Version of client that was initialized */
+  SaVersionT client_ver; /* Version of client that was initialized */
 } lgs_ckpt_initialize_msg_v6_t;
 
 typedef struct {
@@ -64,13 +64,14 @@ typedef struct {
 
 uint32_t edp_ed_cfg_stream_rec_v6(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                                   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t edp_ed_ckpt_msg_v6(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                            NCSCONTEXT ptr, uint32_t *ptr_data_len,
-                            EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+                                  EDU_ERR *o_err);
+uint32_t edp_ed_ckpt_msg_v6(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                            uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                            EDP_OP_TYPE op, EDU_ERR *o_err);
 
-uint32_t edp_ed_reg_rec_v6(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                           NCSCONTEXT ptr, uint32_t *ptr_data_len,
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t edp_ed_reg_rec_v6(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                           uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                           EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #endif  // LOG_LOGD_LGS_MBCSV_V6_H_

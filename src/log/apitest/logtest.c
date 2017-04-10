@@ -45,54 +45,45 @@ SaNameT notificationObject;
 SaNameT configurationObject;
 
 SaConstStringT obj256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"bbbbb";
+			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			"bbbbb";
 SaNameT saNameT_Object_256;
 
-
 SaConstStringT name256 = "safLgStr=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"bbbbb";
+			 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			 "bbbbb";
 
 SaNameT saNameT_appstream_name_256;
 
 static char buf[2048];
 
-SaLogBufferT alarmStreamBuffer =
-{
-	.logBuf = (SaUint8T *) buf,
-	.logBufSize = 0,
+SaLogBufferT alarmStreamBuffer = {
+    .logBuf = (SaUint8T *)buf, .logBufSize = 0,
 };
 
-SaLogBufferT notificationStreamBuffer =
-{
-	.logBuf = (SaUint8T *) buf,
-	.logBufSize = 0,
+SaLogBufferT notificationStreamBuffer = {
+    .logBuf = (SaUint8T *)buf, .logBufSize = 0,
 };
 
-static SaLogBufferT genLogBuffer =
-{
-	.logBuf = (SaUint8T *) buf,
-	.logBufSize = 0,
+static SaLogBufferT genLogBuffer = {
+    .logBuf = (SaUint8T *)buf, .logBufSize = 0,
 };
 
 SaNameT logSvcUsrName;
 
-SaLogRecordT genLogRecord =
-{
-	.logTimeStamp = SA_TIME_UNKNOWN,
-	.logHdrType = SA_LOG_GENERIC_HEADER,
-	.logHeader.genericHdr.notificationClassId = NULL,
-	.logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO,
-	.logHeader.genericHdr.logSvcUsrName = &logSvcUsrName,
-	.logBuffer = &genLogBuffer
-};
+SaLogRecordT genLogRecord = {
+    .logTimeStamp = SA_TIME_UNKNOWN,
+    .logHdrType = SA_LOG_GENERIC_HEADER,
+    .logHeader.genericHdr.notificationClassId = NULL,
+    .logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO,
+    .logHeader.genericHdr.logSvcUsrName = &logSvcUsrName,
+    .logBuffer = &genLogBuffer};
 
 SaVersionT logVersion = {'A', 0x02, 0x03};
 SaVersionT immVersion = {'A', 2, 11};
@@ -114,13 +105,14 @@ void init_logrootpath(void)
 	SaImmAttrValuesT_2 **attributes;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	const char logRootDirectory_name[] = "logRootDirectory";
-	SaImmAttrNameT attributeNames[2] = {(char *) logRootDirectory_name, NULL};
+	SaImmAttrNameT attributeNames[2] = {(char *)logRootDirectory_name,
+					    NULL};
 	void *value;
 
 	saAisNameLend(config, &objectName);
 	/* NOTE: immutil init osaf_assert if error */
-	(void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
-	(void) immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
+	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
+	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
 	/* Get all attributes of the object */
 	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &objectName,
@@ -128,12 +120,12 @@ void init_logrootpath(void)
 	if (ais_rc == SA_AIS_OK) {
 		attribute = attributes[0];
 		value = attribute->attrValues[0];
-		strncpy(log_root_path, *((char **) value), PATH_MAX);
+		strncpy(log_root_path, *((char **)value), PATH_MAX);
 	} else {
 		/* We didn't get a root path from IMM. Use default */
 		strncpy(log_root_path, PKGLOGDIR, PATH_MAX);
 	}
-	(void) immutil_saImmOmFinalize(omHandle);
+	(void)immutil_saImmOmFinalize(omHandle);
 }
 
 /**
@@ -155,11 +147,12 @@ int get_attr_value(SaNameT *inObjName, char *inAttr, void *outValue)
 	int rc = 0;
 
 	/* NOTE: immutil init osaf_assert if error */
-	(void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
-	(void) immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
+	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
+	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
 	/* Get all attributes of the object */
-	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, inObjName, attributeNames, &attributes);
+	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, inObjName,
+					      attributeNames, &attributes);
 	if (ais_rc == SA_AIS_OK) {
 		attribute = attributes[0];
 		if ((attribute != NULL) && (attribute->attrValuesNumber != 0)) {
@@ -199,7 +192,8 @@ int get_attr_value(SaNameT *inObjName, char *inAttr, void *outValue)
 				break;
 
 			default:
-				fprintf(stderr, "Unsupported data type (%s) \n", inAttr);
+				fprintf(stderr, "Unsupported data type (%s) \n",
+					inAttr);
 				rc = -1;
 				break;
 			}
@@ -207,10 +201,11 @@ int get_attr_value(SaNameT *inObjName, char *inAttr, void *outValue)
 			rc = (-1);
 		}
 	} else {
-		/* We didn't get the attribute value from IMM. Return error (-1) */
+		/* We didn't get the attribute value from IMM. Return error (-1)
+		 */
 		rc = (-1);
 	}
-	(void) immutil_saImmOmFinalize(omHandle);
+	(void)immutil_saImmOmFinalize(omHandle);
 
 	return rc;
 }
@@ -231,7 +226,7 @@ void printf_v(const char *format, ...)
 		return;
 
 	va_start(argptr, format);
-	(void) vfprintf(stdout, format, argptr);
+	(void)vfprintf(stdout, format, argptr);
 	va_end(argptr);
 }
 
@@ -252,7 +247,7 @@ void printf_s(const char *format, ...)
 		return;
 
 	va_start(argptr, format);
-	(void) vfprintf(stdout, format, argptr);
+	(void)vfprintf(stdout, format, argptr);
 	va_end(argptr);
 }
 
@@ -273,16 +268,16 @@ void print_t(const char *format, ...)
 		return;
 
 	va_start(argptr, format);
-	(void) vfprintf(stdout, format, argptr);
+	(void)vfprintf(stdout, format, argptr);
 	va_end(argptr);
-	(void) fflush(NULL);
+	(void)fflush(NULL);
 }
 
 /**
  * Return info about which SC node that is Active
- * 
+ *
  * Note: Using immutil with default setting meaning abort if error
- * 
+ *
  * @return 1 SC-1, 2 SC-2
  */
 int get_active_sc(void)
@@ -294,42 +289,44 @@ int get_active_sc(void)
 	SaImmAccessorHandleT accessorHandle;
 	SaImmAttrValuesT_2 **attributes;
 	const char saAmfSUNumCurrActiveSIs[] = "saAmfSUNumCurrActiveSIs";
-	SaImmAttrNameT attributeNames[2] = {(char *) saAmfSUNumCurrActiveSIs, NULL};
+	SaImmAttrNameT attributeNames[2] = {(char *)saAmfSUNumCurrActiveSIs,
+					    NULL};
 	SaUint32T curr_act_sis = 0;
 
 	saAisNameLend(objname, &objectName1);
 	/* NOTE: immutil init osaf_assert if error
 	 */
-	(void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
-	(void) immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
+	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
+	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
 	/* Get attributes of the object
 	 * We may have to wait until a value is available
 	 */
 	int try_cnt = 0;
 	while (1) {
-		(void) immutil_saImmOmAccessorGet_2(accessorHandle, &objectName1,
-						    attributeNames, &attributes);
+		(void)immutil_saImmOmAccessorGet_2(accessorHandle, &objectName1,
+						   attributeNames, &attributes);
 		if (attributes[0]->attrValuesNumber != 0)
 			break;
 		sleep(1);
 		if (try_cnt++ >= 10) {
-			fprintf(stderr ,"%s FAILED Attribute value could not be read\n",
+			fprintf(stderr,
+				"%s FAILED Attribute value could not be read\n",
 				__FUNCTION__);
 			abort();
 		}
 	}
-	
+
 	/* Checking SC-1 */
-	curr_act_sis = *((SaUint32T *) attributes[0]->attrValues[0]);
-	
+	curr_act_sis = *((SaUint32T *)attributes[0]->attrValues[0]);
+
 	if (curr_act_sis > 0) {
 		active_sc = 1;
 	} else {
 		active_sc = 2;
 	}
-	
-	(void) immutil_saImmOmFinalize(omHandle);
+
+	(void)immutil_saImmOmFinalize(omHandle);
 	return active_sc;
 }
 
@@ -344,46 +341,50 @@ static void usage(void)
 	printf("\nSYNOPSIS\n");
 	printf("\tlogtest [options]\n");
 
-	printf(	"\nDESCRIPTION\n");
-	printf(	"\tRun test suite or single test case for log service\n"
-		"\tSome tests are not included in the 'general' test suite.\n"
-		"\tOptions are used to 'activate' not included tests.\n"
-		"\tIf logtest is used with no options all 'general' test cases\n"
-		"\tin all suites will be executed.\n"
-		"\tIt is also possible to run one suite or one test case.\n"
-		"\tExamples:\n"
-		"\tlogtest 1\tWill execute all test cases in suite 1\n"
-		"\tlogtest 1 1\tWill execute test case 1 in suite 1\n");
+	printf("\nDESCRIPTION\n");
+	printf("\tRun test suite or single test case for log service\n"
+	       "\tSome tests are not included in the 'general' test suite.\n"
+	       "\tOptions are used to 'activate' not included tests.\n"
+	       "\tIf logtest is used with no options all 'general' test cases\n"
+	       "\tin all suites will be executed.\n"
+	       "\tIt is also possible to run one suite or one test case.\n"
+	       "\tExamples:\n"
+	       "\tlogtest 1\tWill execute all test cases in suite 1\n"
+	       "\tlogtest 1 1\tWill execute test case 1 in suite 1\n");
 
 	printf("\nOPTIONS\n");
 
-	printf(	"  '0'\t\tList all 'general' test cases.\n"
-		"  \t\tNo test case is executed\n");
-	printf(	"  [s] [t]\tRun test case 't' in 'general' suite 's'\n"
-		"  \t\tIf 's' or 't' (or both) is omittet all 'general' testcases\n"
-		"  \t\tare executed or all test cases in suite 's'\n");
-	printf(	"  -l\t\tList all test cases including test cases not included\n"
-		"  \t\tin the 'general' test\n");
-	printf(	"  -e \"<s> [t]\"\tExecute 'extended' tests not part of\n"
-		"  \t\t\'general' test.\n"
-		"  \t\ts: Test suite number. Must be given\n"
-		"  \t\tt: Test case number. Can be omitted. If omitted all\n"
-		"  \t\t   testcases in the suite is executed\n");
-	printf(	"  -h\t\tThis help\n");
+	printf("  '0'\t\tList all 'general' test cases.\n"
+	       "  \t\tNo test case is executed\n");
+	printf(
+	    "  [s] [t]\tRun test case 't' in 'general' suite 's'\n"
+	    "  \t\tIf 's' or 't' (or both) is omittet all 'general' testcases\n"
+	    "  \t\tare executed or all test cases in suite 's'\n");
+	printf("  -l\t\tList all test cases including test cases not included\n"
+	       "  \t\tin the 'general' test\n");
+	printf("  -e \"<s> [t]\"\tExecute 'extended' tests not part of\n"
+	       "  \t\t\'general' test.\n"
+	       "  \t\ts: Test suite number. Must be given\n"
+	       "  \t\tt: Test case number. Can be omitted. If omitted all\n"
+	       "  \t\t   testcases in the suite is executed\n");
+	printf("  -h\t\tThis help\n");
 
-	printf(	"\n  The following options can only be used together with -e\n\n");
-	printf(	"  -v\t\tActivate verbose printing. Some test cases can print\n"
-		"  \t\textra information if verbose is activated\n");
-	printf(	"  -s\t\tActivate silent mode. Suppress printing of information\n"
-		"  \t\tduring test. Only 'standard' PASS/FAIL information will\n"
-		"  \t\tbe printed\n");
-	printf(	"  -t\t\tActivate tag mode. Suppress printing of information\n"
-		"  \t\tduring test. Only 'standard' PASS/FAIL information and\n"
-		"  \t\ttags will be printed. A tag is a short string that will\n"
-		"  \t\tnever be changed. It can be used to trig external events\n"
-		"  \t\tif a test is executed in an external test framework\n");
+	printf(
+	    "\n  The following options can only be used together with -e\n\n");
+	printf("  -v\t\tActivate verbose printing. Some test cases can print\n"
+	       "  \t\textra information if verbose is activated\n");
+	printf(
+	    "  -s\t\tActivate silent mode. Suppress printing of information\n"
+	    "  \t\tduring test. Only 'standard' PASS/FAIL information will\n"
+	    "  \t\tbe printed\n");
+	printf(
+	    "  -t\t\tActivate tag mode. Suppress printing of information\n"
+	    "  \t\tduring test. Only 'standard' PASS/FAIL information and\n"
+	    "  \t\ttags will be printed. A tag is a short string that will\n"
+	    "  \t\tnever be changed. It can be used to trig external events\n"
+	    "  \t\tif a test is executed in an external test framework\n");
 
-	printf(	"\n");
+	printf("\n");
 }
 
 static void err_exit(void)
@@ -400,7 +401,8 @@ static void err_exit(void)
  * @param in_str [in] String to investigate
  * @return value or -2 if not numeric or negative
  */
-static int str_to_digit(const char *in_str) {
+static int str_to_digit(const char *in_str)
+{
 	long int value = -1;
 	char *endptr;
 
@@ -410,19 +412,19 @@ static int str_to_digit(const char *in_str) {
 		value = -2;
 	}
 
-	return (int) value;
+	return (int)value;
 }
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
 	int suite = ALL_SUITES, tcase = ALL_TESTS;
 	int opt_val = 0;
 	bool etst_flg = false;
-	int i=0;
+	int i = 0;
 	char *opt_str_ptr;
 	char *tok_str_ptr = NULL;
 
-	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0 ) {
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
 		fprintf(stderr, "Failed to set SA_ENABLE_EXTENDED_NAMES (%s)",
 			strerror(errno));
 		exit(0);
@@ -445,7 +447,7 @@ int main(int argc, char **argv)
 	silent_flg = false;
 
 	/* Handle options */
-	char optstr[] ="hle:vst";
+	char optstr[] = "hle:vst";
 	opt_val = getopt(argc, argv, optstr);
 	do {
 		if (opt_val == -1) /* No option */
@@ -466,7 +468,7 @@ int main(int argc, char **argv)
 			test_list();
 			exit(0);
 		case 'e':
-			opt_str_ptr = argv[optind-1];
+			opt_str_ptr = argv[optind - 1];
 
 			tok_str_ptr = strtok(opt_str_ptr, " ");
 			for (i = 0; i < 2; i++) {
@@ -476,13 +478,15 @@ int main(int argc, char **argv)
 				if (i == 0) {
 					suite = atoi(tok_str_ptr);
 					if (suite == 0) {
-						/* Argument is not numeric or 0 */
+						/* Argument is not numeric or 0
+						 */
 						err_exit();
 					}
 				} else {
 					tcase = atoi(tok_str_ptr);
 					if (tcase == 0) {
-						/* Argument is not numeric or 0 */
+						/* Argument is not numeric or 0
+						 */
 						err_exit();
 					}
 				}
@@ -528,31 +532,28 @@ int main(int argc, char **argv)
 			err_exit();
 		}
 
-		//if (break_flg) break;
+		// if (break_flg) break;
 
 		opt_val = getopt(argc, argv, optstr);
 	} while (opt_val != -1);
 
 	if (etst_flg == false) {
 		/* Get input values if no options */
-		if (argc > 1)
-		{
+		if (argc > 1) {
 			suite = str_to_digit(argv[1]);
 			if (suite < ALL_SUITES) {
 				err_exit();
 			}
 		}
 
-		if (argc > 2)
-		{
+		if (argc > 2) {
 			tcase = str_to_digit(argv[2]);
 			if (tcase < ALL_TESTS) {
 				err_exit();
 			}
 		}
 
-		if (suite == 0)
-		{
+		if (suite == 0) {
 			test_list();
 			return 0;
 		}

@@ -84,7 +84,7 @@
 class UnixSocketHandler {
  public:
   // Set stack size of buffer to maximum size.
-  static const uint32_t kBufMaxSize = 65*1024 + 1024;
+  static const uint32_t kBufMaxSize = 65 * 1024 + 1024;
   // typedef, aim to shorten declaration.
   using RfcBuffer = base::Buffer<kBufMaxSize>;
 
@@ -99,9 +99,8 @@ class UnixSocketHandler {
   // Get the socket status
   DestinationStatus GetSockStatus();
   // Form rfc5424 syslog format
-  static void FormRfc5424(
-      const DestinationHandler::RecordInfo& msg,
-      RfcBuffer* buf);
+  static void FormRfc5424(const DestinationHandler::RecordInfo& msg,
+                          RfcBuffer* buf);
 
  private:
   explicit UnixSocketHandler(const char*);
@@ -189,7 +188,7 @@ class UnixSocketType {
 
  private:
   // typedef for the map. Aim to shorten the type declaration.
-  using NameSockHdlrMap =  std::map<std::string, UnixSocketHandler*>;
+  using NameSockHdlrMap = std::map<std::string, UnixSocketHandler*>;
 
   UnixSocketType();
   ~UnixSocketType();

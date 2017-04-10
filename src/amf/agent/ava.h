@@ -23,7 +23,7 @@
   DESCRIPTION:
 
   This module is the main include file for Availability Agent (AvA).
-  
+
 ******************************************************************************
 */
 

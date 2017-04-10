@@ -34,7 +34,7 @@ static uint32_t msg_encode(MDS_CALLBACK_ENC_INFO *enc_info) {
 
   enc_info->o_msg_fmt_ver = 1;
   uba = enc_info->io_uba;
-  msg = (struct rde_msg*) enc_info->i_msg;
+  msg = (struct rde_msg *)enc_info->i_msg;
 
   data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
   assert(data);
@@ -75,7 +75,7 @@ static uint32_t msg_decode(MDS_CALLBACK_DEC_INFO *dec_info) {
     goto done;
   }
 
-  msg = static_cast<rde_msg*>(malloc(sizeof(*msg)));
+  msg = static_cast<rde_msg *>(malloc(sizeof(*msg)));
   assert(msg);
 
   dec_info->o_msg = msg;
@@ -91,8 +91,8 @@ static uint32_t msg_decode(MDS_CALLBACK_DEC_INFO *dec_info) {
     case RDE_MSG_PEER_INFO_RESP:
       data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
       assert(data);
-      msg->info.peer_info.ha_role = static_cast<PCS_RDA_ROLE>(ncs_decode_32bit(
-          &data));
+      msg->info.peer_info.ha_role =
+          static_cast<PCS_RDA_ROLE>(ncs_decode_32bit(&data));
       ncs_dec_skip_space(uba, sizeof(uint32_t));
       break;
 
@@ -101,20 +101,21 @@ static uint32_t msg_decode(MDS_CALLBACK_DEC_INFO *dec_info) {
       break;
   }
 
-  done: return rc;
+done:
+  return rc;
 }
 
 static int mbx_send(RDE_MSG_TYPE type, MDS_DEST fr_dest, NODE_ID fr_node_id) {
   uint32_t rc = NCSCC_RC_SUCCESS;
-  struct rde_msg *msg = static_cast<rde_msg*>(calloc(1,
-                                                     sizeof(struct rde_msg)));
+  struct rde_msg *msg =
+      static_cast<rde_msg *>(calloc(1, sizeof(struct rde_msg)));
   RDE_CONTROL_BLOCK *cb = rde_get_control_block();
 
   msg->type = type;
   msg->fr_dest = fr_dest;
   msg->fr_node_id = fr_node_id;
 
-  if (ncs_ipc_send(&cb->mbx, reinterpret_cast<NCS_IPC_MSG*>(msg),
+  if (ncs_ipc_send(&cb->mbx, reinterpret_cast<NCS_IPC_MSG *>(msg),
                    NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
     LOG_ER("ncs_ipc_send FAILED");
     free(msg);
@@ -144,12 +145,13 @@ static uint32_t mds_callback(struct ncsmds_callback_info *info) {
     case MDS_CALLBACK_DEC_FLAT:
       break;
     case MDS_CALLBACK_RECEIVE:
-      msg = (struct rde_msg*) info->info.receive.i_msg;
+      msg = (struct rde_msg *)info->info.receive.i_msg;
       msg->fr_dest = info->info.receive.i_fr_dest;
       msg->fr_node_id = info->info.receive.i_node_id;
-      if (ncs_ipc_send(&cb->mbx,
-                       reinterpret_cast<NCS_IPC_MSG*>(info->info.receive.i_msg),
-                       NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
+      if (ncs_ipc_send(
+              &cb->mbx,
+              reinterpret_cast<NCS_IPC_MSG *>(info->info.receive.i_msg),
+              NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
         LOG_ER("ncs_ipc_send FAILED");
         free(msg);
         rc = NCSCC_RC_FAILURE;
@@ -182,13 +184,14 @@ static uint32_t mds_callback(struct ncsmds_callback_info *info) {
     default:
       break;
   }
-  done: return rc;
+done:
+  return rc;
 }
 
 uint32_t rde_mds_register() {
   NCSADA_INFO ada_info;
   NCSMDS_INFO svc_info;
-  MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_RDE };
+  MDS_SVC_ID svc_id[1] = {NCSMDS_SVC_ID_RDE};
   MDS_DEST mds_adest;
 
   TRACE_ENTER();
@@ -277,8 +280,7 @@ uint32_t rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest) {
 
     rc = ncsmds_api(&info);
     if (NCSCC_RC_FAILURE == rc) {
-      LOG_WA("Failed to send %s to %" PRIx64, rde_msg_name[msg->type],
-             to_dest);
+      LOG_WA("Failed to send %s to %" PRIx64, rde_msg_name[msg->type], to_dest);
       base::Sleep(base::kOneHundredMilliseconds);
     } else {
       break;

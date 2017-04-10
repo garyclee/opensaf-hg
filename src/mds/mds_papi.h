@@ -37,7 +37,7 @@
 #include "base/ncs_saf.h"
 #include "base/ncssysf_ipc.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -61,9 +61,9 @@ extern "C" {
 #define MDS_MAJOR_VERSION 2
 #define MDS_MINOR_VERSION 1
 
-typedef NCS_NODE_ID NODE_ID;    /* Node ID to distinguish among blades */
-typedef uint32_t MDS_SVC_ID;    /* MDS Service ID replaces SS_SVC_ID(an uint8_t) */
-typedef uint16_t PW_ENV_ID;     /* Private World Environment ID        */
+typedef NCS_NODE_ID NODE_ID; /* Node ID to distinguish among blades */
+typedef uint32_t MDS_SVC_ID; /* MDS Service ID replaces SS_SVC_ID(an uint8_t) */
+typedef uint16_t PW_ENV_ID;  /* Private World Environment ID        */
 
 /* MDS-DEST is defined globally in "ncsgl_defs.h" */
 typedef uint64_t V_DEST_QA;
@@ -74,27 +74,34 @@ typedef uint32_t MDS_HDL;
 typedef uint64_t MDS_CLIENT_HDL;
 
 /* Added for the version/in-service changes */
-typedef uint8_t MDS_SVC_PVT_SUB_PART_VER;       /*MDS svc private sub part ver */
-typedef uint16_t MDS_CLIENT_MSG_FORMAT_VER;     /* Message format version included in mds header */
+typedef uint8_t MDS_SVC_PVT_SUB_PART_VER;   /*MDS svc private sub part ver */
+typedef uint16_t MDS_CLIENT_MSG_FORMAT_VER; /* Message format version included
+                                               in mds header */
 
 /* MDS return Types */
 typedef enum {
-  MDS_RC_SUCCESS = NCSCC_RC_SUCCESS,      /* Operation with mds has been success */
-  MDS_RC_FAILURE = NCSCC_RC_FAILURE,      /* Operation with mds has been failure */
-  MDS_RC_TIMEOUT = NCSCC_RC_REQ_TIMOUT,   /* Timeout occurred in receiving the response/ack for the message sent to the destination */
-  MDS_RC_MSG_NO_BUFFERING = 100,  /* Msgs are being dropped(not queued in MDS), as the destination is in noactive state */
+  MDS_RC_SUCCESS = NCSCC_RC_SUCCESS, /* Operation with mds has been success */
+  MDS_RC_FAILURE = NCSCC_RC_FAILURE, /* Operation with mds has been failure */
+  MDS_RC_TIMEOUT = NCSCC_RC_REQ_TIMOUT, /* Timeout occurred in receiving the
+                                           response/ack for the message sent to
+                                           the destination */
+  MDS_RC_MSG_NO_BUFFERING = 100,        /* Msgs are being dropped(not queued in MDS),
+                                           as the destination is in noactive state */
 } MDS_RC_TYPES;
 
 MDS_DEST mds_fetch_qa(void);
-#define V_DEST_QA_1 (V_DEST_QA)mds_fetch_qa()   /* For backward compatibility */
-#define V_DEST_QA_2 (V_DEST_QA)mds_fetch_qa()   /* For backward compatibility */
+#define V_DEST_QA_1 (V_DEST_QA) mds_fetch_qa() /* For backward compatibility \
+                                                */
+#define V_DEST_QA_2 (V_DEST_QA) mds_fetch_qa() /* For backward compatibility \
+                                                */
 
 typedef enum {
-  NCSMDS_NONE = 0,        /* Null change. An application will never see it */
+  NCSMDS_NONE = 0, /* Null change. An application will never see it */
 
   /* Events specific to simple subscription */
-  NCSMDS_NO_ACTIVE = 1,   /* The only active has disappeared. Awaiting a new one */
-  NCSMDS_NEW_ACTIVE = 2,  /* A new ACTIVE has appeared                     */
+  NCSMDS_NO_ACTIVE =
+      1, /* The only active has disappeared. Awaiting a new one */
+  NCSMDS_NEW_ACTIVE = 2, /* A new ACTIVE has appeared                     */
 
   /* Events applicable to simple as well as redundant view but with
      different interpretation.
@@ -108,14 +115,13 @@ typedef enum {
   /* Events applicable to simple as well as redundant view but with
      identical interpretation.
   */
-  NCSMDS_CHG_ROLE = 7,    /* Destination just changed role (A->S) | (A->S)) */
+  NCSMDS_CHG_ROLE = 7, /* Destination just changed role (A->S) | (A->S)) */
 } NCSMDS_CHG;
 
 typedef enum {
   NCSMDS_NODE_UP = 0,
   NCSMDS_NODE_DOWN = 1,
 } NCSMDS_NODE_CHG;
-
 
 /* Virtual destination role                                               */
 typedef enum {
@@ -137,7 +143,7 @@ typedef enum {
   NCS_VDEST_TYPE_MAX
 } NCS_VDEST_TYPE;
 
-#define  NCSMDS_SYS_EV_REMOTE_NODE_FLTR  (EVT_FLTR)0x00001000
+#define NCSMDS_SYS_EV_REMOTE_NODE_FLTR (EVT_FLTR)0x00001000
 typedef uint32_t EVT_FLTR;
 
 /**************************************************************************
@@ -185,7 +191,7 @@ typedef enum ncsmds_svc_id {
   NCSMDS_SVC_ID_PLMS = 37,
   NCSMDS_SVC_ID_PLMS_HRB = 38,
   NCSMDS_SVC_ID_PLMA = 39,
-  NCSMDS_SVC_ID_NCSMAX,   /* This mnemonic always last */
+  NCSMDS_SVC_ID_NCSMAX, /* This mnemonic always last */
 
   /* The range below is for OpenSAF internal use */
   NCSMDS_SVC_ID_INTERNAL_MIN = 256,
@@ -195,9 +201,11 @@ typedef enum ncsmds_svc_id {
   NCSMDS_SVC_ID_EXTMAX,
 } NCSMDS_SVC_ID;
 
-#define MAX_SVC_NAME_LEN 30 /*NID_MAX_SVC_NAME_LEN is 15 so keeping some buffer*/
+#define MAX_SVC_NAME_LEN \
+  30 /*NID_MAX_SVC_NAME_LEN is 15 so keeping some buffer*/
 
-#define MDS_MAX_PROCESS_NAME_LEN (255 + 32) /* Process Name + PID No/Slot info/Tipc reference */
+#define MDS_MAX_PROCESS_NAME_LEN \
+  (255 + 32) /* Process Name + PID No/Slot info/Tipc reference */
 
 /*MDS takes  timeout in 10 ms value for sync send() timeout */
 #define MDS_MAX_TIMEOUT_MILLISECOND 9223372036854 /*((2^63 -1) / 10) */
@@ -206,8 +214,12 @@ typedef enum ncsmds_svc_id {
  * SVC_NAME  of Service : A well known name that a service
  ***************************************************************************/
 extern const char ncsmds_svc_names[NCSMDS_SVC_ID_NCSMAX][MAX_SVC_NAME_LEN];
-extern const char ncsmds_internal_svc_names[NCSMDS_SVC_ID_INTMAX - NCSMDS_SVC_ID_INTERNAL_MIN][MAX_SVC_NAME_LEN];
-extern const char ncsmds_external_svc_names[NCSMDS_SVC_ID_EXTMAX - NCSMDS_SVC_ID_EXTERNAL_MIN][MAX_SVC_NAME_LEN];
+extern const char
+    ncsmds_internal_svc_names[NCSMDS_SVC_ID_INTMAX - NCSMDS_SVC_ID_INTERNAL_MIN]
+                             [MAX_SVC_NAME_LEN];
+extern const char
+    ncsmds_external_svc_names[NCSMDS_SVC_ID_EXTMAX - NCSMDS_SVC_ID_EXTERNAL_MIN]
+                             [MAX_SVC_NAME_LEN];
 extern const char *get_svc_names(int svc_id);
 /*
  * NCSMDS_MAX_PWES
@@ -219,13 +231,13 @@ extern const char *get_svc_names(int svc_id);
  *
  */
 
-#define NCSMDS_MAX_PWES     63
-#define NCSMDS_MAX_VDEST    32767
-#define NCSMDS_MAX_SVCS     1023
+#define NCSMDS_MAX_PWES 63
+#define NCSMDS_MAX_VDEST 32767
+#define NCSMDS_MAX_SVCS 1023
 
 /* Maximum size of the buffer used with MDS_DIRECT_SEND (no encoding)
    (2^16  - (SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP + _POSIX_HOST_NAME_MAX)) */
-#define MDS_DIRECT_BUF_MAXSIZE  (65535 - (57 + _POSIX_HOST_NAME_MAX))
+#define MDS_DIRECT_BUF_MAXSIZE (65535 - (57 + _POSIX_HOST_NAME_MAX))
 
 typedef uint8_t *MDS_DIRECT_BUFF;
 
@@ -239,10 +251,10 @@ void mds_free_direct_buff(MDS_DIRECT_BUFF buff);
  * (See also
  ************************************************************************/
 typedef enum ncsmds_scopes {
-  NCSMDS_SCOPE_INTRAPCON = 1,     /* For intra-process-constellation events. */
-  NCSMDS_SCOPE_INTRANODE = 2,     /* For intra-node events. */
+  NCSMDS_SCOPE_INTRAPCON = 1, /* For intra-process-constellation events. */
+  NCSMDS_SCOPE_INTRANODE = 2, /* For intra-node events. */
   /* INTRACHASSIS Scope Not supported as of now */
-  NCSMDS_SCOPE_INTRACHASSIS = 3,  /* For intra-chassis scoping. */
+  NCSMDS_SCOPE_INTRACHASSIS = 3, /* For intra-chassis scoping. */
   NCSMDS_SCOPE_NONE = 4,
 } NCSMDS_SCOPE_TYPE;
 
@@ -251,94 +263,102 @@ typedef enum ncsmds_scopes {
 *************************************************************************/
 typedef struct mds_sync_snd_ctxt {
 #define MDS_SYNC_SND_CTXT_LEN_MAX 12
-  uint8_t length; /* length of the stored data */
-  uint8_t data[MDS_SYNC_SND_CTXT_LEN_MAX];        /* the actual data           */
+  uint8_t length;                          /* length of the stored data */
+  uint8_t data[MDS_SYNC_SND_CTXT_LEN_MAX]; /* the actual data           */
 } MDS_SYNC_SND_CTXT;
 
 typedef struct mds_sendtype_snd_info {
-  MDS_DEST i_to_dest;     /* A virtual or absolute destination */
+  MDS_DEST i_to_dest; /* A virtual or absolute destination */
 } MDS_SENDTYPE_SND_INFO;
 
 typedef struct mds_sendtype_sndrsp_info {
   MDS_DEST i_to_dest;     /* A virtual or absolute destination */
-  int64_t i_time_to_wait;        /* Timeout duration in 10ms units */
+  int64_t i_time_to_wait; /* Timeout duration in 10ms units */
   NCSCONTEXT o_rsp;       /* Place for the response for normal message   */
   MDS_DIRECT_BUFF buff;   /* For response of type direct send */
   uint16_t len;
-  MDS_CLIENT_MSG_FORMAT_VER o_msg_fmt_ver;        /* For the message format ver */
+  MDS_CLIENT_MSG_FORMAT_VER o_msg_fmt_ver; /* For the message format ver */
 } MDS_SENDTYPE_SNDRSP_INFO;
 
-typedef struct mds_sendtype_sndrspack_info {    /* Wait for an ack to the response */
-  MDS_DEST i_sender_dest; /* Sender's the one who gets this response */
-  int64_t i_time_to_wait;        /* Timeout duration in 10ms units */
+typedef struct
+    mds_sendtype_sndrspack_info { /* Wait for an ack to the response */
+  MDS_DEST i_sender_dest;         /* Sender's the one who gets this response */
+  int64_t i_time_to_wait;         /* Timeout duration in 10ms units */
   MDS_SYNC_SND_CTXT i_msg_ctxt;   /* MDS supplied data to identify request */
 } MDS_SENDTYPE_SNDRSPACK_INFO;
 
 typedef struct mds_sendtype_sndack_info {
   MDS_DEST i_to_dest;     /* A virtual or absolute destination */
-  int64_t i_time_to_wait;        /* Timeout duration in 10ms units */
+  int64_t i_time_to_wait; /* Timeout duration in 10ms units */
 } MDS_SENDTYPE_SNDACK_INFO;
 
 typedef struct mds_sendtype_rsp_info {
-  MDS_DEST i_sender_dest; /* Sender's the one who gets this response */
-  MDS_SYNC_SND_CTXT i_msg_ctxt;   /* MDS supplied data to identify request */
+  MDS_DEST i_sender_dest;       /* Sender's the one who gets this response */
+  MDS_SYNC_SND_CTXT i_msg_ctxt; /* MDS supplied data to identify request */
 } MDS_SENDTYPE_RSP_INFO;
 
 typedef struct mds_sendtype_red_info {
-  MDS_DEST i_to_vdest;    /* A virtual destination             */
-  V_DEST_QA i_to_anc;     /* Anchor within virtual destination */
+  MDS_DEST i_to_vdest; /* A virtual destination             */
+  V_DEST_QA i_to_anc;  /* Anchor within virtual destination */
 } MDS_SENDTYPE_RED_INFO;
 
 typedef struct mds_sendtype_redrsp_info {
   MDS_DEST i_to_vdest;    /* A virtual destination             */
   V_DEST_QA i_to_anc;     /* Anchor within virtual destination */
-  int64_t i_time_to_wait;        /* in 10ms units                  */
+  int64_t i_time_to_wait; /* in 10ms units                  */
   NCSCONTEXT o_rsp;       /* Place for the message context  */
   MDS_DIRECT_BUFF buff;   /* For response of type direct send */
   uint16_t len;
-  MDS_CLIENT_MSG_FORMAT_VER o_msg_fmt_ver;        /* For the message format ver */
+  MDS_CLIENT_MSG_FORMAT_VER o_msg_fmt_ver; /* For the message format ver */
 } MDS_SENDTYPE_REDRSP_INFO;
 
-typedef struct mds_sendtype_redrspack_info {    /* Wait for an ack to the response */
-  MDS_DEST i_to_vdest;    /* A virtual destination             */
-  V_DEST_QA i_to_anc;     /* Anchor within virtual destination */
-  int64_t i_time_to_wait;        /* in 10ms units                  */
+typedef struct
+    mds_sendtype_redrspack_info { /* Wait for an ack to the response */
+  MDS_DEST i_to_vdest;            /* A virtual destination             */
+  V_DEST_QA i_to_anc;             /* Anchor within virtual destination */
+  int64_t i_time_to_wait;         /* in 10ms units                  */
   MDS_SYNC_SND_CTXT i_msg_ctxt;   /* MDS supplied data to identify request */
 } MDS_SENDTYPE_REDRSPACK_INFO;
 
 typedef struct mds_sendtype_redack_info {
   MDS_DEST i_to_vdest;    /* A virtual destination             */
   V_DEST_QA i_to_anc;     /* Anchor within virtual destination */
-  int64_t i_time_to_wait;        /* in 10ms units                */
+  int64_t i_time_to_wait; /* in 10ms units                */
 } MDS_SENDTYPE_REDACK_INFO;
 
 typedef struct mds_sendtype_rrsp_info {
-  MDS_DEST i_to_dest;     /* Sender's the one who gets this response */
+  MDS_DEST i_to_dest; /* Sender's the one who gets this response */
   V_DEST_QA i_to_anc;
-  MDS_SYNC_SND_CTXT i_msg_ctxt;   /* MDS supplied data to identify request */
+  MDS_SYNC_SND_CTXT i_msg_ctxt; /* MDS supplied data to identify request */
 } MDS_SENDTYPE_RRSP_INFO;
 
 typedef struct mds_sendtype_bcast_info {
-  NCSMDS_SCOPE_TYPE i_bcast_scope;        /* Scope of broadcast (viz. node, etc.) */
+  NCSMDS_SCOPE_TYPE i_bcast_scope; /* Scope of broadcast (viz. node, etc.) */
 } MDS_SENDTYPE_BCAST_INFO;
 
 typedef struct mds_sendtype_rbcast_info {
-  NCSMDS_SCOPE_TYPE i_bcast_scope;        /* Scope of broadcast (viz. node, etc.) */
+  NCSMDS_SCOPE_TYPE i_bcast_scope; /* Scope of broadcast (viz. node, etc.) */
 } MDS_SENDTYPE_RBCAST_INFO;
 
 typedef enum {
-  MDS_SENDTYPE_SND = 0,   /* Simply send a message and forget about it           */
-  MDS_SENDTYPE_SNDRSP = 1,        /* Send a message and wait for the response or timeout */
-  MDS_SENDTYPE_SNDRACK = 2,       /* Send a response and wait for the ack or timeout     */
-  MDS_SENDTYPE_SNDACK = 3,        /* Send a message and wait for the ack or timeout      */
-  MDS_SENDTYPE_RSP = 4,   /* Send a response to the message received thro SNDRSP */
-  MDS_SENDTYPE_RED = 5,   /* Simply send a message and forget about it           */
-  MDS_SENDTYPE_REDRSP = 6,        /* Send a message and wait for the response or timeout */
-  MDS_SENDTYPE_REDRACK = 7,       /* Send a response and wait for the ack or timeout     */
-  MDS_SENDTYPE_REDACK = 8,        /* Send a message and wait for the ack or timeout      */
-  MDS_SENDTYPE_RRSP = 9,  /* Send a response to the message received thro REDRSP */
-  MDS_SENDTYPE_BCAST = 10,        /* Send a broadcast message to all primaries           */
-  MDS_SENDTYPE_RBCAST = 11,       /* Send a broadcast message to both anchors            */
+  MDS_SENDTYPE_SND = 0, /* Simply send a message and forget about it */
+  MDS_SENDTYPE_SNDRSP =
+      1, /* Send a message and wait for the response or timeout */
+  MDS_SENDTYPE_SNDRACK =
+      2, /* Send a response and wait for the ack or timeout     */
+  MDS_SENDTYPE_SNDACK = 3, /* Send a message and wait for the ack or timeout */
+  MDS_SENDTYPE_RSP =
+      4, /* Send a response to the message received thro SNDRSP */
+  MDS_SENDTYPE_RED = 5, /* Simply send a message and forget about it */
+  MDS_SENDTYPE_REDRSP =
+      6, /* Send a message and wait for the response or timeout */
+  MDS_SENDTYPE_REDRACK =
+      7, /* Send a response and wait for the ack or timeout     */
+  MDS_SENDTYPE_REDACK = 8, /* Send a message and wait for the ack or timeout */
+  MDS_SENDTYPE_RRSP =
+      9, /* Send a response to the message received thro REDRSP */
+  MDS_SENDTYPE_BCAST = 10,  /* Send a broadcast message to all primaries  */
+  MDS_SENDTYPE_RBCAST = 11, /* Send a broadcast message to both anchors */
   MDS_SENDTYPE_EMPTY1 = 12,
   MDS_SENDTYPE_EMPTY2 = 13,
   MDS_SENDTYPE_ACK = 14,
@@ -355,7 +375,7 @@ typedef enum {
 /* Prototype for callback registed by an MDS client. It is a single-entry
    API for all MDS callbacks including, encode/decode/receive, etc. */
 struct ncsmds_callback_info;
-typedef uint32_t (*NCSMDS_CALLBACK_API) (struct ncsmds_callback_info * info);
+typedef uint32_t (*NCSMDS_CALLBACK_API)(struct ncsmds_callback_info *info);
 
 /************************************************************************
     2) SVC APIs into MDS   (requests into MDS by Services(clients) )
@@ -363,14 +383,14 @@ typedef uint32_t (*NCSMDS_CALLBACK_API) (struct ncsmds_callback_info * info);
 typedef enum {
   MDS_INSTALL = 0,
   MDS_UNINSTALL = 1,
-  MDS_SUBSCRIBE = 2,      /* For subscribing under a simple-view    */
-  MDS_RED_SUBSCRIBE = 3,  /* For subscribing under a redundant-view */
+  MDS_SUBSCRIBE = 2,     /* For subscribing under a simple-view    */
+  MDS_RED_SUBSCRIBE = 3, /* For subscribing under a redundant-view */
   MDS_CANCEL = 4,
-  MDS_SYS_SUBSCRIBE = 5,  /* subscribe to system events: node up/down */
+  MDS_SYS_SUBSCRIBE = 5, /* subscribe to system events: node up/down */
   MDS_SEND = 6,
   MDS_DIRECT_SEND = 7,
   MDS_RETRIEVE = 8,
-  MDS_CHG_ROLE = 9,       /* Changes role service's underlying VDEST  */
+  MDS_CHG_ROLE = 9, /* Changes role service's underlying VDEST  */
   MDS_QUERY_DEST = 10,
   MDS_QUERY_PWE = 11,
   MDS_NODE_SUBSCRIBE = 12,
@@ -378,11 +398,11 @@ typedef enum {
 } NCSMDS_TYPE;
 
 typedef struct mds_install_info {
-  MDS_CLIENT_HDL i_yr_svc_hdl;    /* Your svc hdl                          */
-  NCSMDS_SCOPE_TYPE i_install_scope;      /* Advertisement scope for svc presence */
+  MDS_CLIENT_HDL i_yr_svc_hdl;       /* Your svc hdl                          */
+  NCSMDS_SCOPE_TYPE i_install_scope; /* Advertisement scope for svc presence */
   NCSMDS_CALLBACK_API i_svc_cb;
-  MDS_DEST o_dest;        /* Virtual or an absolute destination */
-  V_DEST_QA o_anc;        /* Non-zero only for virtual destination */
+  MDS_DEST o_dest; /* Virtual or an absolute destination */
+  V_DEST_QA o_anc; /* Non-zero only for virtual destination */
 
   /*---------------------------------------------------------------------*\
     With respect to an "incoming queue" ownership, MDS supports two models
@@ -392,8 +412,8 @@ typedef struct mds_install_info {
     messages from this queue an MDS-client invokes the "MDS_RETRIEVE"
     API. To know of message-arrival, an MDS-client will need to use
     the NCS selection-object primitives on the "i_sel_obj" return
-    during MDS_INSTALL. To opt for this model, an MDS-client will have to set the
-    "i_mds_q_ownership" flag to true.
+    during MDS_INSTALL. To opt for this model, an MDS-client will have to set
+    the "i_mds_q_ownership" flag to true.
 
     (NOTE: In this model, MDS will never invoke the
     MDS_CALLBACK_RECEIVE.)
@@ -410,19 +430,20 @@ typedef struct mds_install_info {
   /* An MDS client has to choose an MDS model using "i_mds_q_ownership".
      Please see the m_NCS_SEL_OBJ_* macros to understand the "o_sel_obj" */
   bool i_mds_q_ownership;
-  NCS_SEL_OBJ o_sel_obj;  /* Valid only if "i_mds_q_ownership= true" */
+  NCS_SEL_OBJ o_sel_obj; /* Valid only if "i_mds_q_ownership= true" */
   MDS_SVC_PVT_SUB_PART_VER i_mds_svc_pvt_ver;
-  bool i_fail_no_active_sends;    /* Default messages will be buufered in MDS when destination is
-                                     in No-Active state, else dropped.
-                                     A return value of MDS_RC_MSG_NO_BUFFERING
-                                     will be returned when this member is set to 1 */
-  bool i_msg_loss_indication;     /* When this member is set to 1 and if any message is lost for
-                                     this service , a callback of type
-                                     MDS_CALLBACK_MSG_LOSS is
-                                     delivered to application */
+  bool i_fail_no_active_sends; /* Default messages will be buufered in MDS when
+                                  destination is in No-Active state, else
+                                  dropped. A return value of
+                                  MDS_RC_MSG_NO_BUFFERING will be returned when
+                                  this member is set to 1 */
+  bool i_msg_loss_indication;  /* When this member is set to 1 and if any message
+                                  is lost for  this service , a callback of type
+                                  MDS_CALLBACK_MSG_LOSS is
+                                  delivered to application */
 } MDS_INSTALL_INFO;
 
-typedef void (*MDS_Q_MSG_FREE_CB) (NCSCONTEXT msg_to_be_freed);
+typedef void (*MDS_Q_MSG_FREE_CB)(NCSCONTEXT msg_to_be_freed);
 
 typedef struct mds_uninstall_info {
   /* i_msg_free_cb: This is a callback that needs to be provided
@@ -447,29 +468,29 @@ typedef struct mds_uninstall_info {
    and/or multiple scopes.
 */
 typedef struct mds_subscribe_info {
-  NCSMDS_SCOPE_TYPE i_scope;      /* Only events within the scope to be reported */
-  uint8_t i_num_svcs;     /* Number of elements in the following array */
-  MDS_SVC_ID *i_svc_ids;  /* The service-ids that are being subscribed
-                             to. MDS will copy this array, not free */
+  NCSMDS_SCOPE_TYPE i_scope; /* Only events within the scope to be reported */
+  uint8_t i_num_svcs;        /* Number of elements in the following array */
+  MDS_SVC_ID *i_svc_ids;     /* The service-ids that are being subscribed
+                                to. MDS will copy this array, not free */
 } MDS_SUBSCRIBE_INFO;
 
 typedef MDS_SUBSCRIBE_INFO MDS_RED_SUBSCRIBE_INFO;
 
 /* A service cancels all of its subscriptions by the following call.*/
 typedef struct mds_cancel_info {
-  uint8_t i_num_svcs;     /* Number of elements in the following array */
-  MDS_SVC_ID *i_svc_ids;  /* The service-ids that are being cancelled
-                             MDS will copy this array, not free */
+  uint8_t i_num_svcs;    /* Number of elements in the following array */
+  MDS_SVC_ID *i_svc_ids; /* The service-ids that are being cancelled
+                            MDS will copy this array, not free */
 } MDS_CANCEL_INFO;
 
 typedef struct mds_sys_subscribe_info {
-  EVT_FLTR i_evt_map;     /* Bit mask of events to be subscribed to        */
+  EVT_FLTR i_evt_map; /* Bit mask of events to be subscribed to        */
   /* Set to 0 to cancel all previous subscriptions */
 } MDS_SYS_SUBSCRIBE_INFO;
 
 typedef struct mds_send_info {
-  NCSCONTEXT i_msg;       /* Pointer to the message */
-  MDS_SVC_ID i_to_svc;    /* The service at the destination  */
+  NCSCONTEXT i_msg;    /* Pointer to the message */
+  MDS_SVC_ID i_to_svc; /* The service at the destination  */
   MDS_SEND_PRIORITY_TYPE i_priority;
   MDS_SENDTYPES i_sendtype;
 
@@ -490,9 +511,9 @@ typedef struct mds_send_info {
 } MDS_SEND_INFO;
 
 typedef struct mds_direct_send_info {
-  MDS_DIRECT_BUFF i_direct_buff;  /* Pointer to the message */
+  MDS_DIRECT_BUFF i_direct_buff; /* Pointer to the message */
   uint16_t i_direct_buff_len;
-  MDS_SVC_ID i_to_svc;    /* The service at the destination  */
+  MDS_SVC_ID i_to_svc; /* The service at the destination  */
   MDS_SEND_PRIORITY_TYPE i_priority;
   MDS_SENDTYPES i_sendtype;
   MDS_CLIENT_MSG_FORMAT_VER i_msg_fmt_ver;
@@ -515,14 +536,13 @@ typedef struct mds_direct_send_info {
 
 struct ncsmds_callback_info;
 typedef struct mds_retrieve_info {
-  /* Whether callback retrieval should block if there are no callbacks pending */
+  /* Whether callback retrieval should block if there are no callbacks pending
+   */
   SaDispatchFlagsT i_dispatchFlags;
 
 } MDS_RETRIEVE_INFO;
 
-typedef struct mds_chg_role_info {
-  V_DEST_RL new_role;
-} MDS_CHG_ROLE_INFO;
+typedef struct mds_chg_role_info { V_DEST_RL new_role; } MDS_CHG_ROLE_INFO;
 
 /* MDS_QUERY_VDEST_INFO: Can be used to query information on a
    service instance. Note the request can fail if the user has not
@@ -541,19 +561,19 @@ typedef struct mds_query_dest_info {
   union {
     struct {
       V_DEST_RL i_vdest_rl;
-      V_DEST_QA o_anc;        /* Anchor for (any) active service-instance */
+      V_DEST_QA o_anc; /* Anchor for (any) active service-instance */
     } query_for_anc;
 
     struct {
       V_DEST_QA i_anc;
-      V_DEST_RL o_vdest_rl;   /* Role of service-instance specified */
+      V_DEST_RL o_vdest_rl; /* Role of service-instance specified */
     } query_for_role;
 
   } info;
 
-  bool o_local;   /* true => local, false => REMOTE   */
-  NODE_ID o_node_id;      /* Node on which <VDEST,anc> is situated */
-  MDS_DEST o_adest;       /* ADEST of MDS-core of <VDEST, anc>     */
+  bool o_local;      /* true => local, false => REMOTE   */
+  NODE_ID o_node_id; /* Node on which <VDEST,anc> is situated */
+  MDS_DEST o_adest;  /* ADEST of MDS-core of <VDEST, anc>     */
 
 } MDS_QUERY_DEST_INFO;
 
@@ -563,33 +583,35 @@ typedef struct mds_query_dest_info {
 typedef struct mds_query_pwe_info {
   /* This API supplies information using the MDS-handle supplied in
      the request. */
-  PW_ENV_ID o_pwe_id;     /* 0, if global hdl; else PWE ID       */
-  bool o_absolute;        /* True if this PWE is on an absolute addr */
+  PW_ENV_ID o_pwe_id; /* 0, if global hdl; else PWE ID       */
+  bool o_absolute;    /* True if this PWE is on an absolute addr */
   union {
     struct {
       MDS_DEST o_adest;
-    } abs_info;     /* Info valid if "o_absolute= true" */
+    } abs_info; /* Info valid if "o_absolute= true" */
 
     struct {
       MDS_DEST o_vdest;
       V_DEST_QA o_anc;
       V_DEST_RL o_role;
-    } virt_info;    /* Info valid if "o_absolute=false" */
+    } virt_info; /* Info valid if "o_absolute=false" */
   } info;
 
 } MDS_QUERY_PWE_INFO;
 
-/* MDS_SUBSCRIBE_NODE_INFO: Can be used by a client to get the NODE_UP and NODE_DOWN .
+/* MDS_SUBSCRIBE_NODE_INFO: Can be used by a client to get the NODE_UP and
+ * NODE_DOWN .
  */
 typedef struct mds_subscribe_node_info {
-  uint32_t i_dummy;       /* Unused */
+  uint32_t i_dummy; /* Unused */
 
 } MDS_SUBSCRIBE_NODE_INFO;
 
-/* MDS_UNSUBSCRIBE_NODE_INFO: Can be used by a client to get the NODE_UP and NODE_DOWN .
+/* MDS_UNSUBSCRIBE_NODE_INFO: Can be used by a client to get the NODE_UP and
+ * NODE_DOWN .
  */
 typedef struct mds_unsubscribe_node_info {
-  uint32_t i_dummy;       /* Unused */
+  uint32_t i_dummy; /* Unused */
 
 } MDS_UNSUBSCRIBE_NODE_INFO;
 
@@ -630,7 +652,7 @@ typedef struct ncsmds_info {
    NCSCC_RC_FAILURE     : The API call failed.
    NCSCC_RC_REQ_TIMEOUT : The API call timed out
 */
-typedef uint32_t (*NCSMDS_API) (NCSMDS_INFO *svc_to_mds_info);
+typedef uint32_t (*NCSMDS_API)(NCSMDS_INFO *svc_to_mds_info);
 uint32_t ncsmds_api(NCSMDS_INFO *svc_to_mds_info);
 
 /************************************************************************
@@ -646,7 +668,7 @@ typedef enum {
   MDS_CALLBACK_RECEIVE = 5,
   MDS_CALLBACK_SVC_EVENT = 6,
   MDS_CALLBACK_SYS_EVENT = 7,
-  MDS_CALLBACK_QUIESCED_ACK = 8,  /* Acknowledgement of quiesced action */
+  MDS_CALLBACK_QUIESCED_ACK = 8, /* Acknowledgement of quiesced action */
   MDS_CALLBACK_DIRECT_RECEIVE = 9,
   MDS_CALLBACK_NODE_EVENT = 10,
   MDS_CALLBACK_MSG_LOSS = 11,
@@ -669,10 +691,11 @@ typedef struct {
   */
 
   NCSCONTEXT i_msg;       /* Message to be copied */
-  bool i_last;    /* true if last COPY for this "i_msg" */
+  bool i_last;            /* true if last COPY for this "i_msg" */
   MDS_SVC_ID i_to_svc_id; /* Destined service-id */
   NCSCONTEXT o_cpy;       /* A copy of "i_msg" */
-  MDS_SVC_PVT_SUB_PART_VER i_rem_svc_pvt_ver;     /* Remote service id subpart version */
+  MDS_SVC_PVT_SUB_PART_VER
+      i_rem_svc_pvt_ver; /* Remote service id subpart version */
   MDS_CLIENT_MSG_FORMAT_VER o_msg_fmt_ver;
 
 } MDS_CALLBACK_COPY_INFO;
@@ -683,10 +706,11 @@ typedef struct mds_callback_enc_info {
      a different "endianness" and "byte-packing",  all data bytes in the message
      should be packed in a "network order" format in the USRBUF */
 
-  NCSCONTEXT i_msg;       /* Message to be encoded */
-  MDS_SVC_ID i_to_svc_id; /* Destined service-id */
-  struct ncs_ubaid *io_uba;       /* MDS supplied USRBUF to encode into */
-  MDS_SVC_PVT_SUB_PART_VER i_rem_svc_pvt_ver;     /* Remote service id subpart version */
+  NCSCONTEXT i_msg;         /* Message to be encoded */
+  MDS_SVC_ID i_to_svc_id;   /* Destined service-id */
+  struct ncs_ubaid *io_uba; /* MDS supplied USRBUF to encode into */
+  MDS_SVC_PVT_SUB_PART_VER
+      i_rem_svc_pvt_ver; /* Remote service id subpart version */
   MDS_CLIENT_MSG_FORMAT_VER o_msg_fmt_ver;
 
 } MDS_CALLBACK_ENC_INFO;
@@ -698,13 +722,13 @@ typedef struct mds_callback_dec_info {
      should be unpacked from a "network order" format in the USRBUF to a
      "host-order" format */
 
-  struct ncs_ubaid *io_uba;       /* MDS supplied USRBUF to decode from */
-  MDS_SVC_ID i_fr_svc_id; /* Source service-id                  */
-  bool i_is_resp; /* For internal use only              */
-  NCSCONTEXT o_msg;       /* New message resulting from decode  */
-  NODE_ID i_node_id;      /* Node id of the sender              */
+  struct ncs_ubaid *io_uba; /* MDS supplied USRBUF to decode from */
+  MDS_SVC_ID i_fr_svc_id;   /* Source service-id                  */
+  bool i_is_resp;           /* For internal use only              */
+  NCSCONTEXT o_msg;         /* New message resulting from decode  */
+  NODE_ID i_node_id;        /* Node id of the sender              */
   MDS_CLIENT_MSG_FORMAT_VER i_msg_fmt_ver;
-  char i_node_name[_POSIX_HOST_NAME_MAX]; /* Node Name of the sender              */
+  char i_node_name[_POSIX_HOST_NAME_MAX]; /* Node Name of the sender */
 
 } MDS_CALLBACK_DEC_INFO;
 
@@ -728,16 +752,17 @@ typedef struct {
      (See also: MDS_INSTALL structure)
   */
   NCSCONTEXT i_msg;
-  bool i_rsp_reqd;        /* true if send is awaiting a response */
-  MDS_SYNC_SND_CTXT i_msg_ctxt;   /* Valid only if "i_rsp_expected == true" */
+  bool i_rsp_reqd;              /* true if send is awaiting a response */
+  MDS_SYNC_SND_CTXT i_msg_ctxt; /* Valid only if "i_rsp_expected == true" */
   MDS_DEST i_fr_dest;
   MDS_SVC_ID i_fr_svc_id;
-  V_DEST_QA i_fr_anc;     /* Can be used for redundant messages */
+  V_DEST_QA i_fr_anc; /* Can be used for redundant messages */
   MDS_DEST i_to_dest;
   MDS_SVC_ID i_to_svc_id;
-  MDS_SEND_PRIORITY_TYPE i_priority;      /* Priority with which this message was sent */
-  NODE_ID i_node_id;      /* Node id of the sender              */
-  char i_node_name[_POSIX_HOST_NAME_MAX]; /* Node Name of the sender              */
+  MDS_SEND_PRIORITY_TYPE
+      i_priority;    /* Priority with which this message was sent */
+  NODE_ID i_node_id; /* Node id of the sender              */
+  char i_node_name[_POSIX_HOST_NAME_MAX]; /* Node Name of the sender */
 
   /* Local handle to the PWE of "svc_id". It is meaningful only to "Global
      MDS services". Global MDS services are global to a "MDS_DEST" scope.
@@ -759,18 +784,19 @@ typedef struct {
      model, then messages will be delivered to it using this callback.
      (See also: MDS_INSTALL structure)
   */
-  MDS_DIRECT_BUFF i_direct_buff;  /* Pointer to the message */
+  MDS_DIRECT_BUFF i_direct_buff; /* Pointer to the message */
   uint16_t i_direct_buff_len;
-  bool i_rsp_reqd;        /* true if send is awaiting a response */
-  MDS_SYNC_SND_CTXT i_msg_ctxt;   /* Valid only if "i_rsp_expected == true" */
+  bool i_rsp_reqd;              /* true if send is awaiting a response */
+  MDS_SYNC_SND_CTXT i_msg_ctxt; /* Valid only if "i_rsp_expected == true" */
   MDS_DEST i_fr_dest;
   MDS_SVC_ID i_fr_svc_id;
-  V_DEST_QA i_fr_anc;     /* Can be used for redundant messages */
+  V_DEST_QA i_fr_anc; /* Can be used for redundant messages */
   MDS_DEST i_to_dest;
   MDS_SVC_ID i_to_svc_id;
-  MDS_SEND_PRIORITY_TYPE i_priority;      /* Priority with which this message was sent */
-  NODE_ID i_node_id;      /* Node id of the sender              */
-  char i_node_name[_POSIX_HOST_NAME_MAX]; /* Node Name of the sender              */
+  MDS_SEND_PRIORITY_TYPE
+      i_priority;    /* Priority with which this message was sent */
+  NODE_ID i_node_id; /* Node id of the sender              */
+  char i_node_name[_POSIX_HOST_NAME_MAX]; /* Node Name of the sender */
 
   /* Local handle to the PWE of "svc_id". It is meaningful only to "Global
      MDS services". Global MDS services are global to a "MDS_DEST" scope.
@@ -794,12 +820,12 @@ typedef struct {
   */
   NCSMDS_CHG i_change;
   MDS_DEST i_dest;
-  V_DEST_QA i_anc;        /* Non-zero only if "i_dest" is virtual    */
-  V_DEST_RL i_role;       /* Non-zero only if "i_dest" is virtual    */
-  NODE_ID i_node_id;      /* Node-id on which "i_dest" lives         */
+  V_DEST_QA i_anc;   /* Non-zero only if "i_dest" is virtual    */
+  V_DEST_RL i_role;  /* Non-zero only if "i_dest" is virtual    */
+  NODE_ID i_node_id; /* Node-id on which "i_dest" lives         */
   PW_ENV_ID i_pwe_id;
-  MDS_SVC_ID i_svc_id;    /* The Service Id this event applies to    */
-  MDS_SVC_ID i_your_id;   /* svc id of subscriber (YOU)              */
+  MDS_SVC_ID i_svc_id;  /* The Service Id this event applies to    */
+  MDS_SVC_ID i_your_id; /* svc id of subscriber (YOU)              */
 
   /* Local handle to the PWE of "svc_id". It is meaningful only to "Global
      MDS services". Global MDS services are global to a "MDS_DEST" scope.
@@ -810,8 +836,10 @@ typedef struct {
      created on D)
   */
   MDS_HDL svc_pwe_hdl;
-  MDS_SVC_PVT_SUB_PART_VER i_rem_svc_pvt_ver;     /* Remote service id subpart version */
-  char i_dest_details[MDS_MAX_PROCESS_NAME_LEN]; /* <node[slotno]:processname[pid]> */
+  MDS_SVC_PVT_SUB_PART_VER
+      i_rem_svc_pvt_ver; /* Remote service id subpart version */
+  char i_dest_details
+      [MDS_MAX_PROCESS_NAME_LEN]; /* <node[slotno]:processname[pid]> */
 
 } MDS_CALLBACK_SVC_EVENT_INFO;
 
@@ -821,9 +849,9 @@ typedef struct {
      Currently, only node up/down is supported. More events can be
      added later on.
   */
-  NCSMDS_CHG i_change;    /* GONE, UP, DOWN                    */
-  NODE_ID i_node_id;      /* Node-id which is affected         */
-  EVT_FLTR i_evt_mask;    /* Bit map of events                 */
+  NCSMDS_CHG i_change; /* GONE, UP, DOWN                    */
+  NODE_ID i_node_id;   /* Node-id which is affected         */
+  EVT_FLTR i_evt_mask; /* Bit map of events                 */
 } MDS_CALLBACK_SYS_EVENT_INFO;
 
 typedef struct mds_callback_quiesced_ack_info {
@@ -832,14 +860,14 @@ typedef struct mds_callback_quiesced_ack_info {
      quiesced. Beyond this point MDS-Client will cease to receive
      messages sent addressed to active VDESTs
   */
-  uint32_t i_dummy;       /* Unused */
+  uint32_t i_dummy; /* Unused */
 } MDS_CALLBACK_QUIESCED_ACK_INFO;
 
 typedef struct mds_callback_node_event_info {
   /* MDS uses the following callback to inform an MDS-client that
      a node is UP or down
   */
-  NCSMDS_NODE_CHG  node_chg;
+  NCSMDS_NODE_CHG node_chg;
   NODE_ID node_id;
   uint16_t addr_family;
   uint16_t length; /* will be deprecated after few version */
@@ -853,15 +881,15 @@ typedef struct mds_callback_msg_loss_event_info {
   /* MDS uses the following callback to inform an MDS-client that
      a message has been lost from the following service, pwe id and adest
   */
-  MDS_DEST i_dest; /* Senders ADEST value */
-  PW_ENV_ID i_pwe_id;     /* Senders PWE value */
-  MDS_SVC_ID i_svc_id;    /* Senders Service ID  */
+  MDS_DEST i_dest;         /* Senders ADEST value */
+  PW_ENV_ID i_pwe_id;      /* Senders PWE value */
+  MDS_SVC_ID i_svc_id;     /* Senders Service ID  */
   MDS_VDEST_ID i_vdest_id; /* Senders vdest id */
 } MDS_CALLBACK_MSG_LOSS_EVENT_INFO;
 
 typedef struct ncsmds_callback_info {
-  MDS_CLIENT_HDL i_yr_svc_hdl;    /* Handle to MDS Client's context */
-  MDS_SVC_ID i_yr_svc_id; /* Service ID of yourself         */
+  MDS_CLIENT_HDL i_yr_svc_hdl; /* Handle to MDS Client's context */
+  MDS_SVC_ID i_yr_svc_id;      /* Service ID of yourself         */
   NCSMDS_CALLBACK_TYPE i_op;
   union {
     MDS_CALLBACK_COPY_INFO cpy;
@@ -875,7 +903,7 @@ typedef struct ncsmds_callback_info {
     MDS_CALLBACK_SYS_EVENT_INFO sys_evt;
     MDS_CALLBACK_QUIESCED_ACK_INFO quiesced_ack;
     MDS_CALLBACK_NODE_EVENT_INFO node_evt;
-    MDS_CALLBACK_MSG_LOSS_EVENT_INFO  msg_loss_evt;
+    MDS_CALLBACK_MSG_LOSS_EVENT_INFO msg_loss_evt;
   } info;
 } NCSMDS_CALLBACK_INFO;
 
@@ -885,17 +913,17 @@ typedef struct ncsmds_callback_info {
 *************************************************************************/
 
 /* Service provider abstract name */
-#define m_MDS_SP_ABST_NAME  "NCS_MDS"
+#define m_MDS_SP_ABST_NAME "NCS_MDS"
 #define m_SPRR_VDEST_POLICY_ATTR_NAME "NCS_MDS_VDEST_POLICY"
 
 /* Reserved instance names for SPIR interface */
 extern const SaNameT glmds_adest_inst_name;
-#define m_MDS_SPIR_ADEST_NAME  glmds_adest_inst_name
+#define m_MDS_SPIR_ADEST_NAME glmds_adest_inst_name
 
-#define m_MDS_FIXED_VDEST_TO_INST_NAME(i_vdest_id, o_name)      \
+#define m_MDS_FIXED_VDEST_TO_INST_NAME(i_vdest_id, o_name) \
   mds_fixed_vdest_to_inst_name(i_vdest_id, o_name)
 
-#define m_MDS_INST_NAME_TO_FIXED_VDEST(i_name, o_vdest_id)      \
+#define m_MDS_INST_NAME_TO_FIXED_VDEST(i_name, o_vdest_id) \
   mds_inst_name_to_fixed_vdest(i_name, o_vdest_id)
 
 void mds_fixed_vdest_to_inst_name(uint32_t vdest_id, SaNameT *o_name);
@@ -915,7 +943,7 @@ void ncsmds_pp(void);
     6) Utilities to manipulate MDS_DEST
        (See also ncsgl_defs.h for defintions and utilities)
 \***********************************************************************/
-#define m_NCS_MDS_DEST_EQUAL(x,y) (memcmp((x), (y), sizeof(MDS_DEST)) == 0)
+#define m_NCS_MDS_DEST_EQUAL(x, y) (memcmp((x), (y), sizeof(MDS_DEST)) == 0)
 
 /* MDS_DEST Utilities */
 /* m_NCS_GET_VDEST_ID_FROM_MDS_DEST:Returns vdest-id if the MDS_DEST provided
@@ -924,7 +952,8 @@ void ncsmds_pp(void);
    destination.
 */
 MDS_VDEST_ID ncs_get_vdest_id_from_mds_dest(MDS_DEST mdsdest);
-#define m_MDS_GET_VDEST_ID_FROM_MDS_DEST(mdsdest) (ncs_get_vdest_id_from_mds_dest(mdsdest))
+#define m_MDS_GET_VDEST_ID_FROM_MDS_DEST(mdsdest) \
+  (ncs_get_vdest_id_from_mds_dest(mdsdest))
 
 /* m_NCS_SET_VDEST_ID_IN_MDS_DEST:
  */
@@ -936,11 +965,11 @@ MDS_VDEST_ID ncs_get_vdest_id_from_mds_dest(MDS_DEST mdsdest);
    - true if MDS-DEST supplied is an absolute destination.
    - false otherwise
 */
-#define m_MDS_DEST_IS_AN_ADEST(d) (m_NCS_NODE_ID_FROM_MDS_DEST(d)!=0)
+#define m_MDS_DEST_IS_AN_ADEST(d) (m_NCS_NODE_ID_FROM_MDS_DEST(d) != 0)
 
 #include "base/ncs_mda_papi.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

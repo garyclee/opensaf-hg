@@ -21,7 +21,7 @@
 ..............................................................................
 
   DESCRIPTION: This file includes following routines:
-   
+
    mqd_lib_req.....................MQD LIB request routine
    mqd_lib_init....................MQD LIB init routine
    mqd_lib_destroy.................MQD LIB destroy routine
@@ -52,14 +52,7 @@
 
 MQDLIB_INFO gl_mqdinfo;
 
-enum {
-	FD_TERM = 0,
-	FD_AMF,
-	FD_MBCSV,
-	FD_MBX,
-	FD_CLM,
-	NUM_FD
-};
+enum { FD_TERM = 0, FD_AMF, FD_MBCSV, FD_MBX, FD_CLM, NUM_FD };
 
 static struct pollfd fds[NUM_FD];
 static nfds_t nfds = NUM_FD;
@@ -80,14 +73,14 @@ static bool mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
 /****************************************************************************\
   PROCEDURE NAME : mqd_lib_req
- 
-  DESCRIPTION    : This is the NCS SE API which is used to init/destroy or 
-                   Create/destroy PWE's. This will be called by SBOM.
- 
+
+  DESCRIPTION    : This is the NCS SE API which is used to init/destroy or
+		   Create/destroy PWE's. This will be called by SBOM.
+
   ARGUMENTS      : info  - This is the pointer to the input information which
-                   SBOM gives.  
- 
-  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.. 
+		   SBOM gives.
+
+  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
 \*****************************************************************************/
 
 uint32_t mqd_lib_req(NCS_LIB_REQ_INFO *info)
@@ -107,59 +100,65 @@ uint32_t mqd_lib_req(NCS_LIB_REQ_INFO *info)
 	default:
 		break;
 	}
-	if(rc != NCSCC_RC_SUCCESS)
+	if (rc != NCSCC_RC_SUCCESS)
 		LOG_CR("Library initialization failed");
 	TRACE_LEAVE();
 	return rc;
-}	/* End of mqd_lib_req() */
+} /* End of mqd_lib_req() */
 
-static SaAisErrorT mqd_clm_init (MQD_CB *cb)
+static SaAisErrorT mqd_clm_init(MQD_CB *cb)
 {
 	SaAisErrorT saErr = SA_AIS_OK;
 
-  do {
-	  SaVersionT clm_version;
-	  SaClmCallbacksT mqd_clm_cbk;
+	do {
+		SaVersionT clm_version;
+		SaClmCallbacksT mqd_clm_cbk;
 
-	  m_MQSV_GET_AMF_VER(clm_version);
-	  mqd_clm_cbk.saClmClusterNodeGetCallback = NULL;
-	  mqd_clm_cbk.saClmClusterTrackCallback = mqd_clm_cluster_track_callback;
+		m_MQSV_GET_AMF_VER(clm_version);
+		mqd_clm_cbk.saClmClusterNodeGetCallback = NULL;
+		mqd_clm_cbk.saClmClusterTrackCallback =
+		    mqd_clm_cluster_track_callback;
 
-	  saErr = saClmInitialize(&cb->clm_hdl, &mqd_clm_cbk, &clm_version);
-	  if (saErr != SA_AIS_OK) {
-		  LOG_ER("saClmInitialize failed with error %u", (unsigned) saErr);
-		  break;
-	  }
-	  TRACE_1("saClmInitialize success");
+		saErr =
+		    saClmInitialize(&cb->clm_hdl, &mqd_clm_cbk, &clm_version);
+		if (saErr != SA_AIS_OK) {
+			LOG_ER("saClmInitialize failed with error %u",
+			       (unsigned)saErr);
+			break;
+		}
+		TRACE_1("saClmInitialize success");
 
-	  saErr = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj);
-	  if (SA_AIS_OK != saErr) {
-		  LOG_ER("saClmSelectionObjectGet failed with error %u", (unsigned) saErr);
-		  break;
-	  }
-	  TRACE_1("saClmSelectionObjectGet success");
+		saErr = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj);
+		if (SA_AIS_OK != saErr) {
+			LOG_ER("saClmSelectionObjectGet failed with error %u",
+			       (unsigned)saErr);
+			break;
+		}
+		TRACE_1("saClmSelectionObjectGet success");
 
-	  saErr = saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
-	  if (SA_AIS_OK != saErr) {
-		  LOG_ER("saClmClusterTrack failed with error %u", (unsigned) saErr);
-		  break;
-	  }
-	  TRACE_1("saClmClusterTrack success");
-  } while (false);
+		saErr =
+		    saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
+		if (SA_AIS_OK != saErr) {
+			LOG_ER("saClmClusterTrack failed with error %u",
+			       (unsigned)saErr);
+			break;
+		}
+		TRACE_1("saClmClusterTrack success");
+	} while (false);
 
-  if (saErr != SA_AIS_OK && !cb->clm_hdl)
-	  saClmFinalize(cb->clm_hdl);
+	if (saErr != SA_AIS_OK && !cb->clm_hdl)
+		saClmFinalize(cb->clm_hdl);
 
 	return saErr;
 }
 
 /****************************************************************************\
   PROCEDURE NAME : mqd_lib_init
- 
-  DESCRIPTION    : This routine initializes the MQD by doing following 
-                   - Create MQD instance
-                   - Create MBX & Threads
-                    
+
+  DESCRIPTION    : This routine initializes the MQD by doing following
+		   - Create MQD instance
+		   - Create MBX & Threads
+
   ARGUMENTS      : none
 
   RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
@@ -168,7 +167,7 @@ static uint32_t mqd_lib_init(void)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_CB *pMqd = 0;
-#if NCS_2_0			/* Required for NCS 2.0 */
+#if NCS_2_0 /* Required for NCS 2.0 */
 	SaAisErrorT saErr = SA_AIS_OK;
 	SaNameT sname;
 #endif
@@ -187,7 +186,7 @@ static uint32_t mqd_lib_init(void)
 
 	/* Initalize the Control block */
 	rc = mqd_cb_init(pMqd);
-	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
+	if (NCSCC_RC_SUCCESS != rc) { /* Handle failure */
 		LOG_ER("Instance Initialization Failed");
 		m_MMGR_FREE_MQD_CB(pMqd);
 		return rc;
@@ -195,8 +194,9 @@ static uint32_t mqd_lib_init(void)
 	TRACE_1("Instance Initialization Success");
 
 	/* Register MQD with the handle manager */
-	pMqd->hdl = ncshm_create_hdl(pMqd->hmpool, pMqd->my_svc_id, (NCSCONTEXT)pMqd);
-	if (!pMqd->hdl) {	/* Handle failure */
+	pMqd->hdl =
+	    ncshm_create_hdl(pMqd->hmpool, pMqd->my_svc_id, (NCSCONTEXT)pMqd);
+	if (!pMqd->hdl) { /* Handle failure */
 		LOG_ER("Handle Registration Failed");
 		mqd_cb_shut(pMqd);
 		return NCSCC_RC_FAILURE;
@@ -206,7 +206,7 @@ static uint32_t mqd_lib_init(void)
 
 	/* Initailize all AVSv callback */
 	rc = mqd_amf_init(pMqd);
-	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
+	if (NCSCC_RC_SUCCESS != rc) { /* Handle failure */
 		TRACE_4("AMF Registration Failed");
 		mqd_cb_shut(pMqd);
 		return rc;
@@ -216,7 +216,7 @@ static uint32_t mqd_lib_init(void)
 	rc = m_NCS_IPC_CREATE(&pMqd->mbx);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("IPC creation Failed");
-#if NCS_2_0			/* Required for NCS 2.0 */
+#if NCS_2_0 /* Required for NCS 2.0 */
 		saAmfFinalize(pMqd->amf_hdl);
 #endif
 		mqd_cb_shut(pMqd);
@@ -228,7 +228,7 @@ static uint32_t mqd_lib_init(void)
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
 		LOG_ER("IPC attach Failed");
-#if NCS_2_0			/* Required for NCS 2.0 */
+#if NCS_2_0 /* Required for NCS 2.0 */
 		saAmfFinalize(pMqd->amf_hdl);
 #endif
 		mqd_cb_shut(pMqd);
@@ -245,9 +245,9 @@ static uint32_t mqd_lib_init(void)
 
 	/* Initilize the Layer management variables */
 	rc = mqd_lm_init(pMqd);
-	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
+	if (NCSCC_RC_SUCCESS != rc) { /* Handle failure */
 		TRACE_2("Layer Management Initialization Failed");
-#if NCS_2_0			/* Required for NCS 2.0 */
+#if NCS_2_0 /* Required for NCS 2.0 */
 		saAmfFinalize(pMqd->amf_hdl);
 #endif
 		mqd_cb_shut(pMqd);
@@ -258,13 +258,14 @@ static uint32_t mqd_lib_init(void)
 	m_NCS_EDU_HDL_INIT(&pMqd->edu_hdl);
 	TRACE_1("EDU Bind Success");
 
-#if NCS_2_0			/* Not needed for NCS ver(1.0) */
+#if NCS_2_0 /* Not needed for NCS ver(1.0) */
 	/* Register MQSv - MQD component with AvSv */
 	sname.length = strlen(MQD_COMP_NAME);
 	strcpy((char *)sname.value, MQD_COMP_NAME);
 
-	saErr = saAmfComponentRegister(pMqd->amf_hdl, &pMqd->comp_name, (SaNameT *)0);
-	if (SA_AIS_OK != saErr) {	/* Handle failure */
+	saErr = saAmfComponentRegister(pMqd->amf_hdl, &pMqd->comp_name,
+				       (SaNameT *)0);
+	if (SA_AIS_OK != saErr) { /* Handle failure */
 		LOG_ER("saAmfComponentRegister Failed with error %d", saErr);
 		saAmfFinalize(pMqd->amf_hdl);
 		ncshm_give_hdl(pMqd->hdl);
@@ -280,12 +281,14 @@ static uint32_t mqd_lib_init(void)
 	if (health_key == NULL) {
 		strcpy((char *)healthy.key, "E5F6");
 	} else {
-		strncpy((char *)healthy.key, health_key, SA_AMF_HEALTHCHECK_KEY_MAX - 1);
+		strncpy((char *)healthy.key, health_key,
+			SA_AMF_HEALTHCHECK_KEY_MAX - 1);
 	}
 	healthy.keyLen = strlen((char *)healthy.key);
 
-	amf_error = saAmfHealthcheckStart(pMqd->amf_hdl, &pMqd->comp_name, &healthy,
-					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
+	amf_error = saAmfHealthcheckStart(
+	    pMqd->amf_hdl, &pMqd->comp_name, &healthy,
+	    SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
 	if (amf_error != SA_AIS_OK) {
 		LOG_ER("saAmfHealthcheckStart Failed with error %d", amf_error);
 		rc = NCSCC_RC_FAILURE;
@@ -304,19 +307,19 @@ static uint32_t mqd_lib_init(void)
 		return NCSCC_RC_FAILURE;
 	}
 	if ((rc = initialize_for_assignment(pMqd, pMqd->ha_state)) !=
-		NCSCC_RC_SUCCESS) {
-		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned)rc);
 		exit(EXIT_FAILURE);
- 	}
+	}
 
 	TRACE_1("saAmfHealthcheckStart Success");
 	TRACE_LEAVE();
 	return rc;
-}	/* End of mqd_lib_init() */
+} /* End of mqd_lib_init() */
 
 uint32_t initialize_for_assignment(MQD_CB *cb, SaAmfHAStateT ha_state)
 {
-	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	TRACE_ENTER2("ha_state = %d", (int)ha_state);
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT saErr = SA_AIS_OK;
 
@@ -325,13 +328,14 @@ uint32_t initialize_for_assignment(MQD_CB *cb, SaAmfHAStateT ha_state)
 	}
 
 	rc = mqd_mds_init(cb);
-	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
+	if (NCSCC_RC_SUCCESS != rc) { /* Handle failure */
 		LOG_ER("MDS Initialization Failed");
 		goto done;
 	}
 	TRACE_1("MDS Initialization Success");
 
-	/* Register with MBCSV initialise and open a session and do selection object*/
+	/* Register with MBCSV initialise and open a session and do selection
+	 * object*/
 	rc = mqd_mbcsv_register(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("MBCSv registration failed");
@@ -364,13 +368,13 @@ done:
 
 /**************************************************************************** \
   PROCEDURE NAME : mqd_lib_destroy
- 
+
   DESCRIPTION    : This is the function which destroy the MQD libarary.
-                   This function releases the Task and the IPX mail Box.
-                   This function unregisters with AMF, destroies handle 
-                   manager, CB and cleans up all the component specific 
-                   databases
-                    
+		   This function releases the Task and the IPX mail Box.
+		   This function unregisters with AMF, destroies handle
+		   manager, CB and cleans up all the component specific
+		   databases
+
   ARGUMENTS      : none
 
   RETURNS        : none..
@@ -381,13 +385,13 @@ static void mqd_lib_destroy(void)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-#if NCS_2_0			/* Required for NCS 2.0 */
+#if NCS_2_0 /* Required for NCS 2.0 */
 	SaNameT sname;
 #endif
 
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
 	if (pMqd) {
-#if NCS_2_0			/* Required for NCS 2.0 */
+#if NCS_2_0 /* Required for NCS 2.0 */
 		sname.length = strlen(MQD_COMP_NAME);
 		strcpy((char *)sname.value, MQD_COMP_NAME);
 
@@ -429,22 +433,22 @@ static void mqd_lib_destroy(void)
 		LOG_ER("%s:%u: Instance Doesn't Exist", __FILE__, __LINE__);
 	}
 
-	gl_mqdinfo.inst_hdl = 0;	/* MQD Instance destroyed */
+	gl_mqdinfo.inst_hdl = 0; /* MQD Instance destroyed */
 	TRACE_LEAVE();
 	return;
-}	/* End of mqd_lib_destroy() */
+} /* End of mqd_lib_destroy() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_main_process
 
- DESCRIPTION    : This is the function which is given as a input to the 
-                  MQD task.
-                  This function will be select of both the FD's (AMF FD and
-                  Mail Box FD), depending on which FD has been selected, it
-                  will call the corresponding routines.
+ DESCRIPTION    : This is the function which is given as a input to the
+		  MQD task.
+		  This function will be select of both the FD's (AMF FD and
+		  Mail Box FD), depending on which FD has been selected, it
+		  will call the corresponding routines.
 
  ARGUMENTS      : info - MQD Controll block pointer
- 
+
  RETURNS        : None.
 \*****************************************************************************/
 void mqd_main_process(uint32_t hdl)
@@ -513,8 +517,8 @@ void mqd_main_process(uint32_t hdl)
 		/* Process all Clm Messages */
 		if (fds[FD_CLM].revents & POLLIN) {
 			/* dispatch all the CLM pending function */
-			err= saClmDispatch(pMqd->clm_hdl, SA_DISPATCH_ALL);
-			if (err!= SA_AIS_OK) {
+			err = saClmDispatch(pMqd->clm_hdl, SA_DISPATCH_ALL);
+			if (err != SA_AIS_OK) {
 				LOG_ER("saClmDispatch failed: %u", err);
 			}
 		}
@@ -524,31 +528,34 @@ void mqd_main_process(uint32_t hdl)
 			mbcsv_arg.i_mbcsv_hdl = pMqd->mbcsv_hdl;
 			mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL;
 			if (ncs_mbcsv_svc(&mbcsv_arg) != SA_AIS_OK) {
-				LOG_ER("Dispatching all the MBCSV pending callbacks failed");
+				LOG_ER(
+				    "Dispatching all the MBCSV pending callbacks failed");
 			}
 		}
 
 		/* process the MQSv Mail box */
 		/* Now got the IPC mail box event */
 		if (fds[FD_MBX].revents & POLLIN) {
-			if (0 != (pEvt = (MQSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&pMqd->mbx, pEvt))) {
-				if ((pEvt->type >= MQSV_EVT_BASE) && (pEvt->type <= MQSV_EVT_MAX)) {
+			if (0 != (pEvt = (MQSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(
+				      &pMqd->mbx, pEvt))) {
+				if ((pEvt->type >= MQSV_EVT_BASE) &&
+				    (pEvt->type <= MQSV_EVT_MAX)) {
 					/* Process Event */
 					mqd_evt_process(pEvt);
 				} else {
-					LOG_ER("Invalid MQSV_EVT_TYPE Event type");
+					LOG_ER(
+					    "Invalid MQSV_EVT_TYPE Event type");
 					/* Freee Event */
 				}
 			}
 		}
-
 	}
 	sleep(1);
 	TRACE_LEAVE();
 	exit(EXIT_FAILURE);
 	ncshm_give_hdl(pMqd->hdl);
 	return;
-}	/* End of mqd_main_process() */
+} /* End of mqd_main_process() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_cb_init
@@ -599,7 +606,7 @@ static uint32_t mqd_cb_init(MQD_CB *pMqd)
 
 	TRACE_LEAVE();
 	return rc;
-}	/* End of mqd_cb_init() */
+} /* End of mqd_cb_init() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_cb_shut
@@ -617,13 +624,13 @@ static void mqd_cb_shut(MQD_CB *pMqd)
 	if (pMqd->hdl)
 		ncshm_destroy_hdl(pMqd->my_svc_id, pMqd->hdl);
 	m_MMGR_FREE_MQD_CB(pMqd);
-}	/* End of mqd_cb_shut() */
+} /* End of mqd_cb_shut() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_lm_init
 
  DESCRIPTION    : This routines creates task for the MQD control block and does
-                  the layer management initialization
+		  the layer management initialization
 
  ARGUMENTS      : pMqd  - MQD Control block
 
@@ -633,15 +640,14 @@ static uint32_t mqd_lm_init(MQD_CB *pMqd)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-
 	return rc;
-}	/* End of mqd_lm_init() */
+} /* End of mqd_lm_init() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_lm_shut
 
- DESCRIPTION    : This routines deletes the task of the MQD control block and 
-                  does the layer management cleanup
+ DESCRIPTION    : This routines deletes the task of the MQD control block and
+		  does the layer management cleanup
 
  ARGUMENTS      : pMqd  - MQD Control block
 
@@ -654,13 +660,13 @@ static void mqd_lm_shut(MQD_CB *pMqd)
 	m_NCS_IPC_DETACH(&pMqd->mbx, mqd_clear_mbx, pMqd);
 	m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
 	return;
-}	/* End of mqd_lm_shut() */
+} /* End of mqd_lm_shut() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_amf_init
 
- DESCRIPTION    : MQD initializes AMF for involking process and registers 
-                  the various callback functions
+ DESCRIPTION    : MQD initializes AMF for involking process and registers
+		  the various callback functions
 
  ARGUMENTS      : pMqd  - MQD Control block
 
@@ -669,7 +675,7 @@ static void mqd_lm_shut(MQD_CB *pMqd)
 static uint32_t mqd_amf_init(MQD_CB *pMqd)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-#if NCS_2_0			/* Required for NCS 2.0 */
+#if NCS_2_0 /* Required for NCS 2.0 */
 	SaAisErrorT saErr = SA_AIS_OK;
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amfVersion;
@@ -679,7 +685,8 @@ static uint32_t mqd_amf_init(MQD_CB *pMqd)
 
 	amfCallbacks.saAmfHealthcheckCallback = mqd_saf_hlth_chk_cb;
 	amfCallbacks.saAmfCSISetCallback = mqd_saf_csi_set_cb;
-	amfCallbacks.saAmfComponentTerminateCallback = mqd_amf_comp_terminate_callback;
+	amfCallbacks.saAmfComponentTerminateCallback =
+	    mqd_amf_comp_terminate_callback;
 	amfCallbacks.saAmfCSIRemoveCallback = mqd_amf_csi_rmv_callback;
 
 	m_MQSV_GET_AMF_VER(amfVersion);
@@ -702,7 +709,7 @@ static uint32_t mqd_amf_init(MQD_CB *pMqd)
 #endif
 	TRACE_LEAVE();
 	return rc;
-}	/* End of mqd_amf_init() */
+} /* End of mqd_amf_init() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_asapi_bind
@@ -726,7 +733,7 @@ static void mqd_asapi_bind(MQD_CB *pMqd)
 
 	asapi_opr_hdlr(&opr);
 	return;
-}	/* End of mqd_asapi_bind() */
+} /* End of mqd_asapi_bind() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_asapi_unbind
@@ -744,16 +751,16 @@ static void mqd_asapi_unbind(void)
 	opr.type = ASAPi_OPR_UNBIND;
 	asapi_opr_hdlr(&opr);
 	return;
-}	/* End of mqd_asapi_unbind() */
+} /* End of mqd_asapi_unbind() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_clear_mbx
- 
- DESCRIPTION    : This is the function which deletes all the messages from 
-                  the mail box.
+
+ DESCRIPTION    : This is the function which deletes all the messages from
+		  the mail box.
 
  ARGUMENTS      : arg - argument to be passed.
-                  msg - Event pointer.
+		  msg - Event pointer.
 
  RETURNS        : true/false
 \*****************************************************************************/
@@ -770,12 +777,12 @@ static bool mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		pEvt = pNext;
 	}
 	return true;
-}	/* End of mqd_clear_mbx() */
+} /* End of mqd_clear_mbx() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_cb_init
 
- DESCRIPTION    : This routines does CLM initialization 
+ DESCRIPTION    : This routines does CLM initialization
 
  ARGUMENTS      : pMqd  - MQD Control block
 

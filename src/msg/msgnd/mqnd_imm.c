@@ -19,45 +19,46 @@
 #include "mqnd_imm.h"
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 static SaUint32T getdata_from_mqd(MQND_CB *, MQND_QUEUE_NODE *);
-static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT, const SaNameT *, const SaImmAttrNameT *);
-SaImmOiCallbacksT_2 oi_cbks = {
-	.saImmOiAdminOperationCallback = NULL,
-	.saImmOiCcbAbortCallback = NULL,
-	.saImmOiCcbApplyCallback = NULL,
-	.saImmOiCcbCompletedCallback = NULL,
-	.saImmOiCcbObjectCreateCallback = NULL,
-	.saImmOiCcbObjectDeleteCallback = NULL,
-	.saImmOiCcbObjectModifyCallback = NULL,
-	.saImmOiRtAttrUpdateCallback = mqnd_saImmOiRtAttrUpdateCallback
-};
+static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT,
+						    const SaNameT *,
+						    const SaImmAttrNameT *);
+SaImmOiCallbacksT_2 oi_cbks = {.saImmOiAdminOperationCallback = NULL,
+			       .saImmOiCcbAbortCallback = NULL,
+			       .saImmOiCcbApplyCallback = NULL,
+			       .saImmOiCcbCompletedCallback = NULL,
+			       .saImmOiCcbObjectCreateCallback = NULL,
+			       .saImmOiCcbObjectDeleteCallback = NULL,
+			       .saImmOiCcbObjectModifyCallback = NULL,
+			       .saImmOiRtAttrUpdateCallback =
+				   mqnd_saImmOiRtAttrUpdateCallback};
 
 /* IMMSv Defs */
 #define MQND_IMM_RELEASE_CODE 'A'
 #define MQND_IMM_MAJOR_VERSION 0x02
 #define MQND_IMM_MINOR_VERSION 0x01
 
-static SaVersionT imm_version = {
-	MQND_IMM_RELEASE_CODE,
-	MQND_IMM_MAJOR_VERSION,
-	MQND_IMM_MINOR_VERSION
-};
+static SaVersionT imm_version = {MQND_IMM_RELEASE_CODE, MQND_IMM_MAJOR_VERSION,
+				 MQND_IMM_MINOR_VERSION};
 
 /****************************************************************************
- * Name          : mqnd_saImmOiRtAttrUpdateCallback 
+ * Name          : mqnd_saImmOiRtAttrUpdateCallback
  *
- * Description   : This callback function is invoked when a OM requests for object 
- *                 information .
+ * Description   : This callback function is invoked when a OM requests for
+ *object information .
  *
  * Arguments     : immOiHandle      - IMM handle
- *                 objectName       - Object name (DN) 
- *                 attributeNames   - attribute names of the object to be updated
+ *                 objectName       - Object name (DN)
+ *                 attributeNames   - attribute names of the object to be
+ *updated
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
-						    const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
+static SaAisErrorT
+mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
+				 const SaNameT *objectName,
+				 const SaImmAttrNameT *attributeNames)
 {
 	int i = 0, attrCnt = 0;
 	SaNameT mQueueName;
@@ -67,9 +68,9 @@ static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	SaImmAttrModificationT_2 attr_output[3];
 	const SaImmAttrModificationT_2 *attrMods[4];
 
-	SaImmAttrValueT attrUpdateValues1[] = { &attr1 };
-	SaImmAttrValueT attrUpdateValues2[] = { &attr2 };
-	SaImmAttrValueT attrUpdateValues3[] = { &attr3 };
+	SaImmAttrValueT attrUpdateValues1[] = {&attr1};
+	SaImmAttrValueT attrUpdateValues2[] = {&attr2};
+	SaImmAttrValueT attrUpdateValues3[] = {&attr3};
 
 	MQND_CB *mqnd_cb = NULL;
 	MQND_QUEUE_NODE *qNode = NULL;
@@ -92,12 +93,14 @@ static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		char *mQPrio = strchr((char *)objectName->value, ',');
 		if (mQPrio != NULL) {
 			mQPrio++;
-			strncpy((char *)mQueueName.value, mQPrio, strlen(mQPrio));
+			strncpy((char *)mQueueName.value, mQPrio,
+				strlen(mQPrio));
 			mQueueName.length = strlen(mQPrio);
 		} else
 			return SA_AIS_ERR_FAILED_OPERATION;
 	} else {
-		strncpy((char *)mQueueName.value, (char *)objectName->value, objectName->length);
+		strncpy((char *)mQueueName.value, (char *)objectName->value,
+			objectName->length);
 		mQueueName.length = objectName->length;
 	}
 	mqnd_qname_node_get(mqnd_cb, mQueueName, &pNode);
@@ -126,44 +129,66 @@ static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 
 			if (strcmp(attributeName, "saMsgQueueUsedSize") == 0) {
 
-				attr1 = shmBaseAddr[offset].QueueStatsShm.totalQueueUsed;
-				attr_output[attrCnt].modType = SA_IMM_ATTR_VALUES_REPLACE;
-				attr_output[attrCnt].modAttr.attrName = attributeName;
-				attr_output[attrCnt].modAttr.attrValueType = SA_IMM_ATTR_SAUINT64T;
-				attr_output[attrCnt].modAttr.attrValuesNumber = 1;
-				attr_output[attrCnt].modAttr.attrValues = attrUpdateValues1;
+				attr1 = shmBaseAddr[offset]
+					    .QueueStatsShm.totalQueueUsed;
+				attr_output[attrCnt].modType =
+				    SA_IMM_ATTR_VALUES_REPLACE;
+				attr_output[attrCnt].modAttr.attrName =
+				    attributeName;
+				attr_output[attrCnt].modAttr.attrValueType =
+				    SA_IMM_ATTR_SAUINT64T;
+				attr_output[attrCnt].modAttr.attrValuesNumber =
+				    1;
+				attr_output[attrCnt].modAttr.attrValues =
+				    attrUpdateValues1;
 				attrMods[attrCnt] = &attr_output[attrCnt];
 				++attrCnt;
-			} else if (strcmp(attributeName, "saMsgQueueNumMsgs") == 0) {
+			} else if (strcmp(attributeName, "saMsgQueueNumMsgs") ==
+				   0) {
 
-				attr2 = shmBaseAddr[offset].QueueStatsShm.totalNumberOfMessages;
-				attr_output[attrCnt].modType = SA_IMM_ATTR_VALUES_REPLACE;
-				attr_output[attrCnt].modAttr.attrName = attributeName;
-				attr_output[attrCnt].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-				attr_output[attrCnt].modAttr.attrValuesNumber = 1;
-				attr_output[attrCnt].modAttr.attrValues = attrUpdateValues2;
+				attr2 =
+				    shmBaseAddr[offset]
+					.QueueStatsShm.totalNumberOfMessages;
+				attr_output[attrCnt].modType =
+				    SA_IMM_ATTR_VALUES_REPLACE;
+				attr_output[attrCnt].modAttr.attrName =
+				    attributeName;
+				attr_output[attrCnt].modAttr.attrValueType =
+				    SA_IMM_ATTR_SAUINT32T;
+				attr_output[attrCnt].modAttr.attrValuesNumber =
+				    1;
+				attr_output[attrCnt].modAttr.attrValues =
+				    attrUpdateValues2;
 				attrMods[attrCnt] = &attr_output[attrCnt];
 				++attrCnt;
-			} else if (strcmp(attributeName, "saMsgQueueNumMemberQueueGroups") == 0) {
+			} else if (strcmp(attributeName,
+					  "saMsgQueueNumMemberQueueGroups") ==
+				   0) {
 
 				value = getdata_from_mqd(mqnd_cb, qNode);
 				attr3 = value;
-				attr_output[attrCnt].modType = SA_IMM_ATTR_VALUES_REPLACE;
-				attr_output[attrCnt].modAttr.attrName = attributeName;
-				attr_output[attrCnt].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-				attr_output[attrCnt].modAttr.attrValuesNumber = 1;
-				attr_output[attrCnt].modAttr.attrValues = attrUpdateValues3;
+				attr_output[attrCnt].modType =
+				    SA_IMM_ATTR_VALUES_REPLACE;
+				attr_output[attrCnt].modAttr.attrName =
+				    attributeName;
+				attr_output[attrCnt].modAttr.attrValueType =
+				    SA_IMM_ATTR_SAUINT32T;
+				attr_output[attrCnt].modAttr.attrValuesNumber =
+				    1;
+				attr_output[attrCnt].modAttr.attrValues =
+				    attrUpdateValues3;
 				attrMods[attrCnt] = &attr_output[attrCnt];
 				++attrCnt;
 			}
 			i++;
-		}		/*End while attributesNames() */
+		} /*End while attributesNames() */
 		attrMods[attrCnt] = NULL;
-		saImmOiRtObjectUpdate_2(mqnd_cb->immOiHandle, objectName, attrMods);
+		saImmOiRtObjectUpdate_2(mqnd_cb->immOiHandle, objectName,
+					attrMods);
 		TRACE_LEAVE();
 		return SA_AIS_OK;
-	} /* End if  m_CMP_HORDER_SANAMET */
-	else {			/* walk through the MqPriotity Object Attributes List */
+	}      /* End if  m_CMP_HORDER_SANAMET */
+	else { /* walk through the MqPriotity Object Attributes List */
 		char *indx = strchr((char *)objectName->value, '=');
 		int prioVal = 0, j = 0;
 		if (indx) {
@@ -172,62 +197,111 @@ static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		} else
 			return SA_AIS_ERR_FAILED_OPERATION;
 
-		for (j = SA_MSG_MESSAGE_HIGHEST_PRIORITY; j < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; j++) {
+		for (j = SA_MSG_MESSAGE_HIGHEST_PRIORITY;
+		     j < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; j++) {
 			if (j == prioVal) {
 				SaMsgQueueUsageT *qUsage = NULL;
-				qUsage = &(shmBaseAddr[offset].QueueStatsShm.saMsgQueueUsage[j]);
-				while ((attributeName = attributeNames[i]) != NULL) {
-					if (strcmp(attributeName, "saMsgQueuePriorityQUsedSize") == 0) {
+				qUsage =
+				    &(shmBaseAddr[offset]
+					  .QueueStatsShm.saMsgQueueUsage[j]);
+				while ((attributeName = attributeNames[i]) !=
+				       NULL) {
+					if (strcmp(
+						attributeName,
+						"saMsgQueuePriorityQUsedSize") ==
+					    0) {
 						attr1 = qUsage->queueUsed;
-						attr_output[attrCnt].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attrCnt].modAttr.attrName = attributeName;
-						attr_output[attrCnt].modAttr.attrValueType = SA_IMM_ATTR_SAUINT64T;
-						attr_output[attrCnt].modAttr.attrValuesNumber = 1;
-						attr_output[attrCnt].modAttr.attrValues = attrUpdateValues1;
-						attrMods[attrCnt] = &attr_output[attrCnt];
+						attr_output[attrCnt].modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attrCnt]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attrCnt]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT64T;
+						attr_output[attrCnt]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attrCnt]
+						    .modAttr.attrValues =
+						    attrUpdateValues1;
+						attrMods[attrCnt] =
+						    &attr_output[attrCnt];
 						++attrCnt;
-					} else if (strcmp(attributeName, "saMsgQueuePriorityQNumMessages") == 0) {
+					} else if (
+					    strcmp(
+						attributeName,
+						"saMsgQueuePriorityQNumMessages") ==
+					    0) {
 
-						attr2 = qUsage->numberOfMessages;
-						attr_output[attrCnt].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attrCnt].modAttr.attrName = attributeName;
-						attr_output[attrCnt].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-						attr_output[attrCnt].modAttr.attrValuesNumber = 1;
-						attr_output[attrCnt].modAttr.attrValues = attrUpdateValues2;
-						attrMods[attrCnt] = &attr_output[attrCnt];
+						attr2 =
+						    qUsage->numberOfMessages;
+						attr_output[attrCnt].modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attrCnt]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attrCnt]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT32T;
+						attr_output[attrCnt]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attrCnt]
+						    .modAttr.attrValues =
+						    attrUpdateValues2;
+						attrMods[attrCnt] =
+						    &attr_output[attrCnt];
 						++attrCnt;
-					} else if (strcmp(attributeName, "saMsgQueuePriorityQNumFullErrors") == 0) {
+					} else if (
+					    strcmp(
+						attributeName,
+						"saMsgQueuePriorityQNumFullErrors") ==
+					    0) {
 
-						attr3 = qNode->qinfo.numberOfFullErrors[j];
-						attr_output[attrCnt].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attrCnt].modAttr.attrName = attributeName;
-						attr_output[attrCnt].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-						attr_output[attrCnt].modAttr.attrValuesNumber = 1;
-						attr_output[attrCnt].modAttr.attrValues = attrUpdateValues3;
-						attrMods[attrCnt] = &attr_output[attrCnt];
+						attr3 =
+						    qNode->qinfo
+							.numberOfFullErrors[j];
+						attr_output[attrCnt].modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attrCnt]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attrCnt]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT32T;
+						attr_output[attrCnt]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attrCnt]
+						    .modAttr.attrValues =
+						    attrUpdateValues3;
+						attrMods[attrCnt] =
+						    &attr_output[attrCnt];
 						++attrCnt;
 					}
 					i++;
-				}	/* end of while */
+				} /* end of while */
 				attrMods[attrCnt] = NULL;
-				saImmOiRtObjectUpdate_2(mqnd_cb->immOiHandle, objectName, attrMods);
+				saImmOiRtObjectUpdate_2(mqnd_cb->immOiHandle,
+							objectName, attrMods);
 				return SA_AIS_OK;
-			}	/* enf of <if i==j> */
-		}		/* end of <for i=> */
-	}			/* end of <else > */
+			} /* enf of <if i==j> */
+		}	 /* end of <for i=> */
+	}		  /* end of <else > */
 	return SA_AIS_ERR_FAILED_OPERATION;
 }
 
 /****************************************************************************
- * Name          : getdata_from_mqd 
+ * Name          : getdata_from_mqd
  *
- * Description   : This function is called to get saMsgQueueNumMemberQueueGroups attribute value  
- *                 attribute value form MQD .
+ * Description   : This function is called to get saMsgQueueNumMemberQueueGroups
+ *attribute value attribute value form MQD .
  *
- * Arguments     : MQND_CB *cb               - MQND Control Block pointer 
- *                 MQND_QUEUE_NODE *pNode    - MQND queue node pointer 
- * 
- * Return Values : SaUint32T param  - The param value returned by MQD   
+ * Arguments     : MQND_CB *cb               - MQND Control Block pointer
+ *                 MQND_QUEUE_NODE *pNode    - MQND queue node pointer
+ *
+ * Return Values : SaUint32T param  - The param value returned by MQD
  *
  * Notes         : None.
  *****************************************************************************/
@@ -238,16 +312,19 @@ static SaUint32T getdata_from_mqd(MQND_CB *cb, MQND_QUEUE_NODE *pNode)
 	memset(&req, 0, sizeof(MQSV_EVT));
 	req.type = MQSV_EVT_MQD_CTRL;
 	req.msg.mqd_ctrl.type = MQD_QGRP_CNT_GET;
-	req.msg.mqd_ctrl.info.qgrp_cnt_info.info.queueName = pNode->qinfo.queueName;
+	req.msg.mqd_ctrl.info.qgrp_cnt_info.info.queueName =
+	    pNode->qinfo.queueName;
 	TRACE_ENTER();
 
 	/* Send the MDS sync request to remote MQND */
-	mqnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_MQD, cb->mqd_dest, &req, &rsp, MQSV_WAIT_TIME);
+	mqnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_MQD, cb->mqd_dest, &req, &rsp,
+			       MQSV_WAIT_TIME);
 
 	if ((rsp) && (rsp->type == MQSV_EVT_MQND_CTRL) &&
 	    (rsp->msg.mqnd_ctrl.type == MQND_CTRL_EVT_QGRP_CNT_RSP) &&
 	    (rsp->msg.mqnd_ctrl.info.qgrp_cnt_info.error == SA_AIS_OK)) {
-		param = rsp->msg.mqnd_ctrl.info.qgrp_cnt_info.info.noOfQueueGroupMemOf;
+		param = rsp->msg.mqnd_ctrl.info.qgrp_cnt_info.info
+			    .noOfQueueGroupMemOf;
 	} else
 		LOG_ER("getdata_from_mqd FAILED");
 
@@ -259,20 +336,22 @@ static SaUint32T getdata_from_mqd(MQND_CB *cb, MQND_QUEUE_NODE *pNode)
 }
 
 /****************************************************************************
- * Name          : mqnd_create_runtime_MsgQobject 
+ * Name          : mqnd_create_runtime_MsgQobject
  *
- * Description   : This function is invoked to create a runtime MsgQobject object  
+ * Description   : This function is invoked to create a runtime MsgQobject
+ *object
  *
  * Arguments     : rname                      - DN of resource
- *                 create_time                - Creation time of the object 
- *		   MQND_QUEUE_NODE *qnode     - Mqnd Queue Node pointer   
+ *                 create_time                - Creation time of the object
+ *		   MQND_QUEUE_NODE *qnode     - Mqnd Queue Node pointer
  *		   immOiHandle                - IMM handle
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time, MQND_QUEUE_NODE *qnode,
+SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
+					   MQND_QUEUE_NODE *qnode,
 					   SaImmOiHandleT immOiHandle)
 {
 	SaNameT parent, *parentName = NULL;
@@ -282,7 +361,8 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 	char *rdnstr;
 	uint32_t open = 0;
 	SaImmAttrValueT arr1[1], arr2[1], arr3[1], arr4[1], arr5[1], arr6[1];
-	SaImmAttrValuesT_2 attr_mqrsc, attr_mqIspersistent, attr_mqRetTime, attr_mqSize;
+	SaImmAttrValuesT_2 attr_mqrsc, attr_mqIspersistent, attr_mqRetTime,
+	    attr_mqSize;
 	SaImmAttrValuesT_2 attr_mqCreationTimeStamp, attr_mqIsOpen;
 	const SaImmAttrValuesT_2 *attrValues[7];
 	TRACE_ENTER();
@@ -291,7 +371,8 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 		rdnstr = strtok(dndup, ",");
 		parent_name++;
 		parentName = &parent;
-		strncpy((char *)parent.value, parent_name, SA_MAX_NAME_LENGTH-1);
+		strncpy((char *)parent.value, parent_name,
+			SA_MAX_NAME_LENGTH - 1);
 		parent.length = strlen((char *)parent.value);
 	} else
 		rdnstr = rname;
@@ -350,7 +431,8 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 	attrValues[5] = &attr_mqIsOpen;
 	attrValues[6] = NULL;
 
-	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaMsgQueue", parentName, attrValues);
+	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaMsgQueue",
+					     parentName, attrValues);
 
 	if (dndup)
 		free(dndup);
@@ -361,24 +443,28 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 
 /****************************************************************************
  * Name          : mqnd_create_runtime_MsgQPriorityobject
- *      
- * Description   : This function is invoked to create a runtime MsgQPriorityobject  object  
- *              
+ *
+ * Description   : This function is invoked to create a runtime
+ *MsgQPriorityobject  object
+ *
  * Arguments     : rname                      - DN of resource
- *                 MQND_QUEUE_NODE *qnode     - Mqnd Queue Node pointer   
- * 		   immOiHandle                - IMM handle
- *              
- * Return Values : SaAisErrorT 
- *      
+ *                 MQND_QUEUE_NODE *qnode     - Mqnd Queue Node pointer
+ *		   immOiHandle                - IMM handle
+ *
+ * Return Values : SaAisErrorT
+ *
  * Notes         : None.
  *****************************************************************************/
-SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname, MQND_QUEUE_NODE *qnode, SaImmOiHandleT immOiHandle)
+SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname,
+						   MQND_QUEUE_NODE *qnode,
+						   SaImmOiHandleT immOiHandle)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	SaUint64T def_val = 0;
 	int i = 0;
 	SaImmAttrValueT arr1[1], arr2[1], arr3[1], arr4[1];
-	SaImmAttrValuesT_2 attr_mqprio, attr_mqprioSize, attr_capavail, attr_capreached;
+	SaImmAttrValuesT_2 attr_mqprio, attr_mqprioSize, attr_capavail,
+	    attr_capreached;
 	const SaImmAttrValuesT_2 *attrValues[5];
 	SaNameT mqp_parent, *mQPrioDn = NULL;
 	TRACE_ENTER();
@@ -391,14 +477,15 @@ SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname, MQND_QUEUE_N
 
 	mQPrioDn = &mqp_parent;
 
-	for (i = SA_MSG_MESSAGE_HIGHEST_PRIORITY; i < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; i++) {
+	for (i = SA_MSG_MESSAGE_HIGHEST_PRIORITY;
+	     i < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; i++) {
 		memset(mqprdn, 0, SA_MAX_NAME_LENGTH);
 		sprintf(mqprdn, "%s%d", "safMqPrio=", i);
 
 		arr1[0] = &mqprdn;
 		arr2[0] = &(qnode->qinfo.size[i]);
-		arr3[0] = &def_val;	/* not implemented */
-		arr4[0] = &def_val;	/* not implemented */
+		arr3[0] = &def_val; /* not implemented */
+		arr4[0] = &def_val; /* not implemented */
 
 		attr_mqprio.attrName = "safMqPrio";
 		attr_mqprio.attrValueType = SA_IMM_ATTR_SASTRINGT;
@@ -426,7 +513,8 @@ SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname, MQND_QUEUE_N
 		attrValues[3] = &attr_capreached;
 		attrValues[4] = NULL;
 
-		rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaMsgQueuePriority", mQPrioDn, attrValues);
+		rc = immutil_saImmOiRtObjectCreate_2(
+		    immOiHandle, "SaMsgQueuePriority", mQPrioDn, attrValues);
 	}
 
 	if (mqprdn)
@@ -437,13 +525,13 @@ SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname, MQND_QUEUE_N
 }
 
 /****************************************************************************
- * Name          : mqnd_imm_initialize 
+ * Name          : mqnd_imm_initialize
  *
- * Description   : Initialize the OI and get selection object  
+ * Description   : Initialize the OI and get selection object
  *
- * Arguments     : MQND_CB *cb - MQND Control block pointer           
+ * Arguments     : MQND_CB *cb - MQND Control block pointer
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
@@ -453,9 +541,11 @@ SaAisErrorT mqnd_imm_initialize(MQND_CB *cb)
 	immutilWrapperProfile.errorsAreFatal = 0;
 	TRACE_ENTER();
 
-	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
+	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks,
+					 &imm_version);
 	if (rc == SA_AIS_OK) {
-		immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
+		immutil_saImmOiSelectionObjectGet(cb->immOiHandle,
+						  &cb->imm_sel_obj);
 	}
 	TRACE_LEAVE2("Returned with return code %d", rc);
 	return rc;
@@ -464,11 +554,11 @@ SaAisErrorT mqnd_imm_initialize(MQND_CB *cb)
 /****************************************************************************
  * Name          : _mqnd_imm_declare_implementer
  *
- * Description   : Become a OI implementer  
+ * Description   : Become a OI implementer
  *
- * Arguments     : cb - MQND Control Block pointer            
+ * Arguments     : cb - MQND Control Block pointer
  *
- * Return Values : None 
+ * Return Values : None
  *
  * Notes         : None.
  *****************************************************************************/
@@ -482,7 +572,8 @@ void *_mqnd_imm_declare_implementer(void *cb)
 	char *i_name;
 	i_name = (char *)malloc(sizeof(char) * SA_MAX_NAME_LENGTH);
 	memset(i_name, 0, SA_MAX_NAME_LENGTH);
-	snprintf(i_name, SA_MAX_NAME_LENGTH, "%s%u", "MsgQueueService", mqnd_cb->nodeid);
+	snprintf(i_name, SA_MAX_NAME_LENGTH, "%s%u", "MsgQueueService",
+		 mqnd_cb->nodeid);
 	implementer_name = i_name;
 	error = saImmOiImplementerSet(mqnd_cb->immOiHandle, implementer_name);
 	unsigned int nTries = 1;
@@ -503,11 +594,11 @@ void *_mqnd_imm_declare_implementer(void *cb)
 /****************************************************************************
  * Name          : mqnd_imm_declare_implementer
  *
- * Description   : Become a OI implementer  
+ * Description   : Become a OI implementer
  *
- * Arguments     : cb - MQND Control Block pointer            
+ * Arguments     : cb - MQND Control Block pointer
  *
- * Return Values : None 
+ * Return Values : None
  *
  * Notes         : None.
  *****************************************************************************/
@@ -519,7 +610,8 @@ void mqnd_imm_declare_implementer(MQND_CB *cb)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	TRACE_ENTER();
 
-	if (pthread_create(&thread, &attr, _mqnd_imm_declare_implementer, cb) != 0) {
+	if (pthread_create(&thread, &attr, _mqnd_imm_declare_implementer, cb) !=
+	    0) {
 		LOG_CR("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
@@ -528,12 +620,12 @@ void mqnd_imm_declare_implementer(MQND_CB *cb)
 }
 
 /**
- * Initialize the OI interface and get a selection object. 
+ * Initialize the OI interface and get a selection object.
  * @param cb
- * 
+ *
  * @return SaAisErrorT
  */
-static void  *mqnd_imm_reinit_thread(void * _cb)
+static void *mqnd_imm_reinit_thread(void *_cb)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	MQND_CB *cb = (MQND_CB *)_cb;
@@ -544,9 +636,7 @@ static void  *mqnd_imm_reinit_thread(void * _cb)
 		/* If this is the active server, become implementer again. */
 		if (cb->ha_state == SA_AMF_HA_ACTIVE)
 			_mqnd_imm_declare_implementer(cb);
-	}
-	else
-	{
+	} else {
 		LOG_ER("mqnd_imm_initialize FAILED: %s", strerror(error));
 		exit(EXIT_FAILURE);
 	}
@@ -554,12 +644,11 @@ static void  *mqnd_imm_reinit_thread(void * _cb)
 	return NULL;
 }
 
-
 /**
  * Become object and class implementer, non-blocking.
  * @param cb
  */
-void mqnd_imm_reinit_bg(MQND_CB * cb)
+void mqnd_imm_reinit_bg(MQND_CB *cb)
 {
 	pthread_t thread;
 	pthread_attr_t attr;
@@ -575,4 +664,3 @@ void mqnd_imm_reinit_bg(MQND_CB * cb)
 	pthread_attr_destroy(&attr);
 	TRACE_LEAVE();
 }
-

@@ -39,7 +39,7 @@ bool mbox_clean(NCSCONTEXT arg, NCSCONTEXT msg) {
 
   /* clean the entire mailbox */
   for (curr = (Message *)msg; curr;) {
-    Message* temp = curr;
+    Message *temp = curr;
     curr = curr->next;
 
     delete temp;
@@ -50,9 +50,7 @@ bool mbox_clean(NCSCONTEXT arg, NCSCONTEXT msg) {
 // The fixture for testing c-function sysf_ipc
 class SysfIpcTest : public ::testing::Test {
  public:
-
  protected:
-
   SysfIpcTest() {
     // Setup work can be done here for each test.
     no_of_msgs_sent = 0;
@@ -71,7 +69,7 @@ class SysfIpcTest : public ::testing::Test {
     // before each test).
     ncs_leap_startup();
     // see ticket #1629, return code should be ok
-    //ASSERT_EQ(rc, NCSCC_RC_SUCCESS); 
+    // ASSERT_EQ(rc, NCSCC_RC_SUCCESS);
 
     int rc = m_NCS_IPC_CREATE(&mbox);
     ASSERT_EQ(rc, NCSCC_RC_SUCCESS);
@@ -107,7 +105,7 @@ class SysfIpcTest : public ::testing::Test {
   void recv_msg(NCS_IPC_PRIORITY prio, int seq_no) {
     Message *msg;
 
-    msg = reinterpret_cast<Message*>(ncs_ipc_non_blk_recv(&mbox));
+    msg = reinterpret_cast<Message *>(ncs_ipc_non_blk_recv(&mbox));
     ASSERT_TRUE(msg != NULL);
     ASSERT_EQ(msg->prio, prio);
     ASSERT_EQ(msg->seq_no, seq_no);
@@ -122,10 +120,10 @@ class SysfIpcTest : public ::testing::Test {
     srand(time(NULL));
 
     for (int i = 0; i < 60; ++i) {
-      Message* msg = new Message;
+      Message *msg = new Message;
 
       int prio = (random() % 3) + 1;
-      msg->prio = (NCS_IPC_PRIORITY) prio;
+      msg->prio = (NCS_IPC_PRIORITY)prio;
       msg->seq_no = i;
 
       int rc = m_NCS_IPC_SEND(&mbox, msg, msg->prio);
@@ -143,16 +141,16 @@ class SysfIpcTest : public ::testing::Test {
   static std::atomic<int> no_of_msgs_sent;
 };
 
-SYSF_MBX SysfIpcTest::mbox {0};
-std::atomic<int> SysfIpcTest::no_of_msgs_sent {0};
+SYSF_MBX SysfIpcTest::mbox{0};
+std::atomic<int> SysfIpcTest::no_of_msgs_sent{0};
 
 void SysfIpcTest::MessageReceiver() {
   NCS_SEL_OBJ mbox_fd;
   pollfd fds;
   bool done = false;
   Message *msg;
-  int no_of_msgs_received {0};
-  
+  int no_of_msgs_received{0};
+
   mbox_fd = ncs_ipc_get_sel_obj(&mbox);
 
   fds.fd = mbox_fd.rmv_obj;
@@ -169,11 +167,12 @@ void SysfIpcTest::MessageReceiver() {
     }
 
     if (fds.revents & POLLIN) {
-      while ((msg = reinterpret_cast<Message*>(ncs_ipc_non_blk_recv(&mbox))) != NULL) {
+      while ((msg = reinterpret_cast<Message *>(ncs_ipc_non_blk_recv(&mbox))) !=
+             NULL) {
         no_of_msgs_received++;
 
         if (msg->seq_no == 4711) {
-           done = true;
+          done = true;
         }
 
         delete msg;
@@ -182,7 +181,7 @@ void SysfIpcTest::MessageReceiver() {
   }
 
   ASSERT_EQ(no_of_msgs_received, no_of_msgs_sent);
-} 
+}
 
 // Tests send and receive
 TEST_F(SysfIpcTest, TestSendReceiveMessage) {
@@ -208,7 +207,7 @@ TEST_F(SysfIpcTest, TestSendReceiveMessage) {
   recv_msg(NCS_IPC_PRIORITY_LOW, 1);
   recv_msg(NCS_IPC_PRIORITY_LOW, 2);
 
-  msg = reinterpret_cast<Message*>(ncs_ipc_non_blk_recv(&mbox));
+  msg = reinterpret_cast<Message *>(ncs_ipc_non_blk_recv(&mbox));
   EXPECT_TRUE(msg == NULL);
 }
 
@@ -217,12 +216,12 @@ TEST_F(SysfIpcTest, TestThreadsSendReceiveMessage) {
   std::thread sndr_thread[5];
   srand(time(NULL));
 
-  std::thread msg_receiver {MessageReceiver};
+  std::thread msg_receiver{MessageReceiver};
 
   ASSERT_EQ(msg_receiver.joinable(), true);
 
   for (int i = 0; i < 5; ++i) {
-    sndr_thread[i] = std::thread {MessageSender};
+    sndr_thread[i] = std::thread{MessageSender};
   }
 
   for (int i = 0; i < 5; ++i) {

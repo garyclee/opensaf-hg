@@ -23,7 +23,7 @@
 
   FUNCTIONS INCLUDED in this module:
   cpnd_lib_req ............ SE API to init and create PWE for CPND
-  cpnd_lib_init ........... Function used to init CPND.  
+  cpnd_lib_init ........... Function used to init CPND.
   cpnd_lib_destroy ........ Function used to destroy CPND.
   cpnd_main_process ...........Process all the events posted to CPND.
 ******************************************************************************/
@@ -33,22 +33,17 @@
 #include "base/osaf_poll.h"
 #include "base/osaf_time.h"
 
-enum {
-	FD_TERM,
-	FD_MBX,
-	FD_AMF,
-	FD_CLM,
-	FD_CLM_UPDATED,
-	NUMBER_OF_FDS
-};
+enum { FD_TERM, FD_MBX, FD_AMF, FD_CLM, FD_CLM_UPDATED, NUMBER_OF_FDS };
 
 #define CPND_CLM_API_TIMEOUT 10000000000LL
 uint32_t gl_cpnd_cb_hdl = 0;
 
 /* Static Function Declerations */
-static uint32_t cpnd_extract_create_info(int argc, char *argv[], CPND_CREATE_INFO *create_info);
+static uint32_t cpnd_extract_create_info(int argc, char *argv[],
+					 CPND_CREATE_INFO *create_info);
 
-static uint32_t cpnd_extract_destroy_info(int argc, char *argv[], CPND_DESTROY_INFO *destroy_info);
+static uint32_t cpnd_extract_destroy_info(int argc, char *argv[],
+					  CPND_DESTROY_INFO *destroy_info);
 
 static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info);
 
@@ -69,11 +64,11 @@ void cpnd_main_process(CPND_CB *cb);
 /****************************************************************************
  * Name          : cpnd_lib_req
  *
- * Description   : This is the SE API which is used to init/destroy or 
+ * Description   : This is the SE API which is used to init/destroy or
  *                 Create/destroy PWE's of CPND. This will be called by SBOM.
  *
- * Arguments     : req_info  - This is the pointer to the input information 
- *                             which SBOM gives.  
+ * Arguments     : req_info  - This is the pointer to the input information
+ *                             which SBOM gives.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
@@ -87,15 +82,17 @@ uint32_t cpnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
-		if (cpnd_extract_create_info(req_info->info.create.argc,
-					     req_info->info.create.argv, &create_info) == NCSCC_RC_FAILURE) {
+		if (cpnd_extract_create_info(
+			req_info->info.create.argc, req_info->info.create.argv,
+			&create_info) == NCSCC_RC_FAILURE) {
 			break;
 		}
 		rc = cpnd_lib_init(&create_info);
 		break;
 	case NCS_LIB_REQ_DESTROY:
-		if (cpnd_extract_destroy_info(req_info->info.create.argc,
-					      req_info->info.create.argv, &destroy_info) == NCSCC_RC_FAILURE) {
+		if (cpnd_extract_destroy_info(
+			req_info->info.create.argc, req_info->info.create.argv,
+			&destroy_info) == NCSCC_RC_FAILURE) {
 			break;
 		}
 		rc = cpnd_lib_destroy(&destroy_info);
@@ -119,7 +116,8 @@ uint32_t cpnd_lib_req(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t cpnd_extract_create_info(int argc, char *argv[], CPND_CREATE_INFO *create_info)
+static uint32_t cpnd_extract_create_info(int argc, char *argv[],
+					 CPND_CREATE_INFO *create_info)
 {
 
 	memset(create_info, 0, sizeof(CPND_CREATE_INFO));
@@ -137,13 +135,15 @@ static uint32_t cpnd_extract_create_info(int argc, char *argv[], CPND_CREATE_INF
  *
  * Arguments     : argc  - This is the Number of arguments received.
  *                 argv  - string received.
- *                 destroy_info - Structure to be filled for initing the service.
+ *                 destroy_info - Structure to be filled for initing the
+ *service.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t cpnd_extract_destroy_info(int argc, char *argv[], CPND_DESTROY_INFO *destroy_info)
+static uint32_t cpnd_extract_destroy_info(int argc, char *argv[],
+					  CPND_DESTROY_INFO *destroy_info)
 {
 
 	memset(destroy_info, 0, sizeof(CPND_DESTROY_INFO));
@@ -159,8 +159,8 @@ static uint32_t cpnd_extract_destroy_info(int argc, char *argv[], CPND_DESTROY_I
  * Description   : This is the function which initalize the CPND libarary.
  *                 This function creates an IPC mail Box and spawns CPND
  *                 thread.
- *                 This function initializes the CB, handle manager, MDS, CPD 
- *                 and Registers with AMF with respect to the component Type 
+ *                 This function initializes the CB, handle manager, MDS, CPD
+ *                 and Registers with AMF with respect to the component Type
  *                 (CPND).
  *
  * Arguments     : create_info: pointer to struct CPND_CREATE_INFO.
@@ -204,7 +204,8 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 		goto cpnd_cb_init_fail;
 	}
 
-	if ((cb->cpnd_cb_hdl_id = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_CPND, (NCSCONTEXT)cb)) == 0) {
+	if ((cb->cpnd_cb_hdl_id = ncshm_create_hdl(
+		 cb->pool_id, NCS_SERVICE_ID_CPND, (NCSCONTEXT)cb)) == 0) {
 		LOG_ER("cpnd cb hdl create failed");
 		rc = NCSCC_RC_FAILURE;
 		goto cpnd_hdl_fail;
@@ -213,12 +214,11 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	/* Store the handle in some global location */
 	m_CPND_STORE_CB_HDL(cb->cpnd_cb_hdl_id);
 
-	if (cpnd_get_scAbsenceAllowed_attr() != 0 ) {
+	if (cpnd_get_scAbsenceAllowed_attr() != 0) {
 		cb->scAbsenceAllowed = true;
 		TRACE("cpnd scAbsenceAllowed = true");
 	} else
 		cb->scAbsenceAllowed = false;
-
 
 	/* Get shm_alloc_guaranteed */
 	if ((ptr = getenv("OSAF_CKPT_SHM_ALLOC_GUARANTEE")) != NULL) {
@@ -242,7 +242,7 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	/* Initalize the CLM service */
 	rc = cpnd_clm_init();
 	if (rc != SA_AIS_OK) {
-		LOG_ER("cpnd clm init failed with return value:%d",rc);
+		LOG_ER("cpnd clm init failed with return value:%d", rc);
 		goto cpnd_clm_init_fail;
 	}
 
@@ -262,10 +262,14 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	memset(&gbl_shm_addr, 0, sizeof(GBL_SHM_PTR));
 	shm_ptr = cpnd_restart_shm_create(&cpnd_open_req, cb, cb->nodeid);
 	if (shm_ptr) {
-		gbl_shm_addr.base_addr = shm_ptr;	/* Store base address of shared memory, but not used for any operations as of now */
+		gbl_shm_addr.base_addr =
+		    shm_ptr; /* Store base address of shared memory, but not
+				used for any operations as of now */
 		gbl_shm_addr.cli_addr = shm_ptr + sizeof(CPND_SHM_VERSION);
-		gbl_shm_addr.ckpt_addr = (void *)((char *)gbl_shm_addr.cli_addr + sizeof(CLIENT_HDR) +
-						  (MAX_CLIENTS * sizeof(CLIENT_INFO)));
+		gbl_shm_addr.ckpt_addr =
+		    (void *)((char *)gbl_shm_addr.cli_addr +
+			     sizeof(CLIENT_HDR) +
+			     (MAX_CLIENTS * sizeof(CLIENT_INFO)));
 		cb->shm_addr = gbl_shm_addr;
 	} else {
 		LOG_ER("cpnd restart_shm create failed");
@@ -300,7 +304,8 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	healthy.keyLen = strlen((char *)healthy.key);
 
 	amf_error = saAmfHealthcheckStart(cb->amf_hdl, &cb->comp_name, &healthy,
-					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
+					  SA_AMF_HEALTHCHECK_AMF_INVOKED,
+					  SA_AMF_COMPONENT_RESTART);
 	if (amf_error != SA_AIS_OK) {
 		LOG_ER("cpnd amf hlth chk start failed ");
 	}
@@ -309,31 +314,31 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
- amf_reg_err:
+amf_reg_err:
 	cpnd_amf_de_init(cb);
- amf_init_err:
+amf_init_err:
 	cpnd_mds_unregister(cb);
 
- cpnd_mds_fail:
+cpnd_mds_fail:
 	m_NCS_TASK_STOP(cb->task_hdl);
 
- cpnd_clm_init_fail:
+cpnd_clm_init_fail:
 	m_NCS_IPC_DETACH(&cb->cpnd_mbx, cpnd_clear_mbx, cb);
 
- cpnd_ipc_att_fail:
+cpnd_ipc_att_fail:
 	m_NCS_IPC_RELEASE(&cb->cpnd_mbx, NULL);
 
- cpnd_ipc_create_fail:
+cpnd_ipc_create_fail:
 	ncshm_destroy_hdl(NCS_SERVICE_ID_CPND, cb->cpnd_cb_hdl_id);
 
- cpnd_hdl_fail:
+cpnd_hdl_fail:
 	cpnd_cb_db_destroy(cb);
 
- cpnd_cb_init_fail:
+cpnd_cb_init_fail:
 	m_MMGR_FREE_CPND_CB(cb);
 
 	LOG_ER("cpnd init failed ");
- cpnd_cb_alloc_fail:
+cpnd_cb_alloc_fail:
 	return (rc);
 }
 
@@ -342,8 +347,8 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
  *
  * Description   : This is the function which destroy the cpnd libarary.
  *                 This function releases the Task and the IPX mail Box.
- *                 This function unregisters with AMF, destroies handle 
- *                 manager, CB and clean up all the component specific 
+ *                 This function unregisters with AMF, destroies handle
+ *                 manager, CB and clean up all the component specific
  *                 databases.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
@@ -367,7 +372,6 @@ static uint32_t cpnd_lib_destroy(CPND_DESTROY_INFO *info)
 
 	ncshm_destroy_hdl(NCS_SERVICE_ID_CPND, cb->cpnd_cb_hdl_id);
 
-
 	cpnd_mds_unregister(cb);
 
 	/* deregister with the AMF */
@@ -390,7 +394,7 @@ static uint32_t cpnd_lib_destroy(CPND_DESTROY_INFO *info)
 /****************************************************************************
  * Name          : cpnd_cb_db_init
  *
- * Description   : This is the function which initializes all the data 
+ * Description   : This is the function which initializes all the data
  *                 structures and locks used belongs to CPND.
  *
  * Arguments     : cb  - CPND control block pointer.
@@ -455,7 +459,7 @@ static uint32_t cpnd_cb_db_destroy(CPND_CB *cb)
 /****************************************************************************
  * Name          : cpnd_clear_mbx
  *
- * Description   : This is the function which deletes all the messages from 
+ * Description   : This is the function which deletes all the messages from
  *                 the mail box.
  *
  * Arguments     : arg     - argument to be passed.
@@ -482,14 +486,14 @@ static bool cpnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 /****************************************************************************
  * Name          : cpnd_main_process
  *
- * Description   : This is the function which is given as a input to the 
+ * Description   : This is the function which is given as a input to the
  *                 CPND task.
  *                 This function will be select of both the FD's (AMF FD and
  *                 Mail Box FD), depending on which FD has been selected, it
  *                 will call the corresponding routines.
  *
- * Arguments     : mbx  - This is the mail box pointer on which IfD/IfND is 
- *                        going to block.  
+ * Arguments     : mbx  - This is the mail box pointer on which IfD/IfND is
+ *                        going to block.
  *
  * Return Values : None.
  *
@@ -519,7 +523,7 @@ void cpnd_main_process(CPND_CB *cb)
 	amf_error = saAmfSelectionObjectGet(amf_hdl, &amf_sel_obj);
 
 	if (amf_error != SA_AIS_OK) {
-		LOG_ER("cpnd amf get sel obj failure %u",amf_error);
+		LOG_ER("cpnd amf get sel obj failure %u", amf_error);
 		TRACE_LEAVE();
 		return;
 	}
@@ -539,10 +543,12 @@ void cpnd_main_process(CPND_CB *cb)
 			daemon_exit();
 		}
 
-		if (((fds[FD_AMF].revents | fds[FD_CLM].revents | fds[FD_MBX].revents) &
-			(POLLERR | POLLHUP | POLLNVAL)) != 0) {
+		if (((fds[FD_AMF].revents | fds[FD_CLM].revents |
+		      fds[FD_MBX].revents) &
+		     (POLLERR | POLLHUP | POLLNVAL)) != 0) {
 			LOG_ER("cpnd poll() failure: %hd %hd %hd",
-					fds[FD_AMF].revents, fds[FD_CLM].revents, fds[FD_MBX].revents);
+			       fds[FD_AMF].revents, fds[FD_CLM].revents,
+			       fds[FD_MBX].revents);
 			TRACE_LEAVE();
 			return;
 		}
@@ -552,7 +558,8 @@ void cpnd_main_process(CPND_CB *cb)
 			/* dispatch all the AMF pending function */
 			amf_error = saAmfDispatch(amf_hdl, SA_DISPATCH_ALL);
 			if (amf_error != SA_AIS_OK) {
-				LOG_ER("cpnd amf dispatch failure %u",amf_error);
+				LOG_ER("cpnd amf dispatch failure %u",
+				       amf_error);
 			}
 		}
 
@@ -568,14 +575,16 @@ void cpnd_main_process(CPND_CB *cb)
 				/* Ignore the FD_CLM */
 				fds[FD_CLM].fd = -1;
 			} else if (clm_error != SA_AIS_OK) {
-				LOG_ER("cpnd clm dispatch failure %u", clm_error);
+				LOG_ER("cpnd clm dispatch failure %u",
+				       clm_error);
 			}
 		}
 
 		/* process the CPND Mail box */
 		if (fds[FD_MBX].revents & POLLIN) {
 
-			if (NULL != (evt = (CPSV_EVT *)ncs_ipc_non_blk_recv(&mbx))) {
+			if (NULL !=
+			    (evt = (CPSV_EVT *)ncs_ipc_non_blk_recv(&mbx))) {
 				/* now got the IPC mail box event */
 				cpnd_process_evt(evt);
 			}
@@ -584,9 +593,11 @@ void cpnd_main_process(CPND_CB *cb)
 		/* process the CLM object updated event */
 		if (fds[FD_CLM_UPDATED].revents & POLLIN) {
 			fds[FD_CLM].fd = cb->clm_sel_obj;
-			LOG_NO("CLM selection object was updated. (%lld)", cb->clm_sel_obj);
+			LOG_NO("CLM selection object was updated. (%lld)",
+			       cb->clm_sel_obj);
 
-			ncs_sel_obj_rmv_ind(&cb->clm_updated_sel_obj, true, true);
+			ncs_sel_obj_rmv_ind(&cb->clm_updated_sel_obj, true,
+					    true);
 		}
 	}
 	TRACE_LEAVE();
@@ -596,7 +607,7 @@ void cpnd_main_process(CPND_CB *cb)
 /****************************************************************************
  * Name          : cpnd_clm_init
  *
- * Description   : This function initialize CLM, get Node Id, and enalbe 
+ * Description   : This function initialize CLM, get Node Id, and enalbe
  *                 tracking callback.
  *
  * Arguments     : -
@@ -606,7 +617,7 @@ void cpnd_main_process(CPND_CB *cb)
  * Notes         : None.
  *****************************************************************************/
 static SaAisErrorT cpnd_clm_init(void)
-{	
+{
 	CPND_CB *cb = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 	SaVersionT clm_version;
@@ -624,49 +635,55 @@ static SaAisErrorT cpnd_clm_init(void)
 	gen_cbk.saClmClusterNodeGetCallback = NULL;
 	gen_cbk.saClmClusterTrackCallback = cpnd_clm_cluster_track_cb;
 	rc = saClmInitialize(&clmHandle, &gen_cbk, &clm_version);
-	while (rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_TIMEOUT || 
-		rc == SA_AIS_ERR_NO_RESOURCES || rc == SA_AIS_ERR_UNAVAILABLE) {
+	while (rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_TIMEOUT ||
+	       rc == SA_AIS_ERR_NO_RESOURCES || rc == SA_AIS_ERR_UNAVAILABLE) {
 		if (rc != SA_AIS_ERR_TRY_AGAIN) {
-			LOG_WA("cpnd_lib_init: saClmInitialize returned %u", rc);
+			LOG_WA("cpnd_lib_init: saClmInitialize returned %u",
+			       rc);
 		}
 		osaf_nanosleep(&kHundredMilliseconds);
 		rc = saClmInitialize(&clmHandle, &gen_cbk, &clm_version);
 	}
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("cpnd clm init failed with return value:%d",rc);
+		LOG_ER("cpnd clm init failed with return value:%d", rc);
 		goto cpnd_clm_initialize_fail;
 	}
 
 	cb->clm_hdl = clmHandle;
 
-	if (SA_AIS_OK != (rc = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj))) {
-		LOG_ER("cpnd clm selection object Get failed with return value:%d",rc);
+	if (SA_AIS_OK !=
+	    (rc = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj))) {
+		LOG_ER(
+		    "cpnd clm selection object Get failed with return value:%d",
+		    rc);
 		goto cpnd_clm_fail;
 	}
 
 	TRACE("cpnd clm selection object = %lld", cb->clm_sel_obj);
 
-	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID, CPND_CLM_API_TIMEOUT, &cluster_node);
+	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID,
+				 CPND_CLM_API_TIMEOUT, &cluster_node);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("cpnd clm node get failed with return value:%d",rc);
+		LOG_ER("cpnd clm node get failed with return value:%d", rc);
 		goto cpnd_clm_fail;
 	}
 	cb->nodeid = cluster_node.nodeId;
 
-	rc = saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
+	rc = saClmClusterTrack(cb->clm_hdl,
+			       (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("cpnd clm clusterTrack failed with return value:%d",rc);
+		LOG_ER("cpnd clm clusterTrack failed with return value:%d", rc);
 		goto cpnd_clm_fail;
 	}
 
 	TRACE_LEAVE();
 	return rc;
 
- cpnd_clm_fail:
+cpnd_clm_fail:
 	saClmFinalize(cb->clm_hdl);
 
- cpnd_clm_initialize_fail:
+cpnd_clm_initialize_fail:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -682,7 +699,7 @@ static SaAisErrorT cpnd_clm_init(void)
  *
  * Notes         : None.
  *****************************************************************************/
-static void* cpnd_clm_init_thread(void* arg)
+static void *cpnd_clm_init_thread(void *arg)
 {
 	CPND_CB *cb = m_CPND_TAKE_CPND_CB;
 

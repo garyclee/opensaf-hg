@@ -57,11 +57,9 @@ static int start_recovery2_thread(void);
  */
 static int send_initialize_msg(uint32_t *client_id)
 {
-	SaVersionT version = {
-		.releaseCode = LOG_RELEASE_CODE,
-		.majorVersion = LOG_MAJOR_VERSION,
-		.minorVersion = LOG_MINOR_VERSION
-	};
+	SaVersionT version = {.releaseCode = LOG_RELEASE_CODE,
+			      .majorVersion = LOG_MAJOR_VERSION,
+			      .minorVersion = LOG_MINOR_VERSION};
 
 	SaAisErrorT ais_rc = SA_AIS_ERR_TRY_AGAIN;
 	uint32_t ncs_rc = NCSCC_RC_SUCCESS;
@@ -80,12 +78,13 @@ static int send_initialize_msg(uint32_t *client_id)
 
 	/* Send a message to LGS to obtain a client_id
 	 */
-	while(try_again_cnt > 0) {
+	while (try_again_cnt > 0) {
 		ncs_rc = lga_mds_msg_sync_send(&lga_cb, &i_msg, &o_msg,
-			LGS_WAIT_TIME,MDS_SEND_PRIORITY_HIGH);
+					       LGS_WAIT_TIME,
+					       MDS_SEND_PRIORITY_HIGH);
 		if (ncs_rc != NCSCC_RC_SUCCESS) {
 			LOG_NO("%s lga_mds_msg_sync_send() Fail %d",
-				__FUNCTION__, ncs_rc);
+			       __FUNCTION__, ncs_rc);
 			rc = -1;
 			goto done;
 		}
@@ -99,7 +98,8 @@ static int send_initialize_msg(uint32_t *client_id)
 		try_again_cnt--;
 	}
 	if (SA_AIS_OK != ais_rc) {
-		TRACE("%s LGS error response %s", __FUNCTION__, saf_error(ais_rc));
+		TRACE("%s LGS error response %s", __FUNCTION__,
+		      saf_error(ais_rc));
 		rc = -1;
 		goto free_done;
 	}
@@ -126,7 +126,7 @@ done:
  * @return -1 on error (stream id not valid)
  */
 static int send_stream_open_msg(uint32_t *lstream_id,
-	lga_log_stream_hdl_rec_t *p_stream)
+				lga_log_stream_hdl_rec_t *p_stream)
 {
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	uint32_t ncs_rc = NCSCC_RC_SUCCESS;
@@ -138,10 +138,11 @@ static int send_stream_open_msg(uint32_t *lstream_id,
 	const uint32_t sleep_delay_ms = 100;
 
 	TRACE_ENTER();
-	osafassert(p_stream->log_stream_name != NULL && "log_stream_name is NULL");
+	osafassert(p_stream->log_stream_name != NULL &&
+		   "log_stream_name is NULL");
 
 	TRACE("\t log_stream_name \"%s\", lgs_client_id=%d",
-		p_stream->log_stream_name, p_client->lgs_client_id);
+	      p_stream->log_stream_name, p_client->lgs_client_id);
 
 	/* Populate a stream open message to the LGS
 	 */
@@ -150,7 +151,8 @@ static int send_stream_open_msg(uint32_t *lstream_id,
 
 	/* Set the open parameters to open a stream for recovery */
 	open_param->client_id = p_client->lgs_client_id;
-	osaf_extended_name_lend(p_stream->log_stream_name, &open_param->lstr_name);
+	osaf_extended_name_lend(p_stream->log_stream_name,
+				&open_param->lstr_name);
 	open_param->logFileFmt = NULL;
 	open_param->logFileFmtLength = 0;
 	open_param->maxLogFileSize = 0;
@@ -165,12 +167,14 @@ static int send_stream_open_msg(uint32_t *lstream_id,
 
 	/* Send a message to LGS to obtain a stream_id
 	 */
-	while(try_again_cnt > 0) {
+	while (try_again_cnt > 0) {
 		ncs_rc = lga_mds_msg_sync_send(&lga_cb, &i_msg, &o_msg,
-			LGS_WAIT_TIME, MDS_SEND_PRIORITY_HIGH);
+					       LGS_WAIT_TIME,
+					       MDS_SEND_PRIORITY_HIGH);
 		if (ncs_rc != NCSCC_RC_SUCCESS) {
 			rc = -1;
-			TRACE("%s lga_mds_msg_sync_send() Fail %d", __FUNCTION__, ncs_rc);
+			TRACE("%s lga_mds_msg_sync_send() Fail %d",
+			      __FUNCTION__, ncs_rc);
 			goto done;
 		}
 
@@ -183,7 +187,8 @@ static int send_stream_open_msg(uint32_t *lstream_id,
 		try_again_cnt--;
 	}
 	if (SA_AIS_OK != ais_rc) {
-		TRACE("%s LGS error response %s", __FUNCTION__, saf_error(ais_rc));
+		TRACE("%s LGS error response %s", __FUNCTION__,
+		      saf_error(ais_rc));
 		rc = -1;
 		goto free_done;
 	}
@@ -320,15 +325,16 @@ static void *recovery2_thread(void *dummy)
 	 */
 	/* Set seed. Use nanoseconds from clock */
 	osaf_clock_gettime(CLOCK_MONOTONIC, &seed_ts);
-	srandom((unsigned int) seed_ts.tv_nsec);
+	srandom((unsigned int)seed_ts.tv_nsec);
 	/* Interval 400 - 500 sec */
-	timeout_ms = (int64_t) (random() % 100 + 400) * 1000;
+	timeout_ms = (int64_t)(random() % 100 + 400) * 1000;
 
 	/* Wait for timeout or a signal to terminate
 	 */
 	rc = osaf_poll_one_fd(state2_terminate_sel_obj.rmv_obj, timeout_ms);
 	if (rc == -1) {
-		TRACE("%s osaf_poll_one_fd Fail %s", __FUNCTION__, strerror(errno));
+		TRACE("%s osaf_poll_one_fd Fail %s", __FUNCTION__,
+		      strerror(errno));
 		goto done;
 	}
 
@@ -340,7 +346,8 @@ static void *recovery2_thread(void *dummy)
 		lga_recovery2_lock();
 		set_lga_state(LGA_RECOVERY2);
 		lga_recovery2_unlock();
-		TRACE("%s Poll timeout. Enter LGA_RECOVERY2 state", __FUNCTION__);
+		TRACE("%s Poll timeout. Enter LGA_RECOVERY2 state",
+		      __FUNCTION__);
 	} else {
 		/* Stop signal received */
 		TRACE("%s Stop signal received", __FUNCTION__);
@@ -370,12 +377,13 @@ static void *recovery2_thread(void *dummy)
 		rc = lga_recover_one_client(p_client);
 		TRACE("\t Client %d is recovered", p_client->lgs_client_id);
 		if (rc == -1) {
-			TRACE("%s recover_one_client Fail Deleting client (id %d)",
-				__FUNCTION__, p_client->lgs_client_id);
+			TRACE(
+			    "%s recover_one_client Fail Deleting client (id %d)",
+			    __FUNCTION__, p_client->lgs_client_id);
 			/* Fail to recover this client
 			 * Remove (handle invalidated)
 			 */
-			(void) lga_hdl_rec_del(&lga_cb.client_list, p_client);
+			(void)lga_hdl_rec_del(&lga_cb.client_list, p_client);
 			p_client = lga_cb.client_list;
 			continue;
 		}
@@ -394,7 +402,7 @@ static void *recovery2_thread(void *dummy)
 
 done:
 	/* Cleanup and Exit thread */
-	(void) ncs_sel_obj_destroy(&state2_terminate_sel_obj);
+	(void)ncs_sel_obj_destroy(&state2_terminate_sel_obj);
 	pthread_exit(NULL);
 
 	TRACE_LEAVE();
@@ -426,11 +434,12 @@ static int start_recovery2_thread(void)
 
 	/* Create the thread
 	 */
-	if (pthread_create(&recovery2_thread_id, &attr, recovery2_thread, NULL)	!= 0) {
+	if (pthread_create(&recovery2_thread_id, &attr, recovery2_thread,
+			   NULL) != 0) {
 		/* pthread_create() error handling */
 		TRACE("\t pthread_create FAILED: %s", strerror(errno));
 		rc = -1;
-		(void) ncs_sel_obj_destroy(&state2_terminate_sel_obj);
+		(void)ncs_sel_obj_destroy(&state2_terminate_sel_obj);
 		goto done;
 	}
 	pthread_attr_destroy(&attr);
@@ -466,12 +475,12 @@ static void stop_recovery2_thread(void)
 
 	/* Join thread to wait for thread termination */
 	rc = pthread_join(recovery2_thread_id, NULL);
-	if (rc != 0 ) {
+	if (rc != 0) {
 		LOG_NO("%s: Could not join recovery2 thread %s", __FUNCTION__,
-			strerror(rc));
+		       strerror(rc));
 	}
 
-	done:
+done:
 	TRACE_LEAVE();
 	return;
 }
@@ -607,7 +616,7 @@ int lga_recover_one_client(lga_client_hdl_rec_t *p_client)
 	rc = initialize_one_client(p_client);
 	if (rc == -1) {
 		TRACE("%s initialize_one_client() Fail client Id %d",
-			__FUNCTION__, p_client->lgs_client_id);
+		      __FUNCTION__, p_client->lgs_client_id);
 		goto done;
 	}
 
@@ -615,13 +624,13 @@ int lga_recover_one_client(lga_client_hdl_rec_t *p_client)
 	p_stream = p_client->stream_list;
 	while (p_stream != NULL) {
 		TRACE("\t Recover client=%d, stream=%d",
-			p_client->lgs_client_id, p_stream->lgs_log_stream_id);
+		      p_client->lgs_client_id, p_stream->lgs_log_stream_id);
 		rc = recover_one_stream(p_stream);
 		if (rc == -1) {
 			TRACE("%s recover_one_stream() Fail "
-			"client Id %d stream Id %d", __FUNCTION__,
-				p_client->lgs_client_id,
-				p_stream->lgs_log_stream_id);
+			      "client Id %d stream Id %d",
+			      __FUNCTION__, p_client->lgs_client_id,
+			      p_stream->lgs_log_stream_id);
 			goto done;
 		}
 
@@ -643,25 +652,17 @@ done:
  */
 static pthread_mutex_t lga_recov2_lock = PTHREAD_MUTEX_INITIALIZER;
 
-void lga_recovery2_lock(void)
-{
-	osaf_mutex_lock_ordie(&lga_recov2_lock);
-}
+void lga_recovery2_lock(void) { osaf_mutex_lock_ordie(&lga_recov2_lock); }
 
-void lga_recovery2_unlock(void)
-{
-	osaf_mutex_unlock_ordie(&lga_recov2_lock);
-}
+void lga_recovery2_unlock(void) { osaf_mutex_unlock_ordie(&lga_recov2_lock); }
 
 typedef struct {
 	lga_state_t state;
 	pthread_mutex_t lock;
 } lga_state_s;
 
-static lga_state_s lga_state = {
-	.state = LGA_NORMAL,
-	.lock = PTHREAD_MUTEX_INITIALIZER
-};
+static lga_state_s lga_state = {.state = LGA_NORMAL,
+				.lock = PTHREAD_MUTEX_INITIALIZER};
 
 void set_lga_state(lga_state_t state)
 {

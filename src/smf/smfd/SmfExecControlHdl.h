@@ -46,7 +46,6 @@
  */
 class SmfExecControlObjHandler {
  public:
-
   SmfExecControlObjHandler();
   ~SmfExecControlObjHandler();
 
@@ -66,22 +65,20 @@ class SmfExecControlObjHandler {
    */
   void uninstall();
 
-  
   /* Return corresponding values
    * The errinfo parameter will be given a value true if success or false
    * if fail
    */
   SaUint32T procExecMode(bool *errinfo);
   SaUint32T numberOfSingleSteps(bool *errinfo);
-  std::vector <std::string> nodesForSingleStep(bool *errinfo);
+  std::vector<std::string> nodesForSingleStep(bool *errinfo);
   bool smfProtectExecControlDuringInit(bool *errinfo);
-
 
  private:
   // NOTE: Info about private methods can be found in .cc file
 
   bool getValuesFromImmCopy();
-  bool readExecControlObject(const char* exec_ctrl_name);
+  bool readExecControlObject(const char *exec_ctrl_name);
   bool readOpenSafSmfConfig();
   bool copyExecControlObject();
   void removeExecControlObjectCopy();
@@ -89,32 +86,29 @@ class SmfExecControlObjHandler {
   void finalizeImmOmHandles();
   void saveAttributeDescriptors();
 
-
   // For OpenSafSmfExecControl object data
   SmfImmUtils *p_immutil_object;
-  const char* c_class_name = "OpenSafSmfExecControl";
-  const char* c_openSafSmfExecControl = "";
+  const char *c_class_name = "OpenSafSmfExecControl";
+  const char *c_openSafSmfExecControl = "";
   SaUint32T m_smfProtectExecControlDuringInit;
   bool m_smfProtectExecControlDuringInit_valid;
   SaUint32T m_procExecMode;
   bool m_procExecMode_valid;
   SaUint32T m_numberOfSingleSteps;
   bool m_numberOfSingleSteps_valid;
-  std::vector <std::string> m_nodesForSingleStep;
+  std::vector<std::string> m_nodesForSingleStep;
   bool m_nodesForSingleStep_valid;
 
-  
   // For OpenSafSmfExecControl object copy
-  const char* c_openSafSmfExecControl_copy = "openSafSmfExecControl=SmfHdlCopy";
+  const char *c_openSafSmfExecControl_copy = "openSafSmfExecControl=SmfHdlCopy";
   SaImmAttrValuesT_2 **m_attributes;
   SaImmAttrValuesT_2 *m_exec_ctrl_name_ad;
   SaImmAttrValuesT_2 *m_procExecMode_ad;
   SaImmAttrValuesT_2 *m_numberOfSingleSteps_ad;
   SaImmAttrValuesT_2 *m_nodesForSingleStep_ad;
 
-
   // For storing IMM handles
-  const SaVersionT m_immVersion {'A', 2, 1};
+  const SaVersionT m_immVersion{'A', 2, 1};
   SaImmHandleT m_omHandle;
   SaImmAdminOwnerHandleT m_ownerHandle;
   SaImmCcbHandleT m_ccbHandle;

@@ -18,17 +18,19 @@
 #ifndef LCK_LCKD_GLD_AMF_H_
 #define LCK_LCKD_GLD_AMF_H_
 
-void
-gld_amf_CSI_set_callback(SaInvocationT invocation,
-			 const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor);
-void
-gld_amf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *healthcheckKey);
+void gld_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
+                              SaAmfHAStateT haState,
+                              SaAmfCSIDescriptorT csiDescriptor);
+void gld_amf_health_chk_callback(SaInvocationT invocation,
+                                 const SaNameT *compName,
+                                 SaAmfHealthcheckKeyT *healthcheckKey);
 
-void gld_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
+void gld_amf_comp_terminate_callback(SaInvocationT invocation,
+                                     const SaNameT *compName);
 
-void
-gld_amf_csi_rmv_callback(SaInvocationT invocation,
-			 const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags);
+void gld_amf_csi_rmv_callback(SaInvocationT invocation, const SaNameT *compName,
+                              const SaNameT *csiName,
+                              const SaAmfCSIFlagsT csiFlags);
 uint32_t gld_amf_init(GLSV_GLD_CB *gld_cb);
 
 #endif  // LCK_LCKD_GLD_AMF_H_

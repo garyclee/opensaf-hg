@@ -31,7 +31,6 @@
 #include <fcntl.h>
 #include <signal.h>
 
-
 /* Test cases for cloud resilience.
  * NOTE1: For the moment these test cases need interaction with the tester and
  * cannot be run fully automatic.
@@ -57,8 +56,8 @@ static const SaUint64T logfile_max_size = 256 * 10;
  * The content of these tags must be consistent. Do not change existing
  * tag text
  */
-#define TST_TAG_ND "TAG_ND\n"	/* Tag for take SC nodes down */
-#define TST_TAG_NU "TAG_NU\n"	/* Tag for start SC nodes */
+#define TST_TAG_ND "TAG_ND\n" /* Tag for take SC nodes down */
+#define TST_TAG_NU "TAG_NU\n" /* Tag for start SC nodes */
 
 #define TST_PASS 0
 #define TST_FAIL 1
@@ -74,10 +73,7 @@ typedef struct {
 } client_t;
 static client_t g_client[MAX_CLIENTS];
 
-typedef enum {
-	NTF_LOG_REC,
-	GEN_LOG_REC
-} lgt_log_rec_type_t;
+typedef enum { NTF_LOG_REC, GEN_LOG_REC } lgt_log_rec_type_t;
 
 /* Updated in the write callback function*/
 static struct {
@@ -88,7 +84,7 @@ static struct {
 
 static pthread_mutex_t write_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define TST_CALLBACK_ID 0
-#define TST_WRITE_ID    1
+#define TST_WRITE_ID 1
 
 static struct {
 	uint32_t ais_ok;
@@ -162,22 +158,22 @@ static int delete_file(char *filename)
 	int n = 0;
 	char filepath[PATH_MAX];
 
-	n = snprintf(filepath, PATH_MAX, "/%s/%s/%s",
-		log_root_path, logfile_path_str, filename);
+	n = snprintf(filepath, PATH_MAX, "/%s/%s/%s", log_root_path,
+		     logfile_path_str, filename);
 	if ((n > PATH_MAX) || (n <= 0)) {
-		fprintf(stderr, "%s Create file path Fail n=%d\n",
-			__FUNCTION__, n);
+		fprintf(stderr, "%s Create file path Fail n=%d\n", __FUNCTION__,
+			n);
 		rc = -1;
 		goto done;
 	}
 
 	if (unlink(filepath) == -1) {
-		fprintf(stderr, "%s unlink %s Fail %s\n",
-			__FUNCTION__, filepath, strerror(errno));
+		fprintf(stderr, "%s unlink %s Fail %s\n", __FUNCTION__,
+			filepath, strerror(errno));
 		rc = -1;
 	}
 
-	done:
+done:
 	return rc;
 }
 #endif
@@ -196,39 +192,39 @@ static int clear_file(char *filename)
 	FILE *fs;
 	char filepath[PATH_MAX];
 
-	n = snprintf(filepath, PATH_MAX, "/%s/%s/%s",
-		log_root_path, logfile_path_str, filename);
+	n = snprintf(filepath, PATH_MAX, "/%s/%s/%s", log_root_path,
+		     logfile_path_str, filename);
 	if ((n > PATH_MAX) || (n <= 0)) {
-		fprintf(stderr, "%s Create file path Fail n=%d\n",
-			__FUNCTION__, n);
+		fprintf(stderr, "%s Create file path Fail n=%d\n", __FUNCTION__,
+			n);
 		rc = -1;
 		goto done;
 	}
 
 	fs = fopen(filepath, "w");
 	if (fs == NULL) {
-		fprintf(stderr, "%s fopen \"%s\" Fail %s\n",
-			__FUNCTION__, filepath, strerror(errno));
+		fprintf(stderr, "%s fopen \"%s\" Fail %s\n", __FUNCTION__,
+			filepath, strerror(errno));
 		rc = -1;
 		goto done;
 	}
 
-	//fputs(const char *s, FILE *stream)
+	// fputs(const char *s, FILE *stream)
 	if (fputs("", fs) == EOF) {
-		fprintf(stderr, "%s fputs Fail\n",__FUNCTION__);
+		fprintf(stderr, "%s fputs Fail\n", __FUNCTION__);
 		rc = -1;
 		goto done_close;
 	}
 
-	done_close:
+done_close:
 	if (fclose(fs) == EOF) {
-		fprintf(stderr, "%s fclose Fail %s\n",
-			__FUNCTION__, strerror(errno));
+		fprintf(stderr, "%s fclose Fail %s\n", __FUNCTION__,
+			strerror(errno));
 		rc = -1;
 		goto done;
 	}
 
-	done:
+done:
 	return rc;
 }
 
@@ -257,8 +253,8 @@ static int filter_logfile_name(const struct dirent *finfo)
 	a = b = c = d = 0;
 
 	/* Create format string for sscanf */
-	n = snprintf(name_format, SA_MAX_NAME_LENGTH, "%s%s",
-		file_name_find, time_stamps);
+	n = snprintf(name_format, SA_MAX_NAME_LENGTH, "%s%s", file_name_find,
+		     time_stamps);
 	/* Get number of timestamps */
 	n = sscanf(finfo->d_name, name_format, &a, &b, &c, &d);
 
@@ -283,17 +279,17 @@ static int cur_logfile_name_get(char *name_str, char *name_prefix)
 	char scanpath_str[PATH_MAX] = {0};
 	struct dirent **namelist;
 
-	n = snprintf(scanpath_str, PATH_MAX, "%s/%s",
-		log_root_path, logfile_path_str);
+	n = snprintf(scanpath_str, PATH_MAX, "%s/%s", log_root_path,
+		     logfile_path_str);
 	if (n > PATH_MAX) {
-		fprintf(stderr, "%s Create scan path Fail\n",__FUNCTION__);
+		fprintf(stderr, "%s Create scan path Fail\n", __FUNCTION__);
 		rc = -1;
 		goto done;
 	}
 
 	n = snprintf(file_name_find, SA_MAX_NAME_LENGTH, "%s", name_prefix);
 	if (n > SA_MAX_NAME_LENGTH) {
-		fprintf(stderr, "%s File name prefix Fail\n",__FUNCTION__);
+		fprintf(stderr, "%s File name prefix Fail\n", __FUNCTION__);
 		rc = -1;
 		goto done;
 	}
@@ -301,12 +297,12 @@ static int cur_logfile_name_get(char *name_str, char *name_prefix)
 	errno = 0;
 	n = scandir(scanpath_str, &namelist, filter_logfile_name, alphasort);
 	if (n < 0) {
-		fprintf(stderr, "%s scandir Fail %s",
-			__FUNCTION__, strerror(errno));
+		fprintf(stderr, "%s scandir Fail %s", __FUNCTION__,
+			strerror(errno));
 		rc = -1;
 		goto done;
 	} else if (n == 0) {
-		fprintf(stderr, "%s No current log file found",__FUNCTION__);
+		fprintf(stderr, "%s No current log file found", __FUNCTION__);
 		rc = -1;
 		free(namelist);
 		goto done;
@@ -326,8 +322,7 @@ static int cur_logfile_name_get(char *name_str, char *name_prefix)
 		free(namelist);
 	}
 
-
-	done:
+done:
 	return rc;
 }
 
@@ -353,7 +348,7 @@ static SaAisErrorT tst_LogInitialize(SaLogHandleT *log_handle, int trycnt_max)
 		do {
 			/* Try again loop. If other error end loop */
 			ais_rc = saLogInitialize(log_handle, &logCallbacks,
-				&logVersion);
+						 &logVersion);
 			if (ais_rc != SA_AIS_ERR_TRY_AGAIN) {
 				break;
 			}
@@ -364,8 +359,8 @@ static SaAisErrorT tst_LogInitialize(SaLogHandleT *log_handle, int trycnt_max)
 			}
 		} while (ais_rc != SA_AIS_OK);
 	} else {
-		ais_rc = saLogInitialize(log_handle, &logCallbacks,
-				&logVersion);
+		ais_rc =
+		    saLogInitialize(log_handle, &logCallbacks, &logVersion);
 	}
 
 	return ais_rc;
@@ -384,10 +379,9 @@ static SaAisErrorT tst_LogInitialize(SaLogHandleT *log_handle, int trycnt_max)
  *
  * @return -1 on error
  */
-static int tst_StreamOpen_app_logtest_sc(
-	SaLogHandleT logHandle,
-	SaLogStreamHandleT *logStreamHandle,
-	uint32_t num_streams)
+static int tst_StreamOpen_app_logtest_sc(SaLogHandleT logHandle,
+					 SaLogStreamHandleT *logStreamHandle,
+					 uint32_t num_streams)
 {
 	int trycnt = 0;
 	SaAisErrorT ais_rc = SA_AIS_OK;
@@ -398,10 +392,10 @@ static int tst_StreamOpen_app_logtest_sc(
 
 	/* Open num_streams */
 	for (i = 0; i < num_streams; i++) {
-		/* Prepare stream name and attributes for the stream to be opened */
+		/* Prepare stream name and attributes for the stream to be
+		 * opened */
 		SaNameT stream_name;
-		n = sprintf(data, "safLgStr=%s_%d",
-			STREAM_NAME_9, i+1);
+		n = sprintf(data, "safLgStr=%s_%d", STREAM_NAME_9, i + 1);
 		saAisNameLend(data, &stream_name);
 		if (n < 0) {
 			fprintf(stderr, "\t%s [%d] sprintf Fail\n",
@@ -412,32 +406,27 @@ static int tst_StreamOpen_app_logtest_sc(
 
 		/* Create log file name */
 		char logfile_name[256];
-		(void) snprintf(logfile_name, 256, "%s_file_%d",
-			STREAM_NAME_9, i);
+		(void)snprintf(logfile_name, 256, "%s_file_%d", STREAM_NAME_9,
+			       i);
 
-		SaLogFileCreateAttributesT_2 stream_create_attributes =
-		{
-			.logFilePathName = (char *) logfile_path_str,
-			.logFileName = logfile_name,
-			.maxLogFileSize = logfile_max_size,
-			.maxLogRecordSize = logrec_max_size,
-			.haProperty = SA_TRUE,
-			.logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE,
-			.maxFilesRotated = 4,
-			.logFileFmt = NULL
-		};
-
+		SaLogFileCreateAttributesT_2 stream_create_attributes = {
+		    .logFilePathName = (char *)logfile_path_str,
+		    .logFileName = logfile_name,
+		    .maxLogFileSize = logfile_max_size,
+		    .maxLogRecordSize = logrec_max_size,
+		    .haProperty = SA_TRUE,
+		    .logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE,
+		    .maxFilesRotated = 4,
+		    .logFileFmt = NULL};
 
 		/* Open an application stream for the test */
 		trycnt = 0;
 		do {
 			/* Try again loop. If other error end loop */
-			ais_rc = saLogStreamOpen_2(logHandle,
-				&stream_name,
-				&stream_create_attributes,
-				SA_LOG_STREAM_CREATE,
-				SA_TIME_ONE_SECOND,
-				&logStreamHandle[i]);
+			ais_rc = saLogStreamOpen_2(
+			    logHandle, &stream_name, &stream_create_attributes,
+			    SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND,
+			    &logStreamHandle[i]);
 			if (ais_rc != SA_AIS_ERR_TRY_AGAIN) {
 				break;
 			}
@@ -468,9 +457,8 @@ static int tst_StreamOpen_app_logtest_sc(
  *
  * @return -1 on error
  */
-static int tst_StreamOpen_cfg_logtest_sc(
-	SaLogHandleT logHandle,
-	SaLogStreamHandleT *logStreamHandle)
+static int tst_StreamOpen_cfg_logtest_sc(SaLogHandleT logHandle,
+					 SaLogStreamHandleT *logStreamHandle)
 {
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	int rc = 0;
@@ -478,8 +466,9 @@ static int tst_StreamOpen_cfg_logtest_sc(
 	int trycnt = 0;
 	do {
 		/* Try again loop. If other error end loop */
-		ais_rc = saLogStreamOpen_2(logHandle, &notificationStreamName,
-			NULL, 0, SA_TIME_ONE_SECOND, logStreamHandle);
+		ais_rc =
+		    saLogStreamOpen_2(logHandle, &notificationStreamName, NULL,
+				      0, SA_TIME_ONE_SECOND, logStreamHandle);
 		if (ais_rc != SA_AIS_ERR_TRY_AGAIN) {
 			break;
 		}
@@ -505,7 +494,8 @@ static int tst_StreamOpen_cfg_logtest_sc(
  * @param lsize[in]        Size of log record to create including '\0'
  * @param log_msg[in]      Message for the log record
  */
-static void tst_max_logrec_create(char *logrec_str, uint32_t lsize, char *log_msg)
+static void tst_max_logrec_create(char *logrec_str, uint32_t lsize,
+				  char *log_msg)
 {
 	int n;
 	size_t fill_size;
@@ -542,14 +532,10 @@ static void tst_max_logrec_create(char *logrec_str, uint32_t lsize, char *log_ms
  * @param rec_type[in] Type of log record Generic or NTF
  * @return AIS return code
  */
-static SaAisErrorT tst_WriteRec(
-	int rec_cnt,
-	SaLogStreamHandleT logStreamHandle,
-	SaLogHandleT log_handle,
-	char *log_message,
-	bool try_again_flag,
-	bool chdl_flag,
-	lgt_log_rec_type_t rec_type)
+static SaAisErrorT tst_WriteRec(int rec_cnt, SaLogStreamHandleT logStreamHandle,
+				SaLogHandleT log_handle, char *log_message,
+				bool try_again_flag, bool chdl_flag,
+				lgt_log_rec_type_t rec_type)
 {
 	int trycnt = 0;
 	SaAisErrorT ais_rc = SA_AIS_OK;
@@ -558,8 +544,6 @@ static SaAisErrorT tst_WriteRec(
 	SaNtfIdentifierT notificationId = 0;
 	SaNtfClassIdT notificationClassId;
 	SaLogRecordT *log_record_tst;
-
-
 
 	/* Prepare for polling callback if needed */
 	SaSelectionObjectT selectionObject;
@@ -571,16 +555,15 @@ static SaAisErrorT tst_WriteRec(
 		ais_rc = saLogSelectionObjectGet(log_handle, &selectionObject);
 		if (ais_rc != SA_AIS_OK) {
 			printf_v("\t%s; saLogSelectionObjectGet Fail %s\n",
-				__FUNCTION__, saf_error(ais_rc));
+				 __FUNCTION__, saf_error(ais_rc));
 			/* On error for now end test */
 			exit(1);
 		}
 
 		/* Prepare for polling */
-		fds[0].fd = (int) selectionObject;
+		fds[0].fd = (int)selectionObject;
 		fds[0].events = POLLIN;
 	}
-
 
 	/* Prepare a test log record
 	 *
@@ -588,39 +571,38 @@ static SaAisErrorT tst_WriteRec(
 	 * 36 10:23:04 10/24/2014 IN safLgStr=<name> "test message"
 	 */
 
-	SaLogBufferT log_buffer =
-	{
-		.logBuf = (SaUint8T *) LOGTEST_MSG,
-		.logBufSize = sizeof(LOGTEST_MSG),
+	SaLogBufferT log_buffer = {
+	    .logBuf = (SaUint8T *)LOGTEST_MSG,
+	    .logBufSize = sizeof(LOGTEST_MSG),
 	};
 	if (log_message != NULL) {
-		log_buffer.logBuf = (uint8_t *) log_message;
-		log_buffer.logBufSize = strlen(log_message)+1;
+		log_buffer.logBuf = (uint8_t *)log_message;
+		log_buffer.logBufSize = strlen(log_message) + 1;
 	}
 
 	/* A generic log record */
-	SaLogRecordT log_record_gen_tst =
-	{
-		.logTimeStamp = SA_TIME_UNKNOWN,
-		.logHdrType = SA_LOG_GENERIC_HEADER,
-		.logHeader.genericHdr.notificationClassId = NULL,
-		.logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO,
-		.logHeader.genericHdr.logSvcUsrName = &logSvcUsrName,
-		.logBuffer = &log_buffer
-	};
+	SaLogRecordT log_record_gen_tst = {
+	    .logTimeStamp = SA_TIME_UNKNOWN,
+	    .logHdrType = SA_LOG_GENERIC_HEADER,
+	    .logHeader.genericHdr.notificationClassId = NULL,
+	    .logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO,
+	    .logHeader.genericHdr.logSvcUsrName = &logSvcUsrName,
+	    .logBuffer = &log_buffer};
 
 	/* A NTF log record */
 	SaLogRecordT log_record_ntf_tst;
 	notificationClassId.vendorId = 193;
-	notificationClassId.majorId  = 1;
-	notificationClassId.minorId  = 2;
+	notificationClassId.majorId = 1;
+	notificationClassId.minorId = 2;
 	log_record_ntf_tst.logTimeStamp = getSaTimeT();
 	log_record_ntf_tst.logHdrType = SA_LOG_NTF_HEADER;
 	log_record_ntf_tst.logHeader.ntfHdr.notificationId = notificationId;
 	log_record_ntf_tst.logHeader.ntfHdr.eventType = SA_NTF_ALARM_QOS;
-	log_record_ntf_tst.logHeader.ntfHdr.notificationObject = &notificationObject;
+	log_record_ntf_tst.logHeader.ntfHdr.notificationObject =
+	    &notificationObject;
 	log_record_ntf_tst.logHeader.ntfHdr.notifyingObject = &notifyingObject;
-	log_record_ntf_tst.logHeader.ntfHdr.notificationClassId = &notificationClassId;
+	log_record_ntf_tst.logHeader.ntfHdr.notificationClassId =
+	    &notificationClassId;
 	log_record_ntf_tst.logHeader.ntfHdr.eventTime = getSaTimeT();
 	log_record_ntf_tst.logBuffer = &log_buffer;
 
@@ -631,7 +613,7 @@ static SaAisErrorT tst_WriteRec(
 	}
 
 	/* Write a test log record rec_cnt number of times. */
-	for (i=0; i<rec_cnt; i++) {
+	for (i = 0; i < rec_cnt; i++) {
 		/* Write the log record */
 		if (chdl_flag == true) {
 			lgt_cb.invocation_in = i + 555;
@@ -642,12 +624,12 @@ static SaAisErrorT tst_WriteRec(
 			/* Try again loop. If other error end loop
 			 * If no_try_again_flag = true do not loop if TRY AGAIN
 			 */
-			ais_rc = saLogWriteLogAsync(logStreamHandle,
-				lgt_cb.invocation_in,
-				SA_LOG_RECORD_WRITE_ACK, log_record_tst);
+			ais_rc = saLogWriteLogAsync(
+			    logStreamHandle, lgt_cb.invocation_in,
+			    SA_LOG_RECORD_WRITE_ACK, log_record_tst);
 
 			if ((ais_rc == SA_AIS_ERR_TRY_AGAIN) &&
-				(try_again_flag == false)) {
+			    (try_again_flag == false)) {
 				/* Handle TRY AGAIN as an error.
 				 * No try again loop */
 				break;
@@ -664,8 +646,9 @@ static SaAisErrorT tst_WriteRec(
 
 		if (ais_rc != SA_AIS_OK) {
 			/* Write failed. Do not try to write any more records */
-			printf_v("\t%s Fail to write record no %d ais_rc \"%s\"\n",
-				__FUNCTION__, i, saf_error(ais_rc));
+			printf_v(
+			    "\t%s Fail to write record no %d ais_rc \"%s\"\n",
+			    __FUNCTION__, i, saf_error(ais_rc));
 			break;
 		}
 
@@ -675,7 +658,7 @@ static SaAisErrorT tst_WriteRec(
 		 */
 		if (chdl_flag == true) {
 			poll_rc = osaf_poll(fds, 1, -1); /* Never timeout */
-			if (poll_rc <= 0){
+			if (poll_rc <= 0) {
 				/* Timeout (will do abort on other errors)
 				 */
 				fprintf(stderr, "\t%s; Poll timeout\n",
@@ -685,17 +668,20 @@ static SaAisErrorT tst_WriteRec(
 			}
 
 			/* Invoke callback and wait for next */
-			(void) saLogDispatch(log_handle, SA_DISPATCH_ONE);
+			(void)saLogDispatch(log_handle, SA_DISPATCH_ONE);
 			/* Callback error handling */
 			if (lgt_cb.ais_errno != SA_AIS_OK) {
 				fprintf(stderr, "\t%s Write callback error %s",
-					__FUNCTION__, saf_error(lgt_cb.ais_errno));
+					__FUNCTION__,
+					saf_error(lgt_cb.ais_errno));
 				break;
 			}
 			if (lgt_cb.invocation_in != lgt_cb.invocation_out) {
-				fprintf(stderr, "\t%s Write invocation id error"
-					"in = %lld, out = %lld\n",__FUNCTION__,
-					lgt_cb.invocation_in, lgt_cb.invocation_out);
+				fprintf(stderr,
+					"\t%s Write invocation id error"
+					"in = %lld, out = %lld\n",
+					__FUNCTION__, lgt_cb.invocation_in,
+					lgt_cb.invocation_out);
 				break;
 			}
 		}
@@ -708,7 +694,7 @@ static SaAisErrorT tst_WriteRec(
 		 * the problem a delay of 1 sec is inserted every 10th log
 		 * record
 		 */
-		if (i%10 == 0) {
+		if (i % 10 == 0) {
 			printf_s(".");
 			fflush(stdout);
 			sleep(1);
@@ -854,18 +840,20 @@ typedef struct {
  */
 static void log_write_callback(SaInvocationT invocation, SaAisErrorT error)
 {
-	printf_v(">> %s\n",__FUNCTION__);
+	printf_v(">> %s\n", __FUNCTION__);
 	if (error != SA_AIS_OK) {
-		fprintf(stderr,"\t%s: error = %s\n",__FUNCTION__, saf_error(error));
+		fprintf(stderr, "\t%s: error = %s\n", __FUNCTION__,
+			saf_error(error));
 	}
 
 	if (invocation != lgt_cb.invocation_in) {
-		fprintf(stderr,"\t%s: invocation=%lld expected %lld\n",
+		fprintf(stderr, "\t%s: invocation=%lld expected %lld\n",
 			__FUNCTION__, invocation, lgt_cb.invocation_in);
 	}
 
 	if (error != SA_AIS_OK) {
-		fprintf(stderr, "\t%s LGS error %s\n", __FUNCTION__, saf_error(error));
+		fprintf(stderr, "\t%s LGS error %s\n", __FUNCTION__,
+			saf_error(error));
 	}
 
 	osaf_mutex_lock_ordie(&write_mutex);
@@ -873,7 +861,7 @@ static void log_write_callback(SaInvocationT invocation, SaAisErrorT error)
 	lgt_cb.ais_errno = error;
 	lgt_cb.invocation_out = invocation;
 	osaf_mutex_unlock_ordie(&write_mutex);
-	printf_v("<< %s\n",__FUNCTION__);
+	printf_v("<< %s\n", __FUNCTION__);
 }
 
 /**
@@ -885,31 +873,25 @@ static void log_write_callback(SaInvocationT invocation, SaAisErrorT error)
  * @param log_msg[in]     Message in (all) log records
  * @return -1 on error
  */
-static int saLogRecov_write(
-	int client_num,
-	int stream_num,
-	int num_rec,
-	char *log_msg,
-	lgt_log_rec_type_t rec_type)
+static int saLogRecov_write(int client_num, int stream_num, int num_rec,
+			    char *log_msg, lgt_log_rec_type_t rec_type)
 {
 	int rc = 0;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	char msg_str[256];
 
-	(void) snprintf(msg_str, 256, "Client %d, stream %d, \"%s\"",
-		client_num, stream_num, log_msg);
+	(void)snprintf(msg_str, 256, "Client %d, stream %d, \"%s\"", client_num,
+		       stream_num, log_msg);
 
 	ais_rc = tst_WriteRec(
-		num_rec,				/* Number of records */
-		g_client[client_num].glob_logStreamHandle[stream_num],
-		g_client[client_num].glob_logHandle,
-		msg_str,				/* Log message */
-		true,					/* Handle TRY AGAIN */
-		false,					/* Do not handle callback */
-		rec_type
-	);
+	    num_rec, /* Number of records */
+	    g_client[client_num].glob_logStreamHandle[stream_num],
+	    g_client[client_num].glob_logHandle, msg_str, /* Log message */
+	    true,					  /* Handle TRY AGAIN */
+	    false, /* Do not handle callback */
+	    rec_type);
 	if (ais_rc != SA_AIS_OK) {
-		fprintf(stderr, "%s Write Fail %s\n",__FUNCTION__,
+		fprintf(stderr, "%s Write Fail %s\n", __FUNCTION__,
 			saf_error(ais_rc));
 		rc = -1;
 	}
@@ -937,7 +919,7 @@ void saLogRecov_req_node_start(void)
 	 */
 	print_t(TST_TAG_NU);
 	printf_s("\nStart at least one SC node. ");
-	(void) wait_ext_act("Press Enter when started...");
+	(void)wait_ext_act("Press Enter when started...");
 }
 
 /**
@@ -950,7 +932,7 @@ void saLogRecov_req_node_stop(void)
 	 */
 	print_t(TST_TAG_ND);
 	printf_s("\nStop both SC nodes [stdby first]. ");
-	(void) wait_ext_act("Press Enter when stopped...");
+	(void)wait_ext_act("Press Enter when stopped...");
 }
 
 /**
@@ -979,8 +961,8 @@ void saLogRecov_clean_tstdir(void)
 	sprintf(command, "rm -rf %s/", tstpath);
 	rc = systemCall(command);
 	if (rc != 0) {
-		printf_v("%s system(%s) Fail %s\n",
-			__FUNCTION__, command, strerror(errno));
+		printf_v("%s system(%s) Fail %s\n", __FUNCTION__, command,
+			 strerror(errno));
 	}
 }
 
@@ -990,7 +972,7 @@ void saLogRecov_clean_tstdir(void)
 void saLogRecov_exit(void)
 {
 	printf_s("\nTest done. ");
-	//wait_ext_act("Press Enter to exit...");
+	// wait_ext_act("Press Enter to exit...");
 	exit(0);
 }
 
@@ -1015,7 +997,7 @@ void saLogRecov_prepare_client1(void)
 
 	ais_rc = tst_LogInitialize(&g_client[0].glob_logHandle, 5);
 	if (ais_rc != SA_AIS_OK) {
-		fprintf(stderr,"\t%s Failed to initialize log service: %s\n",
+		fprintf(stderr, "\t%s Failed to initialize log service: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
 		tst_res = TST_FAIL;
 		goto done;
@@ -1023,7 +1005,7 @@ void saLogRecov_prepare_client1(void)
 	printf_v("\nInitialized\n");
 
 	rc = tst_StreamOpen_app_logtest_sc(g_client[0].glob_logHandle,
-		g_client[0].glob_logStreamHandle, 1);
+					   g_client[0].glob_logStreamHandle, 1);
 	if (rc == -1) {
 		fprintf(stderr, "\t%s Failed to open log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1032,14 +1014,12 @@ void saLogRecov_prepare_client1(void)
 	}
 
 	ais_rc = tst_WriteRec(
-		rec_no,				/* Write no of records */
-		g_client[0].glob_logStreamHandle[0],
-		g_client[0].glob_logHandle,
-		"Written before server down (client1)",	/* Log message */
-		true,				/* Handle TRY AGAIN */
-		true,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	    rec_no, /* Write no of records */
+	    g_client[0].glob_logStreamHandle[0], g_client[0].glob_logHandle,
+	    "Written before server down (client1)", /* Log message */
+	    true,				    /* Handle TRY AGAIN */
+	    true,				    /* Handle callback */
+	    GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1048,7 +1028,7 @@ void saLogRecov_prepare_client1(void)
 	}
 	printf_v("\n\t %d Log records written\n", rec_no);
 
-	done:
+done:
 	rc_validate(tst_res, TST_PASS);
 	if (tst_res == TST_FAIL) {
 		/* There is no meaning to continue */
@@ -1066,23 +1046,21 @@ void saLogRecov_91(void)
 	SaAisErrorT ais_rc = SA_AIS_OK;
 
 	ais_rc = tst_WriteRec(
-		1,					/* Write 1 record */
-		g_client[0].glob_logStreamHandle[0],
-		g_client[0].glob_logHandle,
-		"Written while server down (client1)",	/* Log message */
-		false,					/* Do not handle TRY AGAIN */
-		false,					/* Do not handle callback */
-		GEN_LOG_REC
-	);
+	    1, /* Write 1 record */
+	    g_client[0].glob_logStreamHandle[0], g_client[0].glob_logHandle,
+	    "Written while server down (client1)", /* Log message */
+	    false,				   /* Do not handle TRY AGAIN */
+	    false,				   /* Do not handle callback */
+	    GEN_LOG_REC);
 	if (ais_rc != SA_AIS_ERR_TRY_AGAIN) {
 		printf_s("\tWrite when server down Fail\n"
 			 "\tGot '%s' Expected 'SA_AIS_ERR_TRY_AGAIN'\n",
-			saf_error(ais_rc));
+			 saf_error(ais_rc));
 		tst_res = TST_FAIL;
 		goto done;
 	}
 
-	done:
+done:
 	rc_validate(tst_res, TST_PASS);
 }
 
@@ -1097,14 +1075,12 @@ void saLogRecov_92(void)
 	SaAisErrorT ais_rc = SA_AIS_OK;
 
 	ais_rc = tst_WriteRec(
-		3,				/* Write 3 record */
-		g_client[0].glob_logStreamHandle[0],
-		g_client[0].glob_logHandle,
-		"Written after server up (client1)",	/* Log message */
-		true,				/* Handle TRY AGAIN */
-		true,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	    3, /* Write 3 record */
+	    g_client[0].glob_logStreamHandle[0], g_client[0].glob_logHandle,
+	    "Written after server up (client1)", /* Log message */
+	    true,				 /* Handle TRY AGAIN */
+	    true,				 /* Handle callback */
+	    GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1112,7 +1088,7 @@ void saLogRecov_92(void)
 		goto done;
 	}
 
-	done:
+done:
 	rc_validate(tst_res, TST_PASS);
 }
 
@@ -1138,7 +1114,7 @@ void saLogRecov_prepare_client2(void)
 
 	ais_rc = tst_LogInitialize(&g_client[1].glob_logHandle, 5);
 	if (ais_rc != SA_AIS_OK) {
-		fprintf(stderr,"\t%s Failed to initialize client 2: %s\n",
+		fprintf(stderr, "\t%s Failed to initialize client 2: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
 		tst_res = TST_FAIL;
 		goto done;
@@ -1146,7 +1122,7 @@ void saLogRecov_prepare_client2(void)
 	printf_v("\nInitialized\n");
 
 	rc = tst_StreamOpen_app_logtest_sc(g_client[1].glob_logHandle,
-		g_client[1].glob_logStreamHandle, 1);
+					   g_client[1].glob_logStreamHandle, 1);
 	if (rc == -1) {
 		fprintf(stderr, "\t%s Failed to open log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1155,14 +1131,12 @@ void saLogRecov_prepare_client2(void)
 	}
 
 	ais_rc = tst_WriteRec(
-		rec_no,				/* Write no of records */
-		g_client[1].glob_logStreamHandle[0],
-		g_client[1].glob_logHandle,
-		"Written before server down (client2)",	/* Log message */
-		true,				/* Handle TRY AGAIN */
-		true,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	    rec_no, /* Write no of records */
+	    g_client[1].glob_logStreamHandle[0], g_client[1].glob_logHandle,
+	    "Written before server down (client2)", /* Log message */
+	    true,				    /* Handle TRY AGAIN */
+	    true,				    /* Handle callback */
+	    GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1171,7 +1145,7 @@ void saLogRecov_prepare_client2(void)
 	}
 	printf_v("\n %d Log records written\n", rec_no);
 
-	done:
+done:
 	rc_validate(tst_res, TST_PASS);
 	if (tst_res == TST_FAIL) {
 		/* There is no meaning to continue */
@@ -1190,14 +1164,12 @@ void saLogRecov_93(void)
 	SaAisErrorT ais_rc = SA_AIS_OK;
 
 	ais_rc = tst_WriteRec(
-		3,				/* Write 3 record */
-		g_client[1].glob_logStreamHandle[0],
-		g_client[1].glob_logHandle,
-		"Written after server up (client2)",	/* Log message */
-		true,				/* Handle TRY AGAIN */
-		true,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	    3, /* Write 3 record */
+	    g_client[1].glob_logStreamHandle[0], g_client[1].glob_logHandle,
+	    "Written after server up (client2)", /* Log message */
+	    true,				 /* Handle TRY AGAIN */
+	    true,				 /* Handle callback */
+	    GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1205,7 +1177,7 @@ void saLogRecov_93(void)
 		goto done;
 	}
 
-	done:
+done:
 	rc_validate(tst_res, TST_PASS);
 }
 
@@ -1220,14 +1192,12 @@ void saLogRecov_94(void)
 	SaAisErrorT ais_rc = SA_AIS_OK;
 
 	ais_rc = tst_WriteRec(
-		3,				/* Write 3 record */
-		g_client[0].glob_logStreamHandle[0],
-		g_client[0].glob_logHandle,
-		"Written after server up 2nd time (client1)",	/* Log message */
-		true,				/* Handle TRY AGAIN */
-		true,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	    3, /* Write 3 record */
+	    g_client[0].glob_logStreamHandle[0], g_client[0].glob_logHandle,
+	    "Written after server up 2nd time (client1)", /* Log message */
+	    true,					  /* Handle TRY AGAIN */
+	    true,					  /* Handle callback */
+	    GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1235,7 +1205,7 @@ void saLogRecov_94(void)
 		goto done;
 	}
 
-	done:
+done:
 	rc_validate(tst_res, TST_PASS);
 }
 
@@ -1249,8 +1219,8 @@ void saLogRecov_95(void)
 
 	ais_rc = tst_StreamClose(g_client[0].glob_logStreamHandle[0]);
 	if (ais_rc != SA_AIS_OK) {
-		fprintf(stderr, "\t%s Failed to close log stream: %s\n", __FUNCTION__,
-			saf_error(ais_rc));
+		fprintf(stderr, "\t%s Failed to close log stream: %s\n",
+			__FUNCTION__, saf_error(ais_rc));
 		tst_res = TST_FAIL;
 	}
 
@@ -1267,8 +1237,8 @@ void saLogRecov_96(void)
 
 	ais_rc = tst_StreamClose(g_client[1].glob_logStreamHandle[0]);
 	if (ais_rc != SA_AIS_OK) {
-		fprintf(stderr, "\t%s Failed to close log stream: %s\n", __FUNCTION__,
-			saf_error(ais_rc));
+		fprintf(stderr, "\t%s Failed to close log stream: %s\n",
+			__FUNCTION__, saf_error(ais_rc));
 		tst_res = TST_FAIL;
 	}
 
@@ -1285,8 +1255,10 @@ void saLogRecov_97(void)
 
 	ais_rc = tst_LogFinalize(g_client[0].glob_logHandle);
 	if (ais_rc != SA_AIS_OK) {
-		fprintf(stderr, "\t%s Unexpected AIS return code %s. "
-			"Expected SA_AIS_OK\n", __FUNCTION__, saf_error(ais_rc));
+		fprintf(stderr,
+			"\t%s Unexpected AIS return code %s. "
+			"Expected SA_AIS_OK\n",
+			__FUNCTION__, saf_error(ais_rc));
 		tst_res = TST_FAIL;
 	}
 
@@ -1303,8 +1275,10 @@ void saLogRecov_98(void)
 
 	ais_rc = tst_LogFinalize(g_client[1].glob_logHandle);
 	if (ais_rc != SA_AIS_OK) {
-		fprintf(stderr, "\t%s Unexpected AIS return code %s. "
-			"Expected SA_AIS_OK\n", __FUNCTION__, saf_error(ais_rc));
+		fprintf(stderr,
+			"\t%s Unexpected AIS return code %s. "
+			"Expected SA_AIS_OK\n",
+			__FUNCTION__, saf_error(ais_rc));
 		tst_res = TST_FAIL;
 	}
 
@@ -1316,10 +1290,10 @@ void saLogRecov_98(void)
  * Stream configuration:
  *
  * "Old" rotated log files exist:
- * 0. Has more than one "old" log file and a log file with more than one log record
- * 1. Has more than one "old" log file and an empty current log file
- * 2. Has more than one "old" log file but no current log file
- * 3. Has one "old" log file but no current log file
+ * 0. Has more than one "old" log file and a log file with more than one log
+ *record 1. Has more than one "old" log file and an empty current log file 2.
+ *Has more than one "old" log file but no current log file 3. Has one "old" log
+ *file but no current log file
  *
  * No "old" rotated log files:
  * 4. Has a current log file containing more than one log record
@@ -1347,7 +1321,7 @@ void saLogRecov_prepare_client1_8streams(void)
 	printf_s("Preparing 8 streams for test. Please wait...\n");
 	ais_rc = tst_LogInitialize(&g_client[0].glob_logHandle, 5);
 	if (ais_rc != SA_AIS_OK) {
-		fprintf(stderr,"\t%s Failed to initialize log service: %s\n",
+		fprintf(stderr, "\t%s Failed to initialize log service: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
 		tst_res = TST_FAIL;
 		goto done;
@@ -1355,8 +1329,7 @@ void saLogRecov_prepare_client1_8streams(void)
 	printf_v("\tInitialized\n");
 
 	rc = tst_StreamOpen_app_logtest_sc(g_client[0].glob_logHandle,
-		g_client[0].glob_logStreamHandle,
-		8);
+					   g_client[0].glob_logStreamHandle, 8);
 	if (rc != 0) {
 		fprintf(stderr, "\t%s Failed to open log stream\n",
 			__FUNCTION__);
@@ -1371,17 +1344,15 @@ void saLogRecov_prepare_client1_8streams(void)
 	 * log record
 	 */
 	printf_s("Preparing stream 0\n");
-	 /* Create a big log record (200 bytes) */
+	/* Create a big log record (200 bytes) */
 	tst_max_logrec_create(log_rec_str, 200, "Before SC down ");
-	ais_rc = tst_WriteRec(
-		225,				/* Write no of records */
-		g_client[0].glob_logStreamHandle[0],
-		g_client[0].glob_logHandle,
-		log_rec_str,			/* Log message */
-		true,				/* Handle TRY AGAIN */
-		false,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	ais_rc = tst_WriteRec(225, /* Write no of records */
+			      g_client[0].glob_logStreamHandle[0],
+			      g_client[0].glob_logHandle,
+			      log_rec_str, /* Log message */
+			      true,	/* Handle TRY AGAIN */
+			      false,       /* Handle callback */
+			      GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1395,17 +1366,15 @@ void saLogRecov_prepare_client1_8streams(void)
 	 * Has more than one "old" log file and an empty current log file
 	 */
 	printf_s("Preparing stream 1\n");
-	 /* Create a big log record (200 bytes) */
+	/* Create a big log record (200 bytes) */
 	tst_max_logrec_create(log_rec_str, 200, "Before SC down ");
-	ais_rc = tst_WriteRec(
-		221,				/* Write no of records */
-		g_client[0].glob_logStreamHandle[1],
-		g_client[0].glob_logHandle,
-		log_rec_str,			/* Log message */
-		true,				/* Handle TRY AGAIN */
-		false,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	ais_rc = tst_WriteRec(221, /* Write no of records */
+			      g_client[0].glob_logStreamHandle[1],
+			      g_client[0].glob_logHandle,
+			      log_rec_str, /* Log message */
+			      true,	/* Handle TRY AGAIN */
+			      false,       /* Handle callback */
+			      GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1416,12 +1385,13 @@ void saLogRecov_prepare_client1_8streams(void)
 	sprintf(name_prefix, "%s_file_1", STREAM_NAME_9);
 	rc = cur_logfile_name_get(cur_logfile_str, name_prefix);
 	if (rc == -1) {
-		fprintf(stderr, "%s Internal error. Test failed\n",__FUNCTION__);
+		fprintf(stderr, "%s Internal error. Test failed\n",
+			__FUNCTION__);
 		tst_res = TST_FAIL;
 		goto done;
 	}
 	printf_v("Stream 1 current log file \"%s\"\n", cur_logfile_str);
-	(void) clear_file(cur_logfile_str);
+	(void)clear_file(cur_logfile_str);
 	printf_v("\tStream 1: rotated > 1, cur log = 0\n");
 
 	/* ********************************************************************
@@ -1429,17 +1399,15 @@ void saLogRecov_prepare_client1_8streams(void)
 	 * Has more than one "old" log file but no current log file
 	 */
 	printf_s("Preparing stream 2\n");
-	 /* Create a big log record (200 bytes) */
+	/* Create a big log record (200 bytes) */
 	tst_max_logrec_create(log_rec_str, 200, "Before SC down ");
-	ais_rc = tst_WriteRec(
-		221,				/* Write no of records */
-		g_client[0].glob_logStreamHandle[2],
-		g_client[0].glob_logHandle,
-		log_rec_str,			/* Log message */
-		true,				/* Handle TRY AGAIN */
-		false,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	ais_rc = tst_WriteRec(221, /* Write no of records */
+			      g_client[0].glob_logStreamHandle[2],
+			      g_client[0].glob_logHandle,
+			      log_rec_str, /* Log message */
+			      true,	/* Handle TRY AGAIN */
+			      false,       /* Handle callback */
+			      GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1450,13 +1418,14 @@ void saLogRecov_prepare_client1_8streams(void)
 	sprintf(name_prefix, "%s_file_2", STREAM_NAME_9);
 	rc = cur_logfile_name_get(cur_logfile_str, name_prefix);
 	if (rc == -1) {
-		fprintf(stderr, "%s Internal error. Test failed\n",__FUNCTION__);
+		fprintf(stderr, "%s Internal error. Test failed\n",
+			__FUNCTION__);
 		tst_res = TST_FAIL;
 		goto done;
 	}
 	printf_v("Stream 2 current log file \"%s\"\n", cur_logfile_str);
 
-	(void) delete_file(cur_logfile_str);
+	(void)delete_file(cur_logfile_str);
 	printf_v("\tStream 2: rotated > 1, No cur log\n");
 
 #if 1 /* Temporary remove */
@@ -1465,17 +1434,15 @@ void saLogRecov_prepare_client1_8streams(void)
 	 * Has one "old" log file but no current log file
 	 */
 	printf_s("Preparing stream 3\n");
-	 /* Create a big log record (200 bytes) */
+	/* Create a big log record (200 bytes) */
 	tst_max_logrec_create(log_rec_str, 200, "Before SC down ");
-	ais_rc = tst_WriteRec(
-		15,				/* Write no of records */
-		g_client[0].glob_logStreamHandle[3],
-		g_client[0].glob_logHandle,
-		log_rec_str,			/* Log message */
-		true,				/* Handle TRY AGAIN */
-		false,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	ais_rc = tst_WriteRec(15, /* Write no of records */
+			      g_client[0].glob_logStreamHandle[3],
+			      g_client[0].glob_logHandle,
+			      log_rec_str, /* Log message */
+			      true,	/* Handle TRY AGAIN */
+			      false,       /* Handle callback */
+			      GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1486,13 +1453,14 @@ void saLogRecov_prepare_client1_8streams(void)
 	sprintf(name_prefix, "%s_file_3", STREAM_NAME_9);
 	rc = cur_logfile_name_get(cur_logfile_str, name_prefix);
 	if (rc == -1) {
-		fprintf(stderr, "%s Internal error. Test failed\n",__FUNCTION__);
+		fprintf(stderr, "%s Internal error. Test failed\n",
+			__FUNCTION__);
 		tst_res = TST_FAIL;
 		goto done;
 	}
 	printf_v("Stream 3 current log file \"%s\"\n", cur_logfile_str);
 
-	(void) delete_file(cur_logfile_str);
+	(void)delete_file(cur_logfile_str);
 	printf_v("\tStream 3: rotated = 1, No cur log\n");
 
 	/* ********************************************************************
@@ -1500,17 +1468,15 @@ void saLogRecov_prepare_client1_8streams(void)
 	 * Has a current log file containing more than one log record
 	 */
 	printf_s("Preparing stream 4\n");
-	 /* Create a big log record (200 bytes) */
+	/* Create a big log record (200 bytes) */
 	tst_max_logrec_create(log_rec_str, 200, "Before SC down ");
-	ais_rc = tst_WriteRec(
-		15,				/* Write no of records */
-		g_client[0].glob_logStreamHandle[4],
-		g_client[0].glob_logHandle,
-		log_rec_str,			/* Log message */
-		true,				/* Handle TRY AGAIN */
-		false,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	ais_rc = tst_WriteRec(15, /* Write no of records */
+			      g_client[0].glob_logStreamHandle[4],
+			      g_client[0].glob_logHandle,
+			      log_rec_str, /* Log message */
+			      true,	/* Handle TRY AGAIN */
+			      false,       /* Handle callback */
+			      GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1524,17 +1490,15 @@ void saLogRecov_prepare_client1_8streams(void)
 	 * Has a current log file containing one log record
 	 */
 	printf_s("Preparing stream 5\n");
-	 /* Create a big log record (200 bytes) */
+	/* Create a big log record (200 bytes) */
 	tst_max_logrec_create(log_rec_str, 200, "Before SC down ");
-	ais_rc = tst_WriteRec(
-		1,				/* Write no of records */
-		g_client[0].glob_logStreamHandle[5],
-		g_client[0].glob_logHandle,
-		log_rec_str,			/* Log message */
-		true,				/* Handle TRY AGAIN */
-		false,				/* Handle callback */
-		GEN_LOG_REC
-	);
+	ais_rc = tst_WriteRec(1, /* Write no of records */
+			      g_client[0].glob_logStreamHandle[5],
+			      g_client[0].glob_logHandle,
+			      log_rec_str, /* Log message */
+			      true,	/* Handle TRY AGAIN */
+			      false,       /* Handle callback */
+			      GEN_LOG_REC);
 	if (ais_rc != SA_AIS_OK) {
 		fprintf(stderr, "\t%s Failed to write to log stream: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
@@ -1560,17 +1524,18 @@ void saLogRecov_prepare_client1_8streams(void)
 	sprintf(name_prefix, "%s_file_7", STREAM_NAME_9);
 	rc = cur_logfile_name_get(cur_logfile_str, name_prefix);
 	if (rc == -1) {
-		fprintf(stderr, "%s Internal error. Test failed\n",__FUNCTION__);
+		fprintf(stderr, "%s Internal error. Test failed\n",
+			__FUNCTION__);
 		tst_res = TST_FAIL;
 		goto done;
 	}
 	printf_v("Stream 7 current log file \"%s\"\n", cur_logfile_str);
 
-	(void) delete_file(cur_logfile_str);
+	(void)delete_file(cur_logfile_str);
 	printf_v("\tStream 7 No rotated, No cur log\n");
 #endif
 
-	done:
+done:
 	rc_validate(tst_res, TST_PASS);
 	if (tst_res == TST_FAIL) {
 		/* There is no meaning to continue */
@@ -1732,13 +1697,14 @@ void saLogRecov_prepare_client2_1_cfg_stream(void)
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	int rc = 0;
 
-	//char log_rec_str[256];
+	// char log_rec_str[256];
 
 	/* Initialize log service */
-	printf_s("Preparing 1 config stream (notification) for test . Please wait...\n");
+	printf_s(
+	    "Preparing 1 config stream (notification) for test . Please wait...\n");
 	ais_rc = tst_LogInitialize(&g_client[1].glob_logHandle, 5);
 	if (ais_rc != SA_AIS_OK) {
-		fprintf(stderr,"\t%s Failed to initialize log service: %s\n",
+		fprintf(stderr, "\t%s Failed to initialize log service: %s\n",
 			__FUNCTION__, saf_error(ais_rc));
 		tst_res = TST_FAIL;
 		goto done;
@@ -1746,8 +1712,8 @@ void saLogRecov_prepare_client2_1_cfg_stream(void)
 	printf_v("\tInitialized\n");
 
 	/* Open stream */
-	rc = tst_StreamOpen_cfg_logtest_sc(g_client[1].glob_logHandle,
-		&g_client[1].glob_logStreamHandle[0]);
+	rc = tst_StreamOpen_cfg_logtest_sc(
+	    g_client[1].glob_logHandle, &g_client[1].glob_logStreamHandle[0]);
 	if (rc != 0) {
 		fprintf(stderr, "\t%s Failed to open log stream\n",
 			__FUNCTION__);
@@ -1760,7 +1726,7 @@ void saLogRecov_prepare_client2_1_cfg_stream(void)
 	if (saLogRecov_write(1, 0, 3, "Before SC down ", NTF_LOG_REC) == -1)
 		tst_res = TST_FAIL;
 
-	done:
+done:
 	rc_validate(tst_res, TST_PASS);
 	if (tst_res == TST_FAIL) {
 		/* There is no meaning to continue */
@@ -1806,7 +1772,8 @@ void saLogRecov_openRtStream(void)
 	/* Cleanup the test directory */
 	sprintf(command, "rm -rf %s/logtest_rtStream_cleanup", log_root_path);
 	sysRc = system(command);
-	if (WEXITSTATUS(sysRc)) {};
+	if (WEXITSTATUS(sysRc)) {
+	};
 
 	/* App stream information */
 	appLogFileCreateAttributes.logFilePathName = "logtest_rtStream_cleanup";
@@ -1814,7 +1781,8 @@ void saLogRecov_openRtStream(void)
 	appLogFileCreateAttributes.maxLogFileSize = DEFAULT_APP_LOG_FILE_SIZE;
 	appLogFileCreateAttributes.maxLogRecordSize = DEFAULT_APP_LOG_REC_SIZE;
 	appLogFileCreateAttributes.haProperty = SA_TRUE;
-	appLogFileCreateAttributes.logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE;
+	appLogFileCreateAttributes.logFileFullAction =
+	    SA_LOG_FILE_FULL_ACTION_ROTATE;
 	appLogFileCreateAttributes.maxFilesRotated = 4;
 	appLogFileCreateAttributes.logFileFmt = NULL;
 
@@ -1825,8 +1793,9 @@ void saLogRecov_openRtStream(void)
 		return;
 	}
 
-	rc = saLogStreamOpen_2(logHandleRecv, &logStreamName, &appLogFileCreateAttributes,
-			       SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStrHandleRecv);
+	rc = saLogStreamOpen_2(
+	    logHandleRecv, &logStreamName, &appLogFileCreateAttributes,
+	    SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStrHandleRecv);
 	test_validate(rc, SA_AIS_OK);
 }
 
@@ -1847,7 +1816,7 @@ void saLogRecov_closeRtStream(void)
 
 	test_validate(rc, SA_AIS_OK);
 
-	(void) saLogFinalize(logHandleRecv);
+	(void)saLogFinalize(logHandleRecv);
 }
 
 /**
@@ -1859,7 +1828,7 @@ void saLogRecov_verRtStream_cleanup(void)
 {
 	int rc = 0;
 	char command[300];
-	int dot = 11*60, line = 0;
+	int dot = 11 * 60, line = 0;
 
 	printf_s("\n");
 	printf_s("########################################################\n");
@@ -1868,16 +1837,19 @@ void saLogRecov_verRtStream_cleanup(void)
 	printf_s("########################################################\n");
 
 	while (dot--) {
-		if (line == 0) printf_s("%02d.\t", line++);
+		if (line == 0)
+			printf_s("%02d.\t", line++);
 		printf_s(".");
 		fflush(stdout);
 		sleep(1);
-		if (dot != 0 && dot % 60 == 0) printf_s("\n%02d.\t", line++);
+		if (dot != 0 && dot % 60 == 0)
+			printf_s("\n%02d.\t", line++);
 	}
 
 	printf_s("\n");
 
-	sprintf(command, "find %s/logtest_rtStream_cleanup -type f -name \"logtest_*\" "
+	sprintf(command,
+		"find %s/logtest_rtStream_cleanup -type f -name \"logtest_*\" "
 		"| egrep \"%s_[0-9]{8}_[0-9]{6}_[0-9]{8}_[0-9]{6}\\.log$\" ",
 		log_root_path, "logtest_rtStream_cleanup");
 	rc = system(command);
@@ -1888,7 +1860,8 @@ void saLogRecov_verRtStream_cleanup(void)
 		goto done;
 	}
 
-	sprintf(command, "find %s/logtest_rtStream_cleanup -type f -name \"logtest_*\" "
+	sprintf(command,
+		"find %s/logtest_rtStream_cleanup -type f -name \"logtest_*\" "
 		"| egrep \"%s_[0-9]{8}_[0-9]{6}\\.cfg$\" ",
 		log_root_path, "logtest_rtStream_cleanup");
 	if (WEXITSTATUS(rc)) {
@@ -1905,7 +1878,6 @@ done:
 	rc = system(command);
 }
 
-
 //>
 // For test suite #12
 //<
@@ -1918,14 +1890,18 @@ void saLogRecov_createCfgAppStreams()
 	char command[256];
 
 	/* DN under RDN safApp=safLogservice */
-	sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=testCfgAppStream,safApp=safLogService "
-		"-a saLogStreamFileName=testCfgAppStream -a saLogStreamPathName=suite12");
+	sprintf(
+	    command,
+	    "immcfg -c SaLogStreamConfig safLgStrCfg=testCfgAppStream,safApp=safLogService "
+	    "-a saLogStreamFileName=testCfgAppStream -a saLogStreamPathName=suite12");
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 0);
 
 	/* DN not under safApp=safLogService */
-	sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=testCfgAppStream1 "
-		"-a saLogStreamFileName=testCfgAppStream1 -a saLogStreamPathName=suite12");
+	sprintf(
+	    command,
+	    "immcfg -c SaLogStreamConfig safLgStrCfg=testCfgAppStream1 "
+	    "-a saLogStreamFileName=testCfgAppStream1 -a saLogStreamPathName=suite12");
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 0);
 }
@@ -1939,7 +1915,8 @@ void saLogRecov_delCfgAppStreams()
 	char command[256];
 
 	/* DN under RDN safApp=safLogservice */
-	sprintf(command, "immcfg -d safLgStrCfg=testCfgAppStream,safApp=safLogService ");
+	sprintf(command,
+		"immcfg -d safLgStrCfg=testCfgAppStream,safApp=safLogService ");
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 0);
 
@@ -1965,9 +1942,10 @@ void add_suite_9(void)
 	test_case_add(9, saLogRecov_clean_tstdir, "");
 
 	/* Test 8 application streams. Different file combinations */
-	test_case_add(9, saLogRecov_prepare_client1_8streams, "Before SC down: Prepare 8 streams");
+	test_case_add(9, saLogRecov_prepare_client1_8streams,
+		      "Before SC down: Prepare 8 streams");
 	test_case_add(9, saLogRecov_prepare_client2_1_cfg_stream,
-		"Before SC down: Prepare 1 cfg (notif) stream");
+		      "Before SC down: Prepare 1 cfg (notif) stream");
 	test_case_add(9, saLogRecov_req_node_stop, ""); /* Stop SC nodes */
 
 	test_case_add(9, saLogRecov_req_node_start, ""); /* Start SC nodes */
@@ -1979,21 +1957,22 @@ void add_suite_9(void)
 	test_case_add(9, saLogRecov_write_5, "After SC up: Write to stream 5");
 	test_case_add(9, saLogRecov_write_6, "After SC up: Write to stream 6");
 	test_case_add(9, saLogRecov_write_7, "After SC up: Write to stream 7");
-	test_case_add(9, saLogRecov_write_notif, "After SC up: Write to notification stream");
+	test_case_add(9, saLogRecov_write_notif,
+		      "After SC up: Write to notification stream");
 
 	/* Test one configuration stream */
 	test_case_add(9, saLogRecov_prepare_client2_1_cfg_stream,
-		"Before SC down: Prepare 1 cfg (notif) stream");
+		      "Before SC down: Prepare 1 cfg (notif) stream");
 	test_case_add(9, saLogRecov_req_node_stop, ""); /* Stop SC nodes */
 
 	test_case_add(9, saLogRecov_req_node_start, ""); /* Start SC nodes */
-	test_case_add(9, saLogRecov_write_notif, "After SC up: Write to notification stream");
-	//test_case_add(9, saLogRecov_exit, "");
+	test_case_add(9, saLogRecov_write_notif,
+		      "After SC up: Write to notification stream");
+	// test_case_add(9, saLogRecov_exit, "");
 
-	//test_case_add(9, saLogRecov_pause_s, "");
-	//test_case_add(9, saLogRecov_exit, "");
-	//test_case_add(9, saLogRecov_clean_tstdir, "");
-
+	// test_case_add(9, saLogRecov_pause_s, "");
+	// test_case_add(9, saLogRecov_exit, "");
+	// test_case_add(9, saLogRecov_clean_tstdir, "");
 }
 
 /**
@@ -2013,21 +1992,28 @@ void add_suite_10(void)
 
 	test_case_add(10, saLogRecov_prepare_client1, "Prepare client1");
 	test_case_add(10, saLogRecov_req_node_stop, ""); /* Stop SC nodes */
-	test_case_add(10, saLogRecov_91, "SC nodes stopped: Write on open stream1");
+	test_case_add(10, saLogRecov_91,
+		      "SC nodes stopped: Write on open stream1");
 	test_case_add(10, saLogRecov_req_node_start, ""); /* Start SC nodes */
-	test_case_add(10, saLogRecov_92, "SC nodes started: Write on open stream1");
+	test_case_add(10, saLogRecov_92,
+		      "SC nodes started: Write on open stream1");
 
-	test_case_add(10, saLogRecov_prepare_client2, "Prepare one more client and stop SC nodes");
-	test_case_add(10, saLogRecov_req_node_stop, ""); /* Stop SC nodes */
+	test_case_add(10, saLogRecov_prepare_client2,
+		      "Prepare one more client and stop SC nodes");
+	test_case_add(10, saLogRecov_req_node_stop, "");  /* Stop SC nodes */
 	test_case_add(10, saLogRecov_req_node_start, ""); /* Start SC nodes */
-	test_case_add(10, saLogRecov_93, "SC nodes started: Write on open stream2");
-	test_case_add(10, saLogRecov_94, "SC nodes started: Write on open stream1 second time");
+	test_case_add(10, saLogRecov_93,
+		      "SC nodes started: Write on open stream2");
+	test_case_add(10, saLogRecov_94,
+		      "SC nodes started: Write on open stream1 second time");
 	test_case_add(10, saLogRecov_95, "SC nodes restarted: Close stream1");
 	test_case_add(10, saLogRecov_96, "SC nodes restarted: Close stream2");
-	test_case_add(10, saLogRecov_97, "SC nodes restarted: Finalize client1");
-	test_case_add(10, saLogRecov_98, "SC nodes restarted: Finalize client2");
+	test_case_add(10, saLogRecov_97,
+		      "SC nodes restarted: Finalize client1");
+	test_case_add(10, saLogRecov_98,
+		      "SC nodes restarted: Finalize client2");
 
-	//test_case_add(10, saLogRecov_clean_tstdir, "");
+	// test_case_add(10, saLogRecov_clean_tstdir, "");
 }
 
 /**
@@ -2038,12 +2024,17 @@ void add_suite_10(void)
  */
 void add_suite_11(void)
 {
-	test_suite_add(11, "LOG Server down/up: verify closeStream and cleanup abandoned streams");
+	test_suite_add(
+	    11,
+	    "LOG Server down/up: verify closeStream and cleanup abandoned streams");
 	test_case_add(11, saLogRecov_openRtStream, "Open an runtime stream");
 	test_case_add(11, saLogRecov_req_node_stop, ""); /* Stop SC nodes */
-	test_case_add(11, saLogRecov_closeRtStream, "SC nodes stopped: close the stream, OK");
+	test_case_add(11, saLogRecov_closeRtStream,
+		      "SC nodes stopped: close the stream, OK");
 	test_case_add(11, saLogRecov_req_node_start, ""); /* Start SC nodes */
-	test_case_add(11, saLogRecov_verRtStream_cleanup, "SC nodes started: after 10 mins, the stream is cleanup, OK");
+	test_case_add(
+	    11, saLogRecov_verRtStream_cleanup,
+	    "SC nodes started: after 10 mins, the stream is cleanup, OK");
 }
 
 /**
@@ -2052,9 +2043,13 @@ void add_suite_11(void)
  */
 void add_suite_12(void)
 {
-	test_suite_add(12, "LOG Server down/up: verify app streams can be deleted after headless");
-	test_case_add(12, saLogRecov_createCfgAppStreams, "Create 02 configurable app streams");
-	test_case_add(12, saLogRecov_req_node_stop, ""); /* Stop SC nodes */
+	test_suite_add(
+	    12,
+	    "LOG Server down/up: verify app streams can be deleted after headless");
+	test_case_add(12, saLogRecov_createCfgAppStreams,
+		      "Create 02 configurable app streams");
+	test_case_add(12, saLogRecov_req_node_stop, "");  /* Stop SC nodes */
 	test_case_add(12, saLogRecov_req_node_start, ""); /* Start SC nodes */
-	test_case_add(12, saLogRecov_delCfgAppStreams, "SC nodes started: delete created app streams");
+	test_case_add(12, saLogRecov_delCfgAppStreams,
+		      "SC nodes started: delete created app streams");
 }

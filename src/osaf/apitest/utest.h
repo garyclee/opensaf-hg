@@ -24,7 +24,8 @@
 #define ALL_SUITES -1
 #define ALL_TESTS -1
 
-/* This variable will be set to 1 if the environment variable TESTDEBUG is defined */
+/* This variable will be set to 1 if the environment variable TESTDEBUG is
+ * defined */
 extern unsigned int testdebug;
 
 /**
@@ -41,7 +42,8 @@ extern void test_suite_add(unsigned int suite, const char *name);
  * @param testfunc function pointer to test case
  * @param slogan printable slogan
  */
-extern void test_case_add(unsigned int suite, void(*testfunc)(void), const char *slogan);
+extern void test_case_add(unsigned int suite, void (*testfunc)(void),
+                          const char *slogan);
 
 /**
  * Validate and print result of a test case.
@@ -71,10 +73,10 @@ void rc_validate(int rc, int expected);
  * Run all test cases, all test cases in a suite or a specific
  * test case. suites will be run in increasing order using the
  * test suite number. Test cases will be run in order installed.
- * 
+ *
  * @param suite ALL_SUITES or a specific number
  * @param tcase ALL_TESTS or a specific number
- * 
+ *
  * @return int zero if sucess or -1 if an error occurred
  */
 extern int test_run(unsigned int suite, unsigned int tcase);
@@ -85,4 +87,3 @@ extern int test_run(unsigned int suite, unsigned int tcase);
 extern void test_list(void);
 
 #endif  // OSAF_APITEST_UTEST_H_
-

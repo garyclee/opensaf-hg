@@ -30,7 +30,7 @@
 
 #include "base/ncsgl_defs.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -74,7 +74,6 @@ unsigned int ncs_core_agents_shutdown(void);
 void ncs_mds_shutdown(void);
 void ncs_leap_shutdown(void);
 
-
 /***********************************************************************\
    m_NCS_GET_NODE_ID: This function returns a node-id (in the SAF sense).
                       Only the macro should be used, the function
@@ -90,19 +89,19 @@ NCS_NODE_ID ncs_get_node_id(void);
 
 static inline NCS_CHASSIS_ID GetChassisIdFromNodeId(NCS_NODE_ID node_id) {
   uint32_t kChassisMask = 0xff;
-  uint32_t chassis_id = (((uint32_t) node_id) >> 16) & kChassisMask;
+  uint32_t chassis_id = (((uint32_t)node_id) >> 16) & kChassisMask;
   return chassis_id;
 }
 
 static inline SlotSubslotId GetSlotSubslotIdFromNodeId(NCS_NODE_ID node_id) {
   uint32_t kSubslotMask = 0xf;
   uint32_t kSlotMask = 0xff;
-  uint32_t subslot_id = ((uint32_t) node_id) & kSubslotMask;
-  uint32_t slot_id = (((uint32_t) node_id) >> 8) & kSlotMask;
+  uint32_t subslot_id = ((uint32_t)node_id) & kSubslotMask;
+  uint32_t slot_id = (((uint32_t)node_id) >> 8) & kSlotMask;
   return ((subslot_id ^ kSubslotMask) << 8) | slot_id;
 }
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

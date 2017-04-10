@@ -56,21 +56,20 @@ static char match_ip[100];
  */
 int plmc_get_iface_list(struct ifconf *ifconf)
 {
-  int sock, rval;
+	int sock, rval;
 
-  sock = socket(AF_INET,SOCK_STREAM,0);
-  if(sock < 0)
-  {
-    perror("socket");
-    return (-1);
-  }
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock < 0) {
+		perror("socket");
+		return (-1);
+	}
 
-  if((rval = ioctl(sock, SIOCGIFCONF , (char*) ifconf  )) < 0 )
-    perror("ioctl(SIOGIFCONF)");
+	if ((rval = ioctl(sock, SIOCGIFCONF, (char *)ifconf)) < 0)
+		perror("ioctl(SIOGIFCONF)");
 
-  close(sock);
+	close(sock);
 
-  return rval;
+	return rval;
 }
 
 /*
@@ -86,58 +85,66 @@ int plmc_get_iface_list(struct ifconf *ifconf)
  * Returns: NULL string if no match is found or for any other error.
  *
  */
-char * plmc_get_listening_ip_addr(char *plmc_config_file)
+char *plmc_get_listening_ip_addr(char *plmc_config_file)
 {
-  static struct ifreq ifreqs[20];
-  struct ifconf ifconf;
-  int  nifaces, i;
-  int s, retval;
-  PLMC_config_data config;
+	static struct ifreq ifreqs[20];
+	struct ifconf ifconf;
+	int nifaces, i;
+	int s, retval;
+	PLMC_config_data config;
 
-  retval = plmc_read_config(plmc_config_file, &config);
-  match_ip[0] = 0;
+	retval = plmc_read_config(plmc_config_file, &config);
+	match_ip[0] = 0;
 
-  /* If there is no config file, then we are done. */
-  if (retval != 0) {
-    printf("error: plmc_get_listening_ip_addr() encountered error reading %s.  errno = %d\n", plmc_config_file, retval);
-    syslog(LOG_ERR, "error: plmc_get_listening_ip_addr() encountered error reading %s.  errno = %d", plmc_config_file, retval);
-    exit(PLMC_EXIT_FAILURE);
-  }
+	/* If there is no config file, then we are done. */
+	if (retval != 0) {
+		printf(
+		    "error: plmc_get_listening_ip_addr() encountered error reading %s.  errno = %d\n",
+		    plmc_config_file, retval);
+		syslog(
+		    LOG_ERR,
+		    "error: plmc_get_listening_ip_addr() encountered error reading %s.  errno = %d",
+		    plmc_config_file, retval);
+		exit(PLMC_EXIT_FAILURE);
+	}
 
-  memset(&ifconf,0,sizeof(ifconf));
-  ifconf.ifc_buf = (char*) (ifreqs);
-  ifconf.ifc_len = sizeof(ifreqs);
+	memset(&ifconf, 0, sizeof(ifconf));
+	ifconf.ifc_buf = (char *)(ifreqs);
+	ifconf.ifc_len = sizeof(ifreqs);
 
-  if (plmc_get_iface_list(&ifconf) < 0)
-    exit(-1);
+	if (plmc_get_iface_list(&ifconf) < 0)
+		exit(-1);
 
-  nifaces =  ifconf.ifc_len/sizeof(struct ifreq);
+	nifaces = ifconf.ifc_len / sizeof(struct ifreq);
 
 #ifdef PLMC_DEBUG
-  printf("Interfaces (count = %d):\n", nifaces);
+	printf("Interfaces (count = %d):\n", nifaces);
 #endif
-  s = socket(PF_INET, SOCK_DGRAM, 0);
-  for(i = 0; i < nifaces; i++)
-  {
-    if (ioctl(s, SIOCGIFADDR, &ifreqs[i]) >= 0) {
-      struct sockaddr_in addr;
+	s = socket(PF_INET, SOCK_DGRAM, 0);
+	for (i = 0; i < nifaces; i++) {
+		if (ioctl(s, SIOCGIFADDR, &ifreqs[i]) >= 0) {
+			struct sockaddr_in addr;
 
-      memcpy(&addr, &ifreqs[i].ifr_addr, sizeof(struct sockaddr_in));
+			memcpy(&addr, &ifreqs[i].ifr_addr,
+			       sizeof(struct sockaddr_in));
 #ifdef PLMC_DEBUG
-      printf("  %s IP address: %s\n", ifreqs[i].ifr_name,
-		      inet_ntoa(addr.sin_addr));
+			printf("  %s IP address: %s\n", ifreqs[i].ifr_name,
+			       inet_ntoa(addr.sin_addr));
 #endif
-      if (strcmp(inet_ntoa(addr.sin_addr), config.controller_1_ip) == 0) {
-        strncpy(match_ip, inet_ntoa(addr.sin_addr), INET_ADDRSTRLEN);
-        break;
-      }
-      if (strcmp(inet_ntoa(addr.sin_addr), config.controller_2_ip) == 0) {
-        strncpy(match_ip, inet_ntoa(addr.sin_addr), INET_ADDRSTRLEN);
-        break;
-      }
-    }
-  }
+			if (strcmp(inet_ntoa(addr.sin_addr),
+				   config.controller_1_ip) == 0) {
+				strncpy(match_ip, inet_ntoa(addr.sin_addr),
+					INET_ADDRSTRLEN);
+				break;
+			}
+			if (strcmp(inet_ntoa(addr.sin_addr),
+				   config.controller_2_ip) == 0) {
+				strncpy(match_ip, inet_ntoa(addr.sin_addr),
+					INET_ADDRSTRLEN);
+				break;
+			}
+		}
+	}
 
-  return(match_ip);
+	return (match_ip);
 }
-
