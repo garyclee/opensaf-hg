@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2010 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -15,18 +16,35 @@
  *
  */
 
+#include <errno.h>
 #include <stdlib.h>
+#include <sys/resource.h>
 #include "base/ncssysf_tsk.h"
 
 #include "base/logtrace.h"
 #include "base/daemon.h"
 
 #include "ckpt/ckptnd/cpnd.h"
+#include "ckpt/ckptnd/cpnd_cb.h"
 
 extern void cpnd_main_process(CPND_CB *cb);
 static int __init_cpnd(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
+
+	struct rlimit rlim;
+	if (getrlimit(RLIMIT_NOFILE, &rlim) == 0) {
+		if (rlim.rlim_cur < CPND_MAX_REPLICAS + 500) {
+			rlim.rlim_cur = CPND_MAX_REPLICAS + 500;
+			if (setrlimit(RLIMIT_NOFILE, &rlim) != 0) {
+				LOG_ER("setrlimit(RLIMIT_NOFILE, %d) failed, "
+				       "errno = %d", CPND_MAX_REPLICAS + 500,
+				       errno);
+			}
+		}
+	} else {
+		LOG_ER("getrlimit(RLIMIT_NOFILE) failed, errno = %d", errno);
+	}
 
 	/* Enable extended SaNameT */
 	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
