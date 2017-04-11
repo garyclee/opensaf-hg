@@ -12232,8 +12232,6 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 					LOG_NO(
 					    "Force kill sync process and abort sync");
 					kill(cb->syncPid, SIGKILL);
-					waitpid(cb->syncPid, NULL, 0);
-					cb->syncPid = 0;
 
 					cb->mState = IMM_SERVER_READY;
 					LOG_NO(
@@ -12293,13 +12291,12 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 			int status = 0;
 			if (waitpid(cb->pbePid, &status, WNOHANG) > 0) {
 				LOG_NO("PBE has terminated due to SC absence");
+				cb->pbePid = 0;
 			} else {
 				LOG_WA(
 				    "SC were absent and PBE appears hung, sending SIGKILL");
 				kill(cb->pbePid, SIGKILL);
-				waitpid(cb->pbePid, NULL, 0);
 			}
-			cb->pbePid = 0;
 		}
 
 	} else if ((evt->info.mds_info.change == NCSMDS_UP) &&
