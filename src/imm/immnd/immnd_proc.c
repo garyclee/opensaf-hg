@@ -493,6 +493,31 @@ uint32_t immnd_introduceMe(IMMND_CB *cb)
 	char *mdirDup = NULL;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
+	if (cb->mIntroduced == 2) {
+		/* Check for syncPid and pbePid, intro message will not be sent
+		 * until they all exit */
+		if (cb->syncPid > 0) {
+			int status = 0;
+			if (waitpid(cb->syncPid, &status, WNOHANG) > 0) {
+				cb->syncPid = 0;
+			} else {
+				LOG_WA("Sync process still doesn't exit, skip sending intro message");
+				rc = NCSCC_RC_FAILURE;
+				goto error;
+			}
+		}
+		if (cb->pbePid > 0) {
+			int status = 0;
+			if (waitpid(cb->pbePid, &status, WNOHANG) > 0) {
+				cb->pbePid = 0;
+			} else {
+				LOG_WA("PBE process still doesn't exit, skip sending intro message");
+				rc = NCSCC_RC_FAILURE;
+				goto error;
+			}
+		}
+	}
+
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
 	send_evt.info.immd.type = IMMD_EVT_ND2D_INTRO;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
