@@ -1058,10 +1058,13 @@ static char *create_adminOwnerName(char *base)
 
 	if (gethostname(hostname, sizeof(hostname)) != 0) {
 		fprintf(stderr, "error while retrieving hostname\n");
-		if (transaction_mode)
+		if (transaction_mode) {
+			if (unique_adminOwner)
+				free(unique_adminOwner);
 			return NULL;
-		else
+		} else {
 			exit(EXIT_FAILURE);
+		}
 	}
 	sprintf(unique_adminOwner, "%s_%s_%d", base, hostname, getpid());
 	return unique_adminOwner;
