@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -198,10 +199,10 @@ uint32_t avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 	    /* AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO */
 	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-	     (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_shutdown_app_su.msg_id, 0,
+	     (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_node_down_info.msg_id, 0,
 	     NULL},
 	    {EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, EDU_EXIT,
-	     (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_shutdown_app_su.node_id,
+	     (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_node_down_info.node_id,
 	     0, NULL},
 
 	    /* AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO */
@@ -603,7 +604,7 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 	       LCL_JMP_OFFSET_AVSV_N2D_PG_TRACK_ACT_MSG = 31,
 	       LCL_JMP_OFFSET_AVSV_N2D_OPERATION_REQUEST_MSG = 36,
 	       LCL_JMP_OFFSET_AVSV_N2D_DATA_REQUEST_MSG = 40,
-	       LCL_JMP_OFFSET_AVSV_N2D_SHUTDOWN_APP_SU_MSG = 43,
+	       LCL_JMP_OFFSET_AVSV_N2D_NODE_DOWN_MSG = 43,
 	       LCL_JMP_OFFSET_AVSV_N2D_VERIFY_ACK_NACK_MSG = 45,
 	       LCL_JMP_OFFSET_AVSV_D2N_CLM_NODE_UP_MSG = 48,
 	       LCL_JMP_OFFSET_AVSV_D2N_REG_SU_MSG = 52,
@@ -650,8 +651,8 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 		return LCL_JMP_OFFSET_AVSV_N2D_OPERATION_REQUEST_MSG;
 	case AVSV_N2D_DATA_REQUEST_MSG:
 		return LCL_JMP_OFFSET_AVSV_N2D_DATA_REQUEST_MSG;
-	case AVSV_N2D_SHUTDOWN_APP_SU_MSG:
-		return LCL_JMP_OFFSET_AVSV_N2D_SHUTDOWN_APP_SU_MSG;
+	case AVSV_N2D_NODE_DOWN_MSG:
+		return LCL_JMP_OFFSET_AVSV_N2D_NODE_DOWN_MSG;
 	case AVSV_N2D_VERIFY_ACK_NACK_MSG:
 		return LCL_JMP_OFFSET_AVSV_N2D_VERIFY_ACK_NACK_MSG;
 	case AVSV_D2N_NODE_UP_MSG:

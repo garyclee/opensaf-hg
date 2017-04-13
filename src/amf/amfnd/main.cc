@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2010 The OpenSAF Foundation
  * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -62,7 +63,7 @@ extern const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
     avnd_evt_avd_su_pres_evh,           /* AVND_EVT_AVD_SU_PRES_MSG */
     avnd_evt_avd_verify_evh,            /* AVND_EVT_AVD_VERIFY_MSG */
     avnd_evt_avd_ack_evh,               /* AVND_EVT_AVD_ACK_MSG */
-    avnd_evt_invalid_evh,               /* AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG */
+    avnd_evt_invalid_evh,               /* AVND_EVT_AVD_NODE_DOWN_MSG */
     avnd_evt_avd_set_leds_evh,          /* AVND_EVT_AVD_SET_LEDS_MSG */
     avnd_evt_avd_comp_validation_resp_evh, /* AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG
                                             */
