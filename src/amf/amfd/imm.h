@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -52,25 +53,38 @@ typedef enum {
 
 } AvdJobDequeueResultT;
 
+typedef enum {
+  JOB_TYPE_IMM = 1,  /* A IMM job */
+  JOB_TYPE_NTF = 2, /* A NTF job */
+  JOB_TYPE_ANY
+} AvdJobTypeT;
+
 // TODO HANO Write comments
 // @todo move this into job.h
 class Job {
  public:
-  bool implementer;
-
-  Job() : implementer(true){};
   virtual AvdJobDequeueResultT exec(const AVD_CL_CB *cb) = 0;
   virtual ~Job() = 0;
+  virtual AvdJobTypeT getJobType() = 0;
+  virtual bool isRunnable(const AVD_CL_CB *cb) = 0;
+};
+
+class ImmJob : public Job {
+public:
+  bool implementer;
+  ImmJob():implementer(true) {};
+  AvdJobTypeT getJobType() { return JOB_TYPE_IMM; }
+  bool isRunnable(const AVD_CL_CB *cb);
 };
 
 //
-class ImmObjCreate : public Job {
+class ImmObjCreate : public ImmJob {
  public:
   SaImmClassNameT className_;
   std::string parentName_;
   const SaImmAttrValuesT_2 **attrValues_;
 
-  ImmObjCreate() : Job(){};
+  ImmObjCreate() : ImmJob(){};
   bool immobj_update_required();
   AvdJobDequeueResultT exec(const AVD_CL_CB *cb);
 
@@ -78,14 +92,14 @@ class ImmObjCreate : public Job {
 };
 
 //
-class ImmObjUpdate : public Job {
+class ImmObjUpdate : public ImmJob {
  public:
   std::string dn;
   SaImmAttrNameT attributeName_;
   SaImmValueTypeT attrValueType_;
   void *value_;
 
-  ImmObjUpdate() : Job(){};
+  ImmObjUpdate() : ImmJob(){};
   bool immobj_update_required();
   AvdJobDequeueResultT exec(const AVD_CL_CB *cb);
   bool si_get_attr_value();
@@ -98,11 +112,11 @@ class ImmObjUpdate : public Job {
 };
 
 //
-class ImmObjDelete : public Job {
+class ImmObjDelete : public ImmJob {
  public:
   std::string dn;
 
-  ImmObjDelete() : Job(){};
+  ImmObjDelete() : ImmJob(){};
   bool immobj_update_required();
   bool is_csiass_exist();
   bool is_siass_exist();
@@ -111,7 +125,7 @@ class ImmObjDelete : public Job {
   ~ImmObjDelete();
 };
 
-class ImmAdminResponse : public Job {
+class ImmAdminResponse : public ImmJob {
  public:
   ImmAdminResponse(const SaInvocationT invocation, const SaAisErrorT result) {
     this->invocation_ = invocation;
@@ -131,6 +145,8 @@ class NtfSend : public Job {
  public:
   NtfSend() : already_sent(false) {}
   AvdJobDequeueResultT exec(const AVD_CL_CB *cb);
+  AvdJobTypeT getJobType() { return JOB_TYPE_NTF; }
+  bool isRunnable(const AVD_CL_CB *cb) { return true;}
   SaNtfNotificationsT myntf;
   bool already_sent;
   ~NtfSend();
@@ -147,7 +163,8 @@ class Fifo {
   static Job *dequeue();
 
   static AvdJobDequeueResultT execute(const AVD_CL_CB *cb);
-
+  static AvdJobDequeueResultT executeAll(const AVD_CL_CB *cb,
+      AvdJobTypeT job_type = JOB_TYPE_ANY);
   static AvdJobDequeueResultT executeAdminResp(const AVD_CL_CB *cb);
 
   static void empty();

@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -128,6 +129,22 @@ static char *StrDup(const char *s) {
 //
 Job::~Job() {}
 
+//
+bool ImmJob::isRunnable(const AVD_CL_CB *cb) {
+  TRACE_ENTER();
+  bool rc = true;
+  if ((!avd_cb->is_implementer) &&
+      (avd_cb->avail_state_avd == SA_AMF_HA_STANDBY)) {
+    rc = false;
+  }
+
+  if (avd_cb->avd_imm_status == AVD_IMM_INIT_ONGOING) {
+    TRACE("Already IMM init is going, try again after sometime");
+    rc = false;
+  }
+  TRACE_LEAVE();
+  return rc;
+}
 //
 AvdJobDequeueResultT ImmObjCreate::exec(const AVD_CL_CB *cb) {
   SaAisErrorT rc;
@@ -382,16 +399,9 @@ AvdJobDequeueResultT Fifo::execute(const AVD_CL_CB *cb) {
   // Keep in queue during controller switch-over
   if (!avd_cb->active_services_exist) return JOB_ETRYAGAIN;
 
-  if ((!avd_cb->is_implementer) &&
-      (avd_cb->avail_state_avd == SA_AMF_HA_STANDBY)) {
-    return JOB_EINVH;
-  }
-
-  if (avd_cb->avd_imm_status == AVD_IMM_INIT_ONGOING) {
-    TRACE("Already IMM init is going, try again after sometime");
-    return JOB_ETRYAGAIN;
-  }
   if ((ajob = peek()) == nullptr) return JOB_ENOTEXIST;
+
+  if (ajob->isRunnable(cb) == false) return JOB_ETRYAGAIN;
 
   TRACE_ENTER();
 
@@ -400,6 +410,39 @@ AvdJobDequeueResultT Fifo::execute(const AVD_CL_CB *cb) {
   // If no jobs then send a ckpt update to standby to flush its job queue.
   if (((ajob = peek()) == nullptr) && (cb->stby_sync_state == AVD_STBY_IN_SYNC))
     ckpt_job_queue_size();
+
+  TRACE_LEAVE2("%d", ret);
+
+  return ret;
+}
+
+AvdJobDequeueResultT Fifo::executeAll(const AVD_CL_CB *cb, AvdJobTypeT job_type) {
+
+  Job *ajob, *firstjob;
+  AvdJobDequeueResultT ret = JOB_EXECUTED;
+
+  TRACE_ENTER();
+  firstjob = nullptr;
+
+  while ((ajob = peek()) != nullptr) {
+    if (job_type == JOB_TYPE_ANY || ajob->getJobType() == job_type) {
+      ret = ajob->exec(cb);
+      if (ret != JOB_EXECUTED)
+        break;
+    } else {
+      // push back
+      ajob = Fifo::dequeue();
+      Fifo::queue(ajob);
+
+      // check if we have gone through all jobs of queue
+      if (firstjob == nullptr) {
+        firstjob = ajob;
+      } else {
+        if (firstjob == ajob)
+          break;
+      }
+    }
+  }
 
   TRACE_LEAVE2("%d", ret);
 

@@ -560,12 +560,15 @@ void avd_node_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
   TRACE_ENTER2("from nodeId=0x%x", n2d_msg->msg_info.n2d_node_down_info.node_id);
 
   if (evt->info.avnd_msg->msg_type != AVSV_N2D_NODE_DOWN_MSG) {
-    LOG_WA("%s: wrong message type (%u)", __FUNCTION__,evt->info.avnd_msg->msg_type);
+    LOG_WA("%s: wrong message type (%u)", __FUNCTION__,
+        evt->info.avnd_msg->msg_type);
     goto done;
   }
 
-  if ((node = avd_node_find_nodeid(n2d_msg->msg_info.n2d_node_down_info.node_id)) == nullptr) {
-    LOG_WA("%s: invalid node ID (%x)", __FUNCTION__, n2d_msg->msg_info.n2d_node_down_info.node_id);
+  if ((node = avd_node_find_nodeid(
+      n2d_msg->msg_info.n2d_node_down_info.node_id)) == nullptr) {
+    LOG_WA("%s: invalid node ID (%x)", __FUNCTION__,
+        n2d_msg->msg_info.n2d_node_down_info.node_id);
     goto done;
   }
 
@@ -573,17 +576,15 @@ void avd_node_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
     m_AVD_SET_AVND_RCV_ID(cb, node, (n2d_msg->msg_info.n2d_node_down_info.msg_id));
 
   // try to execute all pending jobs
-  AvdJobDequeueResultT ret = JOB_EXECUTED;
-  while (Fifo::size() > 0) {
-    ret = Fifo::execute(cb);
-    if (ret != JOB_EXECUTED) {
-      LOG_WA("AMFD has (%d) pending jobs not being executed", Fifo::size());
-      break;
-    }
+  // Pritority: Run all IMM jobs first, NTF jobs second
+  if (Fifo::executeAll(cb, JOB_TYPE_IMM) != JOB_EXECUTED ||
+      Fifo::executeAll(cb, JOB_TYPE_NTF) != JOB_EXECUTED) {
+    LOG_WA("AMFD has (%d) pending jobs not being executed", Fifo::size());
   }
-  if (ret == JOB_EXECUTED) {
+  if (Fifo::size() == 0) {
     // send ack for node_down message to amfnd, so amfnd can continue termination phase
-    if (avd_snd_node_ack_msg(cb, node, n2d_msg->msg_info.n2d_node_down_info.msg_id) != NCSCC_RC_SUCCESS) {
+    if (avd_snd_node_ack_msg(cb, node,
+        n2d_msg->msg_info.n2d_node_down_info.msg_id) != NCSCC_RC_SUCCESS) {
       /* log error that the director is not able to send the message */
       LOG_ER("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
     }
