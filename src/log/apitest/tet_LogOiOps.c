@@ -5408,6 +5408,97 @@ done:
 	}
 }
 
+/**
+ * Test case for ticket #1439
+ *
+ * Write the log file then verify that the log file is not
+ * rotated until reaching saLogStreamMaxLogFileSize
+ *
+ * Step:
+ * 1. Write log record 500b to System stream
+ * 2. Change max log size (1500) and fixed log records size (1000)
+ *    attribute in System stream
+ * 3. Write log record 1000b to System stream
+ * 4. Check and verify log file is not rotated
+ *
+ */
+void verLogFileRotate(void)
+{
+	int rc;
+	char command[1500];
+	FILE *fp = NULL;
+	char fileSize_c[10];
+	uint32_t fileSize = 0;
+	char logRecord[1000];
+	SaUint32T v_saLogStreamFixedLogRecordSize = 0;
+	const int max_log_file_size = 1500, fixed_log_rec_size = 1000;
+
+	/* Get current value of the attribute */
+	get_attr_value(&systemStreamName, "saLogStreamMaxLogFileSize",
+		       &v_saLogStreamMaxLogFileSize);
+
+	get_attr_value(&systemStreamName, "saLogStreamFixedLogRecordSize",
+		       &v_saLogStreamFixedLogRecordSize);
+
+	/* write to system log 500b*/
+	memset(logRecord, 'A', 500);
+
+	sprintf(command, "saflogger -y \"%s\"", logRecord);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
+		goto done;
+	}
+	/* Set saLogStreamMaxLogFileSize, saLogStreamFixedLogRecordSize*/
+	sprintf(command,"immcfg safLgStrCfg=saLogSystem,safApp=safLogService"
+			" -a saLogStreamMaxLogFileSize=%d"
+			" -a saLogStreamFixedLogRecordSize=%d",
+			max_log_file_size, fixed_log_rec_size);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
+		return;
+	}
+
+	sprintf(command, "saflogger -y  \"%s\"", logRecord);
+
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
+		goto done;
+	}
+
+	sprintf(command,"find %s -type f -mmin -1 "
+			"| egrep \"%s_([0-9]{8}_[0-9]{6}\\.log$)\" "
+			"| xargs wc -c | awk '{printf $1}'",
+			log_root_path, "saLogSystem");
+
+	fp = popen(command, "r");
+
+	/* Get file size in chars */
+	while (fgets(fileSize_c, sizeof(fileSize_c) - 1, fp) != NULL) {};
+	pclose(fp);
+
+	/* Checking the file size of opening log file */
+	fileSize = atoi(fileSize_c);
+	if (fileSize == 0) {
+		fprintf(stderr, "Log file is rotated when log file size (%d) doesn't"
+				" reach  saLogStreamMaxLogFileSize (%d)\n",
+				fixed_log_rec_size, max_log_file_size);
+		rc_validate(fileSize, fixed_log_rec_size);
+		goto done;
+	}
+
+	rc_validate(rc, 0);
+
+done:
+	/* Restore the attribute to previous value */
+	m_restoreData(systemStreamName, "saLogStreamMaxLogFileSize",
+		       &v_saLogStreamMaxLogFileSize, SA_IMM_ATTR_SAUINT64T);
+	m_restoreData(systemStreamName, "saLogStreamFixedLogRecordSize",
+		       &v_saLogStreamFixedLogRecordSize, SA_IMM_ATTR_SAUINT32T);
+}
+
 __attribute__((constructor)) static void saOiOperations_constructor(void)
 {
 	/* Stream objects */
@@ -5761,4 +5852,7 @@ __attribute__((constructor)) static void saOiOperations_constructor(void)
 	test_case_add(
 	    6, verFormattoken,
 	    "CCB Object Create: Two double quotes cover output of log records in log file");
+	test_case_add(
+	    6, verLogFileRotate,
+	    "Verify that log file is not rotated if file size doesn't reach max file size (ticket1439)");
 }
