@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1494,7 +1495,7 @@ uint32_t avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest,
     case AVND_MSG_AVD:
       send_info->i_to_svc = NCSMDS_SVC_ID_AVD;
       /* Don't send any messages if we are shutting down */
-      if (m_AVND_IS_SHUTTING_DOWN(cb)) {
+      if (m_AVND_IS_SHUTTING_DOWN(cb) && msg->info.avd->msg_type != AVSV_N2D_NODE_DOWN_MSG) {
         TRACE_1("Shutting down, not sending msg to AMFD.");
         goto done;
       }

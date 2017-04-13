@@ -102,7 +102,7 @@ static const AVD_EVT_HDLR g_actv_list[AVD_EVT_MAX] = {
     avd_pg_trk_act_evh,            /* AVD_EVT_PG_TRACK_ACT_MSG */
     avd_oper_req_evh,              /* AVD_EVT_OPERATION_REQUEST_MSG */
     avd_data_update_req_evh,       /* AVD_EVT_DATA_REQUEST_MSG */
-    invalid_evh,                   /* AVD_EVT_NODE_DOWN_MSG */
+    avd_node_down_evh,             /* AVD_EVT_NODE_DOWN_MSG */
     avd_ack_nack_evh,              /* AVD_EVT_VERIFY_ACK_NACK_MSG */
     avd_comp_validation_evh,       /* AVD_EVT_COMP_VALIDATION_MSG */
     avd_nd_sisu_state_info_evh,    /* AVD_EVT_ND_SISU_STATE_INFO_MSG */

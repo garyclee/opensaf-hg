@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -61,7 +62,7 @@
 
 #define AVND_COMP_CBK_RESP_TIME 5000 /* time out callback response */
 #define AVND_AVD_MSG_RESP_TIME 1000  /* time out AvD message response */
-
+#define AVND_NODE_DOWN_MAX_RETRY	10 /* max retries on waiting for ack of node_down msg */
 #define m_AVND_STACKSIZE NCS_STACKSIZE_HUGE
 
 typedef enum {

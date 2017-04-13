@@ -535,6 +535,67 @@ done:
 }
 
 /*****************************************************************************
+ * Function: avd_node_down_evh
+ *
+ * Purpose:  This function is the handler for node down event indicating
+ * the arrival of the node_down message. AMFND sends this message when
+ * AMFND is going to terminate OpenSAF SU(s), who are providing services
+ * that AMFD may need. When AMFD receives this message, AMFD currently
+ * will execute all pending IMM update jobs to avoid a loss of IMM data
+ *
+ * Input: cb - the AVD control block
+ *        evt - The event information.
+ *
+ * Returns: None.
+ *
+ * NOTES:
+ *
+ *
+ **************************************************************************/
+void avd_node_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+{
+  AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
+  AVD_AVND *node = nullptr;
+
+  TRACE_ENTER2("from nodeId=0x%x", n2d_msg->msg_info.n2d_node_down_info.node_id);
+
+  if (evt->info.avnd_msg->msg_type != AVSV_N2D_NODE_DOWN_MSG) {
+    LOG_WA("%s: wrong message type (%u)", __FUNCTION__,evt->info.avnd_msg->msg_type);
+    goto done;
+  }
+
+  if ((node = avd_node_find_nodeid(n2d_msg->msg_info.n2d_node_down_info.node_id)) == nullptr) {
+    LOG_WA("%s: invalid node ID (%x)", __FUNCTION__, n2d_msg->msg_info.n2d_node_down_info.node_id);
+    goto done;
+  }
+
+  if ((node->rcv_msg_id + 1) == n2d_msg->msg_info.n2d_node_down_info.msg_id)
+    m_AVD_SET_AVND_RCV_ID(cb, node, (n2d_msg->msg_info.n2d_node_down_info.msg_id));
+
+  // try to execute all pending jobs
+  AvdJobDequeueResultT ret = JOB_EXECUTED;
+  while (Fifo::size() > 0) {
+    ret = Fifo::execute(cb);
+    if (ret != JOB_EXECUTED) {
+      LOG_WA("AMFD has (%d) pending jobs not being executed", Fifo::size());
+      break;
+    }
+  }
+  if (ret == JOB_EXECUTED) {
+    // send ack for node_down message to amfnd, so amfnd can continue termination phase
+    if (avd_snd_node_ack_msg(cb, node, n2d_msg->msg_info.n2d_node_down_info.msg_id) != NCSCC_RC_SUCCESS) {
+      /* log error that the director is not able to send the message */
+      LOG_ER("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
+    }
+  }
+
+done:
+  avsv_dnd_msg_free(n2d_msg);
+  evt->info.avnd_msg = nullptr;
+  TRACE_LEAVE();
+}
+
+/*****************************************************************************
  * Function: avd_nd_ncs_su_assigned
  *
  * Purpose:  This function is the handler for node director event when a

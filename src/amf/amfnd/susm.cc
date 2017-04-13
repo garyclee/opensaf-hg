@@ -1199,7 +1199,11 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si) {
         }
       } else {
         LOG_NO("Removed assignments from AMF components");
-        avnd_last_step_clean(cb);
+        if (m_NCS_NODE_ID_FROM_MDS_DEST(cb->active_avd_adest) != ncs_get_node_id()) {
+          avnd_last_step_clean(cb);
+        } else {
+          avnd_di_node_down_msg_send(cb);
+        }
       }
     }
   }
@@ -1268,7 +1272,11 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si) {
       }
     } else {
       LOG_NO("Removed assignments from AMF components");
-      avnd_last_step_clean(cb);
+      if (m_NCS_NODE_ID_FROM_MDS_DEST(cb->active_avd_adest) != ncs_get_node_id()) {
+        avnd_last_step_clean(cb);
+      } else {
+        avnd_di_node_down_msg_send(cb);
+      }
     }
   }
 
