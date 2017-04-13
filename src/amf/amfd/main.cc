@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -101,7 +102,7 @@ static const AVD_EVT_HDLR g_actv_list[AVD_EVT_MAX] = {
     avd_pg_trk_act_evh,            /* AVD_EVT_PG_TRACK_ACT_MSG */
     avd_oper_req_evh,              /* AVD_EVT_OPERATION_REQUEST_MSG */
     avd_data_update_req_evh,       /* AVD_EVT_DATA_REQUEST_MSG */
-    invalid_evh,                   /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+    invalid_evh,                   /* AVD_EVT_NODE_DOWN_MSG */
     avd_ack_nack_evh,              /* AVD_EVT_VERIFY_ACK_NACK_MSG */
     avd_comp_validation_evh,       /* AVD_EVT_COMP_VALIDATION_MSG */
     avd_nd_sisu_state_info_evh,    /* AVD_EVT_ND_SISU_STATE_INFO_MSG */
@@ -144,7 +145,7 @@ static const AVD_EVT_HDLR g_stndby_list[AVD_EVT_MAX] = {
     standby_invalid_evh, /* AVD_EVT_PG_TRACK_ACT_MSG */
     standby_invalid_evh, /* AVD_EVT_OPERATION_REQUEST_MSG */
     standby_invalid_evh, /* AVD_EVT_DATA_REQUEST_MSG */
-    standby_invalid_evh, /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+    standby_invalid_evh, /* AVD_EVT_NODE_DOWN_MSG */
     standby_invalid_evh, /* AVD_EVT_VERIFY_ACK_NACK_MSG */
     standby_invalid_evh, /* AVD_EVT_COMP_VALIDATION_MSG */
     standby_invalid_evh, /* AVD_EVT_ND_SUSI_STATE_INFO_MSG */
@@ -188,7 +189,7 @@ static const AVD_EVT_HDLR g_quiesc_list[AVD_EVT_MAX] = {
     qsd_ignore_evh,          /* AVD_EVT_PG_TRACK_ACT_MSG */
     avd_oper_req_evh,        /* AVD_EVT_OPERATION_REQUEST_MSG */
     avd_data_update_req_evh, /* AVD_EVT_DATA_REQUEST_MSG */
-    invalid_evh,             /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+    invalid_evh,             /* AVD_EVT_NODE_DOWN_MSG */
     qsd_invalid_evh,         /* AVD_EVT_VERIFY_ACK_NACK_MSG */
     avd_comp_validation_evh, /* AVD_EVT_COMP_VALIDATION_MSG */
     qsd_invalid_evh,         /* AVD_EVT_ND_SISU_STATE_INFO_MSG */

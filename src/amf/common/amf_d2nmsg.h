@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -84,7 +85,7 @@ typedef enum {
   AVSV_N2D_PG_TRACK_ACT_MSG,
   AVSV_N2D_OPERATION_REQUEST_MSG,
   AVSV_N2D_DATA_REQUEST_MSG,
-  AVSV_N2D_SHUTDOWN_APP_SU_MSG,
+  AVSV_N2D_NODE_DOWN_MSG,
   AVSV_N2D_VERIFY_ACK_NACK_MSG,
   AVSV_N2D_COMP_VALIDATION_MSG,
   AVSV_D2N_NODE_UP_MSG,
@@ -465,6 +466,11 @@ typedef struct avsv_n2d_verify_ack_nack_msg_info {
   bool ack;
 } AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO;
 
+typedef struct avsv_n2d_node_down_info_tag {
+  uint32_t msg_id;
+  SaClmNodeIdT node_id;
+} AVSV_N2D_NODE_DOWN_MSG_INFO;
+
 typedef struct avsv_sisu_state_msg_tag {
   SaNameT safSU;
   SaNameT safSI;
@@ -617,7 +623,7 @@ typedef struct avsv_dnd_shutdown_app_su_msg_info_tag {
   uint32_t msg_id;
   SaClmNodeIdT node_id; /* strictly we dont need this too msg_type
                            is enough */
-} AVSV_D2N_SHUTDOWN_APP_SU_MSG_INFO, AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO;
+} AVSV_D2N_SHUTDOWN_APP_SU_MSG_INFO;
 
 typedef struct avsv_d2n_set_leds_msg_info_tag {
   uint32_t msg_id;
@@ -673,7 +679,7 @@ typedef struct avsv_dnd_msg {
     AVSV_N2D_OPERATION_REQUEST_MSG_INFO n2d_op_req;
     AVSV_N2D_DATA_REQUEST_MSG_INFO n2d_data_req;
     AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO n2d_ack_nack_info;
-    AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO n2d_shutdown_app_su;
+    AVSV_N2D_NODE_DOWN_MSG_INFO n2d_node_down_info;
     AVSV_N2D_COMP_VALIDATION_INFO n2d_comp_valid_info;
     AVSV_N2D_ND_SISU_STATE_MSG_INFO n2d_nd_sisu_state_info;
     AVSV_N2D_ND_CSICOMP_STATE_MSG_INFO n2d_nd_csicomp_state_info;
