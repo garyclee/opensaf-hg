@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -68,6 +69,7 @@ uint32_t avd_evt_queue_count(AVD_CL_CB *cb);
 uint32_t avd_count_sync_node_size(AVD_CL_CB *cb);
 void avd_process_state_info_queue(AVD_CL_CB *cb);
 void avd_node_up_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
+void avd_node_down_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 void avd_reg_su_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 void avd_oper_req_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 void avd_mds_avnd_up_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);

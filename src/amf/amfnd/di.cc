@@ -433,6 +433,7 @@ uint32_t avnd_evt_tmr_rcv_msg_rsp_evh(AVND_CB *cb, AVND_EVT *evt) {
   AVND_TMR_EVT *tmr = &evt->info.tmr;
   AVND_DND_MSG_LIST *rec = 0;
   uint32_t rc = NCSCC_RC_SUCCESS;
+  bool rec_tobe_deleted = false;
 
   TRACE_ENTER();
 
@@ -441,10 +442,27 @@ uint32_t avnd_evt_tmr_rcv_msg_rsp_evh(AVND_CB *cb, AVND_EVT *evt) {
                                                        tmr->opq_hdl))))
     goto done;
 
-  rc = avnd_diq_rec_send(cb, rec);
+  /* Resend on time out if it's NODE_UP msg only */
+  if (rec->msg.info.avd->msg_type == AVSV_N2D_NODE_UP_MSG) {
+    rc = avnd_diq_rec_send(cb, rec);
+  } else if (rec->msg.info.avd->msg_type == AVSV_N2D_NODE_DOWN_MSG) {
+    if (rec->no_retries < AVND_NODE_DOWN_MAX_RETRY) {
+      rc = avnd_diq_rec_send(cb, rec);
+    } else {
+      LOG_WA("Node Down timer retries is over");
+      avnd_last_step_clean(cb);
+      rec_tobe_deleted = true;
+    }
+  } else {
+    LOG_WA("Unexpected message response timeout with msg_type(%u)", rec->msg.info.avd->msg_type);
+    rec_tobe_deleted = true;
+  }
 
   ncshm_give_hdl(tmr->opq_hdl);
-
+  if (rec_tobe_deleted) {
+    m_AVND_DIQ_REC_FIND_POP(cb, rec);
+    avnd_diq_rec_del(cb, rec);
+  }
 done:
   TRACE_LEAVE();
   return rc;
@@ -1180,6 +1198,37 @@ uint32_t avnd_di_reg_su_rsp_snd(AVND_CB *cb, const std::string &su_name,
 
   return NCSCC_RC_SUCCESS;
 }
+/****************************************************************************
+  Name          : avnd_di_node_down_msg_send
+
+  Description   : This routine sends node_down message to active amf director.
+
+  Arguments     : cb  - ptr to the AvND control block
+
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         : None.
+******************************************************************************/
+uint32_t avnd_di_node_down_msg_send(AVND_CB *cb)
+{
+  AVND_MSG msg;
+  uint32_t rc = NCSCC_RC_SUCCESS;
+  TRACE_ENTER();
+  memset(&msg, 0, sizeof(AVND_MSG));
+  msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
+  msg.type = AVND_MSG_AVD;
+  msg.info.avd->msg_type = AVSV_N2D_NODE_DOWN_MSG;
+  msg.info.avd->msg_info.n2d_node_down_info.msg_id = ++(cb->snd_msg_id);
+  msg.info.avd->msg_info.n2d_node_down_info.node_id = cb->node_info.nodeId;
+  rc = avnd_di_msg_send(cb, &msg);
+  if (rc == NCSCC_RC_SUCCESS) {
+    msg.info.avd = 0;
+  }
+  // free the contents of avnd message
+  avnd_msg_content_free(cb, &msg);
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
+}
 
 /****************************************************************************
   Name          : avnd_di_msg_ack_process
@@ -1201,6 +1250,12 @@ void avnd_di_msg_ack_process(AVND_CB *cb, uint32_t mid) {
   /* find & pop the matching record */
   m_AVND_DIQ_REC_FIND(cb, mid, rec);
   if (rec) {
+    if (rec->msg.info.avd->msg_type == AVSV_N2D_NODE_DOWN_MSG) {
+      // first to stop timer to avoid processing timeout event
+      // then perform last step clean up
+      avnd_stop_tmr(cb, &rec->resp_tmr);
+      avnd_last_step_clean(cb);
+    }
     m_AVND_DIQ_REC_FIND_POP(cb, rec);
     avnd_diq_rec_del(cb, rec);
   }
@@ -1260,6 +1315,7 @@ AVND_DND_MSG_LIST *avnd_diq_rec_add(AVND_CB *cb, AVND_MSG *msg) {
   /* store the msg (transfer memory ownership) */
   rec->msg.type = msg->type;
   rec->msg.info.avd = msg->info.avd;
+  rec->no_retries = 0;
   msg->info.avd = 0;
 
   /* push the record to the AvD msg list */
@@ -1435,8 +1491,11 @@ uint32_t avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec) {
 
   /* start the msg response timer */
   if (NCSCC_RC_SUCCESS == rc) {
-    if (rec->msg.info.avd->msg_type == AVSV_N2D_NODE_UP_MSG)
+    rec->no_retries++;
+	if (rec->msg.info.avd->msg_type == AVSV_N2D_NODE_UP_MSG ||
+        rec->msg.info.avd->msg_type == AVSV_N2D_NODE_DOWN_MSG) {
       m_AVND_TMR_MSG_RESP_START(cb, *rec, rc);
+    }
     msg.info.avd = 0;
   }
 

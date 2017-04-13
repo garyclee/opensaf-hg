@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -168,7 +169,13 @@ uint32_t avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt) {
   }
 
 cleanup_components:
-  if (!si_removed) avnd_last_step_clean(cb);
+  if (!si_removed) {
+    if (m_NCS_NODE_ID_FROM_MDS_DEST(cb->active_avd_adest) != ncs_get_node_id()) {
+      avnd_last_step_clean(cb);
+    } else {
+      avnd_di_node_down_msg_send(cb);
+    }
+  }
 done:
   TRACE_LEAVE();
   return NCSCC_RC_SUCCESS;
