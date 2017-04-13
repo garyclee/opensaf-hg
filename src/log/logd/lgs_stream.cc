@@ -1505,6 +1505,9 @@ int log_stream_config_change(bool create_files_f, const std::string &root_path,
     }
   }
 
+  /* Reset file size for new log file */
+  stream->curFileSize = 0;
+
   /* Creating the new config file */
   if (create_files_f == LGS_STREAM_CREATE_FILES) {
     if ((rc = lgs_create_config_file_h(root_path, stream)) != 0) {
