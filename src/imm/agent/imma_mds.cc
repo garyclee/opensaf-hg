@@ -596,8 +596,12 @@ uint32_t imma_mds_msg_sync_send(uint32_t imma_mds_hdl, MDS_DEST *destination,
   /* send the message */
   rc = ncsmds_api(&mds_info);
 
-  if (rc == NCSCC_RC_SUCCESS)
+  if (rc == NCSCC_RC_SUCCESS) {
     *o_evt = (IMMSV_EVT *)mds_info.info.svc_send.info.sndrsp.o_rsp;
+    if (*o_evt == NULL) {
+      rc = NCSCC_RC_FAILURE;
+    }
+  }
 
   return rc;
 }
