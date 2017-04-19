@@ -34,6 +34,7 @@ fi
 # Source LSB functions library
 . /lib/lsb/init-functions
 
+piddir="/tmp"
 compname=`echo $SA_AMF_COMPONENT_NAME | md5sum | awk '{print $1}'`
 pidfile="$piddir/${compname}.pid"
 
