@@ -136,7 +136,7 @@ CLMS_CLIENT_INFO *clms_client_get_by_id(uint32_t client_id)
 	    &clms_cb->client_db, (uint8_t *)&client_id_net);
 
 	if (NULL == rec)
-		TRACE("client_id: %u lookup failed", client_id);
+		TRACE("client_id: %u not found", client_id);
 
 	return rec;
 }

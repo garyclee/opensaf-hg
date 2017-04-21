@@ -122,7 +122,7 @@ static CLMS_CKPT_HDLR ckpt_data_handler[CLMS_CKPT_MSG_MAX] = {
 static uint32_t ckpt_proc_cluster_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
 	CLMSV_CKPT_CLUSTER_INFO *param = &data->param.cluster_rec;
-
+	TRACE_ENTER();
 	osaf_cluster->num_nodes = param->num_nodes;
 	osaf_cluster->init_time = param->init_time;
 	cb->cluster_view_num = param->cluster_view_num;

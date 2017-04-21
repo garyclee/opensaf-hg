@@ -2490,9 +2490,9 @@ uint32_t clms_imm_node_unlock(CLMS_CLUSTER_NODE *nodeop)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Node name %s to unlock", nodeop->node_name.value);
-
+	SaAisErrorT ais_rc = SA_AIS_OK;
 	if (nodeop->admin_state == SA_CLM_ADMIN_UNLOCKED) {
-		LOG_ER("Node is already in an unlocked state");
+		LOG_NO("Node is already in an unlocked state");
 		nodeop->admin_op = 0;
 		(void)immutil_saImmOiAdminOperationResult(
 		    clms_cb->immOiHandle, nodeop->curr_admin_inv,
@@ -2500,7 +2500,6 @@ uint32_t clms_imm_node_unlock(CLMS_CLUSTER_NODE *nodeop)
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
-
 	if (((nodeop->admin_state == SA_CLM_ADMIN_LOCKED) ||
 	     (nodeop->admin_state == SA_CLM_ADMIN_SHUTTING_DOWN))) {
 
@@ -2538,7 +2537,7 @@ uint32_t clms_imm_node_unlock(CLMS_CLUSTER_NODE *nodeop)
 					TRACE(
 					    "clms_send_is_member_info failed %u",
 					    rc);
-					goto done;
+					ais_rc = SA_AIS_ERR_TIMEOUT;
 				}
 				nodeop->change = SA_CLM_NODE_NO_CHANGE;
 			}
@@ -2610,7 +2609,7 @@ uint32_t clms_imm_node_unlock(CLMS_CLUSTER_NODE *nodeop)
 
 	/* Send node join notification */
 	(void)immutil_saImmOiAdminOperationResult(
-	    clms_cb->immOiHandle, nodeop->curr_admin_inv, SA_AIS_OK);
+	    clms_cb->immOiHandle, nodeop->curr_admin_inv, ais_rc);
 	clms_node_admin_state_change_ntf(clms_cb, nodeop,
 					 SA_CLM_ADMIN_UNLOCKED);
 done:
