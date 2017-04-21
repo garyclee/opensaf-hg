@@ -798,7 +798,8 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 				    &add_flag);
 	if (!cpnd_info)
 		return NCSCC_RC_SUCCESS;
-
+	/* Stop timer before processing down */
+	cpd_tmr_stop(&cpnd_info->cpnd_ret_timer);
 	cref_info = cpnd_info->ckpt_ref_list;
 
 	while (cref_info) {
@@ -1209,6 +1210,14 @@ uint32_t cpd_proc_retention_set(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_id,
 
 	/* Update the retention Time */
 	(*ckpt_node)->ret_time = reten_time;
+	(*ckpt_node)->attributes.retentionDuration = reten_time;
+
+	/* Update the related patricia tree */
+	CPD_CKPT_MAP_INFO *map_info = NULL;
+	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, (*ckpt_node)->ckpt_name, &map_info);
+	if (map_info) {
+		map_info->attributes.retentionDuration = reten_time;
+	}
 	return rc;
 }
 
