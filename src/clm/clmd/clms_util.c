@@ -445,6 +445,7 @@ SaClmClusterNotificationT_4 *clms_notbuffer_changes_only(SaClmChangeStepT step)
 
 	if (num == 0) {
 		LOG_ER("Zero num of node's changed");
+		TRACE_LEAVE();
 		return NULL;
 	}
 
@@ -524,6 +525,7 @@ SaClmClusterNotificationT_4 *clms_notbuffer_changes(SaClmChangeStepT step)
 	num = clms_nodedb_lookup(1);
 
 	if (num == 0) {
+		TRACE_LEAVE();
 		return NULL;
 	}
 
@@ -1283,14 +1285,13 @@ uint32_t clms_send_is_member_info(CLMS_CB *cb, SaClmNodeIdT node_id,
 	CLMSV_MSG msg;
 	SaClmNodeIdT local_node_id;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	bool send_failed = false;
 
 	TRACE_ENTER();
 
 	client = clms_client_getnext_by_id(0);
 	while (client != NULL) {
-
 		local_node_id = m_NCS_NODE_ID_FROM_MDS_DEST(client->mds_dest);
-
 		if (local_node_id == node_id) {
 			msg.evt_type = CLMSV_CLMS_TO_CLMA_IS_MEMBER_MSG;
 			msg.info.is_member_info.is_member = member;
@@ -1299,17 +1300,21 @@ uint32_t clms_send_is_member_info(CLMS_CB *cb, SaClmNodeIdT node_id,
 			rc = clms_mds_msg_send(cb, &msg, &client->mds_dest, 0,
 					       MDS_SEND_PRIORITY_MEDIUM,
 					       NCSMDS_SVC_ID_CLMA);
+			/* A client may go down while sending message to another
+			   client. For such a client MDS will return failure.
+			   Continue for other clients.*/
 			if (rc != NCSCC_RC_SUCCESS) {
-				TRACE_LEAVE2("clms_mds_msg_send failed rc = %u",
-					     (unsigned int)rc);
-				return rc;
+				TRACE_2(
+				    "clms_mds_msg_send failed for client '%u', rc = %u",
+				    client->client_id, (unsigned int)rc);
+				send_failed = true;
 			}
 		}
-
 		client = clms_client_getnext_by_id(client->client_id);
 	}
-
 	TRACE_LEAVE();
+	if (send_failed)
+		return NCSCC_RC_FAILURE;
 	return rc;
 }
 
