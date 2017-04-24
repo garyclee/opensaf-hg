@@ -87,12 +87,16 @@ static int is_swbdl_delete_ok_for_node(const std::string &bundle_dn_to_delete,
       if (bundle_dn_to_delete.compare(Amf::to_string(&bundle_dn)) == 0) {
         if (su->su_on_node->node_state == AVD_AVND_STATE_ABSENT ||
             (!su->sg_of_su->sg_ncs_spec &&
-             (comp->su->saAmfSUAdminState ==
-              SA_AMF_ADMIN_LOCKED_INSTANTIATION))) {
+             ((comp->su->saAmfSUAdminState ==
+              SA_AMF_ADMIN_LOCKED_INSTANTIATION) ||
+              (comp->su->sg_of_su->saAmfSGAdminState ==
+              SA_AMF_ADMIN_LOCKED_INSTANTIATION) ||
+              (comp->su->su_on_node->saAmfNodeAdminState ==
+              SA_AMF_ADMIN_LOCKED_INSTANTIATION)))) {
           continue;
         } else {
           report_ccb_validation_error(
-              opdata, "'%s' admin state is not locked instantiaion",
+              opdata, "'%s', None of SG, SU or Node is in LOCK_IN state.",
               su->name.c_str());
           return 0;
         }
