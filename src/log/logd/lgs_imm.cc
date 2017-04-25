@@ -2316,7 +2316,17 @@ static SaAisErrorT stream_create_and_configure1(
           char *value_str = *(reinterpret_cast<char **>(value));
           vstring.push_back(value_str);
         }
+
         log_stream_add_dest_name(*stream, vstring);
+        if (vstring.empty() == false) {
+          // Generate & cache `MSGID` to `rfc5424MsgId` which later
+          // used in RFC5424 protocol
+          (*stream)->rfc5424MsgId =
+              DestinationHandler::Instance().GenerateMsgId(
+              (*stream)->name, (*stream)->isRtStream);
+          TRACE("%s: stream %s - msgid = %s", __func__, (*stream)->name.c_str(),
+                (*stream)->rfc5424MsgId.c_str());
+        }
       }
     }
     i++;
@@ -2352,11 +2362,6 @@ static SaAisErrorT stream_create_and_configure1(
     LOG_ER("immutil_update_one_rattr failed %s", saf_error(rc));
     osaf_abort(0);
   }
-
-  // Generate & cache `MSGID` to `rfc5424MsgId` which later
-  // used in RFC5424 protocol
-  (*stream)->rfc5424MsgId = DestinationHandler::Instance().GenerateMsgId(
-      (*stream)->name, (*stream)->isRtStream);
 
 done:
   TRACE_LEAVE2("rc: %s", saf_error(rc));
@@ -2483,7 +2488,20 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
         char *value_str = *(reinterpret_cast<char **>(value));
         vstring.push_back(value_str);
       }
+
       apply_destination_names_change(stream, vstring, attrMod->modType);
+      // Make sure generated msg is only called when
+      // 1) Have destination set
+      // 2) Not yet generated
+      if (vstring.empty() == false && stream->rfc5424MsgId.empty() == true) {
+        // Generate & cache `MSGID` to `rfc5424MsgId` which later
+        // used in RFC5424 protocol
+        stream->rfc5424MsgId =
+            DestinationHandler::Instance().GenerateMsgId(
+                stream->name, stream->isRtStream);
+        TRACE("%s: stream %s - msgid = %s", __func__, stream->name.c_str(),
+              stream->rfc5424MsgId.c_str());
+      }
     } else {
       LOG_ER("Error: Unknown attribute name");
       osafassert(0);
@@ -2824,6 +2842,14 @@ static SaAisErrorT stream_create_and_configure(
         vstring.push_back(value_str);
       }
       log_stream_add_dest_name(stream, vstring);
+      if (vstring.empty() == false) {
+        // Generate & cache `MSGID` to `rfc5424MsgId` which later
+        // used in RFC5424 protocol
+        stream->rfc5424MsgId = DestinationHandler::Instance().GenerateMsgId(
+            dn, stream->isRtStream);
+        TRACE("%s: stream %s - msgid = %s", __func__, stream->name.c_str(),
+              stream->rfc5424MsgId.c_str());
+      }
     } else if (!strcmp(attribute->attrName, "saLogStreamCreationTimestamp")) {
       if (attribute->attrValuesNumber != 0) {
         /* Restore creation timestamp if exist
@@ -2853,11 +2879,6 @@ static SaAisErrorT stream_create_and_configure(
       stream->logFileFormat = strdup(log_file_format[stream->streamType]);
     }
   }
-
-  // Generate & cache `MSGID` to `rfc5424MsgId` which later
-  // used in RFC5424 protocol
-  stream->rfc5424MsgId =
-      DestinationHandler::Instance().GenerateMsgId(dn, stream->isRtStream);
 
 done:
   TRACE_LEAVE2("rc: %s", saf_error(rc));

@@ -83,6 +83,7 @@ struct RecordData {
         hostname{nullptr},
         networkname{nullptr},
         appname{nullptr},
+        msgid{nullptr},
         isRtStream{false},
         recordId{0},
         sev{0} {

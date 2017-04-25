@@ -281,8 +281,6 @@ static uint32_t log_initialize(void) {
 
   TRACE_ENTER();
 
-  base::InitializeHashFunction();
-
   /**
    * Setup immutils profile once and for all.
    * This profile says immutil_ API will be blocked

@@ -2104,7 +2104,6 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data) {
     stream->logFileCurrent = param->logFileCurrent;
     stream->stb_prev_actlogFileCurrent = param->logFileCurrent;
     stream->stb_logFileCurrent = param->logFileCurrent;
-
     osaf_extended_name_lend(param->logStreamName, &objectName);
     SaImmClassNameT className = immutil_get_className(&objectName);
     if (className != nullptr && strcmp(className, "SaLogStreamConfig") == 0) {
@@ -2120,15 +2119,16 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data) {
         TRACE("Dest_name %s", param->dest_names);
         stream->stb_dest_names = std::string{param->dest_names};
         stream->dest_names = logutil::Parser(stream->stb_dest_names, ";");
+        // Generate & cache `MSGID` to `rfc5424MsgId` which later
+        // used in RFC5424 protocol
+        stream->rfc5424MsgId = DestinationHandler::Instance().GenerateMsgId(
+            stream->name, stream->isRtStream);
+        TRACE("%s: stream %s - msgid = %s", __func__, stream->name.c_str(),
+              stream->rfc5424MsgId.c_str());
       } else {
         stream->stb_dest_names = "";
         stream->dest_names.clear();
       }
-
-      // Generate & cache `MSGID` to `rfc5424MsgId` which later
-      // used in RFC5424 protocol
-      stream->rfc5424MsgId = DestinationHandler::Instance().GenerateMsgId(
-          stream->name, stream->isRtStream);
     }
   }
 
@@ -2367,6 +2367,15 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data) {
       TRACE("dest_names: %s", dest_names);
       stream->stb_dest_names = std::string{dest_names};
       stream->dest_names = logutil::Parser(stream->stb_dest_names, ";");
+      // Make sure generated msg is only called when
+      // 1) Have destination set
+      // 2) Not yet generated
+      if (stream->rfc5424MsgId.empty() == true) {
+        stream->rfc5424MsgId = DestinationHandler::Instance().GenerateMsgId(
+            stream->name, stream->isRtStream);
+        TRACE("%s: stream %s - msgid = %s", __func__, stream->name.c_str(),
+              stream->rfc5424MsgId.c_str());
+      }
     } else {
       stream->stb_dest_names = "";
       stream->dest_names.clear();
