@@ -50,9 +50,8 @@ bool NilDestType::FindName(const std::string& name) const {
 }
 
 ErrCode NilDestType::HandleRecordMsg(const DestinationHandler::RecordMsg& msg) {
-  ErrCode ret = ErrCode::kOk;
+  ErrCode ret = ErrCode::kDrop;
   TRACE("Destination name(%s) is NILDEST. Drop msg!", msg.name);
-  ret = ErrCode::kDrop;
   return ret;
 }
 

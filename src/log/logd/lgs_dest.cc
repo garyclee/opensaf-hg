@@ -73,6 +73,12 @@ std::string DestinationHandler::GenerateMsgId(const std::string& dn,
     msgid = ((isRtStream == true) ? std::string{sname + 'R'}
                                   : std::string{sname + 'C'});
   } else {
+    // Do `InitializeHashFunction()` once
+    static bool init_invoked = false;
+    if (init_invoked == false) {
+      base::InitializeHashFunction();
+      init_invoked = true;
+    }
     msgid = base::Hash(dn);
   }
 
