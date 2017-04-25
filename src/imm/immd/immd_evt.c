@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1053,6 +1054,8 @@ static IMMD_IMMND_INFO_NODE *immd_add_immnd_node(IMMD_CB *cb, MDS_DEST dest)
 		LOG_ER("Failed to add IMMND node dest %" PRIu64, dest);
 		return NULL;
 	}
+
+	node_info->isUp = true;
 
 	if (add_flag) {
 		TRACE("IMMND node has already been added, dest %" PRIu64, dest);
