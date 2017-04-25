@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARANTY; without even the implied warranty of MERCHANTABILITY
@@ -1243,6 +1244,11 @@ static uint32_t mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		immd_immnd_info_node_find_add(&cb->immnd_tree, &dest,
 					      &node_info, &add_flag);
 		osafassert(node_info);
+		if (!add_flag) {
+			/* New node is added to the list,
+			 * MDS UP event is not received */
+			node_info->isUp = false;
+		}
 
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data,
 					    sizeof(uint32_t));

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -59,6 +60,7 @@ typedef struct immd_immnd_info_node {
   bool isCoord;
   bool syncStarted;
   bool pbeConfigured; /* Pbe-file-name configured. Pbe may still be disabled. */
+  bool isUp; /* True if received the MDS UP event */
 } IMMD_IMMND_INFO_NODE;
 
 typedef struct immd_immnd_detached_node { /* IMMD SBY tracking of departed

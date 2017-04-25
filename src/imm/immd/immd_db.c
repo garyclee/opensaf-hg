@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -65,6 +66,10 @@ uint32_t immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest,
 	*immnd_info_node = (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_get(
 	    immnd_tree, (uint8_t *)&key);
 
+	if (*immnd_info_node && !(*immnd_info_node)->isUp) {
+		*immnd_info_node = NULL;
+	}
+
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -80,20 +85,28 @@ uint32_t immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest,
 void immd_immnd_info_node_getnext(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest,
 				  IMMD_IMMND_INFO_NODE **immnd_info_node)
 {
-	NODE_ID key;
-	memset(&key, 0, sizeof(NODE_ID));
-	/* Fill the Key */
+	IMMD_IMMND_INFO_NODE* next_node = NULL;
+	MDS_DEST* current_dest = dest;
+	do {
+		if (current_dest) {
+			NODE_ID key;
+			memset(&key, 0, sizeof(NODE_ID));
+			key = m_NCS_NODE_ID_FROM_MDS_DEST((*current_dest));
 
-	if (dest) {
-		key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
+			next_node =
+			    (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_getnext(
+				immnd_tree, (uint8_t *)&key);
+		} else {
+			next_node =
+			    (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_getnext(
+				immnd_tree, (uint8_t *)NULL);
+		}
+		if (next_node) {
+			current_dest = &next_node->immnd_dest;
+		}
+	} while (next_node && !next_node->isUp);
 
-		*immnd_info_node =
-		    (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_getnext(
-			immnd_tree, (uint8_t *)&key);
-	} else
-		*immnd_info_node =
-		    (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_getnext(
-			immnd_tree, (uint8_t *)NULL);
+	*immnd_info_node = next_node;
 
 	return;
 }
