@@ -27,6 +27,7 @@
 #include "amf/amfd/csi.h"
 
 AmfDb<std::string, AVD_CTCS_TYPE> *ctcstype_db = nullptr;
+static void find_ct_name_from_association(const std::string& haystack, std::string& dn, const char *needle);
 
 static void ctcstype_db_add(AVD_CTCS_TYPE *ctcstype) {
   unsigned int rc = ctcstype_db->insert(ctcstype->name, ctcstype);
@@ -187,15 +188,66 @@ static SaAisErrorT ctcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata) {
           opdata, "Modification of SaAmfCtCsType not supported");
       break;
     case CCBUTIL_DELETE:
+      AVD_CTCS_TYPE *ctcstype;
+      AVD_COMP_TYPE *comp_type;
+      AVD_COMP *comp;
+      CcbUtilOperationData_t *t_opData;
+
+      ctcstype = ctcstype_db->find(Amf::to_string(&opdata->objectName));
+      if (ctcstype != nullptr) {
+        std::string ct_name;
+	find_ct_name_from_association(Amf::to_string(&opdata->objectName), ct_name, ",safVersion");
+	TRACE("'%s'", ct_name.c_str());
+	comp_type = comptype_db->find(ct_name);
+	if ((comp_type) && (nullptr != comp_type->list_of_comp)) {
+          /* check whether there exists a delete operation for
+	   * each of the Comp in the comp_type list in the current CCB
+	   */
+          bool comp_exist = false;
+	  TRACE("SaAmfCompType '%s' has components", comp_type->name.c_str());
+	  comp = comp_type->list_of_comp;
+	  while (comp != nullptr) {
+            TRACE("%s", osaf_extended_name_borrow(&comp->comp_info.name));
+	    t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &comp->comp_info.name);
+	    TRACE("%p", t_opData);
+	    if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
+	      TRACE("%p", t_opData);
+	      comp_exist = true;
+	      break;
+	    }
+	    comp = comp->comp_type_list_comp_next;
+	  }
+	  if (comp_exist == true) {
+	    rc = SA_AIS_ERR_BAD_OPERATION;
+	    report_ccb_validation_error(opdata, "SaAmfCompType '%s' is in use", comp_type->name.c_str());
+	    goto done;
+	  }
+	} else
+          TRACE("SaAmfCompType '%p'. SaAmfCompType '%s' has no components", comp_type, ct_name.c_str());
+      }
       rc = SA_AIS_OK;
       break;
     default:
       osafassert(0);
       break;
   }
-
+done:
   TRACE_LEAVE2("%u", rc);
   return rc;
+}
+
+/**
+ * Initialize a DN by searching for needle in haystack where two times safVersion comes.
+ * @param haystack
+ * @param dn
+ * @param needle
+ * @note: "safSupportedCsType=safVersion=1\,safCSType=AmfDemo1,safVersion=1,safCompType=AmfDemo1"
+ */
+static void find_ct_name_from_association(const std::string& haystack, std::string& dn, const char *needle)
+{
+  std::string::size_type pos = haystack.find(needle);
+  dn = haystack.substr(pos + 1);
+  TRACE("dn %s", dn.c_str());
 }
 
 static void ctcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata) {
