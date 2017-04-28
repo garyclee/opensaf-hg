@@ -113,8 +113,9 @@ bool lgs_is_peer_v6();
 bool lgs_is_split_file_system();
 uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 void lgs_free_edu_mem(char *ptr);
-uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream,
-                                  lgs_ckpt_stream_open_t *stream_open);
+void lgs_ckpt_stream_open_set(log_stream_t *logStream,
+                              lgs_ckpt_stream_open_t *stream_open,
+                              const uint32_t &client_id);
 uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                            uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
                            EDP_OP_TYPE op, EDU_ERR *o_err);
