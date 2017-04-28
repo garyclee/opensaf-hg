@@ -436,15 +436,12 @@ static void CcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
 
   objName = osaf_extended_name_borrow(&opdata->objectName);
   if (object_name_.compare(objName) != 0) {
-    TRACE("%s: Object \"%s\" not an OpensafConfig object", __FUNCTION__,
-          objName);
+    LOG_NO("%s: Object \"%s\" wrong object", __FUNCTION__, objName);
     goto done;
   }
 
-  /* Read value in opensafNetworkName
-   * Note: This is implemented as a loop in case more attributes are
-   *       added in the class in the future. For now the only
-   *       attribute of interest here is opensafNetworkName
+  /* Read value
+   * Note: Only one attribute is handled
    */
   TRACE("%s: Read value in attributes", __FUNCTION__);
   attrMod = opdata->param.modify.attrMods[0];
@@ -455,21 +452,26 @@ static void CcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
     if (attribute_name_.compare(attribute.attrName) != 0) {
       // Not found
       attrMod = opdata->param.modify.attrMods[i];
+      attribute = attrMod->modAttr;
       continue;
     }
 
     // Attribute found
     value = static_cast<SaUint32T *>(attribute.attrValues[0]);
+    TRACE("Attribute found: attrName '%s', value = %d",
+          attribute.attrName, *value);
     break;
   }
 
-  if (value == nullptr) {
-    TRACE("%s: Value is nullptr", __FUNCTION__);
-    SetAttributeValue("");
-    attribute_value_is_valid_ = false;
-  } else {
-    SetAttributeValue(std::to_string(*value));
-    attribute_value_is_valid_ = true;
+  if (attrMod != nullptr) {
+    if (value == nullptr) {
+      TRACE("%s: Value is nullptr", __FUNCTION__);
+      SetAttributeValue("");
+      attribute_value_is_valid_ = false;
+    } else {
+      SetAttributeValue(std::to_string(*value));
+      attribute_value_is_valid_ = true;
+    }
   }
 
 done:
