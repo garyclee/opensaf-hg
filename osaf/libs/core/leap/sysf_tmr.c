@@ -400,12 +400,15 @@ static uint32_t ncs_tmr_wait(void)
 	struct timespec ts;
 	struct pollfd set;
 
+	m_NCS_LOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
 	if (clock_gettime(CLOCK_MONOTONIC, &ts_start)) {
 		perror("clock_gettime with MONOTONIC Failed \n");
+		m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
 		return NCSCC_RC_FAILURE;
 	}
 
 	ts_current = ts_start;
+	m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
 
 	while (true) {
 		set.fd = m_GET_FD_FROM_SEL_OBJ(gl_tcb.sel_obj);
@@ -720,10 +723,19 @@ tmr_t ncs_tmr_start(tmr_t tid, int64_t tmrDelay,	/* timer period in number of 10
 		TMR_SET_STATE(tmr, TMR_STATE_DESTROY);	/* TmrSvc ignores 'old' one */
 		tmr = new_tmr;
 	}
-	scaled = (tmrDelay * 10 / NCS_MILLISECONDS_PER_TICK) + 1 + (get_time_elapsed_in_ticks(&ts_start));
 
 	/* Lock the enter wheel in the safe area */
 	m_NCS_LOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
+
+	if (ts_start.tv_sec == 0 && ts_start.tv_nsec == 0) {
+		if (clock_gettime(CLOCK_MONOTONIC, &ts_start)) {
+			syslog(LOG_ERR, "clock_gettime with MONOTONIC Failed \n");
+			m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
+			return NULL;
+		}
+	}
+
+	scaled = (tmrDelay * 10 / NCS_MILLISECONDS_PER_TICK) + 1 + (get_time_elapsed_in_ticks(&ts_start));
 
 	/* Do some up front initialization as if all will go well */
 	tmr->tmrCB = tmrCB;
@@ -924,8 +936,8 @@ int64_t ncs_tmr_remaining(tmr_t tmrID, int64_t *p_tleft)
 		ncslpg_give(&gl_tcb.persist, 0);
 		return NCSCC_RC_FAILURE;
 	}
-	m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);	/* critical region START */
 	ticks_elapsed = get_time_elapsed_in_ticks(&ts_start);
+	m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);	/* critical region START */	
 	ticks_to_expiry = m_NCS_OS_NTOHLL_P(&tmr->key);
 	total_ticks_left = (ticks_to_expiry - ticks_elapsed);
 
