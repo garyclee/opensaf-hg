@@ -670,16 +670,18 @@ static uint32_t ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb,
 } /*End  ckpt_enc_cold_sync_data() */
 
 /**
- * Set parameters for open stream
+ * Set parameters for check-pointing the opened stream
  *
  * @param logStream
  * @param stream_open
+ * @param client_id
  * @return
  */
-uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream,
-                                  lgs_ckpt_stream_open_t *stream_open) {
+void lgs_ckpt_stream_open_set(log_stream_t *logStream,
+                              lgs_ckpt_stream_open_t *stream_open,
+                              const uint32_t &client_id) {
   memset(stream_open, 0, sizeof(lgs_ckpt_stream_open_t));
-  stream_open->clientId = -1; /* not used in this message */
+  stream_open->clientId = client_id;
   stream_open->streamId = logStream->streamId;
   stream_open->logFile = const_cast<char *>(logStream->fileName.c_str());
   stream_open->logPath = const_cast<char *>(logStream->pathName.c_str());
@@ -697,8 +699,6 @@ uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream,
   stream_open->numOpeners = logStream->numOpeners;
   stream_open->streamType = logStream->streamType;
   stream_open->logRecordId = logStream->logRecordId;
-
-  return NCSCC_RC_SUCCESS;
 }
 
 /**
@@ -737,7 +737,8 @@ static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba) {
   SaBoolT endloop = SA_FALSE, jstart = SA_TRUE;
   while ((log_stream_rec = iterate_all_streams(endloop, jstart)) && !endloop) {
     jstart = SA_FALSE;
-    lgs_ckpt_stream_open_set(log_stream_rec, ckpt_stream_rec);
+    // Encode the stream with invalid clientId for cold sync
+    lgs_ckpt_stream_open_set(log_stream_rec, ckpt_stream_rec, -1);
     rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_ed_open_stream_rec, uba,
                         EDP_OP_TYPE_ENC, ckpt_stream_rec, &ederror);
 

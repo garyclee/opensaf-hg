@@ -821,72 +821,6 @@ snd_rsp:
 }
 
 /**
- * Stream open checkpointing
- * @param cb
- * @param logStream
- * @param open_sync_param
- * @return
- */
-static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream,
-                                     lgsv_stream_open_req_t *open_sync_param) {
-  uint32_t async_rc = NCSCC_RC_SUCCESS;
-  lgsv_ckpt_msg_v1_t ckpt_v1;
-  lgsv_ckpt_msg_v2_t ckpt_v2;
-  void *ckpt_ptr;
-  lgsv_ckpt_header_t *header_ptr;
-  lgs_ckpt_stream_open_t *ckpt_rec_open_ptr;
-
-  TRACE_ENTER();
-
-  if (lgs_is_peer_v2()) {
-    memset(&ckpt_v2, 0, sizeof(ckpt_v2));
-    header_ptr = &ckpt_v2.header;
-    ckpt_rec_open_ptr = &ckpt_v2.ckpt_rec.stream_open;
-    ckpt_ptr = &ckpt_v2;
-  } else {
-    memset(&ckpt_v1, 0, sizeof(ckpt_v1));
-    header_ptr = &ckpt_v1.header;
-    ckpt_rec_open_ptr = &ckpt_v1.ckpt_rec.stream_open;
-    ckpt_ptr = &ckpt_v1;
-  }
-
-  if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-    header_ptr->ckpt_rec_type = LGS_CKPT_OPEN_STREAM;
-    header_ptr->num_ckpt_records = 1;
-    header_ptr->data_len = 1;
-    ckpt_rec_open_ptr->clientId = open_sync_param->client_id;
-    ckpt_rec_open_ptr->streamId = logStream->streamId;
-
-    ckpt_rec_open_ptr->logFile =
-        const_cast<char *>(logStream->fileName.c_str());
-    ckpt_rec_open_ptr->logPath =
-        const_cast<char *>(logStream->pathName.c_str());
-    ckpt_rec_open_ptr->logFileCurrent =
-        const_cast<char *>(logStream->logFileCurrent.c_str());
-    ckpt_rec_open_ptr->fileFmt = logStream->logFileFormat;
-    ckpt_rec_open_ptr->logStreamName =
-        const_cast<char *>(logStream->name.c_str());
-
-    ckpt_rec_open_ptr->maxFileSize = logStream->maxLogFileSize;
-    ckpt_rec_open_ptr->maxLogRecordSize = logStream->fixedLogRecordSize;
-    ckpt_rec_open_ptr->logFileFullAction = logStream->logFullAction;
-    ckpt_rec_open_ptr->maxFilesRotated = logStream->maxFilesRotated;
-    ckpt_rec_open_ptr->creationTimeStamp = logStream->creationTimeStamp;
-    ckpt_rec_open_ptr->numOpeners = logStream->numOpeners;
-
-    ckpt_rec_open_ptr->streamType = logStream->streamType;
-    ckpt_rec_open_ptr->logRecordId = logStream->logRecordId;
-
-    async_rc = lgs_ckpt_send_async(cb, ckpt_ptr, NCS_MBCSV_ACT_ADD);
-    if (async_rc == NCSCC_RC_SUCCESS) {
-      TRACE_4("REG_REC ASYNC UPDATE SEND SUCCESS...");
-    }
-  }
-  TRACE_LEAVE2("async_rc = %d", async_rc);
-  return async_rc;
-}
-
-/**
  * Create a new application stream
  *
  * @param open_sync_param[in] Parameters used to create the stream
@@ -1226,8 +1160,9 @@ snd_rsp:
   rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt,
                         MDS_SEND_PRIORITY_HIGH);
 
+  // Checkpoint the opened stream
   if (ais_rv == SA_AIS_OK) {
-    (void)lgs_ckpt_stream_open(cb, logStream, open_sync_param);
+    lgs_ckpt_stream_open(logStream, open_sync_param->client_id);
   }
 
   // These memories are allocated in MDS log open decode callback.

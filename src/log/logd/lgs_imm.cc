@@ -318,43 +318,6 @@ static uint32_t ckpt_stream_config(log_stream_t *stream) {
 }
 
 /**
- * Pack and send an open stream checkpoint using mbcsv
- * @param stream
- * @return uint32
- */
-static uint32_t ckpt_stream_open(log_stream_t *stream) {
-  uint32_t rc;
-  lgsv_ckpt_msg_v1_t ckpt_v1;
-  lgsv_ckpt_msg_v2_t ckpt_v2;
-  void *ckpt_ptr;
-  lgs_ckpt_stream_open_t *stream_open_ptr;
-  lgsv_ckpt_header_t *header_ptr;
-
-  TRACE_ENTER();
-
-  if (lgs_is_peer_v2()) {
-    memset(&ckpt_v2, 0, sizeof(ckpt_v2));
-    header_ptr = &ckpt_v2.header;
-    stream_open_ptr = &ckpt_v2.ckpt_rec.stream_open;
-    ckpt_ptr = &ckpt_v2;
-  } else {
-    memset(&ckpt_v1, 0, sizeof(ckpt_v1));
-    header_ptr = &ckpt_v1.header;
-    stream_open_ptr = &ckpt_v1.ckpt_rec.stream_open;
-    ckpt_ptr = &ckpt_v1;
-  }
-  header_ptr->ckpt_rec_type = LGS_CKPT_OPEN_STREAM;
-  header_ptr->num_ckpt_records = 1;
-  header_ptr->data_len = 1;
-
-  lgs_ckpt_stream_open_set(stream, stream_open_ptr);
-  rc = lgs_ckpt_send_async(lgs_cb, ckpt_ptr, NCS_MBCSV_ACT_ADD);
-
-  TRACE_LEAVE();
-  return rc;
-}
-
-/**
  * Pack and send a close stream checkpoint using mbcsv
  * @param stream
  * @param recType
@@ -2409,7 +2372,8 @@ static void stream_ccb_apply_create(const CcbUtilOperationData_t *opdata) {
 
   if ((rc = stream_create_and_configure1(opdata, &stream)) == SA_AIS_OK) {
     log_stream_open_fileinit(stream);
-    ckpt_stream_open(stream);
+    // Checkpoint the opened stream with invalid clientId (-1)
+    lgs_ckpt_stream_open(stream, -1);
   } else {
     LOG_IN("Stream create and configure failed %d", rc);
   }

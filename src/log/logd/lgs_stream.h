@@ -143,4 +143,6 @@ void log_stream_delete_dest_name(log_stream_t *stream,
                                  const std::vector<std::string> &names);
 void log_stream_form_dest_names(log_stream_t *stream);
 
+void lgs_ckpt_stream_open(log_stream_t *stream, uint32_t client_id);
+
 #endif  // LOG_LOGD_LGS_STREAM_H_

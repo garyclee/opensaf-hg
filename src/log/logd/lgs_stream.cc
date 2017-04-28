@@ -31,9 +31,11 @@
 #include <algorithm>
 
 #include "log/logd/lgs.h"
-#include "lgs_config.h"
+#include "log/logd/lgs_config.h"
 #include "log/logd/lgs_file.h"
 #include "log/logd/lgs_filehdl.h"
+#include "log/logd/lgs_mbcsv_v1.h"
+#include "log/logd/lgs_mbcsv_v2.h"
 #include "base/osaf_time.h"
 #include "osaf/immutil/immutil.h"
 
@@ -1596,4 +1598,41 @@ void log_stream_form_dest_names(log_stream_t *stream) {
     output[output.length() - 1] = '\0';
   }
   stream->stb_dest_names = output;
+}
+
+/**
+* Check-pointing the opened stream
+* @param stream
+* @param client_id
+* @return
+*/
+void lgs_ckpt_stream_open(log_stream_t *stream, uint32_t client_id) {
+  uint32_t rc;
+  lgsv_ckpt_msg_v1_t ckpt_v1;
+  lgsv_ckpt_msg_v2_t ckpt_v2;
+  void *ckpt_ptr;
+  lgs_ckpt_stream_open_t *stream_open_ptr;
+  lgsv_ckpt_header_t *header_ptr;
+
+  TRACE_ENTER();
+
+  if (lgs_is_peer_v2()) {
+    memset(&ckpt_v2, 0, sizeof(ckpt_v2));
+    header_ptr = &ckpt_v2.header;
+    stream_open_ptr = &ckpt_v2.ckpt_rec.stream_open;
+    ckpt_ptr = &ckpt_v2;
+  } else {
+    memset(&ckpt_v1, 0, sizeof(ckpt_v1));
+    header_ptr = &ckpt_v1.header;
+    stream_open_ptr = &ckpt_v1.ckpt_rec.stream_open;
+    ckpt_ptr = &ckpt_v1;
+  }
+  header_ptr->ckpt_rec_type = LGS_CKPT_OPEN_STREAM;
+  header_ptr->num_ckpt_records = 1;
+  header_ptr->data_len = 1;
+
+  lgs_ckpt_stream_open_set(stream, stream_open_ptr, client_id);
+  rc = lgs_ckpt_send_async(lgs_cb, ckpt_ptr, NCS_MBCSV_ACT_ADD);
+
+  TRACE_LEAVE2("Check-pointing the opened stream: rc = %d", rc);
 }
