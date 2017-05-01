@@ -766,48 +766,67 @@ static void avnd_comptype_delete(amf_comp_type_t *compt) {
 
   delete[] compt->saAmfCtRelPathInstantiateCmd;
 
-  /* Free saAmfCtDefInstantiateCmdArgv[i] before freeing
-   * saAmfCtDefInstantiateCmdArgv */
-  arg_counter = 0;
-  while ((argv = compt->saAmfCtDefInstantiateCmdArgv[arg_counter++]) != nullptr)
-    delete[] argv;
-  delete[] compt->saAmfCtDefInstantiateCmdArgv;
+  if (compt->saAmfCtDefInstantiateCmdArgv != nullptr) {
+    /* Free saAmfCtDefInstantiateCmdArgv[i] before freeing
+     * saAmfCtDefInstantiateCmdArgv */
+    arg_counter = 0;
+    while ((argv = compt->saAmfCtDefInstantiateCmdArgv[arg_counter++]) !=
+            nullptr)
+      delete[] argv;
+    delete[] compt->saAmfCtDefInstantiateCmdArgv;
+  }
 
   delete[] compt->saAmfCtRelPathTerminateCmd;
 
-  /* Free saAmfCtDefTerminateCmdArgv[i] before freeing
-   * saAmfCtDefTerminateCmdArgv */
-  arg_counter = 0;
-  while ((argv = compt->saAmfCtDefTerminateCmdArgv[arg_counter++]) != nullptr)
-    delete[] argv;
-  delete[] compt->saAmfCtDefTerminateCmdArgv;
+  if (compt->saAmfCtDefTerminateCmdArgv != nullptr) {
+    /* Free saAmfCtDefTerminateCmdArgv[i] before freeing
+     * saAmfCtDefTerminateCmdArgv */
+    arg_counter = 0;
+    while ((argv = compt->saAmfCtDefTerminateCmdArgv[arg_counter++]) != nullptr)
+      delete[] argv;
+    delete[] compt->saAmfCtDefTerminateCmdArgv;
+  }
 
   delete[] compt->saAmfCtRelPathCleanupCmd;
-  /* Free saAmfCtDefCleanupCmdArgv[i] before freeing saAmfCtDefCleanupCmdArgv */
-  arg_counter = 0;
-  while ((argv = compt->saAmfCtDefCleanupCmdArgv[arg_counter++]) != nullptr)
-    delete[] argv;
-  delete[] compt->saAmfCtDefCleanupCmdArgv;
+
+  if (compt->saAmfCtDefCleanupCmdArgv != nullptr) {
+    /* Free saAmfCtDefCleanupCmdArgv[i] before freeing
+     * saAmfCtDefCleanupCmdArgv */
+    arg_counter = 0;
+    while ((argv = compt->saAmfCtDefCleanupCmdArgv[arg_counter++]) != nullptr)
+      delete[] argv;
+    delete[] compt->saAmfCtDefCleanupCmdArgv;
+  }
 
   delete[] compt->saAmfCtRelPathAmStartCmd;
-  /* Free saAmfCtDefAmStartCmdArgv[i] before freeing saAmfCtDefAmStartCmdArgv */
-  arg_counter = 0;
-  while ((argv = compt->saAmfCtDefAmStartCmdArgv[arg_counter++]) != nullptr)
-    delete[] argv;
-  delete[] compt->saAmfCtDefAmStartCmdArgv;
+
+  if (compt->saAmfCtDefAmStartCmdArgv != nullptr) {
+    /* Free saAmfCtDefAmStartCmdArgv[i] before freeing
+     *  saAmfCtDefAmStartCmdArgv */
+    arg_counter = 0;
+    while ((argv = compt->saAmfCtDefAmStartCmdArgv[arg_counter++]) != nullptr)
+      delete[] argv;
+    delete[] compt->saAmfCtDefAmStartCmdArgv;
+  }
 
   delete[] compt->saAmfCtRelPathAmStopCmd;
-  /* Free saAmfCtDefAmStopCmdArgv[i] before freeing saAmfCtDefAmStopCmdArgv */
-  arg_counter = 0;
-  while ((argv = compt->saAmfCtDefAmStopCmdArgv[arg_counter++]) != nullptr)
-    delete[] argv;
-  delete[] compt->saAmfCtDefAmStopCmdArgv;
+
+  if (compt->saAmfCtDefAmStopCmdArgv != nullptr) {
+    /* Free saAmfCtDefAmStopCmdArgv[i] before freeing saAmfCtDefAmStopCmdArgv */
+    arg_counter = 0;
+    while ((argv = compt->saAmfCtDefAmStopCmdArgv[arg_counter++]) != nullptr)
+      delete[] argv;
+    delete[] compt->saAmfCtDefAmStopCmdArgv;
+  }
 
   delete[] compt->osafAmfCtRelPathHcCmd;
-  arg_counter = 0;
-  while ((argv = compt->osafAmfCtDefHcCmdArgv[arg_counter++]) != nullptr)
-    delete[] argv;
-  delete[] compt->osafAmfCtDefHcCmdArgv;
+
+  if (compt->osafAmfCtDefHcCmdArgv != nullptr) {
+    arg_counter = 0;
+    while ((argv = compt->osafAmfCtDefHcCmdArgv[arg_counter++]) != nullptr)
+      delete[] argv;
+    delete[] compt->osafAmfCtDefHcCmdArgv;
+  }
 
   delete compt;
 
@@ -817,8 +836,7 @@ static void avnd_comptype_delete(amf_comp_type_t *compt) {
 static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle,
                                              const std::string &dn) {
   SaImmAccessorHandleT accessorHandle;
-  amf_comp_type_t *compt;
-  int rc = -1;
+  amf_comp_type_t *compt = nullptr;
   unsigned int i;
   unsigned int j;
   const char *str;
@@ -826,8 +844,6 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle,
   SaNameT saAmfCtSwBundle;
 
   TRACE_ENTER2("'%s'", dn.c_str());
-
-  compt = new amf_comp_type_t();
 
   (void)amf_saImmOmAccessorInitialize(immOmHandle, accessorHandle);
 
@@ -837,6 +853,8 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle,
     LOG_ER("amf_saImmOmAccessorGet_o2 FAILED for '%s'", dn.c_str());
     goto done;
   }
+
+  compt = new amf_comp_type_t();
 
   compt->name = dn;
 
@@ -993,14 +1011,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle,
                       &compt->saAmfCtDefDisableRestart) != SA_AIS_OK)
     compt->saAmfCtDefDisableRestart = false;
 
-  rc = 0;
-
 done:
-  if (rc != 0) {
-    avnd_comptype_delete(compt);
-    compt = nullptr;
-  }
-
   (void)immutil_saImmOmAccessorFinalize(accessorHandle);
 
   TRACE_LEAVE();
