@@ -1652,11 +1652,11 @@ void avd_node_constructor(void) {
 bool AVD_AVND::is_campaign_set_for_all_sus() const {
   if (std::all_of(list_of_ncs_su.begin(), list_of_ncs_su.end(),
                   [&](AVD_SU *su) -> bool {
-                    return su->saAmfSUMaintenanceCampaign.empty() == false;
+                    return su->restrict_auto_repair() == true;
                   })) {
     if (std::all_of(list_of_su.begin(), list_of_su.end(),
                     [&](AVD_SU *su) -> bool {
-                      return su->saAmfSUMaintenanceCampaign.empty() == false;
+                      return su->restrict_auto_repair() == true;
                     })) {
       return true;
     } else {

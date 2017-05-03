@@ -309,7 +309,7 @@ void su_try_repair(const AVD_SU *su) {
       (su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED) &&
       (su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
       (su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED) &&
-      (su->saAmfSUMaintenanceCampaign.empty())) {
+      (su->restrict_auto_repair() == false)) {
     saflog(LOG_NOTICE, amfSvcUsrName,
            "Ordering Auto repair of '%s' as sufailover repair action",
            su->name.c_str());
@@ -639,7 +639,7 @@ static void perform_nodeswitchover_recovery(AVD_AVND *node) {
   for (const auto &su : node->list_of_su) {
     if (su->list_of_susi == nullptr) continue;
 
-    if (!su->saAmfSUMaintenanceCampaign.empty()) node_reboot = false;
+    if (su->restrict_auto_repair() == true) node_reboot = false;
 
     if (su_recover_from_fault(su) == NCSCC_RC_FAILURE) {
       LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.c_str());
@@ -787,7 +787,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt) {
       TRACE("Component in %s requested FAILFAST", su->name.c_str());
     }
 
-    if (!su->saAmfSUMaintenanceCampaign.empty()) {
+    if (su->restrict_auto_repair() == true) {
       saflog(
           LOG_NOTICE, amfSvcUsrName,
           "Node Fail-Fast disabled because maintenance campaign %s is set for su: %s",
@@ -839,7 +839,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt) {
     if (su->sg_of_su->sg_ncs_spec == true) {
       su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 
-      if (!su->saAmfSUMaintenanceCampaign.empty()) {
+      if (su->restrict_auto_repair() == true) {
         saflog(
             LOG_NOTICE, amfSvcUsrName,
             "Node Fail-Fast disabled because maintenance campaign %s is set for su: %s",
@@ -890,13 +890,13 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt) {
         node->recvr_fail_sw = true;
 
         // if maintenance campaign is ongoing, disable node reboot
-        if (!su->saAmfSUMaintenanceCampaign.empty()) node_reboot_req = false;
+        if (su->restrict_auto_repair() == true) node_reboot_req = false;
 
         switch (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.raw) {
           case SA_AMF_NODE_FAILOVER:
             if ((node->node_info.nodeId == cb->node_id_avd) &&
                 (node->saAmfNodeAutoRepair) &&
-                (su->saAmfSUMaintenanceCampaign.empty())) {
+                (su->restrict_auto_repair() == false)) {
               /* This is a case when Act ctlr is rebooting. Don't do appl
                  failover as of now because during appl failover if Act
                  controller reboots, then there may be packet losses. Anyway,
@@ -1731,7 +1731,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt) {
        are in no_red model. We are doing the same thing for controller also. */
     bool maintenanceCampaignSet(false);
 
-    if (su && !su->saAmfSUMaintenanceCampaign.empty())
+    if (su && su->restrict_auto_repair() == true)
       maintenanceCampaignSet = true;
 
     for (const auto &temp_su : node->list_of_su) {

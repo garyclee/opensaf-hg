@@ -159,13 +159,13 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt) {
 
     // Before any SU gets instantiated, send Maintenance campaign update.
     for (const auto &su : node->list_of_ncs_su) {
-      if (su->saAmfSUMaintenanceCampaign.empty() == false) {
+      if (su->restrict_auto_repair() == true) {
         TRACE("Sending Maintenance campaign info for '%s'", su->name.c_str());
         su->set_su_maintenance_campaign();
       }
     }
     for (const auto &su : node->list_of_su) {
-      if (su->saAmfSUMaintenanceCampaign.empty() == false) {
+      if (su->restrict_auto_repair() == true) {
         TRACE("Sending Maintenance campaign info for '%s'", su->name.c_str());
         su->set_su_maintenance_campaign();
       }

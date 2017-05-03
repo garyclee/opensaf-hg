@@ -152,7 +152,7 @@ void AVD_COMP::avd_comp_pres_state_set(SaAmfPresenceStateT pres_state) {
         (saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)) ||
        ((node->saAmfNodeFailfastOnInstantiationFailure == true) &&
         (saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED))) &&
-      (su->saAmfSUMaintenanceCampaign.empty())) {
+      (su->restrict_auto_repair() == false)) {
     saflog(LOG_NOTICE, amfSvcUsrName, "%s PresenceState %s => %s",
            osaf_extended_name_borrow(&comp_info.name),
            avd_pres_state_name[old_state], avd_pres_state_name[pres_state]);

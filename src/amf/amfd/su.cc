@@ -30,6 +30,7 @@
 #include "amf/amfd/proc.h"
 #include "amf/amfd/csi.h"
 #include "amf/amfd/cluster.h"
+#include "config.h"
 #include <algorithm>
 
 AmfDb<std::string, AVD_SU> *su_db = nullptr;
@@ -766,7 +767,7 @@ void AVD_SU::set_pres_state(SaAmfPresenceStateT pres_state) {
            (su_on_node->saAmfNodeFailfastOnTerminationFailure == true) &&
            (sg_of_su->saAmfSGAutoRepair == true) &&
            (su_on_node->saAmfNodeAutoRepair == true) &&
-           (saAmfSUMaintenanceCampaign.empty()))
+           (restrict_auto_repair() == false))
     /* According to AMF B.04.01 Section 4.8 Page 214 if user configures
        saAmfNodeFailfastOnTerminationFailure = true, AMF has to perform
        node failfast recovery action. So mark SU to
@@ -777,7 +778,7 @@ void AVD_SU::set_pres_state(SaAmfPresenceStateT pres_state) {
            (su_on_node->saAmfNodeFailfastOnInstantiationFailure == true) &&
            (sg_of_su->saAmfSGAutoRepair == true) &&
            (su_on_node->saAmfNodeAutoRepair == true) &&
-           (saAmfSUMaintenanceCampaign.empty()))
+           (restrict_auto_repair() == false))
     /* According to AMF B.04.01 Section 4.6 Page 212 if user configures
        saAmfNodeFailfastOnInstantiationFailure = true, AMF has to perform
        node failfast recovery action. So mark SU to
@@ -839,8 +840,15 @@ void AVD_SU::set_oper_state(SaAmfOperationalStateT oper_state) {
 
   saAmfSUOperState = oper_state;
 
-  avd_send_oper_chg_ntf(name, SA_AMF_NTFID_SU_OP_STATE, old_state,
-                        saAmfSUOperState, &saAmfSUMaintenanceCampaign);
+  if (restrict_auto_repair() == true) {
+    avd_send_oper_chg_ntf(name, SA_AMF_NTFID_SU_OP_STATE, old_state,
+                          saAmfSUOperState, &saAmfSUMaintenanceCampaign);
+  } else {
+    // if restrict auto repair is not enabled, *do not* send
+    // campaign in notification to SMF, for backwards compatability
+    avd_send_oper_chg_ntf(name, SA_AMF_NTFID_SU_OP_STATE, old_state,
+                          saAmfSUOperState);
+  }
 
   avd_saImmOiRtObjectUpdate(name, "saAmfSUOperState", SA_IMM_ATTR_SAUINT32T,
                             &saAmfSUOperState);
@@ -2194,9 +2202,14 @@ void AVD_SU::send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id) {
       }
       case saAmfSUMaintenanceCampaign_ID: {
         param.attr_id = saAmfSUMaintenanceCampaign_ID;
-        param.value_len = saAmfSUMaintenanceCampaign.length();
-        memcpy(&param.value[0], saAmfSUMaintenanceCampaign.data(),
-               param.value_len);
+        if (restrict_auto_repair() == true) {
+          param.value_len = saAmfSUMaintenanceCampaign.length();
+          memcpy(&param.value[0], saAmfSUMaintenanceCampaign.data(),
+                 param.value_len);
+        } else {
+          param.value_len = 0;
+          param.value[0] = '\0';
+        }
         break;
       }
       default:
@@ -2709,4 +2722,14 @@ void AVD_SU::update_susis_in_imm_and_ntf(SaAmfHAStateT ha_state) const {
     avd_susi_update(susi, ha_state);
     avd_gen_su_ha_state_changed_ntf(avd_cb, susi);
   }
+}
+
+bool AVD_SU::restrict_auto_repair() const
+{
+  if (saAmfSUMaintenanceCampaign.empty() == false &&
+    configuration->restrict_auto_repair_enabled()) {
+    return true;
+  }
+
+  return false;
 }
