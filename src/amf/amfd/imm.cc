@@ -49,6 +49,7 @@
 #include "amf/amfd/si.h"
 #include "amf/amfd/csi.h"
 #include "amf/amfd/si_dep.h"
+#include "amf/amfd/config.h"
 #include "base/osaf_utility.h"
 
 #include "base/osaf_time.h"
@@ -107,7 +108,8 @@ type_map amf_type_map = {
     {"safRdn", AVSV_SA_AMF_COMP_GLOBAL_ATTR},
     {"safHealthcheckKey", AVSV_SA_AMF_CLASS_INVALID},
     /* Common Version Related */
-    {"safVersion", AVSV_SA_AMF_CLASS_INVALID}};
+    {"safVersion", AVSV_SA_AMF_CLASS_INVALID},
+    {"amfConfig", AVSV_SA_AMF_CONFIGURATION}};
 
 type_map versioned_types = {{"safAppType", AVSV_SA_AMF_APP_TYPE},
                             {"safSgType", AVSV_SA_AMF_SG_TYPE},
@@ -554,7 +556,9 @@ static const char *avd_class_names[] = {"Invalid",
                                         "SaAmfSIRankedSU",
 
                                         "SaAmfSIAssignment",
-                                        "SaAmfCSIAssignment"};
+                                        "SaAmfCSIAssignment",
+
+                                        "OpenSafAmfConfig"};
 
 static AvdImmOiCcbApplyCallbackT ccb_apply_callback[AVSV_SA_AMF_CLASS_MAX];
 static AvdImmOiCcbCompletedCallbackT
@@ -1482,13 +1486,20 @@ SaAisErrorT avd_imm_impl_set(void) {
     if ((nullptr != ccb_completed_callback[i]) &&
         (rc = immutil_saImmOiClassImplementerSet(
              avd_cb->immOiHandle, avd_class_names[i])) != SA_AIS_OK) {
-      LOG_ER("Impl Set Failed for %s, returned %d", avd_class_names[i], rc);
-      break;
+
+      if (rc == SA_AIS_ERR_NOT_EXIST) {
+        LOG_WA(
+          "Impl Set Failed for %s, returned %d. Please check IMM schema is up-to-date.",
+          avd_class_names[i], rc);
+        rc = SA_AIS_OK;
+      } else {
+        LOG_ER("Impl Set Failed for %s, returned %d", avd_class_names[i], rc);
+        break;
+      }
     }
   }
 
   avd_cb->is_implementer = true;
-
   TRACE_LEAVE2("%u", rc);
   return rc;
 }
@@ -1521,8 +1532,16 @@ SaAisErrorT avd_imm_applier_set(void) {
     if ((nullptr != ccb_completed_callback[i]) &&
         (rc = immutil_saImmOiClassImplementerSet(
              avd_cb->immOiHandle, avd_class_names[i])) != SA_AIS_OK) {
-      LOG_ER("Impl Set Failed for %s, returned %d", avd_class_names[i], rc);
-      break;
+
+      if (rc == SA_AIS_ERR_NOT_EXIST) {
+        LOG_WA(
+          "Impl Set Failed for %s, returned %d. Please check IMM schema is up-to-date.",
+          avd_class_names[i], rc);
+        rc = SA_AIS_OK;
+      } else {
+        LOG_ER("Impl Set Failed for %s, returned %d", avd_class_names[i], rc);
+        break;
+      }
     }
   }
 
@@ -1650,6 +1669,8 @@ unsigned int avd_imm_config_get(void) {
 
   /* retrieve hydra configuration from IMM */
   if (hydra_config_get() != SA_AIS_OK) goto done;
+
+  if (configuration->get_config() != SA_AIS_OK) goto done;
 
   // SGs needs to adjust configuration once all instances have been added
   {

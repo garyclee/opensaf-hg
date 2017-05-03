@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright Ericsson AB 2011, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -55,7 +56,7 @@ class AVD_SU {
   bool saAmfSUFailover;
   /* true when user has configured saAmfSUFailover */
   bool saAmfSUFailover_configured;
-  std::string saAmfSUMaintenanceCampaign;
+  bool restrict_auto_repair() const;
 
   /* runtime attributes */
   SaBoolT saAmfSUPreInstantiable;  // TODO(hafe) change to bool
@@ -96,6 +97,7 @@ class AVD_SU {
 
   AVD_SUTYPE *su_type;
   AVD_SU *su_list_su_type_next;
+  std::string saAmfSUMaintenanceCampaign;
 
   void set_su_failover(bool value);
   void set_su_maintenance_campaign(void);

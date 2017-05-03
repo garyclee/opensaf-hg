@@ -103,6 +103,7 @@ noinst_HEADERS += \
 	src/amf/amfd/clm.h \
 	src/amf/amfd/cluster.h \
 	src/amf/amfd/comp.h \
+	src/amf/amfd/config.h \
 	src/amf/amfd/csi.h \
 	src/amf/amfd/def.h \
 	src/amf/amfd/evt.h \
@@ -213,6 +214,7 @@ bin_testamfd_LDFLAGS = \
 	src/amf/amfd/bin_osafamfd-ckpt_updt.o \
 	src/amf/amfd/bin_osafamfd-clm.o \
 	src/amf/amfd/bin_osafamfd-cluster.o \
+	src/amf/amfd/bin_osafamfd-config.o \
 	src/amf/amfd/bin_osafamfd-comp.o \
 	src/amf/amfd/bin_osafamfd-compcstype.o \
 	src/amf/amfd/bin_osafamfd-comptype.o \
@@ -300,6 +302,7 @@ bin_osafamfd_SOURCES = \
 	src/amf/amfd/comp.cc \
 	src/amf/amfd/compcstype.cc \
 	src/amf/amfd/comptype.cc \
+	src/amf/amfd/config.cc \
 	src/amf/amfd/csi.cc \
 	src/amf/amfd/csiattr.cc \
 	src/amf/amfd/cstype.cc \
