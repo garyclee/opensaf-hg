@@ -179,7 +179,7 @@ SaAisErrorT SmfProcedureThread::createImmHandle(void) {
   TRACE_ENTER();
   SaAisErrorT rc = SA_AIS_OK;
   int existCnt = 0;
-  SaVersionT immVersion = {'A', 2, 1};
+  SaVersionT immVersion = {'A', 2, 17};
 
   // DN of the procedure
   const char *procName = m_procedure->getProcName().c_str();

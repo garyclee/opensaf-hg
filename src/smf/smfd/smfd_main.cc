@@ -334,7 +334,7 @@ static void main_process(void) {
     initialized.
   */
   SaImmHandleT omHandle = 0;
-  SaVersionT immVersion = {'A', 2, 1};
+  SaVersionT immVersion = {'A', 2, 17};
   SaAisErrorT rc = immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
   if (rc != SA_AIS_OK) {
     LOG_ER("immutil_saImmOmInitialize faild, rc=%s", saf_error(rc));
