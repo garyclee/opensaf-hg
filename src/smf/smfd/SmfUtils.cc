@@ -58,7 +58,7 @@
  * ========================================================================
  */
 
-SaVersionT SmfImmUtils::s_immVersion = {'A', 2, 1};
+SaVersionT SmfImmUtils::s_immVersion = {'A', 2, 17};
 
 /* ========================================================================
  *   FUNCTION PROTOTYPES
@@ -703,8 +703,9 @@ SaAisErrorT SmfImmUtils::doImmOperations(
   /* Apply the CCB */
   result = immutil_saImmOmCcbApply(immCcbHandle);
   if (result != SA_AIS_OK && result == SA_AIS_ERR_FAILED_OPERATION) {
-    result = saImmOmCcbGetErrorStrings(immCcbHandle, &errStrings);
-    if (errStrings) {
+    SaAisErrorT result1 = SA_AIS_OK;
+    result1 = saImmOmCcbGetErrorStrings(immCcbHandle, &errStrings);
+    if (result1 == SA_AIS_OK && errStrings) {
       TRACE("Received error string is %s", errStrings[0]);
       char *type = NULL;
       type = strstr(errStrings[0], "IMM: Resource abort: ");

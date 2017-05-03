@@ -521,7 +521,7 @@ SaAisErrorT SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign) {
   TRACE_ENTER();
   SaAisErrorT rc = SA_AIS_OK;
   int existCnt = 0;
-  SaVersionT immVersion = {'A', 2, 1};
+  SaVersionT immVersion = {'A', 2, 17};
   SmfImmUtils immutil;
   SaImmAttrValuesT_2 **attributes;
   const char *campOiName = NULL;

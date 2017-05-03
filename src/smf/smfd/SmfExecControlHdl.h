@@ -108,7 +108,7 @@ class SmfExecControlObjHandler {
   SaImmAttrValuesT_2 *m_nodesForSingleStep_ad;
 
   // For storing IMM handles
-  const SaVersionT m_immVersion{'A', 2, 1};
+  const SaVersionT m_immVersion{'A', 2, 17};
   SaImmHandleT m_omHandle;
   SaImmAdminOwnerHandleT m_ownerHandle;
   SaImmCcbHandleT m_ccbHandle;

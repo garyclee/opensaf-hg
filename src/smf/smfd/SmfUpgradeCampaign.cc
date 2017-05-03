@@ -1040,6 +1040,8 @@ void SmfUpgradeCampaign::resetMaintenanceState() {
        * with Resource abort in error string.
        */
       continue;
+    } else {
+       break;
     }
   }
   if (rc != SA_AIS_OK) {

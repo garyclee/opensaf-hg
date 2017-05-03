@@ -98,7 +98,7 @@ class SmfImmApplierHdl {
   ExecuteImmCallbackReply ExecuteImmCallback(void);
 
  private:
-  const SaVersionT kImmVersion = {'A', 2, 11};
+  const SaVersionT kImmVersion = {'A', 2, 17};
   static std::atomic<unsigned int> instance_number_;
   bool isCreated_;
   std::string applier_name_;

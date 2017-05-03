@@ -895,7 +895,7 @@ class SmfAdminOperation {
   std::list<unitNameAndState> m_suList;
   std::list<unitNameAndState> m_nodeList;
 
-  const SaVersionT m_immVersion{'A', 2, 1};
+  const SaVersionT m_immVersion{'A', 2, 17};
 
   std::string m_nodeGroupParentDn;
 

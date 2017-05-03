@@ -414,8 +414,9 @@ SaAisErrorT SmfImmCreateOperation::execute(SmfRollbackData *o_rollbackData) {
       m_ccbHandle, (SaImmClassNameT)className, &objectName,
       (const SaImmAttrValuesT_2 **)m_immAttrValues);
   if (result != SA_AIS_OK && result == SA_AIS_ERR_FAILED_OPERATION) {
-    result = saImmOmCcbGetErrorStrings(m_ccbHandle, &errStrings);
-    if (errStrings) {
+    SaAisErrorT result1 = SA_AIS_OK;
+    result1 = saImmOmCcbGetErrorStrings(m_ccbHandle, &errStrings);
+    if (result1 == SA_AIS_OK && errStrings) {
       TRACE("Received error string is %s", errStrings[0]);
       char *type = NULL;
       type = strstr(errStrings[0], "IMM: Resource abort: ");
@@ -651,8 +652,9 @@ SaAisErrorT SmfImmDeleteOperation::execute(SmfRollbackData *o_rollbackData) {
   const SaStringT *errStrings = NULL;
   result = immutil_saImmOmCcbObjectDelete(m_ccbHandle, &objectName);
   if (result != SA_AIS_OK && result == SA_AIS_ERR_FAILED_OPERATION) {
-    result = saImmOmCcbGetErrorStrings(m_ccbHandle, &errStrings);
-    if (errStrings) {
+    SaAisErrorT result1 = SA_AIS_OK;
+    result1 = saImmOmCcbGetErrorStrings(m_ccbHandle, &errStrings);
+    if (result1 == SA_AIS_OK && errStrings) {
       TRACE("Received error string is %s", errStrings[0]);
       char *type = NULL;
       type = strstr(errStrings[0], "IMM: Resource abort: ");
@@ -1030,8 +1032,9 @@ SaAisErrorT SmfImmModifyOperation::execute(SmfRollbackData *o_rollbackData) {
       m_ccbHandle, &objectName,
       (const SaImmAttrModificationT_2 **)m_immAttrMods);
   if (result != SA_AIS_OK && result == SA_AIS_ERR_FAILED_OPERATION) {
-    result = saImmOmCcbGetErrorStrings(m_ccbHandle, &errStrings);
-    if (errStrings) {
+    SaAisErrorT result1 = SA_AIS_OK;    
+    result1 = saImmOmCcbGetErrorStrings(m_ccbHandle, &errStrings);
+    if (result1 == SA_AIS_OK && errStrings) {
       TRACE("Received error string is %s", errStrings[0]);
       char *type = strstr(errStrings[0], "IMM: Resource abort: ");
       if (type != NULL) {
