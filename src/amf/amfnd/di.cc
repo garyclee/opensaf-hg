@@ -638,6 +638,13 @@ uint32_t avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt) {
     }
   }
 
+  // Ignore the second NCSMDS_DOWN which comes from timeout of
+  // MDS_AWAIT_ACTIVE_TMR_VAL
+  if (cb->is_avd_down == true) {
+    TRACE_LEAVE();
+    return rc;
+  }
+
   m_AVND_CB_AVD_UP_RESET(cb);
   cb->active_avd_adest = 0;
 
