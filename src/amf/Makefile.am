@@ -162,7 +162,7 @@ noinst_HEADERS += \
 	src/amf/common/amf_si_assign.h \
 	src/amf/common/amf_util.h
 
-sbin_PROGRAMS += bin/amfpm
+sbin_PROGRAMS += bin/amfpm bin/amfclusterstatus
 osaf_execbin_PROGRAMS += bin/osafamfd bin/osafamfnd bin/osafamfwd
 CORE_INCLUDES += -I$(top_srcdir)/src/amf/saf
 TESTS += bin/testamfd
@@ -282,6 +282,20 @@ bin_amfpm_SOURCES = \
 
 bin_amfpm_LDADD = \
 	lib/libSaAmf.la
+
+bin_amfclusterstatus_CXXFLAGS =  $(AM_CXXFLAGS)
+
+bin_amfclusterstatus_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
+	$(AM_CPPFLAGS)
+
+bin_amfclusterstatus_SOURCES = \
+	src/amf/tools/amf_cluster_status.cc
+
+bin_amfclusterstatus_LDADD = \
+	lib/libopensaf_core.la \
+	lib/libosaf_common.la \
+	lib/libSaImmOm.la
 
 bin_osafamfd_CXXFLAGS = -fno-strict-aliasing $(AM_CXXFLAGS)
 

@@ -15,4 +15,4 @@
 #
 
 all:
-	$(MAKE) -C ../../.. bin/amfpm
+	$(MAKE) -C ../../.. bin/amfpm bin/amfclusterstatus

@@ -994,6 +994,7 @@ fi
 %files amf-integration
 %defattr(-,root,root)
 %{_sbindir}/amfpm
+%{_sbindir}/amfclusterstatus
 
 
 %if %is_ais_ckpt
