@@ -11,12 +11,30 @@
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
- * Author(s): Oracle 
+ * Author(s): Oracle, Ericsson
  *
  */
 General:
 =================================
 Current AMF implementation conforms to B.04.01 spec version.
+
+AMF behaviour can be changed through a configuration object 'amfConfig=1,safApp=safAmfService'.
+
+osafAmfRestrictAutoRepairEnable: 1 (enabled), 0 or blank (disabled)
+-------------------------------------------------------------------
+When set to 1, support for 'Restriction to Auto-Repair' is enabled as specified
+in Section 3.11.1.4.2 of the AMF specification SAI-AIS-AMF-B.04.01.
+
+If 'Restrictions to Auto-Repair' is disabled, then the maintenance campaign
+will not be sent in SU operational state change notifications. This means the
+Software Management Framework (SMF) will not be able to detect asynchronous
+failures of AMF entities (see Section 4.2.1.3 of the SMF specification for details).
+
+Note: if AMF cannot read 'osafAmfRestrictAutoRepairEnable' because it is missing
+or set to blank, it will assume the legacy auto-repair behaviour is wanted to
+maintain backwards compatibility.
+
+
 No version of AMF spec talks about any feature, using which a user
 can pass some information to a running component without loss of service.
 However, there is a class "SaAmfCSIAttribute" which can be used 
@@ -149,6 +167,26 @@ Changes at AMF Agent (CSI Attribute Change Callback):
   AMF agent will use OsafAmfCallbacksT internally instead of SaAmfCallbacksT_<#x>.
 2)Implementation of saAmfInitialize_5() in ava_api.c. 
 3)Now saAmfRegister() also sends SAF version to AMFND.
+
+Changes in OpenSAF 5.2:
+=======================
+
+Prior to OpenSAF 5.2, the attribute saAmfSUMaintenanceCampaign of the SaAmfSU
+class was not used by AMF.
+
+In OpenSAF 5.2, enhancement ticket #2144 adds support for
+'Restrictions to Auto-Repair' (Section 3.11.1.4.2 of the AMF specification
+SAI-AIS-AMF-B.04.01). This support is configurable through
+the attribute 'osafAmfRestrictAutoRepairEnable' of a new AMF general configuration
+object 'amfConfig=1,safApp=safAmfService'
+
+The class schema and new AMF configuration object should be added
+when upgrading from an older release of OpenSAF. An XML file containing
+the changes can be found at samples/amf/OpenSafAmfConfig_Upgrade_5.2.xml
+
+Users that require the legacy auto-repair behaviour should set
+'osafAmfRestrictAutoRepairEnable' to '0' during the campInitAction phase of
+the OpenSAF upgrade campaign.
 
 TODOs: (CSI Attribute Change Callback):
 =====================================================

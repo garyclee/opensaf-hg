@@ -961,8 +961,14 @@ minimum version requirements of the following system components:
 
 When upgrading to OpenSAF 5.2.0 or later, be aware that SMF upgrade campaigns
 can behave differently compared to earlier OpenSAF releases in case of component
-failures. This is because Section 4.2.1.3 of SMF spec A.01.02 was implemented in
-OpenSAF 5.2.0.
+failures. This is because Section 4.2.1.3 of SMF spec A.01.02 and
+Section 3.11.1.4.2 of AMF spec B.04.01 are implemented in OpenSAF 5.2.0.
+The attribute 'osafAmfRestrictAutoRepairEnable' in the new class
+OpenSafAmfConfig allows this behaviour to be disabled.
+Please see the AMF and SMF Programmer's References for more details.
+The class schema and new AMF configuration object should be added
+when upgrading from an older release of OpenSAF. An XML file containing
+the changes can be found at samples/amf/OpenSafAmfConfig_Upgrade_5.2.xml
 
 After upgrading to OpenSAF 5.2.0, please review the setting of
 OSAF_CKPT_SHM_ALLOC_GUARANTEE in /etc/opensaf/ckptnd.conf. To avoid a
