@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.02.13.xsd">
+	<class name="OpenSafAmfConfig">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>amfConfig</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>osafAmfRestrictAutoRepairEnable</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+	</class>
+        <object class="OpenSafAmfConfig">
+                <dn>amfConfig=1,safApp=safAmfService</dn>
+                <attr>
+                        <name>osafAmfRestrictAutoRepairEnable</name>
+                        <value>1</value>
+                </attr>
+        </object>
+</imm:IMM-contents>
