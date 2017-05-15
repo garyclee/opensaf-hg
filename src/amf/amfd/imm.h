@@ -222,8 +222,11 @@ extern void avd_saImmOiRtObjectUpdate(const std::string &dn,
 extern void avd_saImmOiRtObjectCreate(const std::string &lassName,
                                       const std::string &parentName,
                                       const SaImmAttrValuesT_2 **attrValues);
+extern void avd_saImmOiRtObjectCreate_sync(const std::string &lassName,
+                                      const std::string &parentName,
+                                      const SaImmAttrValuesT_2 **attrValues);
 extern void avd_saImmOiRtObjectDelete(const std::string &objectName);
-
+extern void avd_saImmOiRtObjectDelete_sync(const std::string &objectName);
 extern void avd_imm_reinit_bg(void);
 extern void avd_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
                                             SaInvocationT invocation,

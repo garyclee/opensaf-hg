@@ -82,7 +82,7 @@ static void avd_create_susi_in_imm(AVD_SU_SI_REL *susi) {
 
   const SaNameTWrapper su(susi->su->name);
   avsv_create_association_class_dn(su, nullptr, "safSISU", &dn);
-  avd_saImmOiRtObjectCreate("SaAmfSIAssignment", susi->si->name, attrValues);
+  avd_saImmOiRtObjectCreate_sync("SaAmfSIAssignment", susi->si->name, attrValues);
   osaf_extended_name_free(&dn);
 }
 
@@ -98,7 +98,7 @@ static void avd_delete_siassignment_from_imm(const std::string &si_dn,
   const SaNameTWrapper si(si_dn);
   const SaNameTWrapper su(su_dn);
   avsv_create_association_class_dn(su, si, "safSISU", &dn);
-  avd_saImmOiRtObjectDelete(Amf::to_string(&dn));
+  avd_saImmOiRtObjectDelete_sync(Amf::to_string(&dn));
   osaf_extended_name_free(&dn);
 }
 
@@ -123,7 +123,8 @@ void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state) {
            avd_ha_state[ha_state], susi->su->name.c_str(),
            susi->si->name.c_str());
 
-  avd_saImmOiRtObjectUpdate(Amf::to_string(&dn), "saAmfSISUHAState",
+  avd_saImmOiRtObjectUpdate_sync(Amf::to_string(&dn),
+      const_cast<SaImmAttrNameT>("saAmfSISUHAState"),
                             SA_IMM_ATTR_SAUINT32T, &ha_state);
   osaf_extended_name_free(&dn);
 
@@ -134,7 +135,8 @@ void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state) {
     avsv_create_association_class_dn(&compcsi->comp->comp_info.name, csi_name,
                                      "safCSIComp", &dn);
 
-    avd_saImmOiRtObjectUpdate(Amf::to_string(&dn), "saAmfCSICompHAState",
+    avd_saImmOiRtObjectUpdate_sync(Amf::to_string(&dn),
+        const_cast<SaImmAttrNameT>("saAmfCSICompHAState"),
                               SA_IMM_ATTR_SAUINT32T, &ha_state);
 
     osaf_extended_name_free(&dn);
@@ -156,14 +158,14 @@ void avd_susi_update_fsm(AVD_SU_SI_REL *susi, AVD_SU_SI_STATE new_fsm_state) {
   if (susi->fsm != new_fsm_state) {
     susi->fsm = new_fsm_state;
     if (avd_cb->scs_absence_max_duration > 0) {
-      avd_saImmOiRtObjectUpdate(
+      avd_saImmOiRtObjectUpdate_sync(
           Amf::to_string(&dn),
           const_cast<SaImmAttrNameT>("osafAmfSISUFsmState"),
           SA_IMM_ATTR_SAUINT32T, &susi->fsm);
       // Need to write to IMM HA state, otherwise the ABSENT SUSI read from IMM
       // will have wrong HA state, which lead to incorrect failover of ABSENT
       // SUSI
-      avd_saImmOiRtObjectUpdate(Amf::to_string(&dn),
+      avd_saImmOiRtObjectUpdate_sync(Amf::to_string(&dn),
                                 const_cast<SaImmAttrNameT>("saAmfSISUHAState"),
                                 SA_IMM_ATTR_SAUINT32T, &susi->state);
     }
