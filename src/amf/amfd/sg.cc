@@ -2288,16 +2288,28 @@ bool avd_sg_validate_headless_cached_rta(AVD_CL_CB *cb) {
 
 void AVD_SG::failover_absent_assignment() {
   TRACE_ENTER2("SG:'%s'", name.c_str());
+  AVD_SU* failed_su = nullptr;
   for (const auto &su : list_of_su) {
     if (su->any_susi_fsm_in(AVD_SU_SI_STATE_ABSENT)) {
-      node_fail(avd_cb, su);
-      if (su->is_in_service())
-        su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
-      if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)
-        su->sg_of_su->realign(avd_cb, this);
-      break;
+      // look up SU has the most absent STANBY assignment to failover first
+      // TODO: need to verify with NpM and Nway Sg
+      if (failed_su == nullptr) {
+        failed_su = su;
+      } else if (su->count_susi_with(SA_AMF_HA_STANDBY, AVD_SU_SI_STATE_ABSENT) >
+          failed_su->count_susi_with(SA_AMF_HA_STANDBY,
+              AVD_SU_SI_STATE_ABSENT)) {
+          failed_su = su;
+      }
     }
   }
+
+  if (failed_su != nullptr) {
+    node_fail(avd_cb, failed_su);
+    if (failed_su->is_in_service())
+      failed_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+  }
+  if (sg_fsm_state == AVD_SG_FSM_STABLE)
+    realign(avd_cb, this);
   TRACE_LEAVE();
 }
 

@@ -1402,7 +1402,10 @@ void AVD_SI::inc_curr_act_ass() {
 }
 
 void AVD_SI::dec_curr_act_ass() {
-  osafassert(saAmfSINumCurrActiveAssignments > 0);
+  if (saAmfSINumCurrActiveAssignments == 0) {
+    LOG_WA("Failed to decrease saAmfSINumCurrActiveAssignments");
+    return;
+  }
   saAmfSINumCurrActiveAssignments--;
   TRACE("%s saAmfSINumCurrActiveAssignments=%u", name.c_str(),
         saAmfSINumCurrActiveAssignments);
@@ -1419,7 +1422,10 @@ void AVD_SI::inc_curr_stdby_ass() {
 }
 
 void AVD_SI::dec_curr_stdby_ass() {
-  osafassert(saAmfSINumCurrStandbyAssignments > 0);
+  if (saAmfSINumCurrStandbyAssignments == 0) {
+    LOG_WA("Failed to decrease saAmfSINumCurrStandbyAssignments");
+    return;
+  }
   saAmfSINumCurrStandbyAssignments--;
   TRACE("%s saAmfSINumCurrStandbyAssignments=%u", name.c_str(),
         saAmfSINumCurrStandbyAssignments);
@@ -1433,7 +1439,10 @@ void AVD_SI::inc_curr_act_dec_std_ass() {
   TRACE("%s saAmfSINumCurrActiveAssignments=%u", name.c_str(),
         saAmfSINumCurrActiveAssignments);
 
-  osafassert(saAmfSINumCurrStandbyAssignments > 0);
+  if (saAmfSINumCurrStandbyAssignments == 0) {
+    LOG_WA("Failed to decrease saAmfSINumCurrStandbyAssignments");
+    return;
+  }
   saAmfSINumCurrStandbyAssignments--;
   TRACE("%s saAmfSINumCurrStandbyAssignments=%u", name.c_str(),
         saAmfSINumCurrStandbyAssignments);
@@ -1448,7 +1457,10 @@ void AVD_SI::inc_curr_stdby_dec_act_ass() {
         saAmfSINumCurrStandbyAssignments);
   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_SU_CURR_STBY);
 
-  osafassert(saAmfSINumCurrActiveAssignments > 0);
+  if (saAmfSINumCurrActiveAssignments == 0) {
+    LOG_WA("Failed to decrease saAmfSINumCurrActiveAssignments");
+    return;
+  }
   saAmfSINumCurrActiveAssignments--;
   TRACE("%s saAmfSINumCurrActiveAssignments=%u", name.c_str(),
         saAmfSINumCurrActiveAssignments);

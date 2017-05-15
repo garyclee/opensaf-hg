@@ -2127,29 +2127,45 @@ static void su_ccb_apply_cb(CcbUtilOperationData_t *opdata) {
 }
 
 void AVD_SU::inc_curr_act_si() {
+  if (saAmfSUNumCurrActiveSIs >= sg_of_su->saAmfSGMaxActiveSIsperSU) {
+    LOG_WA("Failed to increase saAmfSUNumCurrActiveSIs(%u), "
+        "saAmfSGMaxActiveSIsperSU(%u)", saAmfSUNumCurrActiveSIs,
+        sg_of_su->saAmfSGMaxActiveSIsperSU);
+    return;
+  }
   saAmfSUNumCurrActiveSIs++;
-  osafassert(saAmfSUNumCurrActiveSIs <= sg_of_su->saAmfSGMaxActiveSIsperSU);
   TRACE("%s saAmfSUNumCurrActiveSIs=%u", name.c_str(), saAmfSUNumCurrActiveSIs);
   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SI_CURR_ACTIVE);
 }
 
 void AVD_SU::dec_curr_act_si() {
-  osafassert(saAmfSUNumCurrActiveSIs > 0);
+  if (saAmfSUNumCurrActiveSIs == 0) {
+    LOG_WA("Failed to decrease saAmfSUNumCurrActiveSIs");
+    return;
+  }
   saAmfSUNumCurrActiveSIs--;
   TRACE("%s saAmfSUNumCurrActiveSIs=%u", name.c_str(), saAmfSUNumCurrActiveSIs);
   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SI_CURR_ACTIVE);
 }
 
 void AVD_SU::inc_curr_stdby_si() {
+  if (saAmfSUNumCurrStandbySIs >= sg_of_su->saAmfSGMaxStandbySIsperSU) {
+    LOG_WA("Failed to increase saAmfSUNumCurrStandbySIs(%u), "
+        "saAmfSGMaxStandbySIsperSU(%u)", saAmfSUNumCurrStandbySIs,
+        sg_of_su->saAmfSGMaxStandbySIsperSU);
+    return;
+  }
   saAmfSUNumCurrStandbySIs++;
-  osafassert(saAmfSUNumCurrStandbySIs <= sg_of_su->saAmfSGMaxStandbySIsperSU);
   TRACE("%s saAmfSUNumCurrStandbySIs=%u", name.c_str(),
         saAmfSUNumCurrStandbySIs);
   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SI_CURR_STBY);
 }
 
 void AVD_SU::dec_curr_stdby_si() {
-  osafassert(saAmfSUNumCurrStandbySIs > 0);
+  if (saAmfSUNumCurrStandbySIs == 0) {
+    LOG_WA("Failed to decrease saAmfSUNumCurrStandbySIs");
+    return;
+  }
   saAmfSUNumCurrStandbySIs--;
   TRACE("%s saAmfSUNumCurrStandbySIs=%u", name.c_str(),
         saAmfSUNumCurrStandbySIs);
@@ -2522,6 +2538,22 @@ uint32_t AVD_SU::curr_num_active_sis() {
         ((susi->fsm == AVD_SU_SI_STATE_ASGN) ||
          (susi->fsm == AVD_SU_SI_STATE_ASGND) ||
          (susi->fsm == AVD_SU_SI_STATE_MODIFY)))
+      count++;
+  return count;
+}
+
+/**
+ * @brief    Count number of assignment belonging to *this* SU object
+ *           that has @ha and @fsm.
+ * @param    ha: HA state of searching object
+ *           fsm: fsm state of searching object
+ * @return   count
+ */
+uint32_t AVD_SU::count_susi_with(SaAmfHAStateT ha, uint32_t fsm) {
+  uint32_t count = 0;
+  for (AVD_SU_SI_REL *susi = list_of_susi; susi != nullptr;
+       susi = susi->su_next)
+    if ((susi->state == ha) && (susi->fsm == fsm))
       count++;
   return count;
 }
