@@ -378,7 +378,11 @@ uint32_t avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt) {
            info->msg_act);
     goto done;
   }
-
+  if (cb->is_avd_down == true) {
+    LOG_WA("Received susi_assign_evh for SU:%s while AMF director is offline",
+        su->name.c_str());
+    goto done;
+  }
   if ((cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_INITIATED) ||
       (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED)) {
     if ((su->is_ncs == true) && (info->msg_act == AVSV_SUSI_ACT_MOD) &&
