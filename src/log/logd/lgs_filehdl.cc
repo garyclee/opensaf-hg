@@ -79,10 +79,10 @@ int path_is_writeable_dir_hdl(void *indata, void *outdata, size_t max_outsize) {
     goto done;
   }
 
-  osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 
   is_writeable_dir = 1;
 done:
+  osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
   TRACE_LEAVE2("is_writeable_dir = %d", is_writeable_dir);
   return is_writeable_dir;
 }
@@ -254,6 +254,7 @@ retry:
 
     LOG_ER("%s - write FAILED: %s", __FUNCTION__, strerror(errno));
     *errno_out_p = errno;
+    osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
     goto done;
   } else {
     /* Handle partial writes */
