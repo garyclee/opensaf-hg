@@ -1703,24 +1703,27 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(
     const std::string &dn, SaImmAttrNameT attributeName,
     SaImmValueTypeT attrValueType, void *value,
     SaImmAttrModificationTypeT modifyType) {
-  SaAisErrorT rc;
+  SaAisErrorT rc = SA_AIS_OK;
   SaImmAttrModificationT_2 attrMod;
   const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, nullptr};
   SaImmAttrValueT attrValues[] = {value};
 
   const std::string attribute_name(attributeName);
   TRACE_ENTER2("'%s' %s", dn.c_str(), attributeName);
+  if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+    attrMod.modType = modifyType;
+    attrMod.modAttr.attrName = attributeName;
+    attrMod.modAttr.attrValuesNumber = 1;
+    attrMod.modAttr.attrValueType = attrValueType;
+    attrMod.modAttr.attrValues = attrValues;
 
-  attrMod.modType = modifyType;
-  attrMod.modAttr.attrName = attributeName;
-  attrMod.modAttr.attrValuesNumber = 1;
-  attrMod.modAttr.attrValueType = attrValueType;
-  attrMod.modAttr.attrValues = attrValues;
+    rc = saImmOiRtObjectUpdate_o3(avd_cb->immOiHandle, dn.c_str(), attrMods);
+    if (rc != SA_AIS_OK)
+      LOG_WA("saImmOiRtObjectUpdate of '%s' %s failed with %u", dn.c_str(),
+             attributeName, rc);
+  }
 
-  rc = saImmOiRtObjectUpdate_o3(avd_cb->immOiHandle, dn.c_str(), attrMods);
-  if (rc != SA_AIS_OK) {
-    LOG_WA("saImmOiRtObjectUpdate of '%s' %s failed with %u", dn.c_str(),
-           attributeName, rc);
+  if (rc != SA_AIS_OK || avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
     // Now it will be updated through job queue.
     avd_saImmOiRtObjectUpdate(dn, attribute_name, attrValueType, value);
   }
@@ -1860,6 +1863,39 @@ void avd_saImmOiRtObjectUpdate(const std::string &dn,
 }
 
 /**
+ * Create IMM object, blocking call at active AMFD. If fails, move this create
+ * job to queue and to be executed later
+ * @param className
+ * @param parentName
+ * @param attrValues
+ */
+void avd_saImmOiRtObjectCreate_sync(const std::string &className,
+                               const std::string &parentName,
+                               const SaImmAttrValuesT_2 **attrValues) {
+  TRACE_ENTER2("%s %s", className.c_str(), parentName.c_str());
+
+  SaAisErrorT rc = SA_AIS_OK;
+
+  if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+    const SaNameTWrapper parent_name(parentName);
+    rc = saImmOiRtObjectCreate_2(avd_cb->immOiHandle,
+        const_cast<SaImmClassNameT>(className.c_str()),
+        parent_name, attrValues);
+    if (rc != SA_AIS_OK) {
+      LOG_WA("saImmOiRtObjectCreate_2 of className:'%s', parentName:'%s',"
+          " failed with %u", className.c_str(), parentName.c_str(), rc);
+    }
+  }
+
+  if (rc != SA_AIS_OK || avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
+    // Now it will be updated through job queue.
+    avd_saImmOiRtObjectCreate(className, parentName, attrValues);
+  }
+
+  TRACE_LEAVE();
+}
+
+/**
  * Queue an IM object create to be executed later, non blocking
  * @param className
  * @param parentName
@@ -1883,6 +1919,28 @@ void avd_saImmOiRtObjectCreate(const std::string &className,
   ajob->attrValues_ = dupSaImmAttrValuesT_array(attrValues);
   Fifo::queue(ajob);
 
+  TRACE_LEAVE();
+}
+
+/**
+ * Delete IMM object, blocking call at active AMFD. If fails, move this delete
+ * job to queue and to be executed later
+ * @param dn
+ */
+void avd_saImmOiRtObjectDelete_sync(const std::string &dn) {
+  TRACE_ENTER2("%s", dn.c_str());
+  SaAisErrorT rc = SA_AIS_OK;
+
+  if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+    rc = saImmOiRtObjectDelete_o3(avd_cb->immOiHandle, dn.c_str());
+    if (rc != SA_AIS_OK) {
+      LOG_WA("saImmOiRtObjectDelete_o3 of '%s' failed with %u", dn.c_str(), rc);
+    }
+  }
+  if (rc != SA_AIS_OK || avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
+    // Now it will be updated through job queue.
+    avd_saImmOiRtObjectDelete(dn);
+  }
   TRACE_LEAVE();
 }
 
