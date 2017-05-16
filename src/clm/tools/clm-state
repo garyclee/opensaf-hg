@@ -1,0 +1,148 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+# Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+
+usage()
+{
+  echo ""
+  echo "USAGE: $(basename "$0") [ options ] [ DN ]"
+  echo ""
+  echo "OPTIONS:"
+  echo "        -a, --admin      : display admin state of node"
+  echo "        -m, --membership : display membership status of node"
+  echo "        -i, --nodeid     : display CLM nodeid of node"
+  echo "        -h, --help       : display this help"
+  echo "         DN              : CLM node DN. If given, state(s) of only this node will be displayed."
+  echo ""
+  echo "        Note: Without options, it displays three states for all nodes."
+  echo ""
+}
+
+options=$(getopt -o a,m,i,h -l admin,membership,nodeid,help -- "$@")
+status=$?
+if [ $status -ne 0 ] ; then
+  echo "Try '$(basename "$0") -h or --help' for more information"
+  exit 1
+fi
+eval set -- "$options"
+
+ADMIN=0
+MEMBERSHIP=0
+NODEID=0
+DN=""
+
+while true; do
+  case $1 in
+    -a|--admin)
+                     ADMIN=1
+                     shift
+                     ;;
+    -m|--membership)
+                     MEMBERSHIP=1
+                     shift
+                     ;;
+    -i|--nodeid)
+                     NODEID=1
+                     shift
+                     ;;
+    -h|--help)
+                     usage
+                     exit 0
+                     ;;
+     \?)
+                     echo "Invalid option"
+                     exit 1
+                     ;;
+     --)
+                     shift;
+                     break;
+                     ;;
+   esac
+done
+
+shift $((OPTIND -1))
+
+DN="$*"
+node_dns=""
+
+if [ "$DN" = "" ]; then
+  node_dns=$(immfind -c SaClmNode)
+else
+  node_dns="$DN"
+  if ! (immfind "$DN" > /dev/null 2>&1); then
+    echo "invalid dn"
+    exit $?
+  fi
+fi
+
+list_adminstate()
+{
+  value=$(immlist -a "saClmNodeAdminState" "$1" | cut -d = -f2)
+  if [ "$value" = "<Empty>" ]; then
+    echo "       saClmNodeAdminState=$value"
+  elif [ "$value" -eq 1 ]; then
+    echo "       saClmNodeAdminState=UNLOCKED(1)"
+  elif [ "$value" -eq 2 ]; then
+    echo "       saClmNodeAdminState=LOCKED(2)"
+  elif [ "$value" -eq 3 ]; then
+    echo "       saClmNodeAdminState=SHUTTING-DOWN(3)"
+  else
+    echo "       saClmNodeAdminState=UNKNOWN($value)"
+  fi
+}
+
+list_nodeid()
+{
+  value=$(immlist -a "saClmNodeID" "$1" | cut -d = -f2)
+  if [ "$value" != "<Empty>" ]; then
+    in_hex=$(printf %05x "$value")
+    echo "       saClmNodeID=$value(0x$in_hex) "
+  else
+    echo "       saClmNodeID=$value"
+  fi
+}
+
+list_membership()
+{
+  value=$(immlist -a "saClmNodeIsMember" "$1" | cut -d = -f2)
+  if [ "$value" = "<Empty>" ]; then
+    echo "       saClmNodeIsMember=$value"
+  elif [ "$value" -eq 1 ]; then
+    echo "       saClmNodeIsMember=MEMBER(1)"
+  elif [ "$value" -eq 0 ]; then
+    echo "       saClmNodeIsMember=NON_MEMBER(0)"
+  fi
+}
+
+for node_dn in $node_dns; do
+  echo "$node_dn"
+  if [ $ADMIN -eq 0 ]  &&  [ $MEMBERSHIP -eq 0 ] && [ $NODEID -eq  0 ]; then
+      list_adminstate "$node_dn"
+      list_membership "$node_dn"
+      list_nodeid  "$node_dn"
+  else
+    if [ $ADMIN -eq 1 ]; then
+      list_adminstate "$node_dn"
+    fi
+    if [ $MEMBERSHIP -eq 1 ]; then
+      list_membership "$node_dn"
+    fi
+    if [ $NODEID -eq 1 ]; then
+      list_nodeid  "$node_dn"
+    fi
+  fi
+done
+
+exit 0

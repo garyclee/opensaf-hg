@@ -166,6 +166,11 @@ bin_osafclmna_LDADD = \
 	lib/libSaAmf.la \
 	lib/libopensaf_core.la
 
+dist_bin_SCRIPTS += \
+       src/clm/tools/clm-adm \
+       src/clm/tools/clm-find \
+       src/clm/tools/clm-state
+
 if ENABLE_TESTS
 
 bin_PROGRAMS += bin/clmtest

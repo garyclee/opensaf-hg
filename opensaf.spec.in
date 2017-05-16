@@ -1445,6 +1445,9 @@ fi
 %{_bindir}/ntfsubscribe
 %{_bindir}/ntfread
 %{_bindir}/saflogger
+%{_bindir}/clm-adm
+%{_bindir}/clm-find
+%{_bindir}/clm-state
 %if %is_ais_smf
 %{_bindir}/smf-adm
 %{_bindir}/smf-find
