@@ -1,0 +1,84 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+# Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+
+usage()
+{
+  echo ""
+  echo "USAGE: $(basename "$0") [ option ]"
+  echo ""
+  echo "OPTIONS:"
+  echo "        -c, --cluster-name :  display DN of CLM cluster"
+  echo "        -l, --locked       :  display DNs of locked nodes."
+  echo "        -u, --unlocked     :  display DNs of unlocked nodes."
+  echo "        -m, --member       :  display DNs of member nodes."
+  echo "        -n, --nonmember    :  display DNs of non-member nodes."
+  echo "        -h, --help         :  display this help"
+  echo ""
+  echo "        Note: Without any option, DNs of all Nodes will be displayed."
+  echo ""
+}
+
+list_with_states ()
+{
+  for i in $(immfind -c "SaClmNode"); do
+    if [ "$1" = "locked" ] || [ "$1" = "unlocked" ]; then
+      value=$(immlist -a "saClmNodeAdminState" "$i" | cut -d = -f2)
+      if ([ "$1" = "locked" ] && [ "$value" -eq 2 ]) || ([ "$1" = "unlocked" ] && [ "$value" -eq 1 ]); then
+            echo "$i"
+      fi
+    else
+      value=$(immlist -a "saClmNodeIsMember" "$i" | cut -d = -f2)
+      if [ "$value" = "<Empty>" ]; then
+              value=0
+      fi
+      if ([ "$1" = "nonmember" ] && [ "$value" -eq 0 ]) || ([ "$1" = "member" ] && [ "$value" -eq 1 ]); then
+        echo "$i"
+      fi
+    fi
+  done
+}
+
+case $1 in
+  -c|--cluster-name)
+                   immfind -c "SaClmCluster"
+                   ;;
+  -l|--locked)
+                   list_with_states "locked"
+                   ;;
+  -u|--unlocked)
+                   list_with_states "unlocked"
+                   ;;
+  -m|--member)
+                   list_with_states "member"
+                   ;;
+  -n|--nonmember)
+                   list_with_states "nonmember"
+                   ;;
+  -h|--help)
+                   usage
+                   exit 0
+                   ;;
+  -?*)
+                   echo "Invalid option"
+                   echo "Try '$(basename "$0") -h or --help' for more information"
+                   exit 1
+                   ;;
+   *)
+                   immfind -c "SaClmNode"
+                   ;;
+esac
+exit $?
+

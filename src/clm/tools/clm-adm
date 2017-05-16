@@ -1,0 +1,105 @@
+#! /bin/sh
+#      -*- OpenSAF  -*-
+#
+# Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+
+usage()
+{
+  echo ""
+  echo "USAGE: $(basename "$0") [-t value] <-o op_name>  <DN>"
+  echo ""
+  echo "OPTIONS:"
+  echo "        -t or --timeout : command timeout in seconds (default=60) (optional)"
+  echo "        -o or --admin-op: operation name (mandatory)"
+  echo "                             'lock'     for admin lock "
+  echo "                             'unlock'   for admin unlock "
+  echo "                             'shutdown' for admin shutdown "
+  echo "                             'reset'    for admin reset of cluster"
+  echo "        DN              : a valid DN name of CLM node or cluster (mandatory)"
+  echo ""
+  echo ""
+}
+
+options=$(getopt -o t:o:h -l timeout:,admin-op:,help -- "$@")
+status=$?
+if [ $status -ne 0 ] ; then
+  echo "Try '$(basename "$0") -h or --help' for more information"
+  exit 1
+fi
+eval set -- "$options"
+
+DN=""
+CMD=""
+TIMEOUT=""
+
+while true; do
+  case $1 in
+    -t|--timeout)
+                shift 1
+                TIMEOUT=$1;
+                shift 1
+                ;;
+    -o|--admin-op)
+                shift 1
+                if [ "$1" = "unlock" ]; then
+                  CMD=1
+                elif [ "$1" = "lock" ]; then
+                  CMD=2
+                elif [ "$1" = "shutdown" ]; then
+                  CMD=3
+                elif [ "$1" = "reset" ]; then
+                  CMD=4
+                else
+                  echo "Invalid operation name"
+                  exit 1
+                fi
+                shift 1
+                    ;;
+    -h|--help)
+                usage
+                exit 0
+                ;;
+    \?)
+                echo "Invalid option"
+                exit 1
+                ;;
+    --)
+                shift;
+                break;
+                ;;
+    esac
+done
+
+if [ "$CMD" = "" ]; then
+  echo "operation name is mandatory"
+  echo "Try '$(basename "$0") -h or --help' for more information"
+  exit 1
+fi
+
+shift $((OPTIND -1))
+
+DN="$*"
+if [ "$DN" = "" ]; then
+  echo "DN name is mandatory"
+  echo "Try '$(basename "$0") -h or --help' for more information"
+  exit 1
+fi
+
+if [ "$TIMEOUT" = "" ]; then
+  immadm -o "$CMD" "$DN"
+else
+  immadm -t "$TIMEOUT" -o "$CMD"  "$DN"
+fi
+
+exit $?
+
