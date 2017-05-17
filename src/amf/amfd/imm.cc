@@ -131,21 +131,31 @@ static char *StrDup(const char *s) {
 //
 Job::~Job() {}
 
-//
-bool ImmJob::isRunnable(const AVD_CL_CB *cb) {
+// TODO: Make isImmServiceReady as static to limit its scope
+// This function should belong to AVD_CB class as a method
+static bool isImmServiceReady(const AVD_CL_CB *cb) {
   TRACE_ENTER();
   bool rc = true;
+
+  if (avd_cb->active_services_exist == false) {
+      TRACE("No active service");
+      rc = false;
+  }
   if ((!avd_cb->is_implementer) &&
       (avd_cb->avail_state_avd == SA_AMF_HA_STANDBY)) {
     rc = false;
   }
-
   if (avd_cb->avd_imm_status == AVD_IMM_INIT_ONGOING) {
     TRACE("Already IMM init is going, try again after sometime");
     rc = false;
   }
-  TRACE_LEAVE();
+  TRACE_LEAVE2("%u:", rc);
   return rc;
+}
+
+//
+bool ImmJob::isRunnable(const AVD_CL_CB *cb) {
+  return isImmServiceReady(cb);
 }
 //
 AvdJobDequeueResultT ImmObjCreate::exec(const AVD_CL_CB *cb) {
@@ -1707,10 +1717,11 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(
   SaImmAttrModificationT_2 attrMod;
   const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, nullptr};
   SaImmAttrValueT attrValues[] = {value};
-
   const std::string attribute_name(attributeName);
+  bool isImmReady = isImmServiceReady(avd_cb);
+
   TRACE_ENTER2("'%s' %s", dn.c_str(), attributeName);
-  if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+  if (isImmReady == true) {
     attrMod.modType = modifyType;
     attrMod.modAttr.attrName = attributeName;
     attrMod.modAttr.attrValuesNumber = 1;
@@ -1723,7 +1734,7 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(
              attributeName, rc);
   }
 
-  if (rc != SA_AIS_OK || avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
+  if (rc != SA_AIS_OK || isImmReady == false) {
     // Now it will be updated through job queue.
     avd_saImmOiRtObjectUpdate(dn, attribute_name, attrValueType, value);
   }
@@ -1875,8 +1886,9 @@ void avd_saImmOiRtObjectCreate_sync(const std::string &className,
   TRACE_ENTER2("%s %s", className.c_str(), parentName.c_str());
 
   SaAisErrorT rc = SA_AIS_OK;
+  bool isImmReady = isImmServiceReady(avd_cb);
 
-  if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+  if (isImmReady == true) {
     const SaNameTWrapper parent_name(parentName);
     rc = saImmOiRtObjectCreate_2(avd_cb->immOiHandle,
         const_cast<SaImmClassNameT>(className.c_str()),
@@ -1887,7 +1899,7 @@ void avd_saImmOiRtObjectCreate_sync(const std::string &className,
     }
   }
 
-  if (rc != SA_AIS_OK || avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
+  if (rc != SA_AIS_OK || isImmReady == false) {
     // Now it will be updated through job queue.
     avd_saImmOiRtObjectCreate(className, parentName, attrValues);
   }
@@ -1930,14 +1942,15 @@ void avd_saImmOiRtObjectCreate(const std::string &className,
 void avd_saImmOiRtObjectDelete_sync(const std::string &dn) {
   TRACE_ENTER2("%s", dn.c_str());
   SaAisErrorT rc = SA_AIS_OK;
+  bool isImmReady = isImmServiceReady(avd_cb);
 
-  if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+  if (isImmReady == true) {
     rc = saImmOiRtObjectDelete_o3(avd_cb->immOiHandle, dn.c_str());
     if (rc != SA_AIS_OK) {
       LOG_WA("saImmOiRtObjectDelete_o3 of '%s' failed with %u", dn.c_str(), rc);
     }
   }
-  if (rc != SA_AIS_OK || avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
+  if (rc != SA_AIS_OK || isImmReady == false) {
     // Now it will be updated through job queue.
     avd_saImmOiRtObjectDelete(dn);
   }
