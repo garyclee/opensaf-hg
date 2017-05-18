@@ -4123,7 +4123,16 @@ uint32_t avnd_evt_ir_evh(struct avnd_cb_tag *cb, struct avnd_evt_tag *evt) {
     }
     TRACE("SU instantiation for PI SUs, running the SU presence state FSM:'%s'",
           su->name.c_str());
-    rc = avnd_su_pres_fsm_run(cb, su, 0, AVND_SU_PRES_FSM_EV_INST);
+    // If SU has been already instantiated, inform amfd
+    if ((cb->led_state == AVND_LED_STATE_RED) &&
+        (su->pres == SA_AMF_PRESENCE_INSTANTIATED) &&
+        (su_all_pi_comps_instantiated(su) == true) &&
+        (m_AVND_SU_OPER_STATE_IS_ENABLED(su))) {
+        TRACE("SU oper state is enabled and pres state is instantiated.");
+        rc = avnd_di_oper_send(cb, su, 0);
+    } else {
+        rc = avnd_su_pres_fsm_run(cb, su, 0, AVND_SU_PRES_FSM_EV_INST);
+    }
   } else {
     if (m_AVND_SU_IS_REG_FAILED(su)) {
       /* The SU configuration is bad, we cannot do much other transition to
