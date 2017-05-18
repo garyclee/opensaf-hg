@@ -103,6 +103,7 @@ static void handle_mbx_event() {
       LOG_NO("Got peer info request from node 0x%x with role %s",
              msg->fr_node_id, Role::to_string(msg->info.peer_info.ha_role));
       CheckForSplitBrain(msg);
+      role->SetPeerState(msg->info.peer_info.ha_role, msg->fr_node_id);
       SendPeerInfoResp(msg->fr_dest);
       break;
     }
