@@ -698,8 +698,8 @@ uint32_t avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt) {
       }
     }
   } else {
-    TRACE("Delete all pending messages to be sent to AMFD");
-    avnd_diq_del(cb);
+    TRACE("Delete/Buffer pending messages to be sent to AMFD");
+    avnd_diq_rec_check_buffered_msg(cb);
   }
 
   // check for pending messages FROM director
@@ -1271,9 +1271,15 @@ void avnd_di_msg_ack_process(AVND_CB *cb, uint32_t mid) {
 }
 
 /****************************************************************************
-  Name          : avnd_diq_del
+  Name          : avnd_diq_rec_check_buffered_msg
 
-  Description   : This routine clears the AvD msg list.
+  Description   : The routine buffers messages that are waiting for ack and will
+                  resend to AMFD when AMFD is up.
+                  All messages are deleted, except following messages to be
+                  buffered:
+                  - AVSV_N2D_INFO_SU_SI_ASSIGN_MSG
+                  - AVSV_N2D_OPERATION_STATE_MSG
+
 
   Arguments     : cb - ptr to the AvND control block
 
@@ -1281,18 +1287,65 @@ void avnd_di_msg_ack_process(AVND_CB *cb, uint32_t mid) {
 
   Notes         : None.
 ******************************************************************************/
-void avnd_diq_del(AVND_CB *cb) {
-  AVND_DND_MSG_LIST *rec = 0;
-
-  do {
-    /* pop the record */
-    m_AVND_DIQ_REC_POP(cb, rec);
-    if (!rec) break;
-
-    /* delete the record */
-    avnd_diq_rec_del(cb, rec);
-  } while (1);
-
+void avnd_diq_rec_check_buffered_msg(AVND_CB *cb) {
+  if ((cb->dnd_list.head != nullptr)) {
+    AVND_DND_MSG_LIST *rec = 0;
+    bool found = true;
+    while (found) {
+      found = false;
+      for (rec = cb->dnd_list.head; rec != nullptr;) {
+        osafassert(rec->msg.type == AVND_MSG_AVD);
+        m_AVND_DIQ_REC_POP(cb, rec);
+        // Assignment response had been sent, but not ack because
+        // last controller go down, reset msg_id and will be resent later
+        if (rec->msg.info.avd->msg_type == AVSV_N2D_INFO_SU_SI_ASSIGN_MSG) {
+          if (rec->msg.info.avd->msg_info.n2d_su_si_assign.msg_id != 0) {
+            rec->msg.info.avd->msg_info.n2d_su_si_assign.msg_id = 0;
+            found = true;
+            LOG_NO(
+                "Found not-ack su_si_assign msg for SU:'%s', "
+                "SI:'%s', ha_state:'%u', msg_act:'%u', single_csi:'%u', "
+                "error:'%u', msg_id:'%u'",
+                osaf_extended_name_borrow(&rec->msg.info.avd->msg_info
+                                               .n2d_su_si_assign.su_name),
+                osaf_extended_name_borrow(&rec->msg.info.avd->msg_info
+                                               .n2d_su_si_assign.si_name),
+                rec->msg.info.avd->msg_info.n2d_su_si_assign.ha_state,
+                rec->msg.info.avd->msg_info.n2d_su_si_assign.msg_act,
+                rec->msg.info.avd->msg_info.n2d_su_si_assign
+                    .single_csi,
+                rec->msg.info.avd->msg_info.n2d_su_si_assign.error,
+                rec->msg.info.avd->msg_info.n2d_su_si_assign.msg_id);
+          }
+          m_AVND_DIQ_REC_PUSH(cb, rec);
+          break;
+        } else if (rec->msg.info.avd->msg_type ==
+              AVSV_N2D_OPERATION_STATE_MSG) {
+          if (rec->msg.info.avd->msg_info.n2d_opr_state.msg_id != 0) {
+            rec->msg.info.avd->msg_info.n2d_opr_state.msg_id = 0;
+            found = true;
+            LOG_NO(
+                "Found not-ack oper_state msg for SU:'%s', "
+                "su_oper_state:'%u', node_oper_state:'%u', recovery:'%u'",
+                osaf_extended_name_borrow(&rec->msg.info.avd->msg_info
+                                               .n2d_opr_state.su_name),
+                rec->msg.info.avd->msg_info.n2d_opr_state
+                    .su_oper_state,
+                rec->msg.info.avd->msg_info.n2d_opr_state
+                    .node_oper_state,
+                rec->msg.info.avd->msg_info.n2d_opr_state.rec_rcvr
+                    .raw);
+          }
+          m_AVND_DIQ_REC_PUSH(cb, rec);
+          break;
+        } else {
+          // delete other messages for now
+          avnd_diq_rec_del(cb, rec);
+          rec = cb->dnd_list.head;
+        }
+      }
+    }
+  }
   return;
 }
 
