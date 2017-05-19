@@ -79,7 +79,7 @@ uint32_t avnd_di_pg_act_send(struct avnd_cb_tag *, const std::string &,
                              AVSV_PG_TRACK_ACT, bool);
 uint32_t avnd_di_msg_send(struct avnd_cb_tag *, AVND_MSG *);
 void avnd_di_msg_ack_process(struct avnd_cb_tag *, uint32_t);
-void avnd_diq_del(struct avnd_cb_tag *);
+void avnd_diq_rec_check_buffered_msg(struct avnd_cb_tag *);
 AVND_DND_MSG_LIST *avnd_diq_rec_add(struct avnd_cb_tag *cb, AVND_MSG *msg);
 void avnd_diq_rec_del(struct avnd_cb_tag *cb, AVND_DND_MSG_LIST *rec);
 void avnd_diq_rec_send_buffered_msg(struct avnd_cb_tag *cb);
