@@ -16,6 +16,9 @@
 # Author(s): Wind River Systems
 #
 
+echo "ERROR: you should use the review script in the GIT repository"
+exit 1
+
 HG=`which hg`
 
 if [ -z $EDITOR ]; then
